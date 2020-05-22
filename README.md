@@ -1,6 +1,6 @@
-# simcore
+# C-GLASS
 
-A modular, object-oriented program for coarse-grained physics simulations, using something I call **SIM**ple-**C**omposite **O**bject **RE**presentation.
+A **C**oarse-**G**rained **L**iving **A**ctive **S**ystem **S**imulator
 
 [![Build Status](https://travis-ci.com/jeffmm/simcore.svg?branch=master)](https://travis-ci.com/jeffmm/simcore)
 
