@@ -402,7 +402,7 @@ For example, in the Filament species there is a persistence length analysis that
 Anaylses are run by running C-GLASS in the following way:
   
 ```
-./C-GLASS -a parameter_file.yaml.
+cglass.exe -a parameter_file.yaml.
 ```
   
 NOTE: It is important to keep in mind that the parameter_file should be identical to the parameter file used to generate the outputs. There are a few exceptions that only affect post-processing, such as analysis flags, but this is true in general.

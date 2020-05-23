@@ -84,6 +84,4 @@ shift $((OPTIND-1))
 
 [ "${1:-}" = "--" ] && shift
 
-echo "FLAGS: ${CMAKE_FLAGS}"
-
 do_build
