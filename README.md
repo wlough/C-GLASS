@@ -37,7 +37,7 @@ You may also build the Docker image yourself by providing the launch script with
 To launch C-GLASS, run
 
 ```bash
-docker exec cglass_latest c-glass [optional-flags] [parameter-file]
+docker exec cglass_latest cglass.exe [optional-flags] [parameter-file]
 ```
 
 ### Running with Singularity
