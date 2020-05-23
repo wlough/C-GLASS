@@ -13,7 +13,7 @@ A **C**oarse-**G**rained **L**iving **A**ctive **S**ystem **S**imulator
 
 First clone the repo, including submodule dependencies.
 ```
-git clone --recursive https://github.com/jeffmm/C-GLASS
+git clone --recursive https://github.com/Betterton-Lab/C-GLASS
 cd C-GLASS
 ```
 C-GLASS can either be run in a container using Docker or Singularity, or be built from source using CMake.
