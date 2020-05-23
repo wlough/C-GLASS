@@ -2,31 +2,31 @@
 
 A **C**oarse-**G**rained **L**iving **A**ctive **S**ystem **S**imulator
 
-[![Build Status](https://travis-ci.com/jeffmm/simcore.svg?branch=master)](https://travis-ci.com/jeffmm/simcore)
+[![Build Status](https://travis-ci.com/jeffmm/C-GLASS.svg?branch=master)](https://travis-ci.com/jeffmm/C-GLASS)
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.2571982.svg)](https://doi.org/10.5281/zenodo.2571982)
 
 
-![A simulation using simcore](figs/simcore_snapshot.png "A simulation using simcore")
+![A simulation using C-GLASS](figs/C-GLASS_snapshot.png "A simulation using C-GLASS")
 
 ## Installation
 
 First clone the repo, including submodule dependencies.
 ```
-git clone --recursive https://github.com/jeffmm/simcore
-cd simcore
+git clone --recursive https://github.com/jeffmm/C-GLASS
+cd C-GLASS
 ```
-simcore can either be run in a container using Docker or Singularity, or be built from source using CMake.
+C-GLASS can either be run in a container using Docker or Singularity, or be built from source using CMake.
 
 ### Running with Docker
 
-A pre-built image of simcore is available as a [Docker](https://www.docker.com/) image. To download the image, run
+A pre-built image of C-GLASS is available as a [Docker](https://www.docker.com/) image. To download the image, run
 
 ```bash
-docker pull jeffmm/simcore
+docker pull jeffmm/cglass
 ```
 
-To use the image, run the provided script to launch a Docker container named `simcore_latest` in the background
+To use the image, run the provided script to launch a Docker container named `cglass_latest` in the background
 
 ```bash
 ./launch_docker.sh
@@ -34,29 +34,29 @@ To use the image, run the provided script to launch a Docker container named `si
 
 You may also build the Docker image yourself by providing the launch script with the `-b` flag.
 
-To launch simcore, run
+To launch C-GLASS, run
 
 ```bash
-docker exec simcore_latest simcore.exe [optional-flags] [parameter-file]
+docker exec cglass_latest c-glass [optional-flags] [parameter-file]
 ```
 
 ### Running with Singularity
 
-If you are using Singularity, simcore is also available as a Singularity image. The command
+If you are using Singularity, C-GLASS is also available as a Singularity image. The command
 
 ```bash
-singularity pull shub://jeffmm/simcore
+singularity pull shub://jeffmm/cglass
 ```
 
-will create a local file named `simcore_latest.sif`. You may then run
+will create a local file named `cglass_latest.sif`. You may then run
 
 ```bash
-singularity exec simcore_latest.sif simcore.exe [optional-flags] [parameter-file]
+singularity exec cglass_latest.sif cglass.exe [optional-flags] [parameter-file]
 ```
 
 ### Building from source
 
-simcore is ready to be built from source using CMake, provided several dependencies are installed:
+C-GLASS is ready to be built from source using CMake, provided several dependencies are installed:
   * CMake (version 3.13+)
   * [libyaml-cpp](https://github.com/jbeder/yaml-cpp)
   * libgsl-dev
@@ -64,13 +64,13 @@ simcore is ready to be built from source using CMake, provided several dependenc
   * libfftw3-dev
   * libboost-math1.67-dev
 
-Included is a script for building simcore with CMake. To build simcore (without graphics or parallelization) run
+Included is a script for building C-GLASS with CMake. To build C-GLASS (without graphics or parallelization) run
 
 ```bash
 ./install.sh
 ```
 
-There are additional flags for building with OpenMP, building with graphics, installing simcore in `/usr/local`, etc. To see a menu of options, run 
+There are additional flags for building with OpenMP, building with graphics, installing C-GLASS in `/usr/local`, etc. To see a menu of options, run 
 
 ```bash
 ./install.sh -h
@@ -78,7 +78,7 @@ There are additional flags for building with OpenMP, building with graphics, ins
 
 ### Building with graphics
 
-simcore is available with graphics for Mac OSX. To install on Mac OSX, you will need the glew and glfw3 libraries, both of which can be installed using [Homebrew](https://brew.sh/).
+C-GLASS is available with graphics for Mac OSX. To install on Mac OSX, you will need the glew and glfw3 libraries, both of which can be installed using [Homebrew](https://brew.sh/).
 
 ```bash
 brew install glew
@@ -87,14 +87,14 @@ brew install glfw
 
 You may also need to help CMake find your OpenGL Framework libraries.
 
-Several other libraries are required for running simcore with graphics on Linux or in WSL. See the `src/CMakeLists.txt` file for a comprehensive list of libraries passed to the compiler when building simcore with graphics on WSL.
+Several other libraries are required for running C-GLASS with graphics on Linux or in WSL. See the `src/CMakeLists.txt` file for a comprehensive list of libraries passed to the compiler when building C-GLASS with graphics on WSL.
 
-## Running simcore
+## Running C-GLASS
 
-The simcore executable is run as
+The C-GLASS executable is run as
 
 ```
-simcore.exe [optional-flags] [parameter-file] 
+cglass [optional-flags] [parameter-file] 
 ```
 
 The following flags are available:
@@ -135,7 +135,7 @@ The following flags are available:
     is the number of reloads performed on that simulation.
 
 --with-reloads, -w
-    If running analyses or making movies, simcore will look for parameter files
+    If running analyses or making movies, C-GLASS will look for parameter files
     that have the same run name but with the reload00n addendum and attempt to
     open the corresponding output files whenever it reached EOF while reading
     an output file.
@@ -147,7 +147,7 @@ The following flags are available:
     processors and/or machines.
 
 --auto-graph, -G
-    By default, simcore will wait for the user to press the ESC key in the
+    By default, C-GLASS will wait for the user to press the ESC key in the
     OpenGL graphics window before starting to run the simulation. Providing
     this flag will cause the simulation to begin immediately without user
     input. Goes great with the -m flag for creating multiple movies without
@@ -175,7 +175,7 @@ See the `examples` folder for examples of parameter files.
 
 Notice that there are three parameter types: global parameters, global species parameters, and species parameters. Global parameters are parameters that are common to the entire system, such system size, integration time step, etc. Species parameters are unique to the specified species, such as `filament`. There is also an optional global species parameter type that affects every species, such as the frequency to write to output files.
 
-What do I mean by species? simcore assumes that any given simulation will likely have many copies of one kind of thing, which I call a species, perhaps interacting with other species of other kinds. In a system of interacting spheres, the species is 'sphere.' In a system of interacting semiflexible filaments, the species is 'filament.' Simulations can have many types of species all interacting with each other with different species-species interaction potentials.
+What do I mean by species? C-GLASS assumes that any given simulation will likely have many copies of one kind of thing, which I call a species, perhaps interacting with other species of other kinds. In a system of interacting spheres, the species is 'sphere.' In a system of interacting semiflexible filaments, the species is 'filament.' Simulations can have many types of species all interacting with each other with different species-species interaction potentials.
  
 If any parameter is not specified in the parameter file, any instance of that parameter in the simulation will assume its default value specified in the `config/default_config.yaml` file.
 
@@ -247,7 +247,7 @@ n_checkpoint
 
 ### Running unit tests
 
-One may run simcore's unit tests by passing `-DTESTS=TRUE` to CMake
+One may run C-GLASS's unit tests by passing `-DTESTS=TRUE` to CMake
 
 ```bash
 mkdir build
@@ -259,7 +259,7 @@ make test
 
 ### Adding new parameters
 
-simcore comes with it's own parameter initialization tool, `configure_simcore.exe`, which is installed automatically along with the simcore binary using CMake. The configurator makes it easy to add new parameters to the simulation without mucking around in the source code. Just add your new parameter to `config/default_config.yaml` file using the following format: 
+C-GLASS comes with it's own parameter initialization tool, `configure_C-GLASS.exe`, which is installed automatically along with the C-GLASS binary using CMake. The configurator makes it easy to add new parameters to the simulation without mucking around in the source code. Just add your new parameter to `config/default_config.yaml` file using the following format: 
 
 ```
 new_parameter_name: [default_parameter_value, parameter_type] 
@@ -268,14 +268,14 @@ new_parameter_name: [default_parameter_value, parameter_type]
 Then run the configurator using
 
 ```
-./configure_simcore.exe config/default_config.yaml
+./configure_cglass config/default_config.yaml
 ```
 
-Running simcore_config will look at all the parameters in the default config file and add them seamlessly to the proper simcore headers, and you can begin using them after recompiling simcore using CMake.
+Running configure_cglass will look at all the parameters in the default config file and add them seamlessly to the proper C-GLASS headers, and you can begin using them after recompiling C-GLASS using CMake.
 
 ### Parameter sets
 
-Using parameter sets, it becomes easier to run many simulations over a given parameter space. There are two types of parameter sets possible with simcore: defined and random. Each parameter set type works the same with both global parameters and species parameters.
+Using parameter sets, it becomes easier to run many simulations over a given parameter space. There are two types of parameter sets possible with C-GLASS: defined and random. Each parameter set type works the same with both global parameters and species parameters.
 
 #### Defined parameter sets
   
@@ -290,7 +290,7 @@ parameter_name2: [V, param_value2, param_value3]
 parameter_name3: [V, param_value4, param_value5]
 ```
 
-Parameters specified in this way (as lists of parameters) will be iterated over until every possible combination of parameters has been run. In this example, simcore will run N simulations each of the following 4 parameter sets:
+Parameters specified in this way (as lists of parameters) will be iterated over until every possible combination of parameters has been run. In this example, C-GLASS will run N simulations each of the following 4 parameter sets:
 
 ```
 seed: random_seed_1
@@ -336,21 +336,21 @@ parameter_name3: [RINT, C, D] # sets to random int in range [C,D]
 parameter_name4: [RLOG, F, G] # sets to 10^K for rand real K in range (F,G)
 ```
 
-Given this parameter file, simcore will run N simulations each of M random parameter sets. The random parameter sets are generated in ranges specified in the lists that are prefixed by the R, RINT, RLOG options.
+Given this parameter file, C-GLASS will run N simulations each of M random parameter sets. The random parameter sets are generated in ranges specified in the lists that are prefixed by the R, RINT, RLOG options.
 
-In this example, the sampled parameter space has dimensionality of n=3, since there are only three parameters we are sampling over. Each parameter set will have a random real number for parameter_name2 in the the range (A,B), a random integer in the range [C,D] for parameter_name3, and will set parameter_name4 to 10^K for random real number K in the range (F,G).  simcore will then run each parameter set N times each with a unique seed, and repeat this random process M times. It will therefore take N samples of M random points in the n-dimensional parameter space.  
+In this example, the sampled parameter space has dimensionality of n=3, since there are only three parameters we are sampling over. Each parameter set will have a random real number for parameter_name2 in the the range (A,B), a random integer in the range [C,D] for parameter_name3, and will set parameter_name4 to 10^K for random real number K in the range (F,G).  C-GLASS will then run each parameter set N times each with a unique seed, and repeat this random process M times. It will therefore take N samples of M random points in the n-dimensional parameter space.  
 
 ### Interactions
   
-The InteractionEngine in simcore was written with short-range interactions in mind. For this reason, interactions are treated by considering pair-wise interactions between neighboring interactor-elements that make up a composite object (e.g. small, rigid segments that compose a flexible filament). For this reason, interactions use cell lists to improve performance. Furthermore, simulating large objects in simcore requires representing the object as a composite of smaller, simple objects (thus, SIMple Composite Object REpresentation). An example of how a large object should be decomposed into simple objects is done in the Filament class.
+The Interaction Manager in C-GLASS was written with short-range interactions in mind. For this reason, interactions are treated by considering pair-wise interactions between neighboring interactor-elements that make up a composite object (e.g. small, rigid segments that compose a flexible filament). For this reason, interactions use cell lists to improve performance. Furthermore, simulating large objects in C-GLASS requires representing the object as a composite of smaller, simple objects. An example of how a large object should be decomposed into simple objects is done in the Filament class.
 
 ### Potentials
   
-simcore is designed to be able to use interchangable potentials for various objects. However, potentials need to be added manually as a subclass of PotentialBase, included in PotentialManager, and a corresponding potential_type added to definitions.h for lookup purposes (see the InitPotentials method in PotentialManager.h for examples).
+C-GLASS is designed to be able to use interchangable potentials for various objects. However, potentials need to be added manually as a subclass of PotentialBase, included in PotentialManager, and a corresponding potential_type added to definitions.h for lookup purposes (see the InitPotentials method in PotentialManager.h for examples).
 
 ### Outputs
   
-simcore has four output types. Three are species specific (posit, spec, checkpoint), and the fourth is the statistical information file (thermo). All files are written in binary.
+C-GLASS has four output types. Three are species specific (posit, spec, checkpoint), and the fourth is the statistical information file (thermo). All files are written in binary.
 
 The posit file has the following header format:
 
@@ -397,15 +397,15 @@ If analysis operations of output files are already defined for your species, as 
 
 For example, in the Filament species there is a persistence length analysis that produces .mse2e files that tracks the mean-square end-to-end distance of semiflexible filaments. This is triggered by a parameter lp_analysis=1, which can be set in the parameter file.
 
-Anaylses are run by running simcore in the following way:
+Anaylses are run by running C-GLASS in the following way:
   
 ```
-./simcore -a parameter_file.yaml.
+./C-GLASS -a parameter_file.yaml.
 ```
   
 NOTE: It is important to keep in mind that the parameter_file should be identical to the parameter file used to generate the outputs. There are a few exceptions that only affect post-processing, such as analysis flags, but this is true in general.
 
-The way inputs and outputs are meant to work in simcore is such that during a simulation, output data are generated in the posit, spec, and checkpoint formats, and during analysis, the same output data are read back into the data structures in simcore for processing. The .posit files just contain bare-bones information that allow many types of simple analyses, but .spec files should in general contain all the necessary information to recreate the trajectory for a member of a species. 
+The way inputs and outputs are meant to work in C-GLASS is such that during a simulation, output data are generated in the posit, spec, and checkpoint formats, and during analysis, the same output data are read back into the data structures in C-GLASS for processing. The .posit files just contain bare-bones information that allow many types of simple analyses, but .spec files should in general contain all the necessary information to recreate the trajectory for a member of a species. 
 
 For a new species analysis method, the analysis routines should be defined in the species container class, rather than the species member class, and called by the inherited RunAnalysis method of the SpeciesBase class (and likewise for analysis initialization and finalization, see examples for details).
 
@@ -415,15 +415,15 @@ For example, the RunSpiralAnalysis routine is called by the RunAnalysis method i
 The directory structure is as follows:
 
 ```
-simcore
+C-GLASS
 ├── include
-│   └── simcore
+│   └── C-GLASS
 │       └── (header files)
 ├── src
 │   ├── CMakeLists.txt
 │   ├── executable
 │   │   ├── CMakeLists.txt
-│   │   └── simcore_main.cpp
+│   │   └── C-GLASS_main.cpp
 │   ├── configurator
 │   │   ├── CMakeLists.txt
 │   │   └── configurator.cpp
@@ -444,7 +444,7 @@ simcore
 │   ├── CMakeLists.txt
 │   ├── catch2
 │   │   └── catch.hpp
-│   └── (simcore unit tests)
+│   └── (C-GLASS unit tests)
 ├── docs
 │   ├── CMakeLists.txt
 │   └── main.md
@@ -459,13 +459,9 @@ simcore
 └── .gitignore
 ```
 
-## About simcore
+## About C-GLASS
 
-simcore is written in C++ and designed for coarse-grained physics simulations with modularity and scalability in mind. All objects in the simulation are representable as a composite of what I call "simple" objects (points, spheres, rigid cylinders, and 2d polygon surfaces would all qualify). For short-range interactions, simcore uses cell and neighbor lists for improved performance and OpenMP for parallelization.
-
-Although simcore is meant to be a generalized molecular/Brownian dynamics simulation engine, thanks to the narrow focus of my PhD research, it has up until now almost exclusively been used to model semiflexible filaments, and for that reason has come closer to resembling single-purpose software. It's still quite easy, for example, to use simcore for basic molecular dynamics simulations of interacting point-like particles. Modularity is still there in the basic design, so in the future I may add more object types, but as far as pre-written object types go, _it's all about the filaments_.
-
-simcore was written for my personal academic use and in its current state is not intended to be used by the general public. If you are insane and would like to run simcore for whatever reason, feel free contact me for help and if I have time I can try to offer assistance. 
+C-GLASS is written in C++ and designed for general coarse-grained physics simulations of active living matter, produced with modularity and scalability in mind. All objects in the simulation are representable as a composite of what I call "simple" objects (points, spheres, rigid cylinders, and 2d polygon surfaces would all qualify). For short-range interactions, C-GLASS uses cell and neighbor lists for improved performance and OpenMP for parallelization.
 
 ## License
 
