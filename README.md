@@ -45,7 +45,7 @@ docker exec cglass_latest cglass.exe [optional-flags] [parameter-file]
 If you are using Singularity, C-GLASS is also available as a Singularity image. The command
 
 ```bash
-singularity pull shub://jeffmm/cglass
+singularity pull docker://jeffmm/cglass
 ```
 
 will create a local file named `cglass_latest.sif`. You may then run
@@ -53,6 +53,8 @@ will create a local file named `cglass_latest.sif`. You may then run
 ```bash
 singularity exec cglass_latest.sif cglass.exe [optional-flags] [parameter-file]
 ```
+
+The Singularity image may also be built locally using the provided recipe in the file `Singularity`
 
 ### Building from source
 
@@ -417,13 +419,13 @@ The directory structure is as follows:
 ```
 C-GLASS
 ├── include
-│   └── C-GLASS
+│   └── cglass
 │       └── (header files)
 ├── src
 │   ├── CMakeLists.txt
 │   ├── executable
 │   │   ├── CMakeLists.txt
-│   │   └── C-GLASS_main.cpp
+│   │   └── cglass_main.cpp
 │   ├── configurator
 │   │   ├── CMakeLists.txt
 │   │   └── configurator.cpp
