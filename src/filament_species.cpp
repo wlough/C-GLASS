@@ -1,4 +1,4 @@
-#include "simcore/filament_species.hpp"
+#include "cglass/filament_species.hpp"
 
 FilamentSpecies::FilamentSpecies(unsigned long seed) : Species(seed) {
   SetSID(species_id::filament);

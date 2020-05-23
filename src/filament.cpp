@@ -1,4 +1,4 @@
-#include "simcore/filament.hpp"
+#include "cglass/filament.hpp"
 
 Filament::Filament(unsigned long seed) : Mesh(seed) {
   SetSID(species_id::filament);

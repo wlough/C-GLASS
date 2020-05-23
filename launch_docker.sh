@@ -1,19 +1,19 @@
 #! /bin/bash
 #
-# Run to launch a docker container named "simcore_latest".
+# Run to launch a docker container named "cglass_latest".
 # Provide the flag '-b' to force rebuilding the project image:
 # >> ./run_docker.sh -b
 # Provide the flag '-x' to launch/build experimental image from jmm/experimental branch
 # >> ./run_docker.sh -bx
 
 show_help() {
-    echo "Without additional options, $0 launches a docker container named simcore_latest to run in the background"
+    echo "Without additional options, $0 launches a docker container named cglass_latest to run in the background"
     echo "USAGE:"
     echo "  $0 [-hbx]"
     echo "OPTIONS:"
     echo "  -h      show this menu"
-    echo "  -b      force rebuild of simcore Docker image"
-    echo "  -x      build/launch experimental version of simcore Docker image"
+    echo "  -b      force rebuild of C-GLASS Docker image"
+    echo "  -x      build/launch experimental version of C-GLASS Docker image"
 }
 
 # Reset in case getopts has been used previously in the shell.
@@ -42,16 +42,16 @@ shift $((OPTIND-1))
 if $build; then
     if $experimental; then
         echo "Building experimental docker image"
-        docker build --no-cache -f docker/Dockerfile_experimental -t jeffmm/simcore:experimental docker
+        docker build --no-cache -f docker/Dockerfile_experimental -t jeffmm/cglass:experimental docker
     else
         echo "Building docker image"
-        docker build --no-cache -t jeffmm/simcore:latest docker
+        docker build --no-cache -t jeffmm/cglass:latest docker
     fi
 elif $experimental; then
-    echo "Launching experimental simcore docker container"
-    docker run --rm -itd -v "${PWD}":/mnt --name "simcore_experimental" jeffmm/simcore:experimental bash
+    echo "Launching experimental C-GLASS docker container"
+    docker run --rm -itd -v "${PWD}":/mnt --name "cglass_experimental" jeffmm/cglass:experimental bash
 # Otherwise, just start up the containers
 else
-  echo "Launching simcore docker container"
-  docker run --rm -itd -v "${PWD}":/mnt --name "simcore_latest" jeffmm/simcore bash
+  echo "Launching C-GLASS docker container"
+  docker run --rm -itd -v "${PWD}":/mnt --name "cglass_latest" jeffmm/cglass bash
 fi

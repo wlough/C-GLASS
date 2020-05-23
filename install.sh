@@ -32,14 +32,14 @@ show_help() {
     echo "OPTIONS:"
     echo "  -h      show this menu"
     echo "  -c      clean build directory"
-    echo "  -I      install simcore locally after building"
-    echo "  -g      build simcore with graphics"
-    echo "  -w      build simcore in Windows"
-    echo "  -o      build simcore with OpenMP parallelization"
+    echo "  -I      install C-GLASS locally after building"
+    echo "  -g      build C-GLASS with graphics"
+    echo "  -w      build C-GLASS in Windows"
+    echo "  -o      build C-GLASS with OpenMP parallelization"
     echo "  -d      build Doxygen documentation"
-    echo "  -t      build and run simcore unit tests"
-    echo "  -D      build simcore in Debug mode"
-    echo "  -T      build simcore in Trace mode (verbose logging)"
+    echo "  -t      build and run C-GLASS unit tests"
+    echo "  -D      build C-GLASS in Debug mode"
+    echo "  -T      build C-GLASS in Trace mode (verbose logging)"
 }
 
 # A POSIX variable
@@ -83,5 +83,7 @@ done
 shift $((OPTIND-1))
 
 [ "${1:-}" = "--" ] && shift
+
+echo "FLAGS: ${CMAKE_FLAGS}"
 
 do_build

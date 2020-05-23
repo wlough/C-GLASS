@@ -1,4 +1,4 @@
-# config_params.yaml file: When simcore_config is run, this file is read to generate 
+# default_config.yaml file: When configure_cglass is run, this file is read to generate 
 # system_parameters structure as well as code for parsing parameters in parameter yaml file.
 
 seed : [7859459105545, long]         # Seed for random number generator, sets initial conditions.
@@ -25,7 +25,7 @@ graph_diameter : [0, double]         # If > 0, draws particles with a diameter o
 invert_background : [false, bool]    # If false, black background, otherwise white background.
 draw_boundary: [true, bool]          # If set to zero, does not draw system boundary conditions.
 load_checkpoint: [false, bool]       # Flag for reading checkpoint file corresponding to
-                                     # input parameter file. Equiv to "./simcore -l params.yaml"
+                                     # input parameter file. Equiv to "cglass -l params.yaml"
 checkpoint_run_name: [sc, string]    # Internal parameter for tracking checkpoint file run name.
 n_load: [0, int]                     # Internal parameter for keeping track of reload numbers
 movie_flag : [false, bool]           # Generate bitmaps of graphics window to movie_directory
@@ -93,7 +93,7 @@ highlight_overlaps: [false, bool]    # Highlights objects that are overlapping i
                                      # graphics.
 reduced: [false, bool]               # Internal parameter used to track reductions.
 reload_reduce_switch: [false, bool]  # If a reduction is performed before a reload, this parameter
-                                     # tells simcore to look for the proper file name, e.g.
+                                     # tells C-GLASS to look for the proper file name, e.g.
                                      # run_name_reduced_xx_reload_yy_params.yaml instead of
                                      # run_name_reload_yy_reduced_xx_params.yaml.
 checkpoint_flag: [false, bool]       # Generate a checkpoint file every n_checkpoint steps that 

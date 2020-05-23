@@ -1,4 +1,4 @@
-#include "simcore/minimum_distance.hpp"
+#include "cglass/minimum_distance.hpp"
 
 #define SMALL 1.0e-12
 

@@ -1,4 +1,4 @@
-#include "simcore/spindle_species.hpp"
+#include "cglass/spindle_species.hpp"
 
 SpindleSpecies::SpindleSpecies(unsigned long seed) : Species(seed) {
   SetSID(species_id::spindle);

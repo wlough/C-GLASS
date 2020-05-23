@@ -22,16 +22,16 @@ From: debian:10.2-slim
     rm -rf ~/.cache
     mkdir /build
     cd /build
-    git clone --recursive --single-branch https://github.com/jeffmm/simcore.git .
+    git clone --recursive --single-branch https://github.com/Betterton-Lab/C-GLASS.git .
     ./install.sh -otI
     rm -rf /build
 
 %runscript
-    simcore.exe $*
+    cglass.exe $*
 
 %test
-    simcore.exe --version
+    cglass.exe --version
 
 %help
-    Usage: `singularity run <simcore container> [flags...] <parameter file>`
+    Usage: `singularity run <C-GLASS container> [flags...] <parameter file>`
 

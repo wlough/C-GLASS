@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --job-name=simcore
+#SBATCH --job-name=cglass
 #SBATCH --time 00:30:00
 #SBATCH --nodes 1
 #SBATCH --ntasks 1
@@ -16,7 +16,7 @@
 module purge
 module load singularity/3.3.0
 
-echo "Executing simcore job ${SLURM_JOB_ID} on ${SLURM_CPUS_PER_TASK} threads"
+echo "Executing cglass job ${SLURM_JOB_ID} on ${SLURM_CPUS_PER_TASK} threads"
 export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK}
 
-singularity run simcore_latest.sif ./simcore.exe params.yaml
+singularity run cglass_latest.sif ./cglass.exe params.yaml

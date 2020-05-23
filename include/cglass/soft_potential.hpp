@@ -1,0 +1,77 @@
+#ifndef _CGLASS_SOFT_POTENTIAL_H_
+#define _CGLASS_SOFT_POTENTIAL_H_
+
+#include "auxiliary.hpp"
+#include "interaction.hpp"
+#include "potential_base.hpp"
+
+class SoftPotential : public PotentialBase {
+ protected:
+  double eps_, eps_target_, target_step_;
+  int *i_step_, current_step_;
+
+ public:
+  SoftPotential() {}
+  void CalcPotential(Interaction &ix) {
+    if (current_step_ != *i_step_) {
+      int n_steps = *i_step_ - current_step_;
+      current_step_ = *i_step_;
+      if (ABS(eps_ - eps_target_) > 0.5 * ABS(target_step_)) {
+        eps_ += n_steps * target_step_;
+        if ((target_step_ > 0 && eps_ > eps_target_) ||
+            (target_step_ < 0 && eps_ < eps_target_)) {
+          eps_ = eps_target_;
+        }
+        // printf("%d, %2.6f\n",current_step_,eps_);
+      }
+    }
+    double rmag = sqrt(ix.dr_mag2);
+    double r6 = pow(rmag, 6);
+    double r8 = r6 * rmag * rmag;
+    double R = ix.buffer_mag;
+    double R8inv = 1.0 / pow(R, 8);
+    double exp1 = eps_ * exp(-r8 * R8inv);
+    /* Note that I am intentionally leaving off one factor of dr in
+     * the equation for the force here */
+    double ffac = -8.0 * r6 * (exp1 * R8inv);
+    double *dr = ix.dr;
+    /* Cut off the force at a maximum of fmax */
+    if (ABS(ffac) > max_force_) {
+      MaxForceViolation();
+      ffac = SIGNOF(ffac) * max_force_;
+    }
+    double fmag = 0.0;
+    for (int i = 0; i < n_dim_; ++i) {
+      /* The final factor of dr is applied HERE */
+      ix.force[i] = ffac * dr[i];
+      fmag += ix.force[i] * ix.force[i];
+    }
+    // printf("%2.2f %2.2f %2.2f\n", dr[0], dr[1], dr[2]);
+    // printf("%2.2f\n", sqrt(fmag));
+    for (int i = 0; i < n_dim_; ++i)
+      for (int j = 0; j < n_dim_; ++j)
+        ix.stress[n_dim_ * i + j] = -dr[i] * ix.force[j];
+    ix.pote = exp1;
+  }
+
+  void InitPotentialParams(system_parameters *params) {
+    // Initialize potential params
+    eps_ = params->soft_potential_mag;
+    eps_target_ = eps_;
+    if (params->soft_potential_mag_target > 0) {
+      eps_target_ = params->soft_potential_mag_target;
+    }
+
+    target_step_ = (eps_target_ - eps_) / params->n_steps_target;
+    i_step_ = &(params->i_step);
+    current_step_ = 0;
+
+    // For SoftPotential potentials, the rcutoff is
+    // restricted to be at 2^(1/6)sigma
+
+    rcut_ = 3;  // goes quickly to zero after 1.2*rs_
+    rcut2_ = rcut_ * rcut_;
+  }
+};
+
+#endif

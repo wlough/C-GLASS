@@ -1,9 +1,9 @@
 #include <stdlib.h>
 #include <iostream>
-#include <simcore/simulation_manager.hpp>
+#include <cglass/simulation_manager.hpp>
 
 /*************************
-   ::SimCORE Main::
+   ::C-GLASS Main::
    Parse commandline flags and start simulation manager
 **************************/
 int main(int argc, char *argv[]) {

@@ -1,4 +1,4 @@
-#include "simcore/space.hpp"
+#include "cglass/space.hpp"
 
 // Constructor for array reference construction
 Space::Space() {

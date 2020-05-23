@@ -3,7 +3,7 @@
 #define TESTS
 #endif
 
-#include <simcore/simulation_manager.hpp>
+#include <cglass/simulation_manager.hpp>
 #include "catch.hpp"
 
 template <> class UnitTest<SimulationManager> {

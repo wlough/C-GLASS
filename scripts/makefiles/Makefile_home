@@ -85,18 +85,18 @@ endif
 
 # Now we have to figure out which we are building of the program list, since that matters
 # for things like not compiling more than one main
-SIMCORE_SOURCE = $(SRCDIR)/simcore_main.cpp
-CONFIGURE_SIMCORE_SOURCE = $(SRCDIR)/simcore_config.cpp
+CGLASS_SOURCE = $(SRCDIR)/cglass_main.cpp
+CONFIGURE_CGLASS_SOURCE = $(SRCDIR)/cglass_config.cpp
 EXCLUDE_SOURCES = 
 
-MAIN_SOURCES = $(SIMCORE_SOURCE) $(CONFIGURE_SIMCORE_SOURCE)
+MAIN_SOURCES = $(CGLASS_SOURCE) $(CONFIGURE_CGLASS_SOURCE)
 
 # These are the common sources
 SRCS = $(filter-out $(MAIN_SOURCES) $(EXCLUDE_SOURCES), $(SOURCES))
 
 OBJECTS = $(SRCS:$(SRCDIR)/%.$(SRCEXT)=$(OBJDIR)/%.o)
-SIMCORE_MAIN_OBJ = $(SIMCORE_SOURCE:$(SRCDIR)/%.$(SRCEXT)=$(OBJDIR)/%.o)
-CONFIGURE_SIMCORE_OBJ = $(CONFIGURE_SIMCORE_SOURCE:$(SRCDIR)/%.$(SRCEXT)=$(OBJDIR)/%.o)
+CGLASS_MAIN_OBJ = $(CGLASS_SOURCE:$(SRCDIR)/%.$(SRCEXT)=$(OBJDIR)/%.o)
+CONFIGURE_CGLASS_OBJ = $(CONFIGURE_CGLASS_SOURCE:$(SRCDIR)/%.$(SRCEXT)=$(OBJDIR)/%.o)
 DEPS = $(OBJECTS:.o=.d)
 
 .PHONY: dirs
@@ -114,14 +114,14 @@ clean-output :
 	rm -f *.posit *.config *.thermo *.initial_config.* *.final_config *.final_config.* \
 	*.checkpoint.* *.checkpoint *.thermo_ext sphero.crosslinks.* test-log
 
-simcore: dirs $(BINDIR)/simcore;cp $(BINDIR)/simcore simcore
+cglass: dirs $(BINDIR)/cglass;cp $(BINDIR)/cglass cglass
 
-simcore_config: dirs $(BINDIR)/simcore_config;cp $(BINDIR)/simcore_config simcore_config
+cglass_config: dirs $(BINDIR)/cglass_config;cp $(BINDIR)/cglass_config cglass_config
 
-$(BINDIR)/simcore: $(OBJECTS) $(SIMCORE_MAIN_OBJ)
+$(BINDIR)/cglass: $(OBJECTS) $(CGLASS_MAIN_OBJ)
 	$(CXX) $^ -o $@ $(LDFLAGS) $(LIBS) 
 
-$(BINDIR)/simcore_config: $(CONFIGURE_SIMCORE_OBJ)
+$(BINDIR)/cglass_config: $(CONFIGURE_CGLASS_OBJ)
 	$(CXX) $(LDFLAGS) $(LIBS) $^ -o $@
 
 # add dependencies

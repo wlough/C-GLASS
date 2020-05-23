@@ -1,4 +1,4 @@
-# Add the simcore executable
-add_executable(simcore.exe "main.cpp")
-target_link_libraries(simcore.exe simcore)
-install(TARGETS simcore.exe DESTINATION bin)
+# Add the cglass executable
+add_executable(cglass.exe "main.cpp")
+target_link_libraries(cglass.exe cglass)
+install(TARGETS cglass.exe DESTINATION bin)

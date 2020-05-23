@@ -27,8 +27,8 @@ RUN wget https://github.com/jbeder/yaml-cpp/archive/yaml-cpp-0.6.0.tar.gz &&\
     cd yaml-cpp-yaml-cpp-0.6.0 &&\
     mkdir build && cd build && cmake .. && make -j4  && make install
 
-RUN git clone --recursive --single-branch --branch master https://github.com/jeffmm/simcore.git &&\
-    cd simcore &&\
+RUN git clone --recursive --single-branch --branch master https://github.com/Betterton-Lab/C-GLASS.git &&\
+    cd C-GLASS &&\
     ./install.sh -tI
 
 RUN rm -rf /build

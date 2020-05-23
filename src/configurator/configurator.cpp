@@ -43,14 +43,14 @@ private:
 
 public:
   Configurator(std::string default_config_file)
-      : parse_params_("include/simcore/parse_params.hpp", std::ios_base::out),
-        parameters_("include/simcore/parameters.hpp", std::ios_base::out),
-        default_config_("include/simcore/default_params.hpp",
+      : parse_params_("include/cglass/parse_params.hpp", std::ios_base::out),
+        parameters_("include/cglass/parameters.hpp", std::ios_base::out),
+        default_config_("include/cglass/default_params.hpp",
                         std::ios_base::out) {
     node_ = YAML::LoadFile(default_config_file);
   }
 
-  void ConfigureSimcore();
+  void ConfigureCGlass();
 };
 
 struct stat info;
@@ -60,19 +60,19 @@ int main(int argc, char *argv[]) {
     return parse_error();
   }
 
-  char pathname[] = "include/simcore";
+  char pathname[] = "include/cglass";
   if (stat(pathname, &info) != 0) {
     printf("Cannot find %s: Are you in the project's root directory?\n", pathname);
     exit(1);
   } else if (info.st_mode & S_IFDIR) {
-    printf("Configuring simcore parameters\n");
+    printf("Configuring cglass parameters\n");
   } else {
     printf("%s is not a directory.\n", pathname);
     exit(1);
   }
   try {
     Configurator config(argv[1]);
-    config.ConfigureSimcore();
+    config.ConfigureCGlass();
   } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
     return parse_error();
@@ -80,7 +80,7 @@ int main(int argc, char *argv[]) {
   return 0;
 }
 
-void Configurator::ConfigureSimcore() {
+void Configurator::ConfigureCGlass() {
   WriteParameters();
   WriteParseParams();
   WriteDefaultParams();
@@ -88,8 +88,8 @@ void Configurator::ConfigureSimcore() {
 
 void Configurator::WriteParameters() {
   // Write header
-  parameters_ << "#ifndef _SIMCORE_PARAMETERS_H_\n"
-                 "#define _SIMCORE_PARAMETERS_H_\n\n"
+  parameters_ << "#ifndef _CGLASS_PARAMETERS_H_\n"
+                 "#define _CGLASS_PARAMETERS_H_\n\n"
                  "#include \"definitions.hpp\"\n\n"
                  "#include <string>\n\n"
                  "template <unsigned char S> struct species_parameters"
@@ -140,7 +140,7 @@ void Configurator::WriteParameters() {
       }
     }
     // Write end of file
-    parameters_ << "};\n\n#endif // _SIMCORE_PARAMETERS_H_";
+    parameters_ << "};\n\n#endif // _CGLASS_PARAMETERS_H_";
     parameters_.close();
   }
 }
@@ -204,8 +204,8 @@ void Configurator::WriteDefaultParams() {
 void Configurator::WriteParseParams() {
   // Write header
   parse_params_
-      << "#ifndef _SIMCORE_PARSE_PARAMS_H_\n#define "
-         "_SIMCORE_PARSE_PARAMS_H_\n\n#include \"yaml-cpp/yaml.h\"\n#include "
+      << "#ifndef _CGLASS_PARSE_PARAMS_H_\n#define "
+         "_CGLASS_PARSE_PARAMS_H_\n\n#include \"yaml-cpp/yaml.h\"\n#include "
          "\"auxiliary.hpp\"\n\n";
 
   // Write system parameters parser
@@ -214,7 +214,7 @@ void Configurator::WriteParseParams() {
   WriteParseSpeciesParams();
 
   // Write end of file
-  parse_params_ << "#endif // _SIMCORE_PARSE_PARAMS_H_";
+  parse_params_ << "#endif // _CGLASS_PARSE_PARAMS_H_";
   parse_params_.close();
 }
 

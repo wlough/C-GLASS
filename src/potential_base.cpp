@@ -1,4 +1,4 @@
-#include "simcore/potential_base.hpp"
+#include "cglass/potential_base.hpp"
 
 double PotentialBase::max_force_ = -1;
 int PotentialBase::n_dim_ = -1;

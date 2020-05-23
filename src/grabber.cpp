@@ -1,5 +1,5 @@
-#include "simcore/auxiliary.hpp"
-#include "simcore/graphics.hpp"
+#include "cglass/auxiliary.hpp"
+#include "cglass/graphics.hpp"
 
 #ifndef NOGRAPH
 

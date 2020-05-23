@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 3.7)
-project (simcore
+project (cglass
     VERSION 0.1.0
     DESCRIPTION "A C++ project using CMake"
     LANGUAGES CXX

@@ -1,7 +1,7 @@
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED YES)
 
-add_executable(test_simcore.exe test_simcore.cpp)
+add_executable(test_cglass.exe test_cglass.cpp)
 
 if (GRAPH)
   find_package(glfw3 REQUIRED)
@@ -16,6 +16,6 @@ add_definitions(-DDEBUG=TRUE)
 add_definitions(-DTRACE=TRUE)
 add_definitions(-DTESTS=TRUE)
 
-target_link_libraries(test_simcore.exe PRIVATE simcore)
+target_link_libraries(test_cglass.exe PRIVATE cglass)
 
-add_test(NAME simcore_test COMMAND test_simcore.exe)
+add_test(NAME cglass_test COMMAND test_cglass.exe)

@@ -1,4 +1,4 @@
-#include "simcore/simulation_manager.hpp"
+#include "cglass/simulation_manager.hpp"
 
 bool early_exit;
 
@@ -162,12 +162,12 @@ void SimulationManager::AppendParams(YAML::Node app_node) {
 /****************************************
    ::LoadDefaultParams::
    Open new YAML::Node from master parameter file (same one used in
-   simcore_config) and load defaults into main parameter node if that node has
+   cglass_config) and load defaults into main parameter node if that node has
    not already initialized a value.
    *************************************/
 void SimulationManager::LoadDefaultParams() {
   // YAML::Node defaults = YAML::LoadFile(params_.default_param_file);
-#include "simcore/default_params.hpp"
+#include "cglass/default_params.hpp"
   for (YAML::const_iterator it = default_config.begin();
        it != default_config.end(); ++it) {
     std::string param_name = it->first.as<std::string>();
@@ -531,7 +531,7 @@ void SimulationManager::WriteParams() {
    Loop over the vector of parameter file strings and load it as
    a YAML::Node. Parse the parameters of that node using the
    parse_params function (that is generated automatically using
-   simcore_config) and create (and delete) a new simulation using
+   cglass_config) and create (and delete) a new simulation using
    those parameters.
    *************************************/
 void SimulationManager::RunSimulations() {
@@ -549,9 +549,9 @@ void SimulationManager::RunSimulations() {
    Load parameter file into a YAML::Node and parse the node for
    parameters in the system_parameters structure to initialize
    simulation parameters. Uses parse_params.h which is generated
-   automatically using simcore_config.
+   automatically using cglass_config.
    *************************************/
-//#include "simcore/parse_params.hpp"
+//#include "cglass/parse_params.hpp"
 // void SimulationManager::ParseParams(std::string file_name) {
 // YAML::Node node = YAML::LoadFile(file_name);
 // YAML::Emitter out;

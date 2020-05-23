@@ -9,7 +9,7 @@ import numpy as np
 
 def writeSummitJob(run_name, run_num, time=4):
     """ Function inputs: run_name (str), run_num (int), time in hours (int)
-    Function behavior: writes slurm batch file for simcore job on summit with
+    Function behavior: writes slurm batch file for cglass job on summit with
     title derived from run_name + run_num
     """
     assert isinstance(
@@ -40,12 +40,12 @@ def writeSummitJob(run_name, run_num, time=4):
     f.write("module purge\n")
     f.write("module load singularity/3.3.0\n\n")
     f.write(
-        'echo "Executing simcore job ${SLURM_JOB_ID} on'
+        'echo "Executing cglass job ${SLURM_JOB_ID} on'
         ' ${SLURM_CPUS_PER_TASK} threads"\n'
     )
     f.write("export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK}\n\n")
     f.write(
-        "singularity run simcore_latest.sif ./simcore.exe "
+        "singularity run cglass_latest.sif ./cglass.exe "
         "" + job_name + "_params.yaml\n"
     )
     f.close()
@@ -57,7 +57,7 @@ def writeMultiJob(
     """ Function inputs: run_name (str), num_list (list of ints), core_num
     (int), time in hours (int)
 
-        Function behavior: writes slurm batch file for many simcore jobs on
+        Function behavior: writes slurm batch file for many cglass jobs on
         summit based on numbers in num_list on summit with jobs derived from
         run_name + number
     """
@@ -99,7 +99,7 @@ def writeMultiJob(
     f.write("module purge\n")
     f.write("module load singularity/3.3.0\n\n")
     f.write(
-        'echo "Executing simcore job ${SLURM_JOB_ID} on'
+        'echo "Executing cglass job ${SLURM_JOB_ID} on'
         ' ${SLURM_CPUS_PER_TASK} threads"\n'
     )
     f.write("export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK}\n\n")
@@ -108,9 +108,9 @@ def writeMultiJob(
         job_name = run_name + "_v" + str(num).zfill(3)
         if n_run > -1:
             job_name += "_r" + str(n_run).zfill(3)
-        f.write('echo "starting simcore job ' + job_name + '"\n')
+        f.write('echo "starting cglass job ' + job_name + '"\n')
         f.write(
-            "singularity run simcore_latest.sif ./simcore.exe "
+            "singularity run cglass_latest.sif ./cglass.exe "
             "" + job_name + "_params.yaml\n"
         )
     f.close()
@@ -144,7 +144,7 @@ def printHelp():
     """ Prints expected arguments for summit_job_randomizer.py """
     print(
         "=========================================================\n"
-        "batch-randomizer.py: generate slurm job files for simcore\n"
+        "batch-randomizer.py: generate slurm job files for cglass\n"
         "=========================================================\n"
         "The expected format is:\n"
     )

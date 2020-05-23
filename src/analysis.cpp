@@ -1,4 +1,4 @@
-#include "simcore/analysis.hpp"
+#include "cglass/analysis.hpp"
 
 void AnalysisBase::SetParams(system_parameters *params) { params_ = params; }
 void AnalysisBase::SetSpace(space_struct *space) { space_ = space; }

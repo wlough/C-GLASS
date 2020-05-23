@@ -1,4 +1,4 @@
-#include "simcore/logger.hpp"
+#include "cglass/logger.hpp"
 
 /****************************/
 /******** SINGLETON *********/
