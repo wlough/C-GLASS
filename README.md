@@ -96,7 +96,7 @@ Several other libraries are required for running C-GLASS with graphics on Linux 
 The C-GLASS executable is run as
 
 ```
-cglass [optional-flags] [parameter-file] 
+cglass.exe [optional-flags] [parameter-file] 
 ```
 
 The following flags are available:
@@ -270,10 +270,10 @@ new_parameter_name: [default_parameter_value, parameter_type]
 Then run the configurator using
 
 ```
-./configure_cglass config/default_config.yaml
+./configure_cglass.exe config/default_config.yaml
 ```
 
-Running configure_cglass will look at all the parameters in the default config file and add them seamlessly to the proper C-GLASS headers, and you can begin using them after recompiling C-GLASS using CMake.
+Running configure_cglass.exe will look at all the parameters in the default config file and add them seamlessly to the proper C-GLASS headers, and you can begin using them after recompiling C-GLASS using CMake.
 
 ### Parameter sets
 
