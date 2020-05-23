@@ -7,7 +7,7 @@ A **C**oarse-**G**rained **L**iving **A**ctive **S**ystem **S**imulator
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.2571982.svg)](https://doi.org/10.5281/zenodo.2571982)
 
 
-![A simulation using C-GLASS](figs/C-GLASS_snapshot.png "A simulation using C-GLASS")
+![A simulation using C-GLASS](figs/cglass_snapshot.png "A simulation using C-GLASS")
 
 ## Installation
 
