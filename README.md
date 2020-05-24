@@ -4,8 +4,7 @@ A **C**oarse-**G**rained **L**iving **A**ctive **S**ystem **S**imulator
 
 [![Build Status](https://travis-ci.com/Betterton-Lab/C-GLASS.svg?branch=master)](https://travis-ci.com/Betterton-Lab/C-GLASS)
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.2571982.svg)](https://doi.org/10.5281/zenodo.2571982)
-
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3841613.svg)](https://doi.org/10.5281/zenodo.3841613)
 
 ![A simulation using C-GLASS](figs/cglass_snapshot.png "A simulation using C-GLASS")
 
