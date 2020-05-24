@@ -480,8 +480,14 @@ species_base_parameters *parse_species_params(std::string sid,
       params.driving_factor = jt->second.as<double>();
       } else if (param_name.compare("driving_torque")==0) {
       params.driving_torque = jt->second.as<double>();
+      } else if (param_name.compare("density")==0) {
+      params.density = jt->second.as<double>();
       } else if (param_name.compare("chiral_handedness")==0) {
       params.chiral_handedness = jt->second.as<int>();
+      } else if (param_name.compare("rotational_noise")==0) {
+      params.rotational_noise = jt->second.as<double>();
+      } else if (param_name.compare("translational_noise")==0) {
+      params.translational_noise = jt->second.as<double>();
       } else if (param_name.compare("randomize_handedness")==0) {
       params.randomize_handedness = jt->second.as<bool>();
       } else if (param_name.compare("highlight_handedness")==0) {
@@ -490,10 +496,10 @@ species_base_parameters *parse_species_params(std::string sid,
       params.alignment_interaction = jt->second.as<bool>();
       } else if (param_name.compare("alignment_torque")==0) {
       params.alignment_torque = jt->second.as<double>();
-      } else if (param_name.compare("noise_factor")==0) {
-      params.noise_factor = jt->second.as<double>();
       } else if (param_name.compare("packing_fraction")==0) {
       params.packing_fraction = jt->second.as<double>();
+      } else if (param_name.compare("draw_shape")==0) {
+      params.draw_shape = jt->second.as<std::string>();
       } else {
         Logger::Warning("Unrecognized %s parameter: '%s'", sid.c_str(), param_name.c_str());
       }

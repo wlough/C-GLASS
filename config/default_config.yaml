@@ -103,7 +103,7 @@ n_checkpoint: [10000, int]           # Frequency used for generating checkpoint 
 no_midstep: [false, bool]            # Specify the simulation is not using a mid step algorithm
 
 species:                             # Shared parameters used for all species.
-  name: ["species", string]          # Label given to species (e.g. microtubule, kinesin, etc)
+  name: [species, string]          # Label given to species (e.g. microtubule, kinesin, etc)
   num: [0, int]                      # Number of members of a species at initialization.
   diameter: [1, double]              # Diameter of species, for point-like objects and greater
   length: [0, double]                # Length of species, for line-like objects and greater
@@ -258,13 +258,16 @@ filament:                            # Parameters unique to filament class of ob
 br_bead:
   driving_factor: [0, double]
   driving_torque: [0, double]
+  density: [-1, double]
   chiral_handedness: [0, int]
+  rotational_noise: [1, double]
+  translational_noise: [1, double]
   randomize_handedness: [false, bool]
   highlight_handedness: [false, bool]
   alignment_interaction: [false, bool]
   alignment_torque: [0, double]
-  noise_factor: [1, double]
   packing_fraction: [-1, double]
+  draw_shape: [sphere, string]
 spherocylinder:
   diffusion_analysis: [false, bool]
   n_diffusion_samples: [1, int]

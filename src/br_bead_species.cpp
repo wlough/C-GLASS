@@ -5,6 +5,9 @@ BrBeadSpecies::BrBeadSpecies(unsigned long seed) : Species(seed) {
 }
 void BrBeadSpecies::Init(std::string spec_name, ParamsParser &parser) {
   Species::Init(spec_name, parser);
+  if (sparams_.density > 0 ) {
+    sparams_.num = (int) (space_->volume * sparams_.density);
+  }
 }
 
 void BrBeadSpecies::UpdatePositions() {
