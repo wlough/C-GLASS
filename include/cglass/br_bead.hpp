@@ -7,6 +7,7 @@ class BrBead : public Object {
 protected:
   br_bead_parameters *sparams_;
   bool zero_temperature_ = false;
+  bool draw_arrow_ = false;
   double gamma_trans_ = 0;
   double gamma_rot_ = 0;
   double diffusion_ = 0;
@@ -14,7 +15,8 @@ protected:
   double driving_factor_ = 0;
   double driving_torque_ = 0;
   int chiral_handedness_ = 0;
-  double noise_factor_ = 1;
+  double noise_tr_ = 1;
+  double noise_rot_ = 1;
   bool alignment_interaction_ = false;
   double alignment_torque_ = 0;
   void ApplyForcesTorques();
@@ -24,6 +26,7 @@ protected:
   void Translate();
   void Rotate();
   void Integrate();
+  graph_struct g2_;
 
 public:
   BrBead(unsigned long seed);

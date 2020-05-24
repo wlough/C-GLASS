@@ -14,7 +14,11 @@ void BrBead::Init(br_bead_parameters *sparams) {
   chiral_handedness_ = sparams_->chiral_handedness;
   alignment_interaction_ = sparams_->alignment_interaction;
   alignment_torque_ = sparams_->alignment_torque;
-  noise_factor_ = sparams_->noise_factor;
+  noise_tr_ = sparams_->translational_noise;
+  noise_rot_ = sparams_->rotational_noise;
+  if (sparams_->draw_shape.compare("sphere") != 0) {
+    draw_arrow_ = true;
+  }
   if (sparams_->randomize_handedness) {
     chiral_handedness_ = (rng_.RandomUniform() > 0.5 ? 1 : -1);
   }
@@ -63,13 +67,23 @@ void BrBead::UpdatePosition() {
 void BrBead::ApplyForcesTorques() {
   // Add random thermal kick to the bead
   if (!zero_temperature_) {
-    for (int i = 0; i < n_dim_; ++i) {
-      double kick = rng_.RandomUniform() - 0.5;
-      force_[i] += kick * diffusion_;
+    if (diffusion_ > 0) {
+      for (int i = 0; i < n_dim_; ++i) {
+        double kick = rng_.RandomUniform() - 0.5;
+        force_[i] += kick * diffusion_;
+      }
     }
-    if (n_dim_ == 2) {
-      double kick = rng_.RandomUniform() - 0.5;
-      torque_[2] += diffusion_rot_ * kick;
+    if (diffusion_rot_ > 0) {
+      if (n_dim_ == 2) {
+        double kick = rng_.RandomUniform() - 0.5;
+        torque_[2] += diffusion_rot_ * kick;
+      } else {
+        double kicks[3] = {0};
+        rng_.RandomUnitVector(n_dim_, kicks);
+        for (int i=0; i<n_dim_; ++i) {
+          torque_[i] += diffusion_rot_ * kicks[i];
+        }
+      }
     }
   }
   if (driving_factor_ > 0) {
@@ -77,12 +91,10 @@ void BrBead::ApplyForcesTorques() {
       force_[i] += driving_factor_ * orientation_[i];
     }
   }
-  if (driving_torque_ > 0) {
-    if (n_dim_ == 2) {
-      torque_[2] += chiral_handedness_ * driving_torque_;
-    }
+  if (driving_torque_ > 0 && n_dim_ == 2) {
+    torque_[2] += chiral_handedness_ * driving_torque_;
   }
-  if (alignment_interaction_) {
+  if (alignment_interaction_ && n_dim_ == 2) {
     for (auto ix = ixs_.begin(); ix != ixs_.end(); ++ix) {
       if (ix->first->pause_interaction)
         continue;
@@ -109,8 +121,8 @@ void BrBead::ApplyForcesTorques() {
 void BrBead::SetDiffusion() {
   gamma_trans_ = 1.0 / (diameter_);
   gamma_rot_ = 3.0 / CUBE(diameter_);
-  diffusion_ = noise_factor_ * sqrt(24.0 * diameter_ / delta_);
-  diffusion_rot_ = noise_factor_ * sqrt(8.0 * CUBE(diameter_) / delta_);
+  diffusion_ = noise_tr_ * sqrt(24.0 * diameter_ / delta_);
+  diffusion_rot_ = noise_rot_ * sqrt(8.0 * CUBE(diameter_) / delta_);
 }
 
 void BrBead::Translate() {
@@ -154,7 +166,41 @@ void BrBead::Integrate() {
 void BrBead::GetInteractors(std::vector<Object *> &ix) { ix.push_back(this); }
 
 void BrBead::Draw(std::vector<graph_struct *> &graph_array) {
-  Object::Draw(graph_array);
+  if (draw_arrow_) {
+    if (draw_ == +draw_type::orientation) {
+      g_.color = atan2(orientation_[1], orientation_[0]); 
+    } else {
+      g_.color = color_;
+    }
+    g2_.color = g_.color;
+    std::copy(scaled_position_, scaled_position_ + 3, g_.r);
+    std::copy(scaled_position_, scaled_position_ + 3, g2_.r);
+    for (int i = space_->n_periodic; i < n_dim_; ++i) {
+      g_.r[i] = position_[i];
+      g2_.r[i] = position_[i];
+    }
+    std::copy(orientation_, orientation_ + 3, g_.u);
+    std::copy(orientation_, orientation_ + 3, g2_.u);
+    double theta = 0.1*M_PI;
+    rotate_vector(g_.u, orientation_, theta, 2);
+    rotate_vector(g2_.u, orientation_, -theta, 2);
+    g_.diameter = 0.5*diameter_;
+    g2_.diameter = 0.5*diameter_;
+    g_.length = diameter_;
+    g2_.length = diameter_;
+    g_.draw = draw_type::fixed;
+    g2_.draw = draw_type::fixed;
+    for (int i=0; i<space_->n_periodic; ++i) {
+      g_.r[i] -= 0.3*g_.length*g_.u[i]/space_->radius;
+      g2_.r[i] -= 0.3*g2_.length*g2_.u[i]/space_->radius;
+      g_.r[i] -= NINT(g_.r[i]);
+      g2_.r[i] -= NINT(g2_.r[i]);
+    }
+    graph_array.push_back(&g_);
+    graph_array.push_back(&g2_);
+  } else {
+    Object::Draw(graph_array);
+  }
 }
 void BrBead::WriteSpec(std::fstream &ospec) {
   Logger::Trace("Writing br_bead specs, object id: %d", GetOID());
