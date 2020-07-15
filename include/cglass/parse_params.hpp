@@ -14,8 +14,14 @@ system_parameters parse_system_params(YAML::Node &node) {
     if (false) {
     } else if (param_name.compare("seed")==0) {
     params.seed = it->second.as<long>();
+    } else if (param_name.compare("species_insertion_reattempt_threshold")==0) {
+    params.species_insertion_reattempt_threshold = it->second.as<int>();
+    } else if (param_name.compare("species_insertion_failure_threshold")==0) {
+    params.species_insertion_failure_threshold = it->second.as<int>();
     } else if (param_name.compare("n_runs")==0) {
     params.n_runs = it->second.as<int>();
+    } else if (param_name.compare("coarse_grained_mesh_interactions")==0) {
+    params.coarse_grained_mesh_interactions = it->second.as<bool>();
     } else if (param_name.compare("n_random")==0) {
     params.n_random = it->second.as<int>();
     } else if (param_name.compare("run_name")==0) {
@@ -104,14 +110,8 @@ system_parameters parse_system_params(YAML::Node &node) {
     params.interaction_flag = it->second.as<bool>();
     } else if (param_name.compare("remove_duplicate_interactions")==0) {
     params.remove_duplicate_interactions = it->second.as<bool>();
-    } else if (param_name.compare("coarse_grained_mesh_interactions")==0) {
-    params.coarse_grained_mesh_interactions = it->second.as<bool>();
     } else if (param_name.compare("mesh_coarsening")==0) {
     params.mesh_coarsening = it->second.as<int>();
-    } else if (param_name.compare("species_insertion_failure_threshold")==0) {
-    params.species_insertion_failure_threshold = it->second.as<int>();
-    } else if (param_name.compare("species_insertion_reattempt_threshold")==0) {
-    params.species_insertion_reattempt_threshold = it->second.as<int>();
     } else if (param_name.compare("uniform_crystal")==0) {
     params.uniform_crystal = it->second.as<bool>();
     } else if (param_name.compare("n_steps_equil")==0) {
@@ -136,6 +136,8 @@ system_parameters parse_system_params(YAML::Node &node) {
     params.local_order_analysis = it->second.as<bool>();
     } else if (param_name.compare("local_order_width")==0) {
     params.local_order_width = it->second.as<double>();
+    } else if (param_name.compare("reduced")==0) {
+    params.reduced = it->second.as<bool>();
     } else if (param_name.compare("local_order_bin_width")==0) {
     params.local_order_bin_width = it->second.as<double>();
     } else if (param_name.compare("local_order_n_analysis")==0) {
@@ -150,8 +152,6 @@ system_parameters parse_system_params(YAML::Node &node) {
     params.overlap_analysis = it->second.as<bool>();
     } else if (param_name.compare("highlight_overlaps")==0) {
     params.highlight_overlaps = it->second.as<bool>();
-    } else if (param_name.compare("reduced")==0) {
-    params.reduced = it->second.as<bool>();
     } else if (param_name.compare("reload_reduce_switch")==0) {
     params.reload_reduce_switch = it->second.as<bool>();
     } else if (param_name.compare("checkpoint_flag")==0) {
@@ -295,10 +295,12 @@ species_base_parameters *parse_species_params(std::string sid,
       params.n_posit = jt->second.as<int>();
       } else if (param_name.compare("n_spec")==0) {
       params.n_spec = jt->second.as<int>();
-      } else if (param_name.compare("packing_fraction")==0) {
-      params.packing_fraction = jt->second.as<double>();
+      } else if (param_name.compare("randomize_intrinsic_curvature_handedness")==0) {
+      params.randomize_intrinsic_curvature_handedness = jt->second.as<bool>();
       } else if (param_name.compare("persistence_length")==0) {
       params.persistence_length = jt->second.as<double>();
+      } else if (param_name.compare("packing_fraction")==0) {
+      params.packing_fraction = jt->second.as<double>();
       } else if (param_name.compare("perlen_ratio")==0) {
       params.perlen_ratio = jt->second.as<double>();
       } else if (param_name.compare("polydispersity_flag")==0) {
@@ -309,6 +311,8 @@ species_base_parameters *parse_species_params(std::string sid,
       params.min_length = jt->second.as<double>();
       } else if (param_name.compare("min_bond_length")==0) {
       params.min_bond_length = jt->second.as<double>();
+      } else if (param_name.compare("flock_color_ext")==0) {
+      params.flock_color_ext = jt->second.as<double>();
       } else if (param_name.compare("driving_factor")==0) {
       params.driving_factor = jt->second.as<double>();
       } else if (param_name.compare("n_equil")==0) {
@@ -327,8 +331,6 @@ species_base_parameters *parse_species_params(std::string sid,
       params.intrinsic_curvature = jt->second.as<double>();
       } else if (param_name.compare("intrinsic_curvature_sig")==0) {
       params.intrinsic_curvature_sig = jt->second.as<double>();
-      } else if (param_name.compare("randomize_intrinsic_curvature_handedness")==0) {
-      params.randomize_intrinsic_curvature_handedness = jt->second.as<bool>();
       } else if (param_name.compare("intrinsic_curvature_min")==0) {
       params.intrinsic_curvature_min = jt->second.as<double>();
       } else if (param_name.compare("highlight_handedness")==0) {
@@ -383,8 +385,8 @@ species_base_parameters *parse_species_params(std::string sid,
       params.highlight_flock = jt->second.as<bool>();
       } else if (param_name.compare("flock_color_int")==0) {
       params.flock_color_int = jt->second.as<double>();
-      } else if (param_name.compare("flock_color_ext")==0) {
-      params.flock_color_ext = jt->second.as<double>();
+      } else if (param_name.compare("force_induced_catastrophe_flag")==0) {
+      params.force_induced_catastrophe_flag = jt->second.as<bool>();
       } else if (param_name.compare("number_fluctuation_analysis")==0) {
       params.number_fluctuation_analysis = jt->second.as<bool>();
       } else if (param_name.compare("number_fluctuation_boxes")==0) {
@@ -407,8 +409,6 @@ species_base_parameters *parse_species_params(std::string sid,
       params.friction_ratio = jt->second.as<double>();
       } else if (param_name.compare("dynamic_instability_flag")==0) {
       params.dynamic_instability_flag = jt->second.as<bool>();
-      } else if (param_name.compare("force_induced_catastrophe_flag")==0) {
-      params.force_induced_catastrophe_flag = jt->second.as<bool>();
       } else if (param_name.compare("optical_trap_flag")==0) {
       params.optical_trap_flag = jt->second.as<bool>();
       } else if (param_name.compare("optical_trap_spring")==0) {
@@ -633,6 +633,8 @@ species_base_parameters *parse_species_params(std::string sid,
       params.n_spec = jt->second.as<int>();
       } else if (param_name.compare("concentration")==0) {
       params.concentration = jt->second.as<double>();
+      } else if (param_name.compare("begin_with_crosslinks")==0) {
+      params.begin_with_crosslinks = jt->second.as<int>();
       } else if (param_name.compare("use_binding_volume")==0) {
       params.use_binding_volume = jt->second.as<bool>();
       } else if (param_name.compare("infinite_reservoir_flag")==0) {
@@ -655,6 +657,8 @@ species_base_parameters *parse_species_params(std::string sid,
       params.k_off_s = jt->second.as<double>();
       } else if (param_name.compare("k_on_d")==0) {
       params.k_on_d = jt->second.as<double>();
+      } else if (param_name.compare("k_spring")==0) {
+      params.k_spring = jt->second.as<double>();
       } else if (param_name.compare("k_off_d")==0) {
       params.k_off_d = jt->second.as<double>();
       } else if (param_name.compare("energy_dep_factor")==0) {
@@ -663,8 +667,6 @@ species_base_parameters *parse_species_params(std::string sid,
       params.force_dep_length = jt->second.as<double>();
       } else if (param_name.compare("polar_affinity")==0) {
       params.polar_affinity = jt->second.as<double>();
-      } else if (param_name.compare("k_spring")==0) {
-      params.k_spring = jt->second.as<double>();
       } else if (param_name.compare("k_spring_compress")==0) {
       params.k_spring_compress = jt->second.as<double>();
       } else if (param_name.compare("f_stall")==0) {
