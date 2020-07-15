@@ -27,3 +27,23 @@ void OpticalTrap::Init(optical_trap_parameters *sparams) {
   draw_ = draw_type::_from_string(sparams_->draw_type.c_str());
 }
 
+/*! \brief Set position of optical trap relative to obj minus end
+ *
+ *  Detailed description
+ *
+ * \param Object *obj Parameter description
+ * \return Return parameter description
+ */
+void OpticalTrap::InsertAndAttach(Object *obj) {
+  const double *obj_pos = obj->GetPosition();
+  const double *obj_orient = obj->GetOrientation();
+  const double obj_len = obj->GetLength() * .5;
+
+  for (int i = 0; i < 3; ++i) {
+    position_[i] = obj_pos[i] - obj_orient[i] * obj_len;
+  }
+  UpdatePeriodic();
+
+  return;
+}
+

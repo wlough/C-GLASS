@@ -13,12 +13,14 @@
 
 class OpticalTrapSpecies
     : public Species<OpticalTrap, species_id::optical_trap> {
+private:
+  /* private data */
+  std::string attach_species_;
+
 public:
   OpticalTrapSpecies(unsigned long seed);
   void Init(std::string spec_name, ParamsParser &parser);
-
-private:
-  /* private data */
+  void InsertOpticalTraps(std::vector<SpeciesBase *> *species);
 };
 
 #endif

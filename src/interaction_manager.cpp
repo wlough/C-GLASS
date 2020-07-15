@@ -70,8 +70,10 @@ void InteractionManager::Interact() {
     return;
   // Check if we need to update objects in cell list
   CheckUpdateObjects();
-  // Update crosslinks
+  // Update crosslinks and apply forces and torques to bound objects
   xlink_.UpdateCrosslinks();
+  // Update positions and forces optical traps apply to objects
+  otrap_.UpdateOpticalTraps();
   // Check if we need to update crosslink interactors
   CheckUpdateXlinks();
   // Check if we need to update pair interactions
@@ -125,6 +127,7 @@ void InteractionManager::UpdateInteractors() {
   interactors_.insert(interactors_.end(), ix_objects_.begin(),
                       ix_objects_.end());
   std::vector<Object *> xlinks;
+  //std::vector<Object *> otraps;
   xlink_.GetInteractors(xlinks);
   interactors_.insert(interactors_.end(), xlinks.begin(), xlinks.end());
   Logger::Trace("Updated interactors: %d objects, %d crosslinks, %d total",
@@ -218,6 +221,7 @@ void InteractionManager::UpdatePairInteractions() {
   pair_interactions_.clear();
   clist_.RenewObjectsCells(interactors_);
   clist_.MakePairs(pair_interactions_);
+  /* TODO: Add optical trap pair interactions <08-07-20, ARL> */
 #ifdef TRACE
   Logger::Trace("Updated interactions: pair interactions: %d -> %d", nix,
                 pair_interactions_.size());
@@ -731,6 +735,7 @@ void InteractionManager::AddInteractors(std::vector<Object *> &ixs) {
 void InteractionManager::DrawInteractions(
     std::vector<graph_struct *> &graph_array) {
   xlink_.Draw(graph_array);
+  otrap_.Draw(graph_array);
 }
 
 void InteractionManager::WriteOutputs() { xlink_.WriteOutputs(); }
@@ -746,6 +751,16 @@ void InteractionManager::InitCrosslinkSpecies(sid_label &slab,
                                               ParamsParser &parser,
                                               unsigned long seed) {
   xlink_.InitSpecies(slab, parser, seed);
+}
+void InteractionManager::InitOpticalTrapSpecies(sid_label &slab,
+                                                ParamsParser &parser,
+                                                unsigned long seed) {
+  otrap_.InitSpecies(slab, parser, seed);
+}
+
+void InteractionManager::InsertOpticalTraps(
+    std::vector<SpeciesBase *> *species) {
+  otrap_.InsertOpticalTraps(species);
 }
 
 void InteractionManager::LoadCrosslinksFromCheckpoints(

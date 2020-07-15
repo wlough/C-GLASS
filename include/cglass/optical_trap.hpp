@@ -21,7 +21,8 @@ private:
 public:
   OpticalTrap(unsigned long seed);
   void Init(optical_trap_parameters *sparams);
-
+  void InsertAndAttach(Object *obj);
+  //void GetInteractors(std::vector<Object *> &ixors);
   //virtual ~optical_trap();
 };
 

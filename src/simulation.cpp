@@ -280,6 +280,10 @@ void Simulation::InitSpecies() {
       ix_mgr_.InitCrosslinkSpecies(*slab, parser_, rng_->GetSeed());
       continue;
     }
+    if (sid == +species_id::optical_trap) {
+      ix_mgr_.InitOpticalTrapSpecies(*slab, parser_, rng_->GetSeed());
+      continue;
+    }
     species_.push_back(species_factory.CreateSpecies(sid, rng_->GetSeed()));
     species_.back()->Init(slab->second, parser_);
     if (species_.back()->GetNInsert() > 0) {
@@ -443,6 +447,8 @@ void Simulation::InsertSpecies(bool force_overlap, bool processing) {
   }
   /* Initialize static crosslink positions */
   ix_mgr_.InsertCrosslinks();
+  /* Initialize optical traps attached to species */
+  ix_mgr_.InsertOpticalTraps(&species_);
   /* Should do this all the time to force object counting */
   if (params_.load_checkpoint) {
     for (auto spec = species_.begin(); spec != species_.end(); ++spec) {
@@ -450,6 +456,7 @@ void Simulation::InsertSpecies(bool force_overlap, bool processing) {
     }
     ix_mgr_.LoadCrosslinksFromCheckpoints(run_name_,
                                           params_.checkpoint_run_name);
+    //TODO Load optical traps from checkpoints
   }
 
   ix_mgr_.ResetCellList(); // Forces rebuild cell list without redundancy
@@ -510,6 +517,7 @@ void Simulation::GetGraphicsStructure() {
   for (auto it = species_.begin(); it != species_.end(); ++it) {
     (*it)->Draw(graph_array_);
   }
+
   /* Visualize interaction forces, crosslinks, etc */
   ix_mgr_.DrawInteractions(graph_array_);
 }

@@ -23,13 +23,20 @@ private:
   /* private data */
   system_parameters *params_;
   OpticalTrapOutputManager output_mgr_;
-  std::vector<Object *> *objs_;
+  std::vector<OpticalTrapSpecies *> otrap_species_;
   space_struct *space_;
+
   bool update_;
 
 public:
-  void Init(system_parameters *params, space_struct *space,
-            std::vector<Object *> *objs);
+  void Init(system_parameters *params, space_struct *space);
+
+  void InitSpecies(sid_label &slab, ParamsParser &parser, unsigned long seed);
+
+  void InsertOpticalTraps(std::vector<SpeciesBase *> *species);
+  void UpdateOpticalTraps();
+  void Draw(std::vector<graph_struct *> &graph_array);
+  //void GetInteractors(std::vector<Object *> &ixors);
 };
 
 #endif
