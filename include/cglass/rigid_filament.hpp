@@ -19,6 +19,7 @@ class RigidFilament : public Mesh {
   double max_length_ = 1000;
 
   bool zero_temperature_ = false;
+  bool pseudo1D_ = false;
   int n_step_ = 0;
   int eq_steps_ = 0;
   int eq_steps_count_ = 0;
