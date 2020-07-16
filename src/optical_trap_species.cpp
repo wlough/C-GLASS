@@ -33,7 +33,7 @@ void OpticalTrapSpecies::InsertOpticalTraps(
         AddMember();
         members_.back().InsertAndAttach(obj);
         const double *const pos = members_.back().GetScaledPosition();
-        printf("pos = %f, %f, %f\n", pos[0], pos[1], pos[2]);
+        Logger::Info("pos = %f, %f, %f\n", pos[0], pos[1], pos[2]);
       }
 
       break;

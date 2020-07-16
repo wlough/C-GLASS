@@ -8,20 +8,36 @@
 
 #define OPTICAL_TRAP_HPP
 
-#include "anchor.hpp"
+#include "mesh.hpp"
 
 class OpticalTrap : public Object {
 private:
   optical_trap_parameters *sparams_;
+
+  Object *attach_obj_;
+
+  Bond *bond_ = nullptr;
+  double bond_length_ = -1;
+  double bond_lambda_ = -1;
+
+  Mesh *mesh_ = nullptr;
+  int mesh_n_bonds_ = -1;
+  double mesh_length_ = -1;
+  double mesh_lambda_ = -1;
+
   double trap_spring_;
 
-  double bead_diameter_;
-  double bead_color_;
+  Object bead_; //Purely for graphing right now
 
 public:
   OpticalTrap(unsigned long seed);
   void Init(optical_trap_parameters *sparams);
   void InsertAndAttach(Object *obj);
+  void AttachObjRelLambda(double lambda);
+  void ApplyOpticalTrapForce();
+  double const GetMeshLambda() { return mesh_lambda_; };
+  double const GetBondLambda() { return bond_lambda_; };
+  void Draw(std::vector<graph_struct *> &graph_array);
   //void GetInteractors(std::vector<Object *> &ixors);
   //virtual ~optical_trap();
 };
