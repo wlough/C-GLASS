@@ -41,20 +41,24 @@ void OpticalTrap::Init(optical_trap_parameters *sparams) {
 void OpticalTrap::InsertAndAttach(Object *obj) {
   attach_obj_ = obj;
   SetMeshID(-1);
+
   AttachObjRelLambda(0); //TODO attach to minus end for now
-  const double *obj_pos = obj->GetPosition();
-  const double *obj_orient = obj->GetOrientation();
-  const double obj_len = obj->GetLength() * .5;
-
-  for (int i = 0; i < 3; ++i) {
-    position_[i] = obj_pos[i] - obj_orient[i] * obj_len;
-  }
-
+  UpdateBeadPosition();
+  // Bead and trap are initially set to same position
+  SetPosition(bead_.GetPosition());
   UpdatePeriodic();
-  bead_.SetPosition(position_);
-  bead_.UpdatePeriodic();
 
   return;
+}
+
+void OpticalTrap::CalculateOpticalTrapForce() {
+  ZeroForce();
+  UpdateBeadPosition();
+  double const *const bead_pos = bead_.GetPosition();
+  // Calculate the force on bead from trap
+  for (int i = 0; i < n_dim_; ++i) {
+    force_[i] = trap_spring_ * (position_[i] - bead_pos[i]);
+  }
 }
 
 /*! \brief Apply force from optical trap to bond
@@ -65,6 +69,14 @@ void OpticalTrap::ApplyOpticalTrapForce() {
   if (!bond_) {
     Logger::Error("Anchor attempted to apply forces to nullptr bond");
   }
+  CalculateOpticalTrapForce();
+  bond_->AddForce(force_);
+  double dlambda[3] = {0};
+  for (int i = 0; i < n_dim_; ++i) {
+    dlambda[i] = (bond_lambda_ - 0.5 * bond_length_) * orientation_[i];
+  }
+  cross_product(dlambda, force_, torque_, 3);
+  bond_->AddTorque(torque_);
 }
 
 void OpticalTrap::AttachObjRelLambda(double lambda) {
@@ -114,8 +126,8 @@ void OpticalTrap::AttachObjRelLambda(double lambda) {
                   bond_lambda_, bond_length_);
   }
 }
-void OpticalTrap::Draw(std::vector<graph_struct *> &graph_array) {
-  Object::Draw(graph_array);
+
+void OpticalTrap::UpdateBeadPosition() {
   double bead_pos[3] = {};
   double const *const bond_position = bond_->GetPosition();
   double const *const bond_orientation = bond_->GetOrientation();
@@ -125,5 +137,10 @@ void OpticalTrap::Draw(std::vector<graph_struct *> &graph_array) {
   }
   bead_.SetPosition(bead_pos);
   bead_.UpdatePeriodic();
+}
+
+void OpticalTrap::Draw(std::vector<graph_struct *> &graph_array) {
+  Object::Draw(graph_array);
+  UpdateBeadPosition();
   bead_.Draw(graph_array);
 }

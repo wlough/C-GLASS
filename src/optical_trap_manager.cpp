@@ -34,7 +34,9 @@ void OpticalTrapManager::InsertOpticalTraps(
 }
 
 void OpticalTrapManager::UpdateOpticalTraps() {
-  /* TODO: Add interactions <09-07-20, ARL> */
+  for (auto &ot_spec : otrap_species_) {
+    ot_spec->ApplyOpticalTrapForces();
+  }
 }
 
 void OpticalTrapManager::Draw(std::vector<graph_struct *> &graph_array) {
@@ -42,9 +44,3 @@ void OpticalTrapManager::Draw(std::vector<graph_struct *> &graph_array) {
     ot_spec->Draw(graph_array);
   }
 }
-
-//void OpticalTrapManager::GetInteractors(std::vector<Object *> &ixors) {
-//  for (auto it = otrap_species_.begin(); it != otrap_species_.end(); ++it) {
-//    (*it)->GetInteractors(ixors);
-//  }
-//}

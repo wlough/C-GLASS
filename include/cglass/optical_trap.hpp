@@ -35,6 +35,8 @@ public:
   void InsertAndAttach(Object *obj);
   void AttachObjRelLambda(double lambda);
   void ApplyOpticalTrapForce();
+  void CalculateOpticalTrapForce();
+  void UpdateBeadPosition();
   double const GetMeshLambda() { return mesh_lambda_; };
   double const GetBondLambda() { return bond_lambda_; };
   void Draw(std::vector<graph_struct *> &graph_array);

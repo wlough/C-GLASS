@@ -40,3 +40,13 @@ void OpticalTrapSpecies::InsertOpticalTraps(
     }
   }
 }
+
+/*! \brief Apply all the forces from optical traps to attached objects
+ *
+ * \return void
+ */
+void OpticalTrapSpecies::ApplyOpticalTrapForces() {
+  for (auto &otrap : members_) {
+    otrap.ApplyOpticalTrapForce();
+  }
+}
