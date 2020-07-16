@@ -32,8 +32,8 @@ void OpticalTrapSpecies::InsertOpticalTraps(
       for (auto &obj : attach_objs) {
         AddMember();
         members_.back().InsertAndAttach(obj);
-        const double *const pos = members_.back().GetScaledPosition();
-        Logger::Info("pos = %f, %f, %f\n", pos[0], pos[1], pos[2]);
+        //const double *const pos = members_.back().GetScaledPosition();
+        //Logger::Info("pos = %f, %f, %f\n", pos[0], pos[1], pos[2]);
       }
 
       break;
@@ -46,7 +46,9 @@ void OpticalTrapSpecies::InsertOpticalTraps(
  * \return void
  */
 void OpticalTrapSpecies::ApplyOpticalTrapForces() {
-  for (auto &otrap : members_) {
-    otrap.ApplyOpticalTrapForce();
+  if (params_->no_midstep || params_->i_step % 2 == 1) {
+    for (auto &otrap : members_) {
+      otrap.ApplyOpticalTrapForce();
+    }
   }
 }

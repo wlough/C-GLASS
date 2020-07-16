@@ -34,7 +34,7 @@ void OpticalTrapManager::InsertOpticalTraps(
 }
 
 void OpticalTrapManager::UpdateOpticalTraps() {
-  for (auto &ot_spec : otrap_species_) {
+  for (auto ot_spec : otrap_species_) {
     ot_spec->ApplyOpticalTrapForces();
   }
 }
