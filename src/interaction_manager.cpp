@@ -757,8 +757,8 @@ void InteractionManager::LoadCrosslinksFromCheckpoints(
 
 void InteractionManager::InsertCrosslinks() { xlink_.InsertCrosslinks(); }
 
-void InteractionManager::BeginWithCrosslinks() {
-     xlink_.BeginWithCrosslinks();
+void InteractionManager::InsertAttachedCrosslinks() {
+     xlink_.InsertAttachedCrosslinks();
      ForceUpdate();
 }
 

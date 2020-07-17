@@ -454,7 +454,7 @@ void Simulation::InsertSpecies(bool force_overlap, bool processing) {
   // if (!processing) {
   ix_mgr_.CheckUpdateObjects(); // Forces update as well
   //}  
-  ix_mgr_.BeginWithCrosslinks();
+  ix_mgr_.InsertAttachedCrosslinks();
 }
 
 /* Tear down data structures, e.g. cell lists, and close graphics window if

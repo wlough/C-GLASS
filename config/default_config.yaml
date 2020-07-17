@@ -292,7 +292,7 @@ crosslink:                          # Parameters specific to crosslinks.
                                     # Units in #/area or #/vol in 2D or 3D for free xlinks. In
                                     # #/area for grid spacing. In #/length or #/area for 2D or 3D
                                     # boundaries.
-  begin_with_crosslinks: [0, int]   # if greater than 0 the simultion begins with the specified number
+  begin_with_bound_crosslinks: [0, int]   # if greater than 0 the simultion begins with the specified number
                                     # of crosslinkers singly attached to microtubules
   use_binding_volume: [true, bool]  # Calculate concentration of unbound head of 
                                     # singly bound protein by finding a binding 

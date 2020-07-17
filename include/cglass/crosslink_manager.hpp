@@ -44,8 +44,7 @@ class CrosslinkManager {
   const double GetDrMax();
   void ReadInputs();
   void InsertCrosslinks();
-  void BeginWithCrosslinks();
-  void BeginWithCrosslinkers();
+  void InsertAttachedCrosslinks();
   const double GetRCutoff() const {
     Logger::Trace("Crosslink rcutoff is %2.2f", rcutoff_);
     return rcutoff_;
