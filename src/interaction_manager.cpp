@@ -23,6 +23,7 @@ void InteractionManager::Init(system_parameters *params,
   // Update dr distance should be half the cell length, and we are comparing the
   // squares of the trajectory distances
   xlink_.Init(params_, space_, &ix_objects_);
+  otrap_.Init(params_, space_);
   no_boundaries_ = false;
   if (space_->type == +boundary_type::none)
     no_boundaries_ = true;
@@ -221,7 +222,6 @@ void InteractionManager::UpdatePairInteractions() {
   pair_interactions_.clear();
   clist_.RenewObjectsCells(interactors_);
   clist_.MakePairs(pair_interactions_);
-  /* TODO: Add optical trap pair interactions <08-07-20, ARL> */
 #ifdef TRACE
   Logger::Trace("Updated interactions: pair interactions: %d -> %d", nix,
                 pair_interactions_.size());
@@ -738,14 +738,21 @@ void InteractionManager::DrawInteractions(
   otrap_.Draw(graph_array);
 }
 
-void InteractionManager::WriteOutputs() { xlink_.WriteOutputs(); }
+void InteractionManager::WriteOutputs() {
+  xlink_.WriteOutputs();
+  otrap_.WriteOutputs();
+}
 
 void InteractionManager::InitOutputs(bool reading_inputs,
                                      run_options *run_opts) {
   xlink_.InitOutputs(reading_inputs, run_opts);
+  otrap_.InitOutputs(reading_inputs, run_opts);
 }
 
-void InteractionManager::ReadInputs() { xlink_.ReadInputs(); }
+void InteractionManager::ReadInputs() {
+  xlink_.ReadInputs();
+  otrap_.ReadInputs();
+}
 
 void InteractionManager::InitCrosslinkSpecies(sid_label &slab,
                                               ParamsParser &parser,
@@ -758,11 +765,6 @@ void InteractionManager::InitOpticalTrapSpecies(sid_label &slab,
   otrap_.InitSpecies(slab, parser, seed);
 }
 
-void InteractionManager::InsertOpticalTraps(
-    std::vector<SpeciesBase *> *species) {
-  otrap_.InsertOpticalTraps(species);
-}
-
 void InteractionManager::LoadCrosslinksFromCheckpoints(
     std::string run_name, std::string checkpoint_run_name) {
   xlink_.LoadCrosslinksFromCheckpoints(run_name, checkpoint_run_name);
@@ -771,6 +773,11 @@ void InteractionManager::LoadCrosslinksFromCheckpoints(
 }
 
 void InteractionManager::InsertCrosslinks() { xlink_.InsertCrosslinks(); }
+
+void InteractionManager::InsertOpticalTraps(
+    std::vector<SpeciesBase *> *species) {
+  otrap_.InsertOpticalTraps(species);
+}
 
 bool InteractionManager::CheckDynamicTimestep() {
   if (decrease_dynamic_timestep_) {

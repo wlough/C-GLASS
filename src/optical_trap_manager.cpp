@@ -44,3 +44,12 @@ void OpticalTrapManager::Draw(std::vector<graph_struct *> &graph_array) {
     ot_spec->Draw(graph_array);
   }
 }
+
+void OpticalTrapManager::InitOutputs(bool reading_inputs,
+                                     run_options *run_opts) {
+  output_mgr_.Init(params_, &otrap_species_, space_, reading_inputs, run_opts);
+}
+
+void OpticalTrapManager::ReadInputs() { output_mgr_.ReadInputs(); }
+
+void OpticalTrapManager::WriteOutputs() { output_mgr_.WriteOutputs(); }

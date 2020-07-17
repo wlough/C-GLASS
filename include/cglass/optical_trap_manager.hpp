@@ -36,6 +36,10 @@ public:
   void InsertOpticalTraps(std::vector<SpeciesBase *> *species);
   void UpdateOpticalTraps();
   void Draw(std::vector<graph_struct *> &graph_array);
+  void InitOutputs(bool reading_inputs = false,
+                   run_options *run_opts = nullptr);
+  void ReadInputs();
+  void WriteOutputs();
   //void GetInteractors(std::vector<Object *> &ixors);
 };
 
