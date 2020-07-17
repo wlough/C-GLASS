@@ -633,8 +633,8 @@ species_base_parameters *parse_species_params(std::string sid,
       params.n_spec = jt->second.as<int>();
       } else if (param_name.compare("concentration")==0) {
       params.concentration = jt->second.as<double>();
-      } else if (param_name.compare("begin_with_crosslinks")==0) {
-      params.begin_with_crosslinks = jt->second.as<int>();
+      } else if (param_name.compare("begin_with_bound_crosslinks")==0) {
+      params.begin_with_bound_crosslinks = jt->second.as<int>();
       } else if (param_name.compare("use_binding_volume")==0) {
       params.use_binding_volume = jt->second.as<bool>();
       } else if (param_name.compare("infinite_reservoir_flag")==0) {

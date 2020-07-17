@@ -157,7 +157,7 @@ template <>
 struct species_parameters<species_id::crosslink>
     : public species_base_parameters {
   double concentration = 0;
-  int begin_with_crosslinks = 0;
+  int begin_with_bound_crosslinks = 0;
   bool use_binding_volume = true;
   bool infinite_reservoir_flag = false;
   double bind_site_density = 1;
