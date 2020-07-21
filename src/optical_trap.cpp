@@ -72,10 +72,13 @@ void OpticalTrap::ApplyOpticalTrapForce() {
   CalculateOpticalTrapForce();
   bond_->AddForce(force_);
   double dlambda[3] = {0};
+  double const *const bond_orientation = bond_->GetOrientation();
   for (int i = 0; i < n_dim_; ++i) {
-    dlambda[i] = (bond_lambda_ - 0.5 * bond_length_) * orientation_[i];
+    dlambda[i] = (bond_lambda_ - 0.5 * bond_length_) * bond_orientation[i];
   }
+  //printf("dlambda = (%f, %f, %f)\n", dlambda[0], dlambda[1], dlambda[2]);
   cross_product(dlambda, force_, torque_, 3);
+  //printf("torque = (%f, %f, %f)\n", torque_[0], torque_[1], torque_[2]);
   bond_->AddTorque(torque_);
 }
 
@@ -115,7 +118,7 @@ void OpticalTrap::AttachObjRelLambda(double lambda) {
     SetMeshID(mesh_->GetMeshID());
   } else {
     Logger::Error(
-        "Optical traps bound to non-bond objects not yet implemented in "
+        "Optical traps for non-bond or non-mesh objects not yet implemented in "
         "AttachObjLambda.");
   }
 
