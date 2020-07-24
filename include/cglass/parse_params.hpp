@@ -46,6 +46,8 @@ system_parameters parse_system_params(YAML::Node &node) {
     params.n_graph = it->second.as<int>();
     } else if (param_name.compare("graph_diameter")==0) {
     params.graph_diameter = it->second.as<double>();
+    } else if (param_name.compare("object_opacity")==0) {
+    params.object_opacity = it->second.as<double>();
     } else if (param_name.compare("invert_background")==0) {
     params.invert_background = it->second.as<bool>();
     } else if (param_name.compare("draw_boundary")==0) {

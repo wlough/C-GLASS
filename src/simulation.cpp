@@ -246,7 +246,8 @@ void Simulation::InitGraphics() {
 #ifndef NOGRAPH
   // Initialize graphics structures
   graphics_.Init(&graph_array_, space_.GetStruct(), background_color,
-                 params_.draw_boundary, params_.auto_graph);
+                 params_.draw_boundary, params_.auto_graph,
+                 params_.object_opacity);
 
 // This line was interferring with graphics on Windows, and removing it did no
 // harm

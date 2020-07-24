@@ -164,6 +164,7 @@
   default_config["graph_flag"] = "false";
   default_config["n_graph"] = "1000";
   default_config["graph_diameter"] = "0";
+  default_config["object_opacity"] = "1";
   default_config["invert_background"] = "false";
   default_config["draw_boundary"] = "true";
   default_config["load_checkpoint"] = "false";

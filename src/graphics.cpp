@@ -179,12 +179,13 @@ void Graphics::ScalePositions() {
 
 void Graphics::Init(std::vector<graph_struct *> *graph_array,
                     space_struct *s_struct, double background,
-                    int draw_boundary, int auto_graph) {
+                    int draw_boundary, int auto_graph, double alpha) {
   space_ = s_struct;
   graph_array_ = graph_array;
   n_dim_ = space_->n_dim;
   unit_cell_ = space_->unit_cell;
   auto_graph_ = auto_graph;
+  alpha_ = alpha;
   // ScalePositions();
   if (draw_boundary == 0 || space_->type == +boundary_type::wall) {
     boundary_ = boundary_type::none;
@@ -231,7 +232,7 @@ void Graphics::Init2dWindow() {
   xyzScale_ = 0.95;
   xTrans_ = yTrans_ = 0.0; // x,y translation
   color_switch_ = 1;       // Default 'nice' spherocylinder coloring
-  alpha_ = 1.0;            // transparency
+  //alpha_ = 1.0;            // transparency
 
   /* Compute size of the window respecting the aspect ratio. */
   if (unit_cell_[0] > unit_cell_[3]) {
@@ -1427,36 +1428,41 @@ void Graphics::InitSpheroCylinder() {
     Logger::Error("Failed to compile vertex shader (vertex_shader_ = 0)");
   }
   /* Fragment shader source code */
-  const char *fs =
-      "#version 120\n"
-      "varying vec4 diffuse,ambientGlobal, ambient;"
-      "varying vec3 normal,lightDir,halfVector;"
-      "varying float dist;"
-      "void main()"
-      "{"
-      "vec3 n,halfV,viewV,ldir;"
-      "float NdotL,NdotHV;"
-      "vec4 color = ambientGlobal;"
-      "float att;"
-      "/* a fragment shader can't write a varying variable, hence we need"
-      "a new variable to store the normalized interpolated normal */"
-      "n = normalize(normal);"
-      ""
-      "    /* compute the dot product between normal and normalized lightdir */"
-      "NdotL = max(dot(n,normalize(lightDir)),0.0);"
-      ""
-      "if (NdotL > 0.0) {"
-      ""
-      "att = 1.0 / (gl_LightSource[0].constantAttenuation +"
-      "gl_LightSource[0].linearAttenuation * dist +"
-      "gl_LightSource[0].quadraticAttenuation * dist * dist);"
-      "color += att * (diffuse * NdotL + ambient);"
-      "}"
-      ""
-      "color[3] = .5;" //FIXME Hard coded to reduce opacity of objects.
-                       //Make this an option using snprintf.
-      "gl_FragColor = color;"
-      "}";
+  std::ostringstream ss;
+  ss << "#version 120\n"
+        "varying vec4 diffuse,ambientGlobal, ambient;"
+        "varying vec3 normal,lightDir,halfVector;"
+        "varying float dist;"
+        "void main()"
+        "{"
+        "vec3 n,halfV,viewV,ldir;"
+        "float NdotL,NdotHV;"
+        "vec4 color = ambientGlobal;"
+        "float att;"
+        "/* a fragment shader can't write a varying variable, hence we need"
+        "a new variable to store the normalized interpolated normal */"
+        "n = normalize(normal);"
+        ""
+        "    /* compute the dot product between normal and normalized lightdir "
+        "*/"
+        "NdotL = max(dot(n,normalize(lightDir)),0.0);"
+        ""
+        "if (NdotL > 0.0) {"
+        ""
+        "att = 1.0 / (gl_LightSource[0].constantAttenuation +"
+        "gl_LightSource[0].linearAttenuation * dist +"
+        "gl_LightSource[0].quadraticAttenuation * dist * dist);"
+        "color += att * (diffuse * NdotL + ambient);"
+        "}"
+        ""
+        "color[3] = " //Set object opacity here
+     << alpha_
+     << ";"
+        "gl_FragColor = color;"
+        "}";
+
+  std::string s = ss.str(); // Need an intermediary string for this to work
+  const char *fs = s.c_str();
 
   /* Build Fragment Shader from source specified in fs string */
   spherocylinder_.fragment_shader_ = glCreateShader(GL_FRAGMENT_SHADER);

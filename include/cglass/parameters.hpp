@@ -219,6 +219,7 @@ struct system_parameters {
   bool graph_flag = false;
   int n_graph = 1000;
   double graph_diameter = 0;
+  double object_opacity = 1;
   bool invert_background = false;
   bool draw_boundary = true;
   bool load_checkpoint = false;

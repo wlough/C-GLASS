@@ -22,6 +22,7 @@ dynamic_timestep_ramp : [0.001, double]  # How quickly to return to default time
 graph_flag : [false, bool]           # Whether to run simulation with live graphics.
 n_graph : [1000, int]                # Number of simulation steps between refreshing graphics.
 graph_diameter : [0, double]         # If > 0, draws particles with a diameter of graph_diameter.
+object_opacity: [1, double]          # Sets opacity (alpha) for all sphero-like objects. 1.=opaque, 0.=invisible
 invert_background : [false, bool]    # If false, black background, otherwise white background.
 draw_boundary: [true, bool]          # If set to zero, does not draw system boundary conditions.
 load_checkpoint: [false, bool]       # Flag for reading checkpoint file corresponding to
