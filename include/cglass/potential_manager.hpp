@@ -2,6 +2,7 @@
 #define _CGLASS_POTENTIAL_MANAGER_H_
 
 #include "max_force_potential.hpp"
+#include "no_potential.hpp"
 #include "lennard_jones_potential.hpp"
 #include "r2_potential.hpp"
 #include "soft_potential.hpp"
@@ -11,6 +12,7 @@
 class PotentialManager {
  private:
   // Potentials
+  NoPotential none_;
   WCAPotential wca_;
   LennardJonesPotential lj_;
   SoftPotential soft_;
@@ -28,14 +30,8 @@ class PotentialManager {
      */
     pot_type_ = potential_type::_from_string(params->potential.c_str());
     switch (pot_type_) {
-      case potential_type::wca:
-        pot_ = &wca_;
-        /*
-         * Since WCA can result in infinite forces,
-         * we initialize the max force potential in
-         * case we have an overlap of objects
-         */
-        max_.Init(params);
+      case potential_type::none:
+        pot_ = &none_;
         break;
       case potential_type::soft:
         pot_ = &soft_;
@@ -44,6 +40,14 @@ class PotentialManager {
         pot_ = &lj_;
         break;
       default:
+        // default type is wca potential
+        pot_ = &wca_;
+        /*
+         * Since WCA can result in infinite forces,
+         * we initialize the max force potential in
+         * case we have an overlap of objects
+         */
+        max_.Init(params);
         break;
     }
     pot_->Init(params);
