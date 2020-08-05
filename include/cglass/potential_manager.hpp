@@ -27,18 +27,24 @@ class PotentialManager {
      * and set that potential to be our default
      */
     pot_type_ = potential_type::_from_string(params->potential.c_str());
-    if (pot_type_ == +potential_type::wca) {
-      pot_ = &wca_;
-      /*
-       * Since WCA can result in infinite forces,
-       * we initialize the max force potential in
-       * case we have an overlap of objects
-       */
-      max_.Init(params);
-    } else if (pot_type_ == +potential_type::soft) {
-      pot_ = &soft_;
-    } else if (pot_type_ == +potential_type::lj) {
-      pot_ = &lj_;
+    switch (pot_type_) {
+      case potential_type::wca:
+        pot_ = &wca_;
+        /*
+         * Since WCA can result in infinite forces,
+         * we initialize the max force potential in
+         * case we have an overlap of objects
+         */
+        max_.Init(params);
+        break;
+      case potential_type::soft:
+        pot_ = &soft_;
+        break;
+      case potential_type::lj:
+        pot_ = &lj_;
+        break;
+      default:
+        break;
     }
     pot_->Init(params);
   }
