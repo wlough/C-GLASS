@@ -147,3 +147,35 @@ void OpticalTrap::Draw(std::vector<graph_struct *> &graph_array) {
   UpdateBeadPosition();
   bead_.Draw(graph_array);
 }
+
+void OpticalTrap::WriteSpec(std::fstream &ospec) {
+  Logger::Trace("Writing optical trap specs, object id: %d", GetOID());
+  Object::WriteSpec(ospec);
+  UpdateBeadPosition();
+  double const *const bead_pos = bead_.GetPosition();
+  double const *const bead_spos = bead_.GetScaledPosition();
+  for (int i = 0; i < 3; ++i) {
+    double bpos = bead_pos[i];
+    ospec.write(reinterpret_cast<char *>(&(bpos)), sizeof(double));
+  }
+  for (int i = 0; i < 3; ++i) {
+    double bspos = bead_spos[i];
+    ospec.write(reinterpret_cast<char *>(&(bspos)), sizeof(double));
+  }
+  int attach_id = attach_obj_->GetOID();
+  ospec.write(reinterpret_cast<char *>(&attach_id), sizeof(double));
+}
+
+void OpticalTrap::ReadSpec(std::fstream &ispec) {
+  if (ispec.eof())
+    return;
+  Object::ReadSpec(ispec);
+  double bead_pos[3], bead_spos[3];
+  for (auto &bpos : bead_pos)
+    ispec.read(reinterpret_cast<char *>(&bpos), sizeof(bpos));
+  for (auto &bspos : bead_spos)
+    ispec.read(reinterpret_cast<char *>(&bspos), sizeof(bspos));
+  int attach_id;
+  ispec.read(reinterpret_cast<char *>(&attach_id), sizeof(int));
+  UpdatePeriodic();
+};

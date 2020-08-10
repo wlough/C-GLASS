@@ -40,7 +40,9 @@ public:
   double const GetMeshLambda() { return mesh_lambda_; };
   double const GetBondLambda() { return bond_lambda_; };
   void Draw(std::vector<graph_struct *> &graph_array);
-  //void GetInteractors(std::vector<Object *> &ixors);
+  void WriteSpec(std::fstream &ospec);
+  void ReadSpec(std::fstream &ispec);
+
   //virtual ~optical_trap();
 };
 
