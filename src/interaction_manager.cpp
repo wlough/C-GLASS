@@ -716,6 +716,7 @@ void InteractionManager::Clear() {
     return;
   clist_.Clear();
   xlink_.Clear();
+  otrap_.Clear();
 }
 
 /* Only used during species insertion */

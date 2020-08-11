@@ -22,6 +22,7 @@ public:
   void Init(std::string spec_name, ParamsParser &parser);
   void InsertOpticalTraps(std::vector<SpeciesBase *> *species);
   void ApplyOpticalTrapForces();
+  void CleanUp();
 };
 
 #endif

@@ -53,3 +53,12 @@ void OpticalTrapManager::InitOutputs(bool reading_inputs,
 void OpticalTrapManager::ReadInputs() { output_mgr_.ReadInputs(); }
 
 void OpticalTrapManager::WriteOutputs() { output_mgr_.WriteOutputs(); }
+
+void OpticalTrapManager::Clear() {
+  output_mgr_.Close();
+  for (auto it = otrap_species_.begin(); it != otrap_species_.end(); ++it) {
+    (*it)->CleanUp();
+    delete (*it);
+  }
+  otrap_species_.clear();
+}

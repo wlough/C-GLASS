@@ -40,6 +40,7 @@ public:
                    run_options *run_opts = nullptr);
   void ReadInputs();
   void WriteOutputs();
+  void Clear();
   //void GetInteractors(std::vector<Object *> &ixors);
 };
 

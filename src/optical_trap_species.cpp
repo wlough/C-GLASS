@@ -52,3 +52,5 @@ void OpticalTrapSpecies::ApplyOpticalTrapForces() {
     }
   }
 }
+
+void OpticalTrapSpecies::CleanUp() { members_.clear(); }

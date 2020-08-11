@@ -67,7 +67,7 @@ void OpticalTrap::CalculateOpticalTrapForce() {
  */
 void OpticalTrap::ApplyOpticalTrapForce() {
   if (!bond_) {
-    Logger::Error("Anchor attempted to apply forces to nullptr bond");
+    Logger::Error("Optical trap attempted to apply forces to nullptr bond");
   }
   CalculateOpticalTrapForce();
   bond_->AddForce(force_);
@@ -156,15 +156,15 @@ void OpticalTrap::WriteSpec(std::fstream &ospec) {
   double const *const bead_spos = bead_.GetScaledPosition();
   for (int i = 0; i < 3; ++i) {
     double bpos = bead_pos[i];
-    ospec.write(reinterpret_cast<char *>(&bpos), sizeof(double));
+    ospec.write(reinterpret_cast<char *>(&bpos), sizeof(bpos));
   }
   for (int i = 0; i < 3; ++i) {
     double bspos = bead_spos[i];
-    ospec.write(reinterpret_cast<char *>(&bspos), sizeof(double));
+    ospec.write(reinterpret_cast<char *>(&bspos), sizeof(bspos));
   }
   /* TODO: Make this an object ID one day <10-08-20, ARL> */
   int attach_id = attach_obj_->GetMeshID();
-  ospec.write(reinterpret_cast<char *>(&attach_id), sizeof(int));
+  ospec.write(reinterpret_cast<char *>(&attach_id), sizeof(attach_id));
 }
 
 void OpticalTrap::ReadSpec(std::fstream &ispec) {
