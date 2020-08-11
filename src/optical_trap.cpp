@@ -149,21 +149,22 @@ void OpticalTrap::Draw(std::vector<graph_struct *> &graph_array) {
 }
 
 void OpticalTrap::WriteSpec(std::fstream &ospec) {
-  Logger::Trace("Writing optical trap specs, object id: %d", GetOID());
+  Logger::Trace("Writing optical trap specs, mesh id: %d", GetMeshID());
   Object::WriteSpec(ospec);
   UpdateBeadPosition();
   double const *const bead_pos = bead_.GetPosition();
   double const *const bead_spos = bead_.GetScaledPosition();
   for (int i = 0; i < 3; ++i) {
     double bpos = bead_pos[i];
-    ospec.write(reinterpret_cast<char *>(&(bpos)), sizeof(double));
+    ospec.write(reinterpret_cast<char *>(&bpos), sizeof(double));
   }
   for (int i = 0; i < 3; ++i) {
     double bspos = bead_spos[i];
-    ospec.write(reinterpret_cast<char *>(&(bspos)), sizeof(double));
+    ospec.write(reinterpret_cast<char *>(&bspos), sizeof(double));
   }
-  int attach_id = attach_obj_->GetOID();
-  ospec.write(reinterpret_cast<char *>(&attach_id), sizeof(double));
+  /* TODO: Make this an object ID one day <10-08-20, ARL> */
+  int attach_id = attach_obj_->GetMeshID();
+  ospec.write(reinterpret_cast<char *>(&attach_id), sizeof(int));
 }
 
 void OpticalTrap::ReadSpec(std::fstream &ispec) {
