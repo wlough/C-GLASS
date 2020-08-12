@@ -19,6 +19,7 @@ class RNG {
   const long RandomInt(const long n);
   const double RandomNormal(const double sigma);
   void RandomUnitVector(const int n_dim, double *vec);
+  void RandomBoundaryCoordinate( const space_struct *const s, double *vec); 
   void RandomCoordinate(const space_struct *const s, double *vec,
                         const double buffer = 0);
   unsigned long GetSeed() const;

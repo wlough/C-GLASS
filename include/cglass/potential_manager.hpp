@@ -30,17 +30,19 @@ class PotentialManager {
      */
     pot_type_ = potential_type::_from_string(params->potential.c_str());
     switch (pot_type_) {
-      case potential_type::none:
+      case potential_type::none: {
         pot_ = &none_;
         break;
-      case potential_type::soft:
+      }
+      case potential_type::soft: {
         pot_ = &soft_;
         break;
-      case potential_type::lj:
+      }
+      case potential_type::lj: {
         pot_ = &lj_;
         break;
-      default:
-        // default type is wca potential
+      }
+      wca: {
         pot_ = &wca_;
         /*
          * Since WCA can result in infinite forces,
@@ -49,6 +51,9 @@ class PotentialManager {
          */
         max_.Init(params);
         break;
+      }
+      default:
+        Logger::Error("Potential type not set up in potential_manager.hpp");
     }
     pot_->Init(params);
   }
