@@ -18,13 +18,15 @@
   default_config["rigid_filament"]["constrain_motion_flag"] = "false";
   default_config["rigid_filament"]["packing_fraction"] = "-1";
   default_config["rigid_filament"]["n_equil"] = "0";
-  default_config["filament"]["packing_fraction"] = "-1";
+  default_config["filament"]["randomize_intrinsic_curvature_handedness"] = "false";
   default_config["filament"]["persistence_length"] = "400";
+  default_config["filament"]["packing_fraction"] = "-1";
   default_config["filament"]["perlen_ratio"] = "-1";
   default_config["filament"]["polydispersity_flag"] = "false";
   default_config["filament"]["max_length"] = "500";
   default_config["filament"]["min_length"] = "5";
   default_config["filament"]["min_bond_length"] = "1.5";
+  default_config["filament"]["flock_color_ext"] = "4.71";
   default_config["filament"]["driving_factor"] = "0";
   default_config["filament"]["n_equil"] = "0";
   default_config["filament"]["nematic_driving"] = "false";
@@ -34,7 +36,6 @@
   default_config["filament"]["radius_of_curvature"] = "-1";
   default_config["filament"]["intrinsic_curvature"] = "0";
   default_config["filament"]["intrinsic_curvature_sig"] = "0";
-  default_config["filament"]["randomize_intrinsic_curvature_handedness"] = "false";
   default_config["filament"]["intrinsic_curvature_min"] = "0";
   default_config["filament"]["highlight_handedness"] = "false";
   default_config["filament"]["highlight_curvature"] = "false";
@@ -62,7 +63,7 @@
   default_config["filament"]["flock_contact_min"] = "0.5";
   default_config["filament"]["highlight_flock"] = "false";
   default_config["filament"]["flock_color_int"] = "1.57";
-  default_config["filament"]["flock_color_ext"] = "4.71";
+  default_config["filament"]["force_induced_catastrophe_flag"] = "false";
   default_config["filament"]["number_fluctuation_analysis"] = "false";
   default_config["filament"]["number_fluctuation_boxes"] = "6";
   default_config["filament"]["number_fluctuation_centers"] = "10";
@@ -74,7 +75,6 @@
   default_config["filament"]["flagella_amplitude"] = "1";
   default_config["filament"]["friction_ratio"] = "2";
   default_config["filament"]["dynamic_instability_flag"] = "false";
-  default_config["filament"]["force_induced_catastrophe_flag"] = "false";
   default_config["filament"]["optical_trap_flag"] = "false";
   default_config["filament"]["optical_trap_spring"] = "20";
   default_config["filament"]["optical_trap_fixed"] = "false";
@@ -113,6 +113,7 @@
   default_config["spindle"]["spring_length"] = "0";
   default_config["spindle"]["spb_diameter"] = "5";
   default_config["crosslink"]["concentration"] = "0";
+  default_config["crosslink"]["begin_with_bound_crosslinks"] = "0";
   default_config["crosslink"]["use_binding_volume"] = "true";
   default_config["crosslink"]["infinite_reservoir_flag"] = "false";
   default_config["crosslink"]["bind_site_density"] = "1";
@@ -124,11 +125,11 @@
   default_config["crosslink"]["k_on_s"] = "10";
   default_config["crosslink"]["k_off_s"] = "2";
   default_config["crosslink"]["k_on_d"] = "10";
+  default_config["crosslink"]["k_spring"] = "10";
   default_config["crosslink"]["k_off_d"] = "2";
   default_config["crosslink"]["energy_dep_factor"] = "0";
   default_config["crosslink"]["force_dep_length"] = "0";
   default_config["crosslink"]["polar_affinity"] = "1";
-  default_config["crosslink"]["k_spring"] = "10";
   default_config["crosslink"]["k_spring_compress"] = "-1.";
   default_config["crosslink"]["f_stall"] = "100";
   default_config["crosslink"]["force_dep_vel_flag"] = "true";
@@ -142,7 +143,10 @@
   default_config["crosslink"]["r_capture"] = "5";
   default_config["crosslink"]["lut_grid_num"] = "256";
   default_config["seed"] = "7859459105545";
+  default_config["species_insertion_reattempt_threshold"] = "10";
+  default_config["species_insertion_failure_threshold"] = "10000";
   default_config["n_runs"] = "1";
+  default_config["coarse_grained_mesh_interactions"] = "false";
   default_config["n_random"] = "1";
   default_config["run_name"] = "sc";
   default_config["n_dim"] = "3";
@@ -187,10 +191,7 @@
   default_config["insert_radius"] = "-1";
   default_config["interaction_flag"] = "true";
   default_config["remove_duplicate_interactions"] = "false";
-  default_config["coarse_grained_mesh_interactions"] = "false";
   default_config["mesh_coarsening"] = "2";
-  default_config["species_insertion_failure_threshold"] = "10000";
-  default_config["species_insertion_reattempt_threshold"] = "10";
   default_config["uniform_crystal"] = "false";
   default_config["n_steps_equil"] = "0";
   default_config["n_steps_target"] = "100000";
@@ -203,6 +204,7 @@
   default_config["auto_graph"] = "false";
   default_config["local_order_analysis"] = "false";
   default_config["local_order_width"] = "50";
+  default_config["reduced"] = "false";
   default_config["local_order_bin_width"] = "0.5";
   default_config["local_order_n_analysis"] = "100";
   default_config["density_analysis"] = "0";
@@ -210,7 +212,6 @@
   default_config["density_com_only"] = "false";
   default_config["overlap_analysis"] = "false";
   default_config["highlight_overlaps"] = "false";
-  default_config["reduced"] = "false";
   default_config["reload_reduce_switch"] = "false";
   default_config["checkpoint_flag"] = "false";
   default_config["n_checkpoint"] = "10000";

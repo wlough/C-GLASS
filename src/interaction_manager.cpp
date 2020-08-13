@@ -757,6 +757,11 @@ void InteractionManager::LoadCrosslinksFromCheckpoints(
 
 void InteractionManager::InsertCrosslinks() { xlink_.InsertCrosslinks(); }
 
+void InteractionManager::InsertAttachedCrosslinks() {
+     xlink_.InsertAttachedCrosslinks();
+     ForceUpdate();
+}
+
 bool InteractionManager::CheckDynamicTimestep() {
   if (decrease_dynamic_timestep_) {
     for (auto spec_it = species_->begin(); spec_it != species_->end();
