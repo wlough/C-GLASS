@@ -42,7 +42,7 @@ class PotentialManager {
         pot_ = &lj_;
         break;
       }
-      wca: {
+      case potential_type::wca: {
         pot_ = &wca_;
         /*
          * Since WCA can result in infinite forces,
