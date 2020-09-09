@@ -158,11 +158,11 @@ void RNG::RandomBoundaryCoordinate(const space_struct *const s, double *vec) {
       double a_ratio = 0;
       double roll = RandomUniform();
       if (n_dim == 2) {
-        // arc length for segment  = 2*r*(pi-theta)
+        // arc length for segment = 2*r*(pi-theta)
         a_ratio = r * (M_PI - beta) / (r * (M_PI - beta) + R * (M_PI - alpha));
       }
       else {
-        // surface area for segment  = 2*pi*r^2*(1+cos(theta))
+        // surface area for segment = 2*pi*r^2*(1+cos(theta))
         a_ratio = 
             SQR(r) * (1 + cos(beta)) / (SQR(r) * (1 + cos(beta)) + SQR(R) * (1 + 
             cos(alpha)));
@@ -176,6 +176,7 @@ void RNG::RandomBoundaryCoordinate(const space_struct *const s, double *vec) {
         rho = r;
         vec[n_dim - 1] += d;
       } else {
+        // place on mother cell boundary
         theta = RandomUniform() * (M_PI - alpha) + alpha; // alpha to pi
         rho = R;        
       }
@@ -193,6 +194,6 @@ void RNG::RandomBoundaryCoordinate(const space_struct *const s, double *vec) {
     default: 
       Logger::Error("Boundary type unrecognized in RandomBoundaryCoordinate");
   }
-  Logger::Trace("Generated random coordinate: [%2.2f %2.2f %2.2f]", vec[0],
+  Logger::Trace("Generated random boundary coordinate: [%2.2f %2.2f %2.2f]", vec[0],
                 vec[1], vec[2]);
 }

@@ -184,7 +184,7 @@ void CrosslinkSpecies::InsertCrosslinks() {
     }
   } else if (sparams_.insertion_type.compare("random_boundary") == 0) {
     sparams_.infinite_reservoir_flag = false;
-    switch (space_->type) {
+    /*switch (space_->type) {
       case +boundary_type::none: {
         Logger::Error("Crosslinker insertion type \"random boundary\" requires a"
                       " boundary for species insertion.");
@@ -231,7 +231,8 @@ void CrosslinkSpecies::InsertCrosslinks() {
       }
       default: 
         Logger::Error("Boundary type not recognized in CrosslinkSpecies");
-    }        
+    }*/
+    sparams_.num = (int)round(space_->BoundaryArea() * xlink_concentration_);        
     double pos[3] = {0};
     double u[3] = {1, 0, 0};
     for (int i = 0; i < sparams_.num; ++i) {
