@@ -214,7 +214,7 @@ void Simulation::InitSimulation() {
 #endif
   space_.Init(&params_);
   InitObjects();
-  ix_mgr_.Init(&params_, &species_, space_.GetStruct());
+  ix_mgr_.Init(&params_, &species_, space_.GetSpaceBase());
   InitSpecies();
   ix_mgr_.InitInteractions();
   InsertSpecies(params_.load_checkpoint, params_.load_checkpoint);
@@ -231,11 +231,11 @@ void Simulation::InitObjects() {
   Object::SetParams(&params_);
   Object::SetNDim(params_.n_dim);
   Object::SetDelta(params_.delta);
-  Object::SetSpace(space_.GetStruct());
+  Object::SetSpace(space_.GetSpaceBase());
   SpeciesBase::SetParams(&params_);
-  SpeciesBase::SetSpace(space_.GetStruct());
+  SpeciesBase::SetSpace(space_.GetSpaceBase());
   AnalysisBase::SetParams(&params_);
-  AnalysisBase::SetSpace(space_.GetStruct());
+  AnalysisBase::SetSpace(space_.GetSpaceBase());
 }
 
 /* Generate graphics window and draw initial simulation setup */
@@ -245,7 +245,7 @@ void Simulation::InitGraphics() {
 // If NOGRAPH is defined, skip drawing and grabbing
 #ifndef NOGRAPH
   // Initialize graphics structures
-  graphics_.Init(&graph_array_, space_.GetStruct(), background_color,
+  graphics_.Init(&graph_array_, space_.GetSpaceBase(), background_color,
                  params_.draw_boundary, params_.auto_graph);
 
 // This line was interferring with graphics on Windows, and removing it did no
@@ -517,7 +517,7 @@ void Simulation::GetGraphicsStructure() {
 /* Initialize output files */
 void Simulation::InitOutputs() {
   Logger::Debug("Initializing output files");
-  output_mgr_.Init(&params_, &species_, space_.GetStruct());
+  output_mgr_.Init(&params_, &species_, space_.GetSpaceBase());
   // if (!params_.load_checkpoint)
   ix_mgr_.InitOutputs();
   /* If analyzing run time, record cpu time here */
@@ -528,7 +528,7 @@ void Simulation::InitOutputs() {
 
 /* Determine which output files we are reading */
 void Simulation::InitInputs(run_options run_opts) {
-  output_mgr_.Init(&params_, &species_, space_.GetStruct(), true, &run_opts);
+  output_mgr_.Init(&params_, &species_, space_.GetSpaceBase(), true, &run_opts);
   ix_mgr_.InitOutputs(true, &run_opts);
   /* Initialize object positions from output files if post-processing */
   output_mgr_.ReadInputs();
@@ -579,7 +579,7 @@ void Simulation::InitProcessing(run_options run_opts) {
 
   space_.Init(&params_);
   InitObjects();
-  ix_mgr_.Init(&params_, &species_, space_.GetStruct(), true);
+  ix_mgr_.Init(&params_, &species_, space_.GetSpaceBase(), true);
   InitSpecies();
   // ix_mgr_.InitInteractions();
   InsertSpecies(true, true);

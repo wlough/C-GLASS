@@ -43,7 +43,7 @@ private:
   double mu_[9];               // scaling matrix for constant pressure
 
   system_parameters *params_;
-  space_struct s_struct;
+  SpaceBase s;
   void InitUnitCell();
   void InitSpaceStruct();
   void CalculateVolume();
@@ -60,7 +60,7 @@ public:
   void UpdateSpace();
   void ConstantPressure();
   void ConstantVolume();
-  space_struct *GetStruct();
+  SpaceBase *GetSpaceBase();
   bool GetUpdate() { return update_; }
 };
 

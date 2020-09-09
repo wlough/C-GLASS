@@ -20,10 +20,10 @@ class CrosslinkManager {
   bool update_;
   std::vector<CrosslinkSpecies *> xlink_species_;
   std::vector<Object *> *objs_;
-  space_struct *space_;
+  SpaceBase *space_;
 
  public:
-  void Init(system_parameters *params, space_struct *space,
+  void Init(system_parameters *params, SpaceBase *space,
             std::vector<Object *> *objs);
   void GetInteractors(std::vector<Object *> &ixors);
   void UpdateCrosslinks();

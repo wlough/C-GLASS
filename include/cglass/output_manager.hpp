@@ -22,7 +22,7 @@ private:
   std::string run_name_;
   system_parameters *params_;
   std::vector<T *> *species_;
-  space_struct *space_;
+  SpaceBase *space_;
   void WritePosits();
   void WriteSpecs();
   void WriteCheckpoints();
@@ -38,7 +38,7 @@ private:
 public:
   OutputManagerBase() {}
   void Init(system_parameters *params, std::vector<T *> *species,
-            space_struct *space, bool reading_inputs = false,
+            SpaceBase *space, bool reading_inputs = false,
             run_options *run_opts = nullptr);
   int GetNPosit() { return n_posit_; }
   int GetNSpec() { return n_spec_; }
@@ -51,7 +51,7 @@ public:
 
 template <class T>
 void OutputManagerBase<T>::Init(system_parameters *params,
-                                std::vector<T *> *species, space_struct *space,
+                                std::vector<T *> *species, SpaceBase *space,
                                 bool reading_inputs, run_options *run_opts) {
   params_ = params;
   run_name_ = params_->run_name;

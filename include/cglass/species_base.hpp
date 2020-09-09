@@ -12,7 +12,7 @@ protected:
   int n_members_ = 0;
   int spec_file_iterator_ = -1;
   static const system_parameters *params_;
-  static const space_struct *space_;
+  static const SpaceBase *space_;
   RNG rng_;
   std::fstream oposit_file_;
   std::fstream iposit_file_;
@@ -24,7 +24,7 @@ protected:
 public:
   SpeciesBase(unsigned long seed);
   static void SetParams(system_parameters *params);
-  static void SetSpace(space_struct *space);
+  static void SetSpace(SpaceBase *space);
   void SetSID(species_id sid);
   virtual void UpdatePositions() {}
   virtual void Draw(std::vector<graph_struct *> &graph_array) {}

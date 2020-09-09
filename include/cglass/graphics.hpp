@@ -72,7 +72,7 @@ class Graphics {
   int auto_graph_;
   double *unit_cell_;
   double z_correct_;  // Used to recenter graphics
-  space_struct *space_;
+  SpaceBase *space_;
   std::vector<graph_struct *> *graph_array_;
 
   GraphicsPrimitive discorectangle_;  // 2d spherocylinder
@@ -98,7 +98,7 @@ class Graphics {
 
  public:
   void Init(std::vector<graph_struct *> *const graph_array,
-            space_struct *s_struct, double background, int draw_boundary,
+            SpaceBase *s, double background, int draw_boundary,
             int auto_graph);  // Init. Must always be called.
   void Clear();
 

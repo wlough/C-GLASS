@@ -1,6 +1,6 @@
 #include "cglass/crosslink_manager.hpp"
 
-void CrosslinkManager::Init(system_parameters *params, space_struct *space,
+void CrosslinkManager::Init(system_parameters *params, SpaceBase *space,
                             std::vector<Object *> *objs) {
   objs_ = objs;
   update_ = false;

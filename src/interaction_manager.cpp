@@ -3,7 +3,7 @@
 
 void InteractionManager::Init(system_parameters *params,
                               std::vector<SpeciesBase *> *species,
-                              space_struct *space, bool processing) {
+                              SpaceBase *space, bool processing) {
   // Set up pointer structures
   params_ = params;
   species_ = species;

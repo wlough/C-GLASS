@@ -11,14 +11,14 @@ private:
 protected:
   std::fstream output_;
   static const system_parameters *params_;
-  static const space_struct *space_;
+  static const SpaceBase *space_;
   void SetAnalysisName(std::string name) { analysis_name_ = name; }
   std::string GetAnalysisName() { return analysis_name_; }
   void RequireInteractionAnalysis() { run_interaction_analysis_ = true; }
 
 public:
   static void SetParams(system_parameters *params);
-  static void SetSpace(space_struct *space);
+  static void SetSpace(SpaceBase *space);
   virtual void Init() {
     if (params_ == nullptr || space_ == nullptr) {
       Logger::Error("System parameters or space data structure are unset in "
