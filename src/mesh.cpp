@@ -248,7 +248,7 @@ void Mesh::InitRandomSite(double d) {
 void Mesh::InitRandomBond(double d) {
   rng_.RandomUnitVector(n_dim_, orientation_);
   if (params_->insert_radius > 0) {
-    space_struct space_temp(*space_);
+    SpaceBase space_temp(*space_);
     space_temp.radius = params_->insert_radius;
     rng_.RandomCoordinate(&space_temp, position_, d);
   } else {
@@ -262,7 +262,7 @@ void Mesh::InitRandomBond(double d) {
 }
 void Mesh::InitRandomBondOriented(double *u, double d) {
   if (params_->insert_radius > 0) {
-    space_struct space_temp(*space_);
+    SpaceBase space_temp(*space_);
     space_temp.radius = params_->insert_radius;
     rng_.RandomCoordinate(&space_temp, position_, d);
   } else {

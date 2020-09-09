@@ -43,7 +43,7 @@ void RNG::RandomUnitVector(const int n_dim, double *vec) {
   Logger::Trace("Generated random unit vector: [%2.2f %2.2f %2.2f]", vec[0],
                 vec[1], vec[2]);
 }
-void RNG::RandomCoordinate(const space_struct *const s, double *vec,
+void RNG::RandomCoordinate(const SpaceBase *const s, double *vec,
                            const double buffer) {
   double R = s->radius;
   int n_dim = s->n_dim;
@@ -118,7 +118,7 @@ void RNG::RandomCoordinate(const space_struct *const s, double *vec,
                 vec[1], vec[2]);
 }
 
-void RNG::RandomBoundaryCoordinate(const space_struct *const s, double *vec) {
+void RNG::RandomBoundaryCoordinate(const SpaceBase *const s, double *vec) {
   double R = s->radius;
   int n_dim = s->n_dim;
   switch (s->type) {

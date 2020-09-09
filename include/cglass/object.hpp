@@ -16,7 +16,7 @@ private:
 
 protected:
   static system_parameters *params_;
-  static space_struct *space_;
+  static SpaceBase *space_;
   static int n_dim_;
   static double delta_;
   species_id sid_;
@@ -61,7 +61,7 @@ public:
 
   // Static functions
   static void SetParams(system_parameters *params);
-  static void SetSpace(space_struct *space);
+  static void SetSpace(SpaceBase *space);
   static void SetNDim(int n_dim);
   static void SetDelta(double delta);
   static const double GetDelta();
@@ -163,7 +163,7 @@ public:
   virtual void ReadCheckpointHeader(std::fstream &icheck);
 };
 
-// void MinimumDistance(Object* o1, Object* o2, Interaction *ix, space_struct
-// *space); void BoundaryConditions(Object * o1, space_struct *space);
+// void MinimumDistance(Object* o1, Object* o2, Interaction *ix, SpaceBase
+// *space); void BoundaryConditions(Object * o1, SpaceBase *space);
 
 #endif // _CGLASS_OBJECT_H_

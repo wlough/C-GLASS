@@ -175,9 +175,9 @@ void Graphics::ScalePositions() {
 }
 
 void Graphics::Init(std::vector<graph_struct *> *graph_array,
-                    space_struct *s_struct, double background,
+                    SpaceBase *s, double background,
                     int draw_boundary, int auto_graph) {
-  space_ = s_struct;
+  space_ = s;
   graph_array_ = graph_array;
   n_dim_ = space_->n_dim;
   unit_cell_ = space_->unit_cell;

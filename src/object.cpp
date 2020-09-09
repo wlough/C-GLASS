@@ -43,12 +43,12 @@ void Object::InitOID() {
 int Object::_next_oid_ = 0;
 std::mutex Object::_obj_mtx_;
 system_parameters *Object::params_ = nullptr;
-space_struct *Object::space_ = nullptr;
+SpaceBase *Object::space_ = nullptr;
 int Object::n_dim_ = 0;
 double Object::delta_ = 0;
 
 void Object::SetParams(system_parameters *params) { params_ = params; }
-void Object::SetSpace(space_struct *space) { space_ = space; }
+void Object::SetSpace(SpaceBase *space) { space_ = space; }
 void Object::SetNDim(int n_dim) { n_dim_ = n_dim; }
 void Object::SetDelta(double delta) { delta_ = delta; }
 const double Object::GetDelta() { return delta_; }

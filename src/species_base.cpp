@@ -6,8 +6,8 @@ void SpeciesBase::SetSID(species_id sid) { sid_ = sid; }
 
 /* Static functions*/
 void SpeciesBase::SetParams(system_parameters *params) { params_ = params; }
-void SpeciesBase::SetSpace(space_struct *space) { space_ = space; }
-const space_struct *SpeciesBase::space_ = nullptr;
+void SpeciesBase::SetSpace(SpaceBase *space) { space_ = space; }
+const SpaceBase *SpeciesBase::space_ = nullptr;
 const system_parameters *SpeciesBase::params_ = nullptr;;
 
 void SpeciesBase::InitPositFile(std::string run_name) {

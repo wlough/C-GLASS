@@ -149,7 +149,7 @@ void Space::UpdateSpace() {
        updating for fixed boundaries (like enclosed boxes or spheres) */
 void Space::ConstantPressure() {
   update_ = true;
-  pressure_ = s_struct.pressure;
+  pressure_ = s.pressure;
   // If target pressure is zero, let first pressure calculation set target
   // pressure
   if (target_pressure_ == 0) target_pressure_ = pressure_;
@@ -192,7 +192,7 @@ void Space::UpdateUnitCell() {
    (doesn't work for unit cells with non-zero off-diagonal elements) */
 void Space::CalculateScalingMatrix() {
   double time_const = compressibility_ * delta_ / (n_dim_ * pressure_time_);
-  std::copy(s_struct.pressure_tensor, s_struct.pressure_tensor + n_dim_*n_dim_,
+  std::copy(s.pressure_tensor, s.pressure_tensor + n_dim_*n_dim_,
             pressure_tensor_);
   for (int i = 0; i < n_dim_; ++i) {
     for (int j = 0; j < n_dim_; ++j) {
@@ -323,33 +323,33 @@ void Space::CalculateVolume() {
 }
 
 void Space::InitSpaceStruct() {
-  s_struct.n_dim = n_dim_;
-  s_struct.n_periodic = n_periodic_;
-  s_struct.type = boundary_;
+  s.n_dim = n_dim_;
+  s.n_periodic = n_periodic_;
+  s.type = boundary_;
   if (boundary_ == +boundary_type::budding) {
-    s_struct.bud = true;
-    s_struct.bud_height = bud_height_;
-    s_struct.bud_radius = bud_radius_;
-    s_struct.bud_neck_radius = neck_radius_;
-    s_struct.bud_neck_height = neck_height_;
+    s.bud = true;
+    s.bud_height = bud_height_;
+    s.bud_radius = bud_radius_;
+    s.bud_neck_radius = neck_radius_;
+    s.bud_neck_height = neck_height_;
   } else {
-    s_struct.bud = false;
+    s.bud = false;
   }
-  s_struct.unit_cell = unit_cell_;
-  s_struct.unit_cell_inv = unit_cell_inv_;
-  s_struct.a = a_;
-  s_struct.b = b_;
-  s_struct.a_perp = a_perp_;
-  s_struct.mu = mu_;
-  s_struct.pressure = 0;
-  std::fill(s_struct.pressure_tensor, s_struct.pressure_tensor+9, 0.0);
+  s.unit_cell = unit_cell_;
+  s.unit_cell_inv = unit_cell_inv_;
+  s.a = a_;
+  s.b = b_;
+  s.a_perp = a_perp_;
+  s.mu = mu_;
+  s.pressure = 0;
+  std::fill(s.pressure_tensor, s.pressure_tensor+9, 0.0);
   UpdateSpaceStruct();
 }
 
 // Only need to update changing variables (but not pointers)
 void Space::UpdateSpaceStruct() {
-  s_struct.radius = radius_;
-  s_struct.volume = volume_;
+  s.radius = radius_;
+  s.volume = volume_;
 }
   
-space_struct *Space::GetStruct() { return &s_struct; }
+SpaceBase *Space::GetSpaceBase() { return &s; }

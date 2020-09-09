@@ -6,9 +6,9 @@ int MinimumDistance::n_dim_ = 0;
 int MinimumDistance::n_periodic_ = 0;
 double *MinimumDistance::unit_cell_ = nullptr;
 double MinimumDistance::boundary_cut2_ = 0;
-space_struct *MinimumDistance::space_ = nullptr;
+SpaceBase *MinimumDistance::space_ = nullptr;
 
-void MinimumDistance::Init(space_struct *space, double boundary_cutoff_sq) {
+void MinimumDistance::Init(SpaceBase *space, double boundary_cutoff_sq) {
   space_ = space;
   n_dim_ = space_->n_dim;
   n_periodic_ = space_->n_periodic;
