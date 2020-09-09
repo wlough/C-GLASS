@@ -351,5 +351,5 @@ void Space::UpdateSpaceStruct() {
   s_struct.radius = radius_;
   s_struct.volume = volume_;
 }
-
+  
 space_struct *Space::GetStruct() { return &s_struct; }
