@@ -30,6 +30,7 @@ class Simulation {
 #endif
   Space space_;
   std::vector<SpeciesBase *> species_;
+  Cortex *cortex_;
   void InitSimulation();
   void InitObjects();
   void InitSpecies();
