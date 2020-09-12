@@ -184,54 +184,6 @@ void CrosslinkSpecies::InsertCrosslinks() {
     }
   } else if (sparams_.insertion_type.compare("random_boundary") == 0) {
     sparams_.infinite_reservoir_flag = false;
-    /*switch (space_->type) {
-      case +boundary_type::none: {
-        Logger::Error("Crosslinker insertion type \"random boundary\" requires a"
-                      " boundary for species insertion.");
-        break;
-      }
-      case +boundary_type::sphere: {
-        if (params_->n_dim == 2) {
-          sparams_.num =
-              (int)round(2.0 * M_PI * space_->radius * xlink_concentration_);
-        } else {
-          sparams_.num =
-              (int)round(4 * M_PI * SQR(space_->radius) * xlink_concentration_);
-        }
-        break;
-      } 
-      case +boundary_type::box: {
-        if (params_->n_dim == 2) {
-          sparams_.num =
-              (int)round(8.0 * space_->radius * xlink_concentration_);
-        } else {
-          sparams_.num =
-              (int)round(24.0 * SQR(space_->radius) * xlink_concentration_);
-        }
-        break;
-      }
-      case +boundary_type::budding: {
-        double R = space_->radius;
-        double r = space_->bud_radius;
-        double d = space_->bud_height;
-        if (params_->n_dim == 2) {
-          // arc length for segment  = 2*r*(pi-theta)
-          sparams_.num = (int)round(
-              2.0 * (r * (M_PI - acos((SQR(d) + SQR(r) - SQR(R)) / (2.0 * d * r))) 
-              + R * (M_PI - acos((SQR(d) - SQR(r) + SQR(R)) / (2.0 * d * R)))) 
-              * xlink_concentration_);
-        } else {
-          // surface area for segment = 2*pi*r^2*(1+cos(theta))
-          sparams_.num = (int)round(
-              2.0 * M_PI * (SQR(r) * (1 + ((SQR(d) + SQR(r) - SQR(R)) / (2.0 * d * r))) 
-              + SQR(R) * (1 + ((SQR(d) - SQR(r) + SQR(R)) / (2.0 * d * R))))
-              * xlink_concentration_);
-        }
-        break;
-      }
-      default: 
-        Logger::Error("Boundary type not recognized in CrosslinkSpecies");
-    }*/
     sparams_.num = (int)round(space_->BoundaryArea() * xlink_concentration_);        
     double pos[3] = {0};
     double u[3] = {1, 0, 0};

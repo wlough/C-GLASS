@@ -3,11 +3,12 @@
 
 void InteractionManager::Init(system_parameters *params,
                               std::vector<SpeciesBase *> *species,
-                              SpaceBase *space, bool processing) {
+                              SpaceBase *space, Cortex *cortex, bool processing) {
   // Set up pointer structures
   params_ = params;
   species_ = species;
   space_ = space;
+  cortex_ = cortex;
   processing_ = processing;
 
   // Initialize owned structures

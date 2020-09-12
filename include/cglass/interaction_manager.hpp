@@ -4,6 +4,7 @@
 //#include "cell_list.hpp"
 #include "auxiliary.hpp"
 #include "cell_list.hpp"
+#include "cortex.hpp"
 #include "crosslink_manager.hpp"
 #include "minimum_distance.hpp"
 #include "potential_manager.hpp"
@@ -34,6 +35,7 @@ class InteractionManager {
   int i_update_ = 0;
   system_parameters *params_;
   SpaceBase *space_;
+  Cortex *cortex_;
   std::vector<SpeciesBase *> *species_;
 
   MinimumDistance mindist_;
@@ -72,7 +74,7 @@ class InteractionManager {
  public:
   InteractionManager() {}
   void Init(system_parameters *params, std::vector<SpeciesBase *> *species,
-            SpaceBase *space, bool processing = false);
+            SpaceBase *space, Cortex *cortex, bool processing = false);
   void InitInteractions();
   void Interact();
   void CalculatePressure();

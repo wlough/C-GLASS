@@ -214,7 +214,9 @@ void Simulation::InitSimulation() {
 #endif
   space_.Init(&params_);
   InitObjects();
-  ix_mgr_.Init(&params_, &species_, space_.GetSpaceBase());
+  cortex_ = new Cortex(rng_->GetSeed());
+  cortex_->Init(&params_);
+  ix_mgr_.Init(&params_, &species_, space_.GetSpaceBase(), cortex_);
   InitSpecies();
   ix_mgr_.InitInteractions();
   InsertSpecies(params_.load_checkpoint, params_.load_checkpoint);
@@ -472,6 +474,7 @@ void Simulation::ClearSimulation() {
   }
 #endif
   delete rng_;
+  delete cortex_;
   Logger::Info("Simulation complete");
 }
 
@@ -510,6 +513,7 @@ void Simulation::GetGraphicsStructure() {
   for (auto it = species_.begin(); it != species_.end(); ++it) {
     (*it)->Draw(graph_array_);
   }
+  cortex_->Draw(graph_array_);
   /* Visualize interaction forces, crosslinks, etc */
   ix_mgr_.DrawInteractions(graph_array_);
 }
@@ -579,7 +583,7 @@ void Simulation::InitProcessing(run_options run_opts) {
 
   space_.Init(&params_);
   InitObjects();
-  ix_mgr_.Init(&params_, &species_, space_.GetSpaceBase(), true);
+  ix_mgr_.Init(&params_, &species_, space_.GetSpaceBase(), cortex_, true);
   InitSpecies();
   // ix_mgr_.InitInteractions();
   InsertSpecies(true, true);

@@ -281,10 +281,12 @@ void Crosslink::AttachObjRandom(Object *obj) {
     anchors_[0].AttachObjRandom(obj);
     SetMeshID(obj->GetMeshID());
     SetSingly();
-  } else {
+  } else if (obj->GetType() == +obj_type::site) {
     /* TODO: add binding to sphere or site-like objects */
-    Logger::Error("Crosslink binding to non-bond objects not yet implemented.");
-  }
+    //Logger::Error("Crosslink binding to non-bond objects not yet implemented.");
+    Logger::Info("Crosslink tried to bond to site.");
+  } else
+    Logger::Info("Crosslink tried to bond to %d.", obj->GetType());
 }
 
 void Crosslink::Draw(std::vector<graph_struct *> &graph_array) {
