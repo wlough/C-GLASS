@@ -7,13 +7,13 @@
 
 class Cortex : public Mesh {
 private:
-  system_parameters *sparams_;
+  system_parameters *params_;
   double site_diameter_;
   double site_concentration_;
-  int n_sites_;
+  int total_sites_;
 public:
   Cortex(unsigned long seed);
-  void Init(system_parameters *sparams);
+  void Init(system_parameters *params);
   void SetParameters();
   void AddSites();
   void Draw(std::vector<graph_struct *> &graph_array);
