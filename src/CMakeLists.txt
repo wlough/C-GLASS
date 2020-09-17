@@ -1,4 +1,5 @@
 find_package(yaml-cpp REQUIRED)
+message("-- Found yaml-cpp: ${YAML_CPP_INCLUDE_DIR}")
 find_package(GSL REQUIRED)
 find_package(FFTW REQUIRED)
 
@@ -26,6 +27,7 @@ if (GRAPH)
 else()
   add_definitions(-DNOGRAPH=TRUE)
 endif()
+include_directories(${INCLUDES})
 
 if(DEBUG)
     add_definitions(-DDEBUG=TRUE)
