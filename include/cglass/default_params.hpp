@@ -116,7 +116,8 @@
   default_config["crosslink"]["begin_with_bound_crosslinks"] = "0";
   default_config["crosslink"]["use_binding_volume"] = "true";
   default_config["crosslink"]["infinite_reservoir_flag"] = "false";
-  default_config["crosslink"]["bind_site_density"] = "1";
+  default_config["crosslink"]["linear_bind_site_density"] = "1";
+  default_config["crosslink"]["surface_bind_site_density"] = "1";
   default_config["crosslink"]["static_flag"] = "false";
   default_config["crosslink"]["diffusion_s"] = "0";
   default_config["crosslink"]["diffusion_d"] = "0";

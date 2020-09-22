@@ -16,6 +16,8 @@ public:
   void Init(system_parameters *params);
   void SetParameters();
   void AddSites();
+  
+  void UpdateInteractors();
   void Draw(std::vector<graph_struct *> &graph_array);
 };
 

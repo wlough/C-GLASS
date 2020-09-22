@@ -101,6 +101,8 @@ checkpoint_flag: [false, bool]       # Generate a checkpoint file every n_checkp
                                      # most recent instance of RNG state and spec file data.
 n_checkpoint: [10000, int]           # Frequency used for generating checkpoint file information.
 no_midstep: [false, bool]            # Specify the simulation is not using a mid step algorithm
+cortex_site_concentration: [-1, double]    # Density of crosslinker binding sites on the cell cortex.
+cortex_site_diameter: [-1, double]   # Diameter of cell cortex binding sites.
 
 species:                             # Shared parameters used for all species.
   name: [species, string]          # Label given to species (e.g. microtubule, kinesin, etc)
@@ -305,8 +307,10 @@ crosslink:                          # Parameters specific to crosslinks.
                                          # reservoir when going from unbound to
                                          # singly bound.  Only applicable for
                                          # crosslinks in solution.
-  bind_site_density: [1, double]    # The linear binding site density along
-                                    # filament that crosslinker ends bind to
+  linear_bind_site_density: [1, double] # The linear binding site density along
+                                        # filament that crosslinker ends bind to
+  surface_bind_site_density: [1, double] # The surface binding site density of a site that crosslinker
+                                         # ends bind to 
   static_flag: [false, bool]        # Flag for setting one crosslinker head to be fixed in space
   diffusion_s: [0, double]          # Diffusion coefficient for singly bound crosslinks
   diffusion_d: [0, double]          # Diffusion coefficient for doubly bound crosslinks

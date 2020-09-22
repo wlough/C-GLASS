@@ -4,7 +4,8 @@ void CrosslinkManager::Init(system_parameters *params, SpaceBase *space,
                             std::vector<Object *> *objs) {
   objs_ = objs;
   update_ = false;
-  obj_volume_ = 0;
+  obj_length_ = 0.0;
+  obj_area_ = 0.0;
   params_ = params;
   space_ = space;
 }
@@ -20,8 +21,8 @@ void CrosslinkManager::InitSpecies(sid_label &slab, ParamsParser &parser,
     delete xlink_species_.back();
     xlink_species_.pop_back();
   } else {
-    xlink_species_.back()->InitInteractionEnvironment(objs_, &obj_volume_,
-                                                      &update_);
+    xlink_species_.back()->InitInteractionEnvironment(objs_, &obj_length_, 
+                                                      &obj_area_, &update_);
     rcutoff_ = xlink_species_.back()->GetRCutoff();
   }
 }
@@ -29,11 +30,14 @@ void CrosslinkManager::InitSpecies(sid_label &slab, ParamsParser &parser,
 /* Keep track of volume of objects in the system. Affects the
  * probability of a free crosslink binding to an object. */
 void CrosslinkManager::UpdateObjsVolume() {
-  obj_volume_ = 0;
+  obj_length_ = 0;
+  obj_area_ = 0;
   for (auto it = objs_->begin(); it != objs_->end(); ++it) {
-    // obj_volume_ += (*it)->GetVolume(); //XXX: Binding based off length not
-    // volume
-    obj_volume_ += (*it)->GetLength();
+    if ((*it)->GetType() == +obj_type::bond) {
+      obj_length_ += (*it)->GetLength();
+    } else if ((*it)->GetType() == +obj_type::site) {
+      obj_area_ += (*it)->GetArea();
+    }
   }
 }
 

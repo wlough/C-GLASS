@@ -20,6 +20,10 @@ size_t RNG::GetSize() { return gsl_rng_size(rng_); }
 const double RNG::RandomUniform() { return gsl_rng_uniform_pos(rng_); }
 
 const int RNG::RandomPoisson(const double mean) {
+  if (mean > 400000) {
+    Logger::Warning("Large input mean value in RNG::RandomPoisson may cause"
+                    " slowdown.");
+  }
   return gsl_ran_poisson(rng_, mean);
 }
 
@@ -122,12 +126,12 @@ void RNG::RandomBoundaryCoordinate(const SpaceBase *const s, double *vec) {
   double R = s->radius;
   int n_dim = s->n_dim;
   switch (s->type) {
-    case +boundary_type::none: {
+    case boundary_type::none: {
       Logger::Error(
           "Random boundary vector cannot be created for boundary type = none");
       break;
     }
-    case +boundary_type::box: {
+    case boundary_type::box: {
       int roll_pm = RandomInt(2) * 2 - 1;
       int roll_plane = RandomInt(n_dim);
       for (int i = 0; i < n_dim; ++i) {
@@ -139,14 +143,14 @@ void RNG::RandomBoundaryCoordinate(const SpaceBase *const s, double *vec) {
       }
       break;
     }
-    case +boundary_type::sphere: {
+    case boundary_type::sphere: {
       RandomUnitVector(n_dim, vec);
       for (int i = 0; i < n_dim; ++i) {
         vec[i] *= R;
       }
       break;
     }
-    case +boundary_type::budding: {
+    case boundary_type::budding: {
       double r = s->bud_radius;
       double d = s->bud_height;
       

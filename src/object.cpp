@@ -292,6 +292,26 @@ double const Object::GetVolume() {
   }
   return -1;
 }
+double const Object::GetArea() {
+  if (n_dim_ == 2) {
+    if (length_ == 0) {
+      return M_PI * diameter_;
+    } else {
+      return 2.0 * length_ + M_PI * diameter_;
+    }
+  }
+  if (n_dim_ == 3) {
+    if (length_ == 0) {
+      return M_PI * diameter_ * diameter_;
+    } else {
+      return M_PI * diameter_ * diameter_ +
+             M_PI * length_ * diameter_;
+    }
+    return -1;
+  }
+  return -1;
+}
+
 double const Object::GetDrTot() {
   UpdateDrTot();
   return dr_tot_;

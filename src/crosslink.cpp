@@ -21,7 +21,8 @@ void Crosslink::Init(crosslink_parameters *sparams) {
   static_flag_ = sparams_->static_flag;
   k_align_ = sparams_->k_align;
   // rcapture_ = sparams_->r_capture;
-  bind_site_density_ = sparams_->bind_site_density;
+  linear_bind_site_density_ = sparams_->linear_bind_site_density;
+  surface_bind_site_density_ = sparams_->surface_bind_site_density;
   e_dep_factor_ = sparams_->energy_dep_factor;
   fdep_length_ = sparams_->force_dep_length;
   polar_affinity_ = sparams_->polar_affinity;
@@ -55,6 +56,7 @@ void Crosslink::GetAnchors(std::vector<Object *> &ixors) {
 
 /* Perform kinetic monte carlo step of protein with 1 head attached. */
 void Crosslink::SinglyKMC() {
+
   double roll = rng_.RandomUniform();
   int head_bound = 0;
   // Set up KMC objects and calculate probabilities
@@ -74,7 +76,7 @@ void Crosslink::SinglyKMC() {
 
   /* Calculate probability to bind */
   double kmc_bind_prob = 0;
-  double k_on_d_prime = anchors_[1].GetOnRate() * bind_site_density_;
+  double k_on_d_prime = anchors_[1].GetOnRate() * linear_bind_site_density_;
 
   std::vector<double> kmc_bind_factor(n_neighbors, k_on_d_prime);
   if (n_neighbors > 0) {
@@ -84,8 +86,10 @@ void Crosslink::SinglyKMC() {
     kmc_bind.LUCalcTotProbsSD(anchors_[0].GetNeighborListMem(), kmc_filter,
                               anchors_[0].GetBoundOID(), kmc_bind_factor);
     kmc_bind_prob = kmc_bind.getTotProb();
-  }
-  // Find out whether we bind, unbind, or neither.
+    if ((abs(anchors_[0].pos[0] + 28.729450)<.000001)&&(abs(anchors_[0].pos[1]-8.638212)<.000001)) {
+      Logger::Info("This one, prob = %f", kmc_bind_prob);
+    }
+  } // Find out whether we bind, unbind, or neither.
   int head_activate = choose_kmc_double(unbind_prob, kmc_bind_prob, roll);
   // Change status of activated head
   if (head_activate == 0) {
@@ -119,6 +123,8 @@ void Crosslink::SinglyKMC() {
     }
     anchors_[1].AttachObjLambda(bind_obj, bind_lambda);
     SetDoubly();
+    Logger::Info("Crosslink %d became doubly bound to obj %d", GetOID(),
+                  bind_obj->GetOID());
     Logger::Trace("Crosslink %d became doubly bound to obj %d", GetOID(),
                   bind_obj->GetOID());
   }
@@ -190,7 +196,7 @@ void Crosslink::UpdateAnchorsToMesh() {
 }
 
 void Crosslink::UpdateAnchorPositions() {
-  anchors_[0].UpdatePosition();
+  anchors_[0].UpdatePosition();   
   anchors_[1].UpdatePosition();
 }
 
@@ -272,21 +278,20 @@ void Crosslink::CalculateTetherForces() {
   UpdatePeriodic();
 }
 
-/* Attach a crosslink anchor to object in a random fashion. Currently only
- * bonds are used, but can be extended to sites (sphere-like objects) */
+/* Attach a crosslink anchor to object in a random fashion */
 void Crosslink::AttachObjRandom(Object *obj) {
   /* Attaching to random bond implies first anchor binding from solution, so
    * this crosslink should be new and should not be singly or doubly bound */
-  if (obj->GetType() == +obj_type::bond) {
+  if ((obj->GetType() == +obj_type::bond) || (obj->GetType() == +obj_type::site)) {
     anchors_[0].AttachObjRandom(obj);
+    //if (obj->GetType() == +obj_type::site) {
+      //Logger::Info("New xlink at pos[0] = %f, pos[1] = %f", anchors_[0].pos[0], anchors_[0].pos[1]);
+    //}
     SetMeshID(obj->GetMeshID());
     SetSingly();
-  } else if (obj->GetType() == +obj_type::site) {
-    /* TODO: add binding to sphere or site-like objects */
-    //Logger::Error("Crosslink binding to non-bond objects not yet implemented.");
-    Logger::Info("Crosslink tried to bond to site.");
-  } else
-    Logger::Info("Crosslink tried to bond to %d.", obj->GetType());
+  } else {
+    Logger::Error("Crosslink binding to %s type objects not yet implemented.", obj->GetType()._to_string());
+  }
 }
 
 void Crosslink::Draw(std::vector<graph_struct *> &graph_array) {
