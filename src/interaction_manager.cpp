@@ -122,6 +122,10 @@ void InteractionManager::UpdateInteractors() {
        ++spec_it) {
     (*spec_it)->GetInteractors(ix_objects_);
   }
+  
+  // Add cortex sites as interactors
+  cortex_->GetInteractors(ix_objects_);
+
   // Add crosslinks as interactors
   interactors_.insert(interactors_.end(), ix_objects_.begin(),
                       ix_objects_.end());

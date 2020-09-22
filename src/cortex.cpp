@@ -10,7 +10,7 @@ void Cortex::Init(system_parameters *params) {
   if ((site_concentration_ > 0) && (site_diameter_ > 0)) {
     total_sites_ = (int)round(site_concentration_ * space_->BoundaryArea());
   }
-  n_bonds_max_ = total_sites_ - 1;
+  n_bonds_max_ = total_sites_ - 1; // Avoid flag specific to mesh with edges
   AddSites();
 }
 
@@ -24,6 +24,13 @@ void Cortex::AddSites() {
   for (int i = 0; i < total_sites_; ++i) {
     rng_.RandomBoundaryCoordinate(space_, pos);
     InitSiteAt(pos, site_diameter_);
+  }
+}
+
+void Cortex::UpdateInteractors() {
+  interactors_.clear();
+  for (auto it = sites_.begin(); it != sites_.end(); ++it) {
+    interactors_.push_back(&(*it));
   }
 }
 

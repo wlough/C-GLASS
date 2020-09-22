@@ -20,7 +20,7 @@ protected:
   static int n_dim_;
   static double delta_;
   species_id sid_;
-  obj_type type_;
+  obj_type type_ = obj_type::generic;
   graph_struct g_;
   RNG rng_;
   draw_type draw_;
@@ -137,6 +137,7 @@ public:
   virtual const double GetInteractorDiameter();
   virtual const double GetInteractorLength();
   virtual const double GetVolume();
+  virtual const double GetArea();
   virtual void UpdateDrTot();
   virtual const double GetDrTot();
   virtual void ZeroDrTot();

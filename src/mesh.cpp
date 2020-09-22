@@ -32,6 +32,7 @@ void Mesh::AddSite(Site s) {
   sites_.push_back(s);
   sites_.back().SetColor(color_, draw_);
   sites_.back().SetMeshID(GetMeshID());
+  sites_.back().SetMeshPtr(this);
   n_sites_++;
   Logger::Trace("Added site number %d, id: %d", n_sites_,
                 sites_.back().GetOID());

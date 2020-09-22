@@ -38,6 +38,7 @@ class Anchor : public Object {
   NeighborList neighbors_;
 
   Bond *bond_;
+  Site *site_;
   Mesh *mesh_;
 
   int mesh_n_bonds_;
@@ -60,6 +61,7 @@ class Anchor : public Object {
   void SetDiffusion();
   void AttachObjRandom(Object *o);
   void AttachObjLambda(Object *o, double lambda);
+  void AttachObjCenter(Object *o);
   void AttachObjMeshLambda(Object *o, double mesh_lambda);
   void CalculatePolarAffinity(std::vector<double> &doubly_binding_rates);
   void SetBondLambda(double l);

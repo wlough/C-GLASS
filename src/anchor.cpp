@@ -43,10 +43,10 @@ void Anchor::SetDiffusion() {
 }
 
 void Anchor::UpdateAnchorPositionToMesh() {
-  if (!bound_ || static_flag_)
+  if (!bound_ || static_flag_ || !bond_)
     return;
-  if (!bond_ || !mesh_) {
-    Logger::Error("Anchor tried to update position to nullptr bond or mesh");
+  if (!mesh_) {
+    Logger::Error("Anchor tried to update position to nullptr mesh");
   }
 
   /* Use the mesh to determine the bond lengths. The true bond lengths fluctuate
@@ -114,7 +114,7 @@ void Anchor::UpdatePosition() {
   // Currently only bound anchors diffuse/walk (no explicit unbound anchors)
   bool diffuse = GetDiffusionConst() > 0 ? true : false;
   bool walker = GetMaxVelocity() > 0 ? true : false;
-  if (!bound_ || static_flag_ || (!diffuse && !walker)) {
+  if (!bound_ || static_flag_ || !bond_ || (!diffuse && !walker)) {
     return;
   }
   // Diffuse or walk along the mesh, updating mesh_lambda
@@ -132,6 +132,9 @@ void Anchor::UpdatePosition() {
 void Anchor::ApplyAnchorForces() {
   if (!bound_ || static_flag_) {
     return;
+  }
+  if (site_) {
+    return; // Forces on sites not implemented
   }
   if (!bond_) {
     Logger::Error("Anchor attempted to apply forces to nullptr bond");
@@ -206,6 +209,7 @@ void Anchor::Unbind() {
   }
   bound_ = false;
   bond_ = nullptr;
+  site_ = nullptr;
   mesh_ = nullptr;
   mesh_n_bonds_ = -1;
   bond_length_ = -1;
@@ -249,7 +253,11 @@ void Anchor::UpdateAnchorPositionToBond() {
 /*Creates Vector that has different binding rates for parallel and anti-parallel
  * bonds*/
 void Anchor::CalculatePolarAffinity(std::vector<double> &doubly_binding_rates) {
-  double const *const orientation = bond_->GetOrientation();
+  double orientation[3]; 
+  if (bond_) std::copy(bond_->GetOrientation(), bond_->GetOrientation() + 3, orientation);
+  else if (site_) std::copy(site_->GetOrientation(), site_->GetOrientation() + 3, orientation);
+  else
+    Logger::Error("Bond and site are nullptr in Anchor::CalculatePolarAffinity"); 
   for (int i = 0; i < doubly_binding_rates.size(); ++i) {
     Object *obj = neighbors_.GetNeighbor(i);
     double const *const i_orientation = obj->GetOrientation();
@@ -276,15 +284,28 @@ void Anchor::Draw(std::vector<graph_struct *> &graph_array) {
 }
 
 void Anchor::AttachObjRandom(Object *o) {
-  double length = o->GetLength();
-  double lambda = length * rng_.RandomUniform();
-  AttachObjLambda(o, lambda);
+  switch (o->GetType()) {
+    case obj_type::bond: {
+      double length = o->GetLength();
+      double lambda = length * rng_.RandomUniform();
+      AttachObjLambda(o, lambda);
+      break;
+    }
+    case obj_type::site: {
+      AttachObjCenter(o);
+      break;
+    }
+    default: {
+      Logger::Error("Crosslink binding to %s type objects not yet implemented in" 
+                    " Anchor::AttachObjRandom", o->GetType()._to_string());
+    }
+  }
 }
-
+    
 void Anchor::AttachObjLambda(Object *o, double lambda) {
   if (o->GetType() != +obj_type::bond) {
     Logger::Error(
-        "Crosslink binding to non-bond objects not yet implemented in "
+        "Crosslink binding to non-bond objects not implemented in "
         "AttachObjLambda.");
   }
   bond_ = dynamic_cast<Bond *>(o);
@@ -311,6 +332,32 @@ void Anchor::AttachObjLambda(Object *o, double lambda) {
   mesh_lambda_ = bond_->GetMeshLambda() + bond_lambda_;
   SetMeshID(bond_->GetMeshID());
   UpdateAnchorPositionToBond();
+  ZeroDrTot();
+  bound_ = true;
+}
+
+/* Attach object in center of site. Site binding likelihood weighted by 
+ * surface area, but binding places crosslinks in center regardless. */
+void Anchor::AttachObjCenter(Object *o) {
+  if (o->GetType() != +obj_type::site) {
+    Logger::Error(
+        "Crosslink binding to non-site objects not implemented in "
+        "AttachObjCenter.");
+  }
+  site_ = dynamic_cast<Site *>(o);
+  if (site_ == nullptr) {
+    Logger::Error("Object ptr passed to anchor was not referencing a site!");
+  }
+  mesh_ = dynamic_cast<Mesh *>(site_->GetMeshPtr());
+  if (mesh_ == nullptr) {
+    Logger::Error("Object ptr passed to anchor was not referencing a mesh!");
+  }
+
+  mesh_lambda_ = -1; // not used for sites
+  SetMeshID(site_->GetMeshID());
+  std::copy(site_->GetPosition(), site_->GetPosition() + 3, position_); 
+  std::copy(site_->GetOrientation(), site_->GetOrientation() + 3, orientation_);
+  UpdatePeriodic();
   ZeroDrTot();
   bound_ = true;
 }

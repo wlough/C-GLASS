@@ -15,7 +15,8 @@ class CrosslinkManager {
  private:
   system_parameters *params_;
   CrosslinkOutputManager output_mgr_;
-  double obj_volume_;
+  double obj_length_;
+  double obj_area_;
   double rcutoff_ = 0;  // Cutoff for binding any crosslink and bond
   bool update_;
   std::vector<CrosslinkSpecies *> xlink_species_;

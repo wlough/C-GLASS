@@ -26,7 +26,8 @@ private:
   double k_align_;
   double rest_length_;
   double rcapture_;
-  double bind_site_density_;
+  double linear_bind_site_density_;
+  double surface_bind_site_density_;
   double tether_force_;
   double e_dep_factor_;
   double fdep_length_;

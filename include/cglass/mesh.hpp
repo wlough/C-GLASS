@@ -26,7 +26,7 @@ class Mesh : public Object {
   double bond_length_ = -1;
   double true_length_ = -1;
   Bond *GetRandomBond();
-  void UpdateInteractors();
+  virtual void UpdateInteractors();
   void UpdateSiteOrientations();
   void RelocateMesh(double const *const new_pos, double const *const u);
   void AddRandomBondToSite(double l, int i_site);
