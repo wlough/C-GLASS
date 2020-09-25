@@ -33,8 +33,6 @@ void Crosslink::Init(crosslink_parameters *sparams) {
   anchors_.push_back(anchor2);
   anchors_[0].Init(sparams_);
   anchors_[1].Init(sparams_);
-  anchors_[0].obj_area_ = obj_area_;
-  anchors_[1].obj_area_ = obj_area_;
   SetSingly();
   Logger::Trace("Initializing crosslink %d with anchors %d and %d", GetOID(),
                 anchors_[0].GetOID(), anchors_[1].GetOID());
@@ -443,9 +441,15 @@ void Crosslink::InsertAt(double const *const new_pos, double const *const u) {
 }
 
 void Crosslink::SetObjArea(double *obj_area) {
+  if (!obj_area) Logger::Warning("Crosslink received nullptr obj_area");
   obj_area_ = obj_area;
-  anchors_[0].obj_area_ = obj_area;
-  anchors_[1].obj_area_ = obj_area;
+  anchors_[0].SetObjArea(obj_area);
+  anchors_[1].SetObjArea(obj_area);
+}
+
+const double* const Crosslink::GetObjArea() {
+  if (!obj_area_) Logger::Warning("Crosslink sent nullptr obj_area");
+  return obj_area_;
 }
 
 const int Crosslink::GetNNeighbors() const {

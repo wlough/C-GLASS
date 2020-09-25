@@ -563,3 +563,14 @@ const double Anchor::GetKickAmplitude() const {
     return 0;
   }
 }
+
+const double* const Anchor::GetObjArea() {
+  if (!obj_area_) Logger::Warning("Anchor passed nullptr obj_area");
+  return obj_area_;
+}
+
+void Anchor::SetObjArea(double* obj_area) {
+  if (!obj_area) Logger::Warning("Anchor received nullptr obj_area");
+  obj_area_ = obj_area;
+}
+

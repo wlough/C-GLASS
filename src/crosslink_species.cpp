@@ -322,12 +322,10 @@ void CrosslinkSpecies::UpdatePositions() {
    */
   if (params_->no_midstep) {
     UpdateBoundCrosslinks();
-    //UpdateObjectArea(); 
     CalculateBindingFree();
   } else if (params_->i_step % 2 == 0) {
     /* First update bound crosslinks state and positions */
     UpdateBoundCrosslinks();
-    //UpdateObjectArea(); // Account for removed sites- possibly inefficient
     /* Calculate implicit binding of crosslinks from solution */
     CalculateBindingFree();
   } else {
