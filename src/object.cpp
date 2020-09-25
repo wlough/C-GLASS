@@ -30,6 +30,7 @@ Object::Object(unsigned long seed) : rng_(seed) {
   contact_number_ = 0;
   n_contact_ = 0;
   has_overlap_ = false;
+  anchored_ = false;
   gid = oid_;
   interactor_update_ = false;
 }
@@ -139,6 +140,7 @@ void Object::ZeroPolarOrder() {
   polar_order_ = 0;
 }
 void Object::SetInteractor(bool ix) { interacting_ = ix; }
+void Object::SetAnchored(bool anchored) { anchored_ = anchored; }
 double const *const Object::GetPosition() { return position_; }
 double const *const Object::GetPrevPosition() { return prev_position_; }
 double const *const Object::GetPrevOrientation() { return prev_orientation_; }
@@ -153,6 +155,7 @@ double const Object::GetPolarOrder() { return polar_order_; }
 double const Object::GetContactNumber() { return contact_number_; }
 bool const Object::IsInteractor() { return interacting_; }
 bool const Object::IsMesh() { return is_mesh_; }
+bool const Object::IsAnchored() { return anchored_; }
 bool const Object::CheckInteractorUpdate() {
   if (interactor_update_) {
     interactor_update_ = false;
@@ -293,6 +296,9 @@ double const Object::GetVolume() {
   return -1;
 }
 double const Object::GetArea() {
+  if (type_ == +obj_type::cortex) {
+    return space_->BoundaryArea();
+  }
   if (n_dim_ == 2) {
     if (length_ == 0) {
       return M_PI * diameter_;

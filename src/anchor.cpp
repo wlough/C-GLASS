@@ -209,6 +209,10 @@ void Anchor::Unbind() {
   }
   bound_ = false;
   bond_ = nullptr;
+  if (site_) {
+    site_->SetAnchored(false);
+    *obj_area_ += site_->GetArea();
+  }
   site_ = nullptr;
   mesh_ = nullptr;
   mesh_n_bonds_ = -1;
@@ -292,6 +296,7 @@ void Anchor::AttachObjRandom(Object *o) {
       break;
     }
     case obj_type::site: {
+      *obj_area_ -= o->GetArea();
       AttachObjCenter(o);
       break;
     }
@@ -305,8 +310,8 @@ void Anchor::AttachObjRandom(Object *o) {
 void Anchor::AttachObjLambda(Object *o, double lambda) {
   if (o->GetType() != +obj_type::bond) {
     Logger::Error(
-        "Crosslink binding to non-bond objects not implemented in "
-        "AttachObjLambda.");
+        "Crosslink binding to %s objects not implemented in "
+        "AttachObjLambda.", o->GetType()._to_string());
   }
   bond_ = dynamic_cast<Bond *>(o);
   if (bond_ == nullptr) {
@@ -401,10 +406,9 @@ void Anchor::BindToPosition(double *bind_pos) {
 bool Anchor::IsBound() { return bound_; }
 
 int const Anchor::GetBoundOID() {
-  if (!bond_) {
-    return -1;
-  }
-  return bond_->GetOID();
+  if (site_) return site_->GetOID();
+  else if (bond_) return bond_->GetOID();
+  else return -1;
 }
 
 /* Temporary function for setting bound state for singly-bound crosslinks,

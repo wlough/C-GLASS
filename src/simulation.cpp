@@ -215,7 +215,6 @@ void Simulation::InitSimulation() {
   space_.Init(&params_);
   InitObjects();
   cortex_ = new Cortex(rng_->GetSeed());
-  cortex_->Init(&params_);
   ix_mgr_.Init(&params_, &species_, space_.GetSpaceBase(), cortex_);
   InitSpecies();
   ix_mgr_.InitInteractions();
@@ -283,8 +282,11 @@ void Simulation::InitSpecies() {
       continue;
     }
     species_.push_back(species_factory.CreateSpecies(sid, rng_->GetSeed()));
+    if (sid == +species_id::receptor) {
+      species_.back()->SetComponent(cortex_);
+    }
     species_.back()->Init(slab->second, parser_);
-    if (species_.back()->GetNInsert() > 0) {
+if (species_.back()->GetNInsert() > 0) {
 #ifdef TRACE
       if (species_.back()->GetNInsert() > 20) {
         Logger::Warning("Simulation run in trace mode with a large number of "
@@ -340,8 +342,8 @@ void Simulation::InsertSpecies(bool force_overlap, bool processing) {
         // First check that we are respecting boundary conditions
         std::vector<Object *> last_ixors;
         (*spec)->GetLastInteractors(last_ixors);
-        if (params_.boundary != 0 && !processing &&
-            ix_mgr_.CheckBoundaryConditions(last_ixors)) {
+        if (params_.boundary != 0 && !processing && ((*spec)->GetSID() !=
+            +species_id::receptor) && ix_mgr_.CheckBoundaryConditions(last_ixors)) {
           (*spec)->PopMember();
           /* We are not counting boundary condition failures in insertion
            failures, since insertion failures are for packing issues */
@@ -513,7 +515,7 @@ void Simulation::GetGraphicsStructure() {
   for (auto it = species_.begin(); it != species_.end(); ++it) {
     (*it)->Draw(graph_array_);
   }
-  cortex_->Draw(graph_array_);
+  //cortex_->Draw(graph_array_);
   /* Visualize interaction forces, crosslinks, etc */
   ix_mgr_.DrawInteractions(graph_array_);
 }

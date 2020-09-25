@@ -191,6 +191,14 @@ struct species_parameters<species_id::crosslink>
 };
 typedef species_parameters<species_id::crosslink> crosslink_parameters;
 
+template <>
+struct species_parameters<species_id::receptor>
+    : public species_base_parameters {
+  std::string component = "cortex";
+  double concentration = -1;
+};
+typedef species_parameters<species_id::receptor> receptor_parameters;
+
 struct system_parameters {
   long seed = 7859459105545;
   int n_runs = 1;
@@ -266,8 +274,6 @@ struct system_parameters {
   bool checkpoint_flag = false;
   int n_checkpoint = 10000;
   bool no_midstep = false;
-  double cortex_site_concentration = -1;
-  double cortex_site_diameter = -1;
 };
 
 #endif // _CGLASS_PARAMETERS_H_

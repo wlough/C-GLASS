@@ -17,6 +17,7 @@ void CrosslinkSpecies::Init(std::string spec_name, ParamsParser &parser) {
 void CrosslinkSpecies::AddMember() {
   Species::AddMember();
   members_.back().InitInteractionEnvironment(&lut_);
+  members_.back().SetObjArea(obj_area_);
   *update_ = true;
 }
 
@@ -271,17 +272,20 @@ Object *CrosslinkSpecies::GetRandomObject(obj_type type) {
           vol += (*obj)->GetLength();
           break;
         case obj_type::site:
-          vol += (*obj)->GetArea();
+          // currently sites only hold one anchor
+          if (!((*obj)->IsAnchored())) vol += (*obj)->GetArea();
           break;
         default:
           Logger::Error("Binding to object type %s not yet implemented in " 
                         "CrosslinkSpecies::GetRandomObject", type._to_string());
+
       }
       if (vol > roll) {
 #ifdef TRACE
         Logger::Trace("Binding free crosslink to random object: xl %d -> obj %d",
                       members_.back().GetOID(), (*obj)->GetOID());
 #endif
+        (*obj)->SetAnchored(true);
         return *obj;
       }
     }
@@ -318,10 +322,12 @@ void CrosslinkSpecies::UpdatePositions() {
    */
   if (params_->no_midstep) {
     UpdateBoundCrosslinks();
+    //UpdateObjectArea(); 
     CalculateBindingFree();
   } else if (params_->i_step % 2 == 0) {
     /* First update bound crosslinks state and positions */
     UpdateBoundCrosslinks();
+    //UpdateObjectArea(); // Account for removed sites- possibly inefficient
     /* Calculate implicit binding of crosslinks from solution */
     CalculateBindingFree();
   } else {
@@ -334,6 +340,15 @@ void CrosslinkSpecies::UpdatePositions() {
   // for (auto it=members_.begin(); it!=members_.end(); ++it) {
   // it->SanityCheck();
   //}
+}
+
+void CrosslinkSpecies::UpdateObjectArea() {
+  *obj_area_ = 0.0;
+  for (auto obj = objs_->begin(); obj != objs_->end(); ++obj) {
+    if ((*obj)->GetType() == +obj_type::site && !((*obj)->IsAnchored())) {
+      *obj_area_ += (*obj)->GetArea();
+    }
+  }
 }
 
 void CrosslinkSpecies::UpdateBoundCrosslinks() {

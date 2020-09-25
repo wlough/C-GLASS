@@ -38,7 +38,7 @@ class Anchor : public Object {
   NeighborList neighbors_;
 
   Bond *bond_;
-  Site *site_;
+  Site *site_ = nullptr;
   Mesh *mesh_;
 
   int mesh_n_bonds_;
@@ -51,6 +51,7 @@ class Anchor : public Object {
 
  public:
   Anchor(unsigned long seed);
+  double *obj_area_;
   void Init(crosslink_parameters *sparams);
   bool IsBound();
   void UpdatePosition();
