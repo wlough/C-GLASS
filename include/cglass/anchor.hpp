@@ -41,6 +41,8 @@ class Anchor : public Object {
   Site *site_ = nullptr;
   Mesh *mesh_;
 
+  double *obj_area_ = nullptr;
+
   int mesh_n_bonds_;
 
   void UpdateAnchorPositionToBond();
@@ -51,7 +53,6 @@ class Anchor : public Object {
 
  public:
   Anchor(unsigned long seed);
-  double *obj_area_;
   void Init(crosslink_parameters *sparams);
   bool IsBound();
   void UpdatePosition();
@@ -89,6 +90,8 @@ class Anchor : public Object {
   const double GetMaxVelocity() const;
   const double GetDiffusionConst() const;
   const double GetKickAmplitude() const;
+  const double* const GetObjArea();
+  void SetObjArea(double* obj_area);
 };
 
 #endif

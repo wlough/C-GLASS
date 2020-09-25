@@ -40,10 +40,9 @@ private:
   void UpdateAnchorsToMesh();
   void UpdateAnchorPositions();
   void UpdateXlinkState();
-
+  double *obj_area_ = nullptr;
 public:
   Crosslink(unsigned long seed);
-  double *obj_area_;
   void Init(crosslink_parameters *sparams);
   void InitInteractionEnvironment(LookupTable *lut);
   void AttachObjRandom(Object *obj);
@@ -72,6 +71,7 @@ public:
   void InsertAt(double const *const new_pos, double const *const u);
   const int GetNNeighbors() const;
   void SetObjArea(double *obj_area);
+  const double* const GetObjArea();
   const double *const GetPosition();
   const double *const GetOrientation();
 };
