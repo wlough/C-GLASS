@@ -23,6 +23,7 @@ void Mesh::Reserve() {
 
 Site *Mesh::GetSite(int i) { return &(sites_[i]); }
 Bond *Mesh::GetBond(int i) { return &(bonds_[i]); }
+
 void Mesh::AddSite(Site s) {
   if (n_sites_ == n_bonds_max_ + 1) {
     Logger::Error("Attempting to add site beyond allocated maximum.\n"
@@ -36,6 +37,16 @@ void Mesh::AddSite(Site s) {
   n_sites_++;
   Logger::Trace("Added site number %d, id: %d", n_sites_,
                 sites_.back().GetOID());
+}
+
+void Mesh::AddSitePtr(Site *s) {
+  site_ptrs_.push_back(s);
+  site_ptrs_.back()->SetColor(color_, draw_);
+  site_ptrs_.back()->SetMeshID(GetMeshID());
+  site_ptrs_.back()->SetMeshPtr(this);
+  n_sites_++;
+  Logger::Trace("Added site number %d, id: %d", n_sites_,
+                site_ptrs_.back()->GetOID());
 }
 
 // Adds bond to mesh between sites 1 and 2

@@ -33,10 +33,16 @@ void CrosslinkManager::UpdateObjsVolume() {
   obj_length_ = 0;
   obj_area_ = 0;
   for (auto it = objs_->begin(); it != objs_->end(); ++it) {
-    if ((*it)->GetType() == +obj_type::bond) {
-      obj_length_ += (*it)->GetLength();
-    } else if ((*it)->GetType() == +obj_type::site) {
-      obj_area_ += (*it)->GetArea();
+    switch ((*it)->GetType()) {
+      case obj_type::bond:
+        obj_length_ += (*it)->GetLength();
+        break;
+      case obj_type::site:
+        // currently sites only hold one anchor
+        if (!((*it)->IsAnchored())) obj_area_ += (*it)->GetArea();
+        break;
+      default:
+        break;
     }
   }
 }

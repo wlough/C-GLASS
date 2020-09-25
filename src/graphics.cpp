@@ -1026,7 +1026,7 @@ void Graphics::Draw2dBudding() {
   // GLfloat box_color[4] = {1.0, 0.0, 0.5, 1.0};
   GLfloat box_color[4] = {0.5, 0.5, 0.5, 1.0};
   GLfloat v0, v1;
-  GLfloat w = 4;
+  GLfloat w = 1;
   glLineWidth(w);
   glColor4fv(box_color);
   glBegin(GL_LINE_LOOP);

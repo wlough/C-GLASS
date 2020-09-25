@@ -33,6 +33,8 @@ void Crosslink::Init(crosslink_parameters *sparams) {
   anchors_.push_back(anchor2);
   anchors_[0].Init(sparams_);
   anchors_[1].Init(sparams_);
+  anchors_[0].obj_area_ = obj_area_;
+  anchors_[1].obj_area_ = obj_area_;
   SetSingly();
   Logger::Trace("Initializing crosslink %d with anchors %d and %d", GetOID(),
                 anchors_[0].GetOID(), anchors_[1].GetOID());
@@ -110,6 +112,13 @@ void Crosslink::SinglyKMC() {
                     " returned an invalid result!");
     }
     Object *bind_obj = anchors_[0].GetNeighbor(i_bind);
+    if (bind_obj->GetType() == +obj_type::site) {
+      Logger::Warning("Crosslink attempted to doubly bind to a site");
+      return;
+    } else if (bind_obj->GetSID() == +species_id::spindle) {
+      Logger::Warning("Crosslink attempted to doubly bind to the spindle");
+      return;
+    }
     double obj_length = bind_obj->GetLength();
     /* KMC returns bind_lambda to be with respect to center of rod. We want it
        to be specified from the tail of the rod to be consistent */
@@ -431,6 +440,12 @@ void Crosslink::InsertAt(double const *const new_pos, double const *const u) {
   anchors_[0].SetBound();
   anchors_[0].SetStatic(true);
   SetSingly();
+}
+
+void Crosslink::SetObjArea(double *obj_area) {
+  obj_area_ = obj_area;
+  anchors_[0].obj_area_ = obj_area;
+  anchors_[1].obj_area_ = obj_area;
 }
 
 const int Crosslink::GetNNeighbors() const {

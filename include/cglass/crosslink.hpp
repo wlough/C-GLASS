@@ -43,6 +43,7 @@ private:
 
 public:
   Crosslink(unsigned long seed);
+  double *obj_area_;
   void Init(crosslink_parameters *sparams);
   void InitInteractionEnvironment(LookupTable *lut);
   void AttachObjRandom(Object *obj);
@@ -70,6 +71,7 @@ public:
   const double GetDrTot();
   void InsertAt(double const *const new_pos, double const *const u);
   const int GetNNeighbors() const;
+  void SetObjArea(double *obj_area);
   const double *const GetPosition();
   const double *const GetOrientation();
 };

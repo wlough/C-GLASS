@@ -101,8 +101,6 @@ checkpoint_flag: [false, bool]       # Generate a checkpoint file every n_checkp
                                      # most recent instance of RNG state and spec file data.
 n_checkpoint: [10000, int]           # Frequency used for generating checkpoint file information.
 no_midstep: [false, bool]            # Specify the simulation is not using a mid step algorithm
-cortex_site_concentration: [-1, double]    # Density of crosslinker binding sites on the cell cortex.
-cortex_site_diameter: [-1, double]   # Diameter of cell cortex binding sites.
 
 species:                             # Shared parameters used for all species.
   name: [species, string]          # Label given to species (e.g. microtubule, kinesin, etc)
@@ -349,3 +347,7 @@ crosslink:                          # Parameters specific to crosslinks.
                                     # Calculated using k_spring, rest_length. User input ignored.
   lut_grid_num: [256, int]          # Number of grid points used in one dimension of the the lookup table (LUT).
                                     # Total entries go as the square of this number e.g. 256 x 256
+
+receptor:
+  component: [cortex, string]       # The mesh object that holds receptor sites
+  concentration: [-1, double]       # Number of receptors per unit area (3D) or length (2D) of component

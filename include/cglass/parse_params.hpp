@@ -160,10 +160,6 @@ system_parameters parse_system_params(YAML::Node &node) {
     params.n_checkpoint = it->second.as<int>();
     } else if (param_name.compare("no_midstep")==0) {
     params.no_midstep = it->second.as<bool>();
-    } else if (param_name.compare("cortex_site_concentration")==0) {
-    params.cortex_site_concentration = it->second.as<double>();
-    } else if (param_name.compare("cortex_site_diameter")==0) {
-    params.cortex_site_diameter = it->second.as<double>();
     } else {
       Logger::Warning("Unrecognized parameter '%s'", param_name.c_str());
     }
@@ -704,6 +700,47 @@ species_base_parameters *parse_species_params(std::string sid,
       }
     }
     return new crosslink_parameters(params);
+  } else if (sid.compare("receptor") == 0) {
+    receptor_parameters params;
+    parse_species_base_params(params, node);
+    for (auto jt = subnode.begin(); jt != subnode.end(); ++jt) {
+      std::string param_name = jt->first.as<std::string>();
+      if (false) {
+      } else if (param_name.compare("name")==0) {
+      params.name = jt->second.as<std::string>();
+      } else if (param_name.compare("num")==0) {
+      params.num = jt->second.as<int>();
+      } else if (param_name.compare("diameter")==0) {
+      params.diameter = jt->second.as<double>();
+      } else if (param_name.compare("length")==0) {
+      params.length = jt->second.as<double>();
+      } else if (param_name.compare("insertion_type")==0) {
+      params.insertion_type = jt->second.as<std::string>();
+      } else if (param_name.compare("insert_file")==0) {
+      params.insert_file = jt->second.as<std::string>();
+      } else if (param_name.compare("overlap")==0) {
+      params.overlap = jt->second.as<bool>();
+      } else if (param_name.compare("draw_type")==0) {
+      params.draw_type = jt->second.as<std::string>();
+      } else if (param_name.compare("color")==0) {
+      params.color = jt->second.as<double>();
+      } else if (param_name.compare("posit_flag")==0) {
+      params.posit_flag = jt->second.as<bool>();
+      } else if (param_name.compare("spec_flag")==0) {
+      params.spec_flag = jt->second.as<bool>();
+      } else if (param_name.compare("n_posit")==0) {
+      params.n_posit = jt->second.as<int>();
+      } else if (param_name.compare("n_spec")==0) {
+      params.n_spec = jt->second.as<int>();
+      } else if (param_name.compare("component")==0) {
+      params.component = jt->second.as<std::string>();
+      } else if (param_name.compare("concentration")==0) {
+      params.concentration = jt->second.as<double>();
+      } else {
+        Logger::Warning("Unrecognized %s parameter: '%s'", sid.c_str(), param_name.c_str());
+      }
+    }
+    return new receptor_parameters(params);
   } else {
     Logger::Error("Unrecognized SID '%s' in parse_params!", sid.c_str());
   }

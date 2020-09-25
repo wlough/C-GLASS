@@ -143,6 +143,8 @@
   default_config["crosslink"]["end_pausing"] = "false";
   default_config["crosslink"]["r_capture"] = "5";
   default_config["crosslink"]["lut_grid_num"] = "256";
+  default_config["receptor"]["component"] = "cortex";
+  default_config["receptor"]["concentration"] = "-1";
   default_config["seed"] = "7859459105545";
   default_config["n_runs"] = "1";
   default_config["n_random"] = "1";
@@ -217,5 +219,3 @@
   default_config["checkpoint_flag"] = "false";
   default_config["n_checkpoint"] = "10000";
   default_config["no_midstep"] = "false";
-  default_config["cortex_site_concentration"] = "-1";
-  default_config["cortex_site_diameter"] = "-1";

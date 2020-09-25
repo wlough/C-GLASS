@@ -1,36 +1,19 @@
 #include "cglass/cortex.hpp"
 
 Cortex::Cortex(unsigned long seed) : Mesh(seed) {
-  total_sites_ = 0.0;
+  type_ = obj_type::cortex;
+  n_bonds_max_ = 0;
 }
 
-void Cortex::Init(system_parameters *params) {
-  params_ = params;
-  SetParameters();
-  if ((site_concentration_ > 0) && (site_diameter_ > 0)) {
-    total_sites_ = (int)round(site_concentration_ * space_->BoundaryArea());
-  }
-  n_bonds_max_ = total_sites_ - 1; // Avoid flag specific to mesh with edges
-  AddSites();
-}
-
-void Cortex::SetParameters() {
-  site_concentration_ = params_->cortex_site_concentration;
-  site_diameter_ = params_->cortex_site_diameter;
-}
-
-void Cortex::AddSites() {
-  double pos[3];
-  for (int i = 0; i < total_sites_; ++i) {
-    rng_.RandomBoundaryCoordinate(space_, pos);
-    InitSiteAt(pos, site_diameter_);
-  }
+void Cortex::InitSiteAt(double *new_pos, double d) {
+  n_bonds_max_++;
+  InitSiteAt(new_pos, d);
 }
 
 void Cortex::UpdateInteractors() {
   interactors_.clear();
-  for (auto it = sites_.begin(); it != sites_.end(); ++it) {
-    interactors_.push_back(&(*it));
+  for (auto it = site_ptrs_.begin(); it != site_ptrs_.end(); ++it) {
+    interactors_.push_back(*it);
   }
 }
 
