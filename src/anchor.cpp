@@ -370,7 +370,7 @@ void Anchor::AttachObjCenter(Object *o) {
 void Anchor::AttachObjMeshLambda(Object *o, double mesh_lambda) {
   if (o->GetType() != +obj_type::bond) {
     Logger::Error(
-        "Crosslink binding to non-bond objects not yet implemented in "
+        "Crosslink binding to non-bond objects not allowed in "
         "AttachObjMeshLambda.");
   }
   bond_ = dynamic_cast<Bond *>(o);
@@ -393,6 +393,29 @@ void Anchor::AttachObjMeshLambda(Object *o, double mesh_lambda) {
         "anchor");
   }
   SetMeshID(bond_->GetMeshID());
+  ZeroDrTot();
+}
+
+void Anchor::AttachObjMeshCenter(Object *o) {
+  if (o->GetType() != +obj_type::site) {
+    Logger::Error(
+        "Crosslink binding to non-bond objects not allowed in "
+        "AttachObjMeshCenter.");
+  }
+  site_ = dynamic_cast<Site *>(o);
+  if (site_ == nullptr) {
+    Logger::Error("Object ptr passed to anchor was not referencing a site!");
+  }
+  mesh_ = dynamic_cast<Mesh *>(site_->GetMeshPtr());
+  if (mesh_ == nullptr) {
+    Logger::Error("Object ptr passed to anchor was not referencing a mesh!");
+  }
+  Logger::Trace("Attaching anchor %d to mesh %d", GetOID(), mesh_->GetMeshID());
+
+  bound_ = true;
+  bond_lambda_ = 0;
+  mesh_n_bonds_ = -1;
+  SetMeshID(site_->GetMeshID());
   ZeroDrTot();
 }
 
