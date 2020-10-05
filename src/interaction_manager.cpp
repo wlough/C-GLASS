@@ -158,6 +158,31 @@ bool InteractionManager::CheckBondAnchorPair(Object *anchor, Object *bond) {
   return false;
 }
 
+/* Checks whether or not the given anchor is supposed to be attached to the
+   given site by checking mesh_id of both the site and the anchor. If they
+   match, the anchor is attached to the mesh using the anchor mesh_lambda */
+bool InteractionManager::CheckSiteAnchorPair(Object *anchor, Object *site) {
+  // Check that the site and anchor share a mesh_id
+  if (anchor->GetMeshID() == site->GetMeshID()) {
+    Anchor *a = dynamic_cast<Anchor *>(anchor);
+    if (a == nullptr) {
+      Logger::Error("Object pointer was unsuccessfully dynamically cast to an "
+                    "Anchor pointer in CheckSiteAnchorPair!");
+    }
+    if (site->GetType() != +obj_type::site) {
+      Logger::Error(
+          "CheckSiteAnchorPair expected Site object pointer, but object"
+          " pointer does not have site obj_type!");
+    }
+    // Check that the anchor isn't already attached
+    if (a->GetBondLambda() < 0) {
+      a->AttachObjMeshCenter(site);
+      return true;
+    }
+  }
+  return false;
+}
+
 void InteractionManager::PairBondCrosslinks() {
   Logger::Trace("Pairing bound crosslinks and objects");
   ix_objects_.clear();
@@ -189,12 +214,28 @@ void InteractionManager::PairBondCrosslinks() {
       if (CheckBondAnchorPair(obj1, obj2))
         // if (CheckBondAnchorPair(*ix, *jx))
         n_anchors_attached++;
+        obj2->SetAnchored(true);
     } else if (obj2->GetSID() == +species_id::crosslink &&
                obj1->GetType() == +obj_type::bond) {
       if (CheckBondAnchorPair(obj2, obj1)) {
         n_anchors_attached++;
+        obj1->SetAnchored(true);
+      }
+    } else if (obj1->GetSID() == +species_id::crosslink &&
+               obj2->GetType() == +obj_type::site) {
+      if (CheckSiteAnchorPair(obj1, obj2)) {
+        n_anchors_attached++;
+        obj2->SetAnchored(true);
+      }
+    } else if (obj2->GetSID() == +species_id::crosslink &&
+               obj1->GetType() == +obj_type::site) {
+      if (CheckSiteAnchorPair(obj2, obj1)) {
+        n_anchors_attached++;
+        obj1->SetAnchored(true);
       }
     }
+
+
   }
   /* Check that all anchors found their bond attachments */
   if (n_anchors_attached != anchors.size()) {

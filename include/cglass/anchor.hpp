@@ -65,6 +65,7 @@ class Anchor : public Object {
   void AttachObjLambda(Object *o, double lambda);
   void AttachObjCenter(Object *o);
   void AttachObjMeshLambda(Object *o, double mesh_lambda);
+  void AttachObjMeshCenter(Object *o);
   void CalculatePolarAffinity(std::vector<double> &doubly_binding_rates);
   void SetBondLambda(double l);
   void SetMeshLambda(double ml);

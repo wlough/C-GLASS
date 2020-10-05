@@ -67,6 +67,7 @@ class InteractionManager {
   void PairBondCrosslinks();
   void FlagDuplicateInteractions();
   bool CheckBondAnchorPair(Object *anchor, Object *bond);
+  bool CheckSiteAnchorPair(Object *anchor, Object *site);
   void ClearObjectInteractions();
   void ApplyInteractions();
   void CalculateInteractions();
