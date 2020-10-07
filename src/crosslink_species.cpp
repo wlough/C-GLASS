@@ -94,9 +94,15 @@ void CrosslinkSpecies::TestKMCStepSize() {
   }
 
   if (throw_error) {
+#ifndef NDEBUG
     Logger::Error("The likelyhood of a double KMC event is too high. Fix "
                   "before continuing.");
+#else
+    Logger::Warning("The likelyhood of a double KMC event is too high. Fix "
+                  "before continuing.");
+#endif
   }
+
 }
 
 LUTFiller *CrosslinkSpecies::MakeLUTFiller() {
