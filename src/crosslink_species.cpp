@@ -44,7 +44,7 @@ void CrosslinkSpecies::InitInteractionEnvironment(std::vector<Object *> *objs,
  */
 void CrosslinkSpecies::TestKMCStepSize() {
   /* TODO: Make this acceptable for C-GLASS <24-06-20, ARL> */
-  KMC<int> kmc_diag(params_->delta, &lut_);
+  KMC<int, char> kmc_diag(params_->delta, &lut_);
 
   const double prob_thresh = 1e-4;
 

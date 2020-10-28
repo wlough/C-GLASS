@@ -4,15 +4,22 @@
 #include "site.hpp"
 #include "cortex.hpp"
 
-// Receptors are modelled as sites on a mesh that can
-// bind to one side of a crosslinking protein. 
+/* receptor.hpp declares the Receptor class. The Receptor class represents
+ * biological receptors that can attach to crosslinking and motor proteins. 
+ * In this code, Receptor's are modelled as sites on a mesh that can attach 
+ * to the Anchor of a Crosslinker.
+*/
 
 class Receptor: public Site {
 private:
-  receptor_parameters *sparams_;
+  receptor_parameters *sparams_; // Input parameters unique to receptors
 public:
-  Receptor(unsigned long seed);
+  Receptor(unsigned long seed); // Constructor with RNG seed input
+
+  // Save yaml input file parameters locally
   void Init(receptor_parameters *sparams);
+
+  // Initialize Receptor members with yaml input file parameters
   void SetParameters();
 };
 

@@ -26,7 +26,7 @@ void Crosslink::Init(crosslink_parameters *sparams) {
   e_dep_factor_ = sparams_->energy_dep_factor;
   fdep_length_ = sparams_->force_dep_length;
   polar_affinity_ = sparams_->polar_affinity;
-  /* TODO generalize crosslinks to more than two anchors */
+  
   Anchor anchor1(rng_.GetSeed());
   Anchor anchor2(rng_.GetSeed());
   anchors_.push_back(anchor1);
@@ -66,29 +66,36 @@ void Crosslink::SinglyKMC() {
   }
   /* Must populate filter with 1 for every neighbor, since KMC
   expects a mask. We already guarantee uniqueness, so we won't overcount. */
-  int n_neighbors = anchors_[0].GetNNeighbors();
+  int n_neighbors_bond = anchors_[0].GetNNeighborsBond();
+  int n_neighbors_site = anchors_[0].GetNNeighborsSite();
+  int n_neighbors = n_neighbors_bond + n_neighbors_site;
+ 
   std::vector<int> kmc_filter(n_neighbors, 1);
+
   /* Initialize KMC calculation */
-  KMC<Object> kmc_bind(anchors_[0].pos, n_neighbors, delta_, lut_);
+  KMC<Bond, Site> kmc_bind(anchors_[0].pos, n_neighbors_bond, n_neighbors_site, delta_, lut_);
 
   /* Initialize periodic boundary conditions */
   kmc_bind.SetPBCs(n_dim_, space_->n_periodic, space_->unit_cell);
 
   /* Calculate probability to bind */
   double kmc_bind_prob = 0;
-  double k_on_d_prime = anchors_[1].GetOnRate() * linear_bind_site_density_;
+  double bind_factor_bond = anchors_[1].GetOnRate() * linear_bind_site_density_;
+  double bind_factor_site = anchors_[1].GetOnRate() * surface_bind_site_density_;
 
-  std::vector<double> kmc_bind_factor(n_neighbors, k_on_d_prime);
+  /* Fill vector of bind factors with bond factors, then site factors */
+  std::vector<double> bind_factors(n_neighbors);
+  std::fill(bind_factors.begin(), bind_factors.begin() + n_neighbors_bond, bind_factor_bond);
+  std::fill(bind_factors.begin() + n_neighbors_bond, bind_factors.end(), bind_factor_site);
+ 
   if (n_neighbors > 0) {
     if (!static_flag_ && polar_affinity_ < 1) {
-      anchors_[0].CalculatePolarAffinity(kmc_bind_factor);
+      anchors_[0].CalculatePolarAffinity(bind_factors);
     }
-    kmc_bind.LUCalcTotProbsSD(anchors_[0].GetNeighborListMem(), kmc_filter,
-                              anchors_[0].GetBoundOID(), kmc_bind_factor);
+    kmc_bind.LUCalcTotProbsSD(anchors_[0].GetNeighborListMemBonds(), 
+                              anchors_[0].GetNeighborListMemSites(), kmc_filter, 
+                              anchors_[0].GetBoundOID(), bind_factors); 
     kmc_bind_prob = kmc_bind.getTotProb();
-    if ((abs(anchors_[0].pos[0] + 28.729450)<.000001)&&(abs(anchors_[0].pos[1]-8.638212)<.000001)) {
-      Logger::Info("This one, prob = %f", kmc_bind_prob);
-    }
   } // Find out whether we bind, unbind, or neither.
   int head_activate = choose_kmc_double(unbind_prob, kmc_bind_prob, roll);
   // Change status of activated head
@@ -103,35 +110,45 @@ void Crosslink::SinglyKMC() {
      * passed by reference */
     double bind_lambda;
     /* Find out which rod we are binding to */
-    int i_bind = kmc_bind.whichRodBindSD(bind_lambda, roll);
-    if (i_bind < 0) { // || bind_lambda < 0) {
+    int i_bind = kmc_bind.whichObjBindSD(bind_lambda, roll);
+    if (i_bind < 0) {
       printf("i_bind = %d\nbind_lambda = %2.2f\n", i_bind, bind_lambda);
       Logger::Error("kmc_bind.whichRodBindSD in Crosslink::SinglyKMC"
                     " returned an invalid result!");
     }
-    Object *bind_obj = anchors_[0].GetNeighbor(i_bind);
-    if (bind_obj->GetType() == +obj_type::site) {
-      Logger::Warning("Crosslink attempted to doubly bind to a site");
-      return;
-    } else if (bind_obj->GetSID() == +species_id::spindle) {
-      Logger::Warning("Crosslink attempted to doubly bind to the spindle");
-      return;
+    // i_bind is index in concatenated bonds/sites vector 
+    Object *bind_obj;
+    if (i_bind < n_neighbors_bond) {
+      bind_obj = anchors_[0].GetBondNeighbor(i_bind);
+    } else {
+      bind_obj = anchors_[0].GetSiteNeighbor(i_bind - n_neighbors_bond);
     }
-    double obj_length = bind_obj->GetLength();
-    /* KMC returns bind_lambda to be with respect to center of rod. We want it
-       to be specified from the tail of the rod to be consistent */
-    bind_lambda += 0.5 * obj_length;
-    /* KMC can return values that deviate a very small amount from the true rod
-       length. Bind to ends if lambda < 0 or lambda > bond_length. */
-    if (bind_lambda > obj_length) {
-      bind_lambda = obj_length;
-    } else if (bind_lambda < 0) {
-      bind_lambda = 0;
+
+    switch (bind_obj->GetType()) {
+      case obj_type::site: {
+        anchors_[1].AttachObjCenter(bind_obj);
+        SetDoubly();
+        break;
+      }
+      case obj_type::bond: {
+        double obj_length = bind_obj->GetLength();
+        /* KMC returns bind_lambda to be with respect to center of rod. We want 
+        it to be specified from the tail of the rod to be consistent */
+        bind_lambda += 0.5 * obj_length;
+        /* KMC can return values that deviate a very small amount from the true 
+        rod length. Bind to ends if lambda < 0 or lambda > bond_length. */
+        if (bind_lambda > obj_length) {
+          bind_lambda = obj_length;
+        } else if (bind_lambda < 0) {
+          bind_lambda = 0;
+        }
+        anchors_[1].AttachObjLambda(bind_obj, bind_lambda);
+        SetDoubly();
+        break;
+      }
+      default:
+        Logger::Error("Crosslink attempted to doubly bind to generic object");
     }
-    anchors_[1].AttachObjLambda(bind_obj, bind_lambda);
-    SetDoubly();
-    Logger::Info("Crosslink %d became doubly bound to obj %d", GetOID(),
-                  bind_obj->GetOID());
     Logger::Trace("Crosslink %d became doubly bound to obj %d", GetOID(),
                   bind_obj->GetOID());
   }

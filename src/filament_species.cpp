@@ -5,6 +5,11 @@ FilamentSpecies::FilamentSpecies(unsigned long seed) : Species(seed) {
 }
 void FilamentSpecies::Init(std::string spec_name, ParamsParser &parser) {
   Species::Init(spec_name, parser);
+  
+  // Return to avoid min_length warnings if there are no filaments
+  if (GetNInsert() <= 0) {
+    return;
+  }
   fill_volume_ = 0;
   packing_fraction_ = sparams_.packing_fraction;
 #ifdef TRACE

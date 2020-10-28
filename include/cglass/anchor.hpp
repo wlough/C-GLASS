@@ -76,6 +76,8 @@ class Anchor : public Object {
   void AddNeighbor(Object *neighbor);
   void ClearNeighbors();
   const Object *const *GetNeighborListMem();
+  const std::vector<Bond*>& GetNeighborListMemBonds();
+  const std::vector<Site*>& GetNeighborListMemSites();
   void WriteSpec(std::fstream &ospec);
   void ReadSpec(std::fstream &ispec);
   void BindToPosition(double *bind_pos);
@@ -85,7 +87,11 @@ class Anchor : public Object {
   double const GetMeshLambda();
   double const GetBondLambda();
   Object *GetNeighbor(int i_neighbor);
+  Site *GetSiteNeighbor(int i_neighbor);
+  Bond *GetBondNeighbor(int i_neighbor);
   const int GetNNeighbors() const;
+  const int GetNNeighborsSite() const;
+  const int GetNNeighborsBond() const;
   const double GetOnRate() const;
   const double GetOffRate() const;
   const double GetMaxVelocity() const;
