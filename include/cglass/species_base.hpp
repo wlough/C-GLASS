@@ -30,7 +30,7 @@ public:
   virtual void UpdatePositions() {}
   virtual void Draw(std::vector<graph_struct *> &graph_array) {}
   virtual void Init(std::string spec_name, ParamsParser &parser) {}
-  virtual void SetComponent(Cortex* cx) {}
+  virtual void SetMesh(Cortex* cx) {}
   virtual void InitMembers() {}
   virtual void ZeroForces() {}
   virtual void GetInteractors(std::vector<Object *> &ix) {}

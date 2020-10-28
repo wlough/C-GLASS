@@ -283,7 +283,7 @@ void Simulation::InitSpecies() {
     }
     species_.push_back(species_factory.CreateSpecies(sid, rng_->GetSeed()));
     if (sid == +species_id::receptor) {
-      species_.back()->SetComponent(cortex_);
+      species_.back()->SetMesh(cortex_);
     }
     species_.back()->Init(slab->second, parser_);
 if (species_.back()->GetNInsert() > 0) {

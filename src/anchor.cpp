@@ -447,11 +447,30 @@ const Object *const *Anchor::GetNeighborListMem() {
   return neighbors_.GetNeighborListMem();
 }
 
+const std::vector<Site*>& Anchor::GetNeighborListMemSites() {
+  return neighbors_.GetNeighborListMemSites();
+}
+
+const std::vector<Bond*> &Anchor::GetNeighborListMemBonds() {
+  return neighbors_.GetNeighborListMemBonds();
+}
+
 Object *Anchor::GetNeighbor(int i_neighbor) {
   return neighbors_.GetNeighbor(i_neighbor);
 }
 
+Site *Anchor::GetSiteNeighbor(int i_neighbor) {
+  return neighbors_.GetSiteNeighbor(i_neighbor);
+}
+
+Bond *Anchor::GetBondNeighbor(int i_neighbor) {
+  return neighbors_.GetBondNeighbor(i_neighbor);
+}
 const int Anchor::GetNNeighbors() const { return neighbors_.NNeighbors(); }
+const int Anchor::GetNNeighborsBond() const { return neighbors_.NNeighborsBond(); }
+const int Anchor::GetNNeighborsSite() const { return neighbors_.NNeighborsSite(); }
+
+
 
 void Anchor::WriteSpec(std::fstream &ospec) {
   ospec.write(reinterpret_cast<char *>(&bound_), sizeof(bool));
