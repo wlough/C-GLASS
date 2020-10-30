@@ -113,7 +113,7 @@ bool Anchor::CalcBondLambda() {
 void Anchor::UpdatePosition() {
   // Currently only bound anchors diffuse/walk (no explicit unbound anchors)
   bool diffuse = GetDiffusionConst() > 0 ? true : false;
-  bool walker = GetMaxVelocity() > 0 ? true : false;
+  bool walker = abs(GetMaxVelocity()) > input_tol ? true : false;
   if (!bound_ || static_flag_ || !bond_ || (!diffuse && !walker)) {
     return;
   }
@@ -264,6 +264,7 @@ void Anchor::CalculatePolarAffinity(std::vector<double> &doubly_binding_rates) {
     Logger::Error("Bond and site are nullptr in Anchor::CalculatePolarAffinity"); 
   for (int i = 0; i < doubly_binding_rates.size(); ++i) {
     Object *obj = neighbors_.GetNeighbor(i);
+    if (obj->GetType() == +obj_type::site) continue;
     double const *const i_orientation = obj->GetOrientation();
     double alignment = dot_product(n_dim_, orientation, i_orientation);
     if (alignment < 0) {

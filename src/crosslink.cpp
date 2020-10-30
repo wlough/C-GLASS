@@ -70,8 +70,6 @@ void Crosslink::SinglyKMC() {
   int n_neighbors_site = anchors_[0].GetNNeighborsSite();
   int n_neighbors = n_neighbors_bond + n_neighbors_site;
  
-  std::vector<int> kmc_filter(n_neighbors, 1);
-
   /* Initialize KMC calculation */
   KMC<Bond, Site> kmc_bind(anchors_[0].pos, n_neighbors_bond, n_neighbors_site, delta_, lut_);
 
@@ -93,7 +91,7 @@ void Crosslink::SinglyKMC() {
       anchors_[0].CalculatePolarAffinity(bind_factors);
     }
     kmc_bind.LUCalcTotProbsSD(anchors_[0].GetNeighborListMemBonds(), 
-                              anchors_[0].GetNeighborListMemSites(), kmc_filter, 
+                              anchors_[0].GetNeighborListMemSites(), 
                               anchors_[0].GetBoundOID(), bind_factors); 
     kmc_bind_prob = kmc_bind.getTotProb();
   } // Find out whether we bind, unbind, or neither.
@@ -149,10 +147,11 @@ void Crosslink::SinglyKMC() {
       default:
         Logger::Error("Crosslink attempted to doubly bind to generic object");
     }
+    Logger::Info("Crosslink %s became doubly bound to obj %s", GetType()._to_string(),
+                  bind_obj->GetType()._to_string());
     Logger::Trace("Crosslink %d became doubly bound to obj %d", GetOID(),
                   bind_obj->GetOID());
   }
-  kmc_filter.clear();
 }
 
 /* Perform kinetic monte carlo step of protein with 2 heads of protein

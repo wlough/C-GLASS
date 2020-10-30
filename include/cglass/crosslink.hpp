@@ -18,7 +18,6 @@ private:
   draw_type draw_;
   bind_state state_;
   LookupTable *lut_;
-  std::vector<int> kmc_filter_;
   bool static_flag_ = false;
   bool asymmetric_spring_flag_ = false;
   double k_spring_;
