@@ -265,6 +265,8 @@ Object *CrosslinkSpecies::GetRandomObject(obj_type type) {
                     "CrosslinkSpecies::GetRandomObject", type._to_string());
   }
   double vol = 0;
+
+  // Search through interactors to find an object of type type
   for (auto obj = objs_->begin(); obj != objs_->end(); ++obj) {
     if ((*obj)->GetType() == type) {
       switch(type) {
@@ -281,10 +283,8 @@ Object *CrosslinkSpecies::GetRandomObject(obj_type type) {
 
       }
       if (vol > roll) {
-#ifdef TRACE
         Logger::Trace("Binding free crosslink to random object: xl %d -> obj %d",
                       members_.back().GetOID(), (*obj)->GetOID());
-#endif
         (*obj)->SetAnchored(true);
         return *obj;
       }

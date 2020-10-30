@@ -32,6 +32,8 @@ class Anchor : public Object {
   double polar_affinity_;
   double f_stall_;
   double force_dep_vel_flag_;
+  
+  double input_tol = 1e-8; // Tolerance for comparing inputs to 0
 
   bind_state state_;
 
