@@ -21,7 +21,8 @@ void Anchor::Init(crosslink_parameters *sparams) {
   k_on_d_ = sparams_->k_on_d;
   k_off_s_ = sparams_->k_off_s;
   k_off_d_ = sparams_->k_off_d;
-  end_pausing_ = sparams_->end_pausing;
+  plus_end_pausing_ = sparams_->plus_end_pausing;
+  minus_end_pausing_ = sparams_->minus_end_pausing;
   f_stall_ = sparams_->f_stall;
   force_dep_vel_flag_ = sparams_->force_dep_vel_flag;
   polar_affinity_ = sparams_->polar_affinity;
@@ -80,7 +81,7 @@ bool Anchor::CalcBondLambda() {
       bond_ = bond;
       bond_lambda_ = mesh_lambda_ - bond_->GetMeshLambda();
       bond_length_ = bond_->GetLength();
-    } else if (end_pausing_) {
+    } else if (minus_end_pausing_) {
       bond_lambda_ = 0;
     } else {
       Unbind();
@@ -92,7 +93,7 @@ bool Anchor::CalcBondLambda() {
       bond_ = bond;
       bond_lambda_ = mesh_lambda_ - bond_->GetMeshLambda();
       bond_length_ = bond_->GetLength();
-    } else if (end_pausing_) {
+    } else if (plus_end_pausing_) {
       bond_lambda_ = bond_length_;
     } else {
       Unbind();
@@ -184,7 +185,7 @@ bool Anchor::CheckMesh() {
   // Check if we moved off the mesh tail
   if (mesh_lambda_ < 0) {
     // Stick to mesh ends if we have end_pausing
-    if (end_pausing_) {
+    if (minus_end_pausing_) {
       mesh_lambda_ = 0;
     } else {
       // Otherwise, unbind
@@ -193,7 +194,7 @@ bool Anchor::CheckMesh() {
     }
   } else if (mesh_lambda_ > mesh_length_) {
     // Same thing for walking off the head
-    if (end_pausing_) {
+    if (plus_end_pausing_) {
       mesh_lambda_ = mesh_length_;
     } else {
       Unbind();

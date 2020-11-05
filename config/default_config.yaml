@@ -340,8 +340,11 @@ crosslink:                          # Parameters specific to crosslinks.
   tether_draw_type: [orientation, string] # Method of coloring crosslink tethers using graphics.
   tether_diameter: [0.5, double]    # Diameter used for graphically representing crosslink tethers.
   tether_color: [3.1416, double]    # Color for graphically representing crosslink tethers.
-  end_pausing: [false, bool]        # If 0, diffusing or walking crosslinks that move off the
-                                    # filament automatically unbind. If 1, crosslinks that try to
+  minus_end_pausing: [false, bool]  # If false, diffusing or walking crosslinks that move off the
+                                    # filament automatically unbind. If true, crosslinks that try to
+                                    # do so will remain at the filament tip until unbinding.
+  plus_end_pausing: [false, bool]   # If false, diffusing or walking crosslinks that move off the
+                                    # filament automatically unbind. If true, crosslinks that try to
                                     # do so will remain at the filament tip until unbinding.
   r_capture: [5, double]            # Max range allowed for singly to doubly bound crosslink.
                                     # Calculated using k_spring, rest_length. User input ignored.

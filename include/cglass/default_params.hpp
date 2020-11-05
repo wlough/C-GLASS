@@ -140,7 +140,8 @@
   default_config["crosslink"]["tether_draw_type"] = "orientation";
   default_config["crosslink"]["tether_diameter"] = "0.5";
   default_config["crosslink"]["tether_color"] = "3.1416";
-  default_config["crosslink"]["end_pausing"] = "false";
+  default_config["crosslink"]["minus_end_pausing"] = "false";
+  default_config["crosslink"]["plus_end_pausing"] = "false";
   default_config["crosslink"]["r_capture"] = "5";
   default_config["crosslink"]["lut_grid_num"] = "256";
   default_config["receptor"]["component"] = "cortex";
