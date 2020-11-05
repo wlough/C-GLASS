@@ -689,8 +689,10 @@ species_base_parameters *parse_species_params(std::string sid,
       params.tether_diameter = jt->second.as<double>();
       } else if (param_name.compare("tether_color")==0) {
       params.tether_color = jt->second.as<double>();
-      } else if (param_name.compare("end_pausing")==0) {
-      params.end_pausing = jt->second.as<bool>();
+      } else if (param_name.compare("minus_end_pausing")==0) {
+      params.minus_end_pausing = jt->second.as<bool>();
+      } else if (param_name.compare("plus_end_pausing")==0) {
+      params.plus_end_pausing = jt->second.as<bool>();
       } else if (param_name.compare("r_capture")==0) {
       params.r_capture = jt->second.as<double>();
       } else if (param_name.compare("lut_grid_num")==0) {

@@ -185,7 +185,8 @@ struct species_parameters<species_id::crosslink>
   std::string tether_draw_type = "orientation";
   double tether_diameter = 0.5;
   double tether_color = 3.1416;
-  bool end_pausing = false;
+  bool minus_end_pausing = false;
+  bool plus_end_pausing = false;
   double r_capture = 5;
   int lut_grid_num = 256;
 };

@@ -11,7 +11,8 @@ class Anchor : public Object {
   bool bound_;
   bool static_flag_;
   bool active_;
-  bool end_pausing_;
+  bool plus_end_pausing_;
+  bool minus_end_pausing_;
   crosslink_parameters *sparams_;
   int step_direction_;
 
