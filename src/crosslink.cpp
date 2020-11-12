@@ -147,8 +147,6 @@ void Crosslink::SinglyKMC() {
       default:
         Logger::Error("Crosslink attempted to doubly bind to generic object");
     }
-    Logger::Info("Crosslink %s became doubly bound to obj %s", GetType()._to_string(),
-                  bind_obj->GetType()._to_string());
     Logger::Trace("Crosslink %d became doubly bound to obj %d", GetOID(),
                   bind_obj->GetOID());
   }

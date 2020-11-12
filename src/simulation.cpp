@@ -1,4 +1,3 @@
-
 #include "cglass/simulation.hpp"
 
 /* Initialize simulation parameters and run simulation */
@@ -515,7 +514,6 @@ void Simulation::GetGraphicsStructure() {
   for (auto it = species_.begin(); it != species_.end(); ++it) {
     (*it)->Draw(graph_array_);
   }
-  //cortex_->Draw(graph_array_);
   /* Visualize interaction forces, crosslinks, etc */
   ix_mgr_.DrawInteractions(graph_array_);
 }
@@ -585,6 +583,7 @@ void Simulation::InitProcessing(run_options run_opts) {
 
   space_.Init(&params_);
   InitObjects();
+  cortex_ = new Cortex(rng_->GetSeed());
   ix_mgr_.Init(&params_, &species_, space_.GetSpaceBase(), cortex_, true);
   InitSpecies();
   // ix_mgr_.InitInteractions();

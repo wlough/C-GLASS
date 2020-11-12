@@ -3,6 +3,7 @@
 
 #include "receptor.hpp"
 #include "species.hpp"
+#include "receptor_binding_analysis.hpp"
 
 /* receptor_species.hpp declares the ReceptorSpecies Class to represent 
  * ReceptorSpecies as a special type of species that can set the mesh that 
@@ -10,7 +11,10 @@
  * via the concentration option.
 */
 
+typedef Analysis<Receptor, species_id::receptor> ReceptorAnalysis;
+
 class ReceptorSpecies: public Species<Receptor, species_id::receptor> {
+
 private:
   double concentration_; // concentration (# receptors/(object surface area))
 
@@ -31,6 +35,9 @@ public:
 
   // Create a receptor object and save it as a site on mesh_
   void AddMember();
+
+  // Create analysis objects and save to analysis_ vector
+  void LoadAnalysis();
 };
 
 #endif

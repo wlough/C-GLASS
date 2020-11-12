@@ -49,3 +49,10 @@ void ReceptorSpecies::AddMember() {
   members_.back().InsertAt(pos, u);
 }
 
+/* Create analysis objects */
+void ReceptorSpecies::LoadAnalysis() {
+  if (sparams_.binding_analysis) {
+    ReceptorAnalysis *bind = new BindingAnalysis;
+    analysis_.push_back(bind);
+  }
+}

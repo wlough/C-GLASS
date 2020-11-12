@@ -38,8 +38,7 @@ void CrosslinkManager::UpdateObjsVolume() {
         obj_length_ += (*it)->GetLength();
         break;
       case obj_type::site:
-        // currently sites only hold one anchor
-        if (!((*it)->IsAnchored())) obj_area_ += (*it)->GetArea();
+        obj_area_ += (*it)->GetArea();
         break;
       default:
         break;

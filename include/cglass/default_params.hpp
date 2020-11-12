@@ -146,6 +146,7 @@
   default_config["crosslink"]["lut_grid_num"] = "256";
   default_config["receptor"]["component"] = "cortex";
   default_config["receptor"]["concentration"] = "-1";
+  default_config["receptor"]["binding_analysis"] = "false";
   default_config["seed"] = "7859459105545";
   default_config["n_runs"] = "1";
   default_config["n_random"] = "1";

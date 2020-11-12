@@ -208,12 +208,10 @@ void Anchor::Unbind() {
   if (static_flag_) {
     Logger::Error("Static anchor attempted to unbind");
   }
+  if (site_) site_->DecrementNAnchored();
+  else if (bond_) bond_->DecrementNAnchored();
   bound_ = false;
   bond_ = nullptr;
-  if (site_) {
-    site_->SetAnchored(false);
-    *obj_area_ += site_->GetArea();
-  }
   site_ = nullptr;
   mesh_ = nullptr;
   mesh_n_bonds_ = -1;
@@ -290,6 +288,7 @@ void Anchor::Draw(std::vector<graph_struct *> &graph_array) {
 }
 
 void Anchor::AttachObjRandom(Object *o) {
+  o->IncrementNAnchored();
   switch (o->GetType()) {
     case obj_type::bond: {
       double length = o->GetLength();
@@ -310,6 +309,7 @@ void Anchor::AttachObjRandom(Object *o) {
 }
     
 void Anchor::AttachObjLambda(Object *o, double lambda) {
+  o->IncrementNAnchored();
   if (o->GetType() != +obj_type::bond) {
     Logger::Error(
         "Crosslink binding to %s objects not implemented in "
@@ -346,6 +346,7 @@ void Anchor::AttachObjLambda(Object *o, double lambda) {
 /* Attach object in center of site. Site binding likelihood weighted by 
  * surface area, but binding places crosslinks in center regardless. */
 void Anchor::AttachObjCenter(Object *o) {
+  o->IncrementNAnchored();
   if (o->GetType() != +obj_type::site) {
     Logger::Error(
         "Crosslink binding to non-site objects not implemented in "
@@ -370,6 +371,7 @@ void Anchor::AttachObjCenter(Object *o) {
 }
 
 void Anchor::AttachObjMeshLambda(Object *o, double mesh_lambda) {
+  o->IncrementNAnchored();
   if (o->GetType() != +obj_type::bond) {
     Logger::Error(
         "Crosslink binding to non-bond objects not allowed in "
@@ -399,6 +401,7 @@ void Anchor::AttachObjMeshLambda(Object *o, double mesh_lambda) {
 }
 
 void Anchor::AttachObjMeshCenter(Object *o) {
+  o->IncrementNAnchored();
   if (o->GetType() != +obj_type::site) {
     Logger::Error(
         "Crosslink binding to non-bond objects not allowed in "

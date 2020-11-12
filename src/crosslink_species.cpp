@@ -28,11 +28,11 @@ void CrosslinkSpecies::InitInteractionEnvironment(std::vector<Object *> *objs,
   obj_length_ = obj_len;
   obj_area_ = obj_area;
   update_ = update;
-  /* TODO Lookup table only works for filament objects. Generalize? */
   LUTFiller *lut_filler_ptr = MakeLUTFiller();
   lut_ = LookupTable(lut_filler_ptr);
-  if (sparams_.use_binding_volume)
-    lut_.setBindVol(lut_filler_ptr->getBindingVolume());
+  if (sparams_.use_binding_volume) {
+    lut_.setBindVol(lut_filler_ptr->getBindingVolume()); 
+  }
   /* TODO: Add time testing right here <24-06-20, ARL> */
   TestKMCStepSize();
   delete lut_filler_ptr;
@@ -275,7 +275,7 @@ Object *CrosslinkSpecies::GetRandomObject(obj_type type) {
           break;
         case obj_type::site:
           // currently sites only hold one anchor
-          if (!((*obj)->IsAnchored())) vol += (*obj)->GetArea();
+          vol += (*obj)->GetArea();
           break;
         default:
           Logger::Error("Binding to object type %s not yet implemented in " 
@@ -285,7 +285,6 @@ Object *CrosslinkSpecies::GetRandomObject(obj_type type) {
       if (vol > roll) {
         Logger::Trace("Binding free crosslink to random object: xl %d -> obj %d",
                       members_.back().GetOID(), (*obj)->GetOID());
-        (*obj)->SetAnchored(true);
         return *obj;
       }
     }
@@ -343,7 +342,7 @@ void CrosslinkSpecies::UpdatePositions() {
 void CrosslinkSpecies::UpdateObjectArea() {
   *obj_area_ = 0.0;
   for (auto obj = objs_->begin(); obj != objs_->end(); ++obj) {
-    if ((*obj)->GetType() == +obj_type::site && !((*obj)->IsAnchored())) {
+    if ((*obj)->GetType() == +obj_type::site) {
       *obj_area_ += (*obj)->GetArea();
     }
   }
