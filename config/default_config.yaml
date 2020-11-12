@@ -354,3 +354,4 @@ crosslink:                          # Parameters specific to crosslinks.
 receptor:
   component: [cortex, string]       # The mesh object that holds receptor sites
   concentration: [-1, double]       # Number of receptors per unit area (3D) or length (2D) of component
+  binding_analysis: [false, bool]  # Post-process analysis of number of bound receptors.

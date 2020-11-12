@@ -214,24 +214,20 @@ void InteractionManager::PairBondCrosslinks() {
       if (CheckBondAnchorPair(obj1, obj2))
         // if (CheckBondAnchorPair(*ix, *jx))
         n_anchors_attached++;
-        obj2->SetAnchored(true);
     } else if (obj2->GetSID() == +species_id::crosslink &&
                obj1->GetType() == +obj_type::bond) {
       if (CheckBondAnchorPair(obj2, obj1)) {
         n_anchors_attached++;
-        obj1->SetAnchored(true);
       }
     } else if (obj1->GetSID() == +species_id::crosslink &&
                obj2->GetType() == +obj_type::site) {
       if (CheckSiteAnchorPair(obj1, obj2)) {
         n_anchors_attached++;
-        obj2->SetAnchored(true);
       }
     } else if (obj2->GetSID() == +species_id::crosslink &&
                obj1->GetType() == +obj_type::site) {
       if (CheckSiteAnchorPair(obj2, obj1)) {
         n_anchors_attached++;
-        obj1->SetAnchored(true);
       }
     }
 

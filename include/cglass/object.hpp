@@ -43,7 +43,7 @@ protected:
   bool interacting_;
   bool is_mesh_;
   bool has_overlap_;
-  bool anchored_;
+  int n_anchored_;
   bool interactor_update_;
 
   std::vector<Object *> interactors_;
@@ -88,7 +88,8 @@ public:
   void AddPolarOrder(const double po);
   void AddContactNumber(const double cn);
   void SetInteractor(bool ix);
-  void SetAnchored(bool anchored);
+  void IncrementNAnchored();
+  void DecrementNAnchored();
   void ToggleIsMesh();
   virtual void CalcPolarOrder();
   virtual void ZeroPolarOrder();
@@ -113,7 +114,7 @@ public:
   const double GetContactNumber();
   const bool IsInteractor();
   const bool IsMesh();
-  const bool IsAnchored();
+  const int GetNAnchored();
   const bool CheckInteractorUpdate();
   void HasOverlap(bool overlap);
   void SetOID(int oid);

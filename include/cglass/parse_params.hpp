@@ -738,6 +738,8 @@ species_base_parameters *parse_species_params(std::string sid,
       params.component = jt->second.as<std::string>();
       } else if (param_name.compare("concentration")==0) {
       params.concentration = jt->second.as<double>();
+      } else if (param_name.compare("binding_analysis")==0) {
+      params.binding_analysis = jt->second.as<bool>();
       } else {
         Logger::Warning("Unrecognized %s parameter: '%s'", sid.c_str(), param_name.c_str());
       }

@@ -40,9 +40,9 @@ class Anchor : public Object {
 
   NeighborList neighbors_;
 
-  Bond *bond_;
+  Bond *bond_ = nullptr;
   Site *site_ = nullptr;
-  Mesh *mesh_;
+  Mesh *mesh_ = nullptr;
 
   double *obj_area_ = nullptr;
 

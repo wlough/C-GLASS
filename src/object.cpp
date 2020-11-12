@@ -30,7 +30,7 @@ Object::Object(unsigned long seed) : rng_(seed) {
   contact_number_ = 0;
   n_contact_ = 0;
   has_overlap_ = false;
-  anchored_ = false;
+  n_anchored_ = 0;
   gid = oid_;
   interactor_update_ = false;
 }
@@ -140,7 +140,8 @@ void Object::ZeroPolarOrder() {
   polar_order_ = 0;
 }
 void Object::SetInteractor(bool ix) { interacting_ = ix; }
-void Object::SetAnchored(bool anchored) { anchored_ = anchored; }
+void Object::IncrementNAnchored() { n_anchored_++; }
+void Object::DecrementNAnchored() { n_anchored_--; }
 double const *const Object::GetPosition() { return position_; }
 double const *const Object::GetPrevPosition() { return prev_position_; }
 double const *const Object::GetPrevOrientation() { return prev_orientation_; }
@@ -155,7 +156,6 @@ double const Object::GetPolarOrder() { return polar_order_; }
 double const Object::GetContactNumber() { return contact_number_; }
 bool const Object::IsInteractor() { return interacting_; }
 bool const Object::IsMesh() { return is_mesh_; }
-bool const Object::IsAnchored() { return anchored_; }
 bool const Object::CheckInteractorUpdate() {
   if (interactor_update_) {
     interactor_update_ = false;
@@ -164,6 +164,7 @@ bool const Object::CheckInteractorUpdate() {
   return false;
 }
 void Object::HasOverlap(bool overlap) { has_overlap_ = overlap; }
+int const Object::GetNAnchored() { return n_anchored_; }
 int const Object::GetMeshID() const { return mesh_id_; }
 void Object::SetMeshID(int mid) { mesh_id_ = mid; }
 void Object::SetOID(int oid) { oid_ = oid; }
