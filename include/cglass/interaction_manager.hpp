@@ -94,6 +94,7 @@ class InteractionManager {
   void InitOutputs(bool reading_inputs = false,
                    run_options *run_opts = nullptr);
   void ReadInputs();
+  void Convert();
   void ResetCellList();
   void InitCrosslinkSpecies(sid_label &slab, ParamsParser &parser,
                             unsigned long seed);

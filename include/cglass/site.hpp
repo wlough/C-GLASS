@@ -45,6 +45,11 @@ class Site : public Object {
   void SetMeshPtr(Object *obj_ptr);
   const double GetTheta() const { return theta_; }
   const double GetPhi() const { return phi_; }
+
+  // Convert binary data to text. Static to avoid needing to istantiate
+  // species members.
+  static void ConvertSpec(std::fstream &ispec, std::fstream &otext);
+  static void WriteSpecTextHeader(std::fstream &otext);
 };
 
 #endif  // _CGLASS_SITE_H_

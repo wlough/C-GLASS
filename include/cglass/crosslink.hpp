@@ -73,6 +73,11 @@ public:
   const double* const GetObjArea();
   const double *const GetPosition();
   const double *const GetOrientation();
+
+  // Convert binary data to text. Static to avoid needing to istantiate
+  // species members.
+  static void ConvertSpec(std::fstream &ispec, std::fstream &otext);
+  static void WriteSpecTextHeader(std::fstream &otext);
 };
 
 #endif

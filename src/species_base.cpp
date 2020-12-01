@@ -119,13 +119,13 @@ bool SpeciesBase::HandleEOF() {
       ispec_file_.close();
     }
     Logger::Info("Switching to new spec file, %s", file_name.str().c_str());
-    return InitSpecFileInputFromFile(file_name.str());
+    return InitSpecFileInputFromFile(file_name.str(), false);
   } else {
     return false;
   }
 }
 
-bool SpeciesBase::InitSpecFileInputFromFile(std::string spec_file_name) {
+bool SpeciesBase::InitSpecFileInputFromFile(std::string spec_file_name, bool convert) {
   ispec_file_.open(spec_file_name, std::ios::in | std::ios::binary);
   if (!ispec_file_.is_open()) {
     return false;
@@ -145,15 +145,26 @@ bool SpeciesBase::InitSpecFileInputFromFile(std::string spec_file_name) {
                     spec_file_name.c_str(), n_steps, params_->n_steps, n_spec,
                     GetNSpec(), delta, params_->delta);
   }
-  ReadSpecs();
+  if (!convert) ReadSpecs();
   return true;
 }
 
-void SpeciesBase::InitSpecFileInput(std::string run_name) {
+void SpeciesBase::InitConvertSpecFile(std::string run_name) {
+  InitSpecFileInput(run_name, true);
+  std::string sid_str = sid_._to_string();
+  std::string text_file_name =
+      run_name + "_" + sid_str + "_" + GetSpeciesName() + "Spec.txt";
+  ospec_text_file_.open(text_file_name, std::ios::out);
+  ospec_text_file_ << "n_steps n_spec delta" << std::endl;
+  ospec_text_file_ << params_->n_steps << " " << GetNSpec();
+  ospec_text_file_ << " " << params_->delta << std::endl;
+}
+
+void SpeciesBase::InitSpecFileInput(std::string run_name, bool convert) {
   std::string sid_str = sid_._to_string();
   std::string spec_file_name =
       run_name + "_" + sid_str + "_" + GetSpeciesName() + ".spec";
-  if (!InitSpecFileInputFromFile(spec_file_name)) {
+  if (!InitSpecFileInputFromFile(spec_file_name, convert)) {
     Logger::Error("Input file %s did not open", spec_file_name.c_str());
   }
 }
@@ -167,6 +178,13 @@ void SpeciesBase::InitOutputFiles(std::string run_name) {
     InitSpecFile(run_name);
   if (GetCheckpointFlag())
     InitCheckpoints(run_name);
+}
+
+void SpeciesBase::InitConvertFiles(std::string run_name) {
+  Logger::Trace("Initializing conversion input/output files for %s %s", 
+                sid_._to_string(), GetSpeciesName().c_str());
+  if (GetSpecFlag())
+    InitConvertSpecFile(run_name);
 }
 
 void SpeciesBase::InitCheckpoints(std::string run_name) {
@@ -195,9 +213,9 @@ void SpeciesBase::InitInputFiles(std::string run_name, bool posits_only,
     InitPositFileInput(run_name);
   } else if (GetSpecFlag() && with_reloads) {
     spec_file_iterator_ = 0;
-    InitSpecFileInput(run_name);
+    InitSpecFileInput(run_name, false);
   } else if (GetSpecFlag()) {
-    InitSpecFileInput(run_name);
+    InitSpecFileInput(run_name, false);
   }
 }
 
@@ -212,5 +230,7 @@ void SpeciesBase::CloseFiles() {
     ospec_file_.close();
   if (ispec_file_.is_open())
     ispec_file_.close();
+  if (ospec_text_file_.is_open())
+    ospec_file_.close();
   // FinalizeAnalysis();
 }

@@ -9,6 +9,9 @@
 #include "analysis.hpp"
 
 template <typename T, unsigned char S> class Species : public SpeciesBase {
+private:
+  // Check if input spec file is valid/not at eof
+  bool CheckISpec();
 protected:
   std::vector<T> members_;
   species_parameters<S> sparams_;
@@ -67,6 +70,7 @@ public:
   virtual void ReadPositsFromSpecs();
   virtual void ReadSpecs();
   virtual void ReadCheckpoints();
+  virtual void ConvertSpecs();
   virtual void ScalePositions();
   virtual const std::vector<T> &GetMembers() { return members_; }
   virtual void CleanUp();
@@ -349,22 +353,28 @@ template <typename T, unsigned char S> void Species<T, S>::ReadCheckpoints() {
   Object::SetNextOID(next_oid);
 }
 
-template <typename T, unsigned char S> void Species<T, S>::ReadSpecs() {
+// Check if ispec is open and not at end-of-file
+template <typename T, unsigned char S> bool Species<T, S>::CheckISpec() {
   if (ispec_file_.eof()) {
     if (HandleEOF()) {
-      return;
+      return false;
     } else {
       Logger::Info("EOF reached in spec file for %s %s", GetSID()._to_string(),
                    GetSpeciesName().c_str());
       early_exit = true;
-      return;
+      return false;
     }
   }
   if (!ispec_file_.is_open()) {
     Logger::Warning("ERROR: Spec file unexpectedly not open! Exiting early.");
     early_exit = true;
-    return;
+    return false;
   }
+  return true;
+}
+
+template <typename T, unsigned char S> void Species<T, S>::ReadSpecs() {
+  if (!CheckISpec()) return;
   n_members_ = -1;
   ispec_file_.read(reinterpret_cast<char *>(&n_members_), sizeof(int));
   /* For some reason, we can't catch the EOF above. If size == -1 still, then
@@ -387,6 +397,34 @@ template <typename T, unsigned char S> void Species<T, S>::ReadSpecs() {
   }
   for (auto it = members_.begin(); it != members_.end(); ++it)
     it->ReadSpec(ispec_file_);
+    n_members_ = -1;
+    ispec_file_.read(reinterpret_cast<char *>(&n_members_), sizeof(int));
+}
+
+// Convert data from spec file to text output
+template <typename T, unsigned char S> void Species<T, S>::ConvertSpecs() {
+  if (!CheckISpec()) return;
+  n_members_ = -1;
+  // Read in the number of members in the species
+  ispec_file_.read(reinterpret_cast<char *>(&n_members_), sizeof(int));
+  if (n_members_ == -1) {   // Extra EOF catch- see ReadSpecs
+    if (HandleEOF()) {
+      return;
+    } else {
+      Logger::Info("EOF reached in spec file for %s %s", GetSID()._to_string(),
+                   GetSpeciesName().c_str());
+      early_exit = true;
+      return;
+    }
+  }
+  // Write out the number of members
+  ospec_text_file_ << "n_members = " << n_members_ << std::endl;
+  // Label the data with a header
+  T::WriteSpecTextHeader(ospec_text_file_);
+  for (int i = 0; i < n_members_; ++i) {
+    // Read in data from ispec_file, output to ospec_text_file
+    T::ConvertSpec(ispec_file_, ospec_text_file_);
+  }
 }
 
 template <typename T, unsigned char S> void Species<T, S>::ScalePositions() {

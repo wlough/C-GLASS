@@ -208,6 +208,35 @@ void BrBead::WriteSpec(std::fstream &ospec) {
   ospec.write(reinterpret_cast<char *>(&chiral_handedness_), sizeof(int));
 }
 
+void BrBead::WriteSpecTextHeader(std::fstream &otext) {
+  otext << "position[0] position[1] position[2] scaled_position[0] "
+        << "scaled_position[1] scaled_position[2] orientation[0] "
+        << "orientation[1] orientation[2] diameter length "
+        << "chiral_handedness" << std::endl;
+}
+
+void BrBead::ConvertSpec(std::fstream &ispec, std::fstream &otext) {
+  double position[3], scaled_position[3], orientation[3];
+  double diameter, length;
+  int chiral_handedness;
+  if (ispec.eof())
+    return;
+  for (auto &posit : position)
+    ispec.read(reinterpret_cast<char *>(&posit), sizeof(posit));
+  for (auto &spos : scaled_position)
+    ispec.read(reinterpret_cast<char *>(&spos), sizeof(spos));
+  for (auto &u : orientation)
+    ispec.read(reinterpret_cast<char *>(&u), sizeof(u));
+  ispec.read(reinterpret_cast<char *>(&diameter), sizeof(diameter));
+  ispec.read(reinterpret_cast<char *>(&length), sizeof(length));
+  ispec.write(reinterpret_cast<char *>(&chiral_handedness), sizeof(int));
+  otext << position[0] << " " << position[1] << " " << position[2] << " " 
+        << scaled_position[0] << " " << scaled_position[1] << " "
+        << scaled_position[2] << " " << orientation[0] << " " << orientation[1] 
+        << " " << orientation[2] << " " << diameter << " " << length << " "
+        << chiral_handedness << std::endl;
+}
+
 void BrBead::ReadSpec(std::fstream &ispec) {
   Object::ReadSpec(ispec);
   ispec.read(reinterpret_cast<char *>(&chiral_handedness_), sizeof(int));

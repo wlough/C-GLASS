@@ -781,6 +781,8 @@ void InteractionManager::InitOutputs(bool reading_inputs,
 
 void InteractionManager::ReadInputs() { xlink_.ReadInputs(); }
 
+void InteractionManager::Convert() { xlink_.Convert(); }
+
 void InteractionManager::InitCrosslinkSpecies(sid_label &slab,
                                               ParamsParser &parser,
                                               unsigned long seed) {
@@ -797,8 +799,11 @@ void InteractionManager::LoadCrosslinksFromCheckpoints(
 void InteractionManager::InsertCrosslinks() { xlink_.InsertCrosslinks(); }
 
 void InteractionManager::InsertAttachedCrosslinks() {
-     xlink_.InsertAttachedCrosslinks();
-     ForceUpdate();
+  if (processing_ && !run_interaction_analysis_) {
+    return;
+  }
+  xlink_.InsertAttachedCrosslinks();
+  ForceUpdate();
 }
 
 bool InteractionManager::CheckDynamicTimestep() {

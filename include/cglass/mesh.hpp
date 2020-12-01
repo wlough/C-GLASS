@@ -94,6 +94,11 @@ class Mesh : public Object {
   virtual const bool CheckInteractorUpdate();
   virtual const double GetLambdaAtBond(int bond_oid);
   virtual const double GetTrueLength() const;
+
+  // Convert binary data to text. Static to avoid needing to istantiate
+  // species members.
+  static void ConvertSpec(std::fstream &ispec, std::fstream &otext);
+  static void WriteSpecTextHeader(std::fstream &otext);
 };
 
 #endif  // _CGLASS_MESH_H_

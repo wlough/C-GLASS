@@ -158,6 +158,10 @@ public:
   void ScalePosition();
   double const GetVolume();
   // const double GetLength() { return length_; };
+
+  // Convert binary data to text. Static to avoid needing to istantiate
+  // species members.
+  static void ConvertSpec(std::fstream &ispec, std::fstream &otext);
 };
 
 typedef std::vector<Filament>::iterator filament_iterator;

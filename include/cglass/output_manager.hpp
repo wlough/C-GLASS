@@ -14,6 +14,7 @@ private:
   bool reduce_flag_ = false;
   bool thermo_analysis_ = false;
   bool with_reloads_ = false;
+  bool convert_ = false;
   int n_posit_;
   int n_spec_;
   int n_checkpoint_;
@@ -44,6 +45,7 @@ public:
   int GetNSpec() { return n_spec_; }
   int GetNCheckpoint() { return n_checkpoint_; }
   void WriteOutputs();
+  void Convert();
   void InitInputs();
   void ReadInputs();
   void Close();
@@ -66,6 +68,7 @@ void OutputManagerBase<T>::Init(system_parameters *params,
     reduce_factor_ = run_opts->reduce_factor;
     with_reloads_ = run_opts->with_reloads;
     posits_only_ = run_opts->use_posits;
+    convert_ = run_opts->convert;
   }
   if (thermo_flag_ && !reading_inputs && !reduce_flag_) {
     InitThermo(run_name_);
@@ -76,17 +79,21 @@ void OutputManagerBase<T>::Init(system_parameters *params,
   }
 
   for (auto it = species_->begin(); it != species_->end(); ++it) {
-    if (!params_->load_checkpoint && reading_inputs) {
-      (*it)->InitInputFiles(run_name_, posits_only_, with_reloads_);
-      if (reduce_flag_) {
-        std::string red_file_name =
-            run_name_ + "_reduced" + std::to_string(reduce_factor_);
-        (*it)->InitOutputFiles(red_file_name);
-      } else if (params->checkpoint_from_spec) {
-        (*it)->InitCheckpoints(run_name_);
-      }
+    if (convert_) {
+      (*it)->InitConvertFiles(run_name_);
     } else {
-      (*it)->InitOutputFiles(run_name_);
+      if (!params_->load_checkpoint && reading_inputs) {
+        (*it)->InitInputFiles(run_name_, posits_only_, with_reloads_);
+        if (reduce_flag_) {
+          std::string red_file_name =
+              run_name_ + "_reduced" + std::to_string(reduce_factor_);
+          (*it)->InitOutputFiles(red_file_name);
+        } else if (params->checkpoint_from_spec) {
+          (*it)->InitCheckpoints(run_name_);
+        }
+      } else {
+        (*it)->InitOutputFiles(run_name_);
+      }
     }
     if ((*it)->GetPositFlag()) {
       posit_flag_ = true;
@@ -276,6 +283,18 @@ template <class T> void OutputManagerBase<T>::WriteTime() {
   time_file_ << params_->i_step << " " << params_->n_steps << " "
              << params_->delta << "\n";
   time_file_.close();
+}
+
+
+/* Convert all existing spec files into txt files */
+template <class T> void OutputManagerBase<T>::Convert() {
+  for (auto spec = species_->begin(); spec != species_->end(); ++spec) {
+    if ((*spec)->GetSpecFlag() &&
+             params_->i_step != params_->prev_step &&
+             params_->i_step % (*spec)->GetNSpec() == 0) {
+      (*spec)->ConvertSpecs();
+    }
+  }
 }
 
 class OutputManager : public OutputManagerBase<SpeciesBase> {};

@@ -166,6 +166,13 @@ public:
   virtual void WriteCheckpointHeader(std::fstream &ocheck);
   virtual void ReadCheckpoint(std::fstream &icheck);
   virtual void ReadCheckpointHeader(std::fstream &icheck);
+
+  // Convert binary data to text. Static to avoid needing to istantiate
+  // species members.
+  static void ConvertPosit(std::fstream &iposit, std::fstream &otext);
+  static void ConvertSpec(std::fstream &ispec, std::fstream &otext);
+  static void WritePositTextHeader(std::fstream &otext);
+  static void WriteSpecTextHeader(std::fstream &otext);
 };
 
 // void MinimumDistance(Object* o1, Object* o2, Interaction *ix, SpaceBase

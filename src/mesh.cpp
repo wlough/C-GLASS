@@ -522,6 +522,24 @@ void Mesh::WriteSpec(std::fstream &op) {
   }
 }
 
+void Mesh::WriteSpecTextHeader(std::fstream &otext) {
+  otext << "diameter length bond_length nsites" << std::endl;
+}
+
+void Mesh::ConvertSpec(std::fstream &ispec, std::fstream &otext) {
+  double diameter, length, bond_length;
+  int nsites;
+  if (ispec.eof())
+    return;
+  ispec.read(reinterpret_cast<char *>(&diameter), sizeof(double));
+  ispec.read(reinterpret_cast<char *>(&length), sizeof(double));
+  ispec.read(reinterpret_cast<char *>(&bond_length), sizeof(double));
+  ispec.read(reinterpret_cast<char *>(&nsites), sizeof(int));
+  otext << diameter << " " << length << " " << bond_length << " " << nsites << std::endl;
+  Site::WriteSpecTextHeader(otext);
+  for (int i = 0; i < nsites; i++) Site::ConvertSpec(ispec, otext);
+}
+
 void Mesh::ReadCheckpoint(std::fstream &ip) {
   Clear();
   Object::ReadCheckpoint(ip);
