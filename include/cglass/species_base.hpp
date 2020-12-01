@@ -17,6 +17,7 @@ protected:
   RNG rng_;
   std::fstream oposit_file_;
   std::fstream iposit_file_;
+  std::fstream ospec_text_file_;
   std::fstream ospec_file_;
   std::fstream ispec_file_;
   std::string checkpoint_file_;
@@ -69,15 +70,18 @@ public:
   virtual void ReadCheckpoints() {}
   virtual void ReadPosits() {}
   virtual void ReadPositsFromSpecs() {}
+  virtual void ConvertSpecs() {}
   virtual void InitAnalysis() {}
   virtual void RunAnalysis() {}
   virtual void FinalizeAnalysis() {}
   virtual void InitOutputFiles(std::string run_name);
+  virtual void InitConvertFiles(std::string run_name);
   virtual void InitPositFile(std::string run_name);
   virtual void InitSpecFile(std::string run_name);
+  virtual void InitConvertSpecFile(std::string run_name);
   virtual void InitPositFileInput(std::string run_name);
-  virtual void InitSpecFileInput(std::string run_name);
-  virtual bool InitSpecFileInputFromFile(std::string run_name);
+  virtual void InitSpecFileInput(std::string run_name, bool convert);
+  virtual bool InitSpecFileInputFromFile(std::string run_name, bool convert);
   virtual bool HandleEOF();
   virtual void InitInputFiles(std::string run_name, bool posits_only,
                               bool with_reloads);

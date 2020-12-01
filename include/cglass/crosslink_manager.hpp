@@ -44,6 +44,7 @@ class CrosslinkManager {
   void ZeroDrTot();
   const double GetDrMax();
   void ReadInputs();
+  void Convert();
   void InsertCrosslinks();
   void InsertAttachedCrosslinks();
   const double GetRCutoff() const {

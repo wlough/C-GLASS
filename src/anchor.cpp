@@ -492,6 +492,35 @@ void Anchor::WriteSpec(std::fstream &ospec) {
   ospec.write(reinterpret_cast<char *>(&attached_mesh_id), sizeof(int));
 }
 
+void Anchor::WriteSpecTextHeader(std::fstream &otext) {
+  otext << "bound active static_flag position[0] position[1] position[2] "
+        << "orientation[0] orientation[1] orientation[2] mesh_lambda "
+        << "mesh_id" << std::endl;
+}
+
+void Anchor::ConvertSpec(std::fstream &ispec, std::fstream &otext) {
+  bool bound, active, static_flag;
+  double position[3], orientation[3];
+  double mesh_lambda;
+  int mesh_id;
+  if (ispec.eof())
+    return;
+  ispec.read(reinterpret_cast<char *>(&bound), sizeof(bool));
+  ispec.read(reinterpret_cast<char *>(&active), sizeof(bool));
+  ispec.read(reinterpret_cast<char *>(&static_flag), sizeof(bool));
+  for (int i = 0; i < 3; ++i) {
+    ispec.read(reinterpret_cast<char *>(&position[i]), sizeof(double));
+  }
+  for (int i = 0; i < 3; ++i) {
+    ispec.read(reinterpret_cast<char *>(&orientation[i]), sizeof(double));
+  }
+  ispec.read(reinterpret_cast<char *>(&mesh_lambda), sizeof(double));
+  ispec.read(reinterpret_cast<char *>(&mesh_id), sizeof(int));
+  otext << bound << " " << active << " " << static_flag << " " << position[0] << " " 
+        << position[1] << " " << position[2] << " " << orientation[0] << " " << orientation[1] 
+        << " " << orientation[2] << " " << mesh_lambda << " " << mesh_id << std::endl;
+}
+
 void Anchor::ReadSpec(std::fstream &ispec) {
   ispec.read(reinterpret_cast<char *>(&bound_), sizeof(bool));
   ispec.read(reinterpret_cast<char *>(&active_), sizeof(bool));

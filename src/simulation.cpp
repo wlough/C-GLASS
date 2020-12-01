@@ -535,6 +535,7 @@ void Simulation::InitInputs(run_options run_opts) {
   output_mgr_.Init(&params_, &species_, space_.GetSpaceBase(), true, &run_opts);
   ix_mgr_.InitOutputs(true, &run_opts);
   /* Initialize object positions from output files if post-processing */
+  if (run_opts.convert) return;
   output_mgr_.ReadInputs();
   ix_mgr_.ReadInputs();
 }
@@ -621,12 +622,19 @@ void Simulation::InitProcessing(run_options run_opts) {
  * generation, etc. */
 void Simulation::RunProcessing(run_options run_opts) {
   Logger::Info("Processing outputs for %s", run_name_.c_str());
+
   for (i_step_ = 0; true; ++i_step_) {
     params_.i_step = i_step_;
     time_ = params_.i_step * params_.delta;
     PrintComplete();
     if (early_exit) {
       break;
+    }
+    if (run_opts.convert) {
+      // Convert all spec files to text files
+      output_mgr_.Convert();
+      ix_mgr_.Convert();
+      continue;
     }
     if (run_opts.analysis_flag && params_.i_step >= params_.n_steps_equil) {
       bool struct_update = false;

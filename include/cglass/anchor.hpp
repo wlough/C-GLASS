@@ -102,6 +102,11 @@ class Anchor : public Object {
   const double GetKickAmplitude() const;
   const double* const GetObjArea();
   void SetObjArea(double* obj_area);
+
+  // Convert binary data to text. Static to avoid needing to istantiate
+  // species members.
+  static void ConvertSpec(std::fstream &ispec, std::fstream &otext);
+  static void WriteSpecTextHeader(std::fstream &otext);
 };
 
 #endif

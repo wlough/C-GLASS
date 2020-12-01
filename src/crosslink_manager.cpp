@@ -153,3 +153,4 @@ void CrosslinkManager::LoadCrosslinksFromCheckpoints(
 }
 
 void CrosslinkManager::ReadInputs() { output_mgr_.ReadInputs(); }
+void CrosslinkManager::Convert() { output_mgr_.Convert(); }

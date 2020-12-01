@@ -448,8 +448,38 @@ void Object::ReadPosit(std::fstream &iposit) {
   iposit.read(reinterpret_cast<char *>(&diameter_), sizeof(diameter_));
   iposit.read(reinterpret_cast<char *>(&length_), sizeof(length_));
 }
+void Object::WritePositTextHeader(std::fstream &otext) {
+  otext << "position[0] position[1] position[2] scaled_position[0] "
+        << "scaled_position[1] scaled_position[2] orientation[0] "
+        << "orientation[1] orientation[2] diameter length" << std::endl;
+}
+
+void Object::ConvertPosit(std::fstream &iposit, std::fstream &otext) {
+  double position[3], scaled_position[3], orientation[3];
+  double diameter, length;
+  if (iposit.eof())
+    return;
+  for (auto &posit : position)
+    iposit.read(reinterpret_cast<char *>(&posit), sizeof(posit));
+  for (auto &spos : scaled_position)
+    iposit.read(reinterpret_cast<char *>(&spos), sizeof(spos));
+  for (auto &u : orientation)
+    iposit.read(reinterpret_cast<char *>(&u), sizeof(u));
+  iposit.read(reinterpret_cast<char *>(&diameter), sizeof(diameter));
+  iposit.read(reinterpret_cast<char *>(&length), sizeof(length));
+  otext << position[0] << " " << position[1] << " " << position[2] << " " 
+        << scaled_position[0] << " " << scaled_position[1] << " "
+        << scaled_position[2] << " " << orientation[0] << " " << orientation[1] 
+        << " " << orientation[2] << " " << diameter << " " << length << std::endl;
+}
 void Object::WriteSpec(std::fstream &ospec) { WritePosit(ospec); }
 void Object::ReadSpec(std::fstream &ispec) { ReadPosit(ispec); }
+void Object::ConvertSpec(std::fstream &ispec, std::fstream &otext) {
+  ConvertPosit(ispec, otext);
+}
+void Object::WriteSpecTextHeader(std::fstream &otext) {
+  WritePositTextHeader(otext);
+}
 void Object::ReadPositFromSpec(std::fstream &ispec) { ReadPosit(ispec); }
 void Object::GetAvgPosition(double *ap) {
   std::copy(position_, position_ + 3, ap);

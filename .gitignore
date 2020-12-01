@@ -54,3 +54,6 @@ build*
 !CMake*
 *__pycache__*
 version_generator.cpp
+.vscode
+rhs_files
+analysis/rhs

@@ -135,6 +135,17 @@ void Site::WriteSpec(std::fstream& op) {
     op.write(reinterpret_cast<char*>(&position_[i]), sizeof(double));
 }
 
+void Site::WriteSpecTextHeader(std::fstream &otext) {
+  otext << "position[0] position[1] position[2]" << std::endl;
+}
+
+void Site::ConvertSpec(std::fstream &ispec, std::fstream &otext) {
+  double position[3];
+  for (int i = 0; i < 3; ++i)
+    ispec.read(reinterpret_cast<char*>(&position[i]), sizeof(double));
+  otext << position[0] << " " << position[1] << " " << position[2] << std::endl;
+}
+
 void Site::ReadSpec(std::fstream& ip) {
   for (int i = 0; i < 3; ++i)
     ip.read(reinterpret_cast<char*>(&position_[i]), sizeof(double));
