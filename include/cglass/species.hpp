@@ -70,7 +70,7 @@ public:
   virtual void ReadPositsFromSpecs();
   virtual void ReadSpecs();
   virtual void ReadCheckpoints();
-  virtual void ConvertSpecs();
+  virtual void ConvertSpecs(double time);
   virtual void ScalePositions();
   virtual const std::vector<T> &GetMembers() { return members_; }
   virtual void CleanUp();
@@ -402,7 +402,7 @@ template <typename T, unsigned char S> void Species<T, S>::ReadSpecs() {
 }
 
 // Convert data from spec file to text output
-template <typename T, unsigned char S> void Species<T, S>::ConvertSpecs() {
+template <typename T, unsigned char S> void Species<T, S>::ConvertSpecs(double time) {
   if (!CheckISpec()) return;
   n_members_ = -1;
   // Read in the number of members in the species
@@ -417,6 +417,8 @@ template <typename T, unsigned char S> void Species<T, S>::ConvertSpecs() {
       return;
     }
   }
+  // Write out time
+  ospec_text_file_ << "time = " << time << std::endl;
   // Write out the number of members
   ospec_text_file_ << "n_members = " << n_members_ << std::endl;
   // Label the data with a header

@@ -292,7 +292,7 @@ template <class T> void OutputManagerBase<T>::Convert() {
     if ((*spec)->GetSpecFlag() &&
              params_->i_step != params_->prev_step &&
              params_->i_step % (*spec)->GetNSpec() == 0) {
-      (*spec)->ConvertSpecs();
+      (*spec)->ConvertSpecs(params_->i_step * params_->delta);
     }
   }
 }
