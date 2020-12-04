@@ -70,7 +70,7 @@ public:
   virtual void ReadCheckpoints() {}
   virtual void ReadPosits() {}
   virtual void ReadPositsFromSpecs() {}
-  virtual void ConvertSpecs() {}
+  virtual void ConvertSpecs(double) {}
   virtual void InitAnalysis() {}
   virtual void RunAnalysis() {}
   virtual void FinalizeAnalysis() {}

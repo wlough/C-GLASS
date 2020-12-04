@@ -20,3 +20,22 @@ void Receptor::Init(receptor_parameters *sparams) {
   interactors_.push_back(this); // Receptor can interact with other objects
 }
 
+// i/o functions- Write/read species file and convert to text
+void Receptor::WriteSpec(std::fstream &ospec) {
+  ospec.write(reinterpret_cast<char*>(&n_anchored_), sizeof(int));
+}
+
+void Receptor::WriteSpecTextHeader(std::fstream &otext) {
+  otext << "n_anchored" << std::endl;
+}
+
+void Receptor::ConvertSpec(std::fstream &ispec, std::fstream &otext) {
+  if (ispec.eof()) return;
+  int n_anchored;
+  ispec.read(reinterpret_cast<char*>(&n_anchored), sizeof(int));
+  otext << n_anchored << std::endl;
+}
+
+void Receptor::ReadSpec(std::fstream &ispec) {
+  ispec.read(reinterpret_cast<char*>(&n_anchored_), sizeof(int));
+}
