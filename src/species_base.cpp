@@ -154,6 +154,7 @@ void SpeciesBase::InitConvertSpecFile(std::string run_name) {
   std::string sid_str = sid_._to_string();
   std::string text_file_name =
       run_name + "_" + sid_str + "_" + GetSpeciesName() + "Spec.txt";
+  if (!spec_valid_) return; // Spec file did not open
   ospec_text_file_.open(text_file_name, std::ios::out);
   ospec_text_file_ << "n_steps n_spec delta" << std::endl;
   ospec_text_file_ << params_->n_steps << " " << GetNSpec();
@@ -165,7 +166,14 @@ void SpeciesBase::InitSpecFileInput(std::string run_name, bool convert) {
   std::string spec_file_name =
       run_name + "_" + sid_str + "_" + GetSpeciesName() + ".spec";
   if (!InitSpecFileInputFromFile(spec_file_name, convert)) {
-    Logger::Error("Input file %s did not open", spec_file_name.c_str());
+    if (convert) {
+      Logger::Warning("Input file %s did not open", spec_file_name.c_str());
+
+      // Delete converted text file and do not continue reading this spec file.
+      spec_valid_ = false;
+    } else {
+      Logger::Error("Input file %s did not open", spec_file_name.c_str());
+    }
   }
 }
 

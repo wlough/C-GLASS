@@ -384,7 +384,7 @@ void Crosslink::WriteSpec(std::fstream &ospec) {
 }
 
 void Crosslink::WriteSpecTextHeader(std::fstream &otext) {
-  otext << "is_doubly diameter length position[0] position[1] position[2]"
+  otext << "is_doubly diameter length position[0] position[1] position[2] "
         << "orientation[0] orientation[1] orientation[2]" << std::endl;
 }
 
@@ -405,7 +405,7 @@ void Crosslink::ConvertSpec(std::fstream &ispec, std::fstream &otext) {
     ispec.read(reinterpret_cast<char *>(&orientation[i]), sizeof(double));
   }
   // Write out data to SpecText file otext
-  otext << is_doubly << " " << diameter << " " << length << position[0] << " " 
+  otext << is_doubly << " " << diameter << " " << length << " " << position[0] << " " 
         << position[1] << " " << position[2] << " " << orientation[0] 
         << " " << orientation[1] << " " << orientation[2] << std::endl;
   // Convert anchor data
