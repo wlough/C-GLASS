@@ -288,7 +288,6 @@ void Anchor::Draw(std::vector<graph_struct *> &graph_array) {
 }
 
 void Anchor::AttachObjRandom(Object *o) {
-  o->IncrementNAnchored();
   switch (o->GetType()) {
     case obj_type::bond: {
       double length = o->GetLength();

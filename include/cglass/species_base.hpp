@@ -12,6 +12,7 @@ private:
 protected:
   int n_members_ = 0;
   int spec_file_iterator_ = -1;
+  bool spec_valid_ = true;
   static const system_parameters *params_;
   static const SpaceBase *space_;
   RNG rng_;
@@ -60,6 +61,7 @@ public:
     return params_->checkpoint_flag;
   }
   virtual std::string GetInsertionType() const { return ""; }
+  virtual bool GetSpecValid() {return spec_valid_; }
   virtual bool CheckInteractionAnalysis() { return false; }
   virtual int GetCount() const { return 0; }
   virtual void WriteOutputs(std::string run_name) {}

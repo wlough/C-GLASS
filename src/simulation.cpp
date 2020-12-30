@@ -623,7 +623,7 @@ void Simulation::InitProcessing(run_options run_opts) {
 void Simulation::RunProcessing(run_options run_opts) {
   Logger::Info("Processing outputs for %s", run_name_.c_str());
 
-  for (i_step_ = 0; true; ++i_step_) {
+  for (i_step_ = 0; i_step_ <= params_.n_steps; ++i_step_) {
     params_.i_step = i_step_;
     time_ = params_.i_step * params_.delta;
     PrintComplete();

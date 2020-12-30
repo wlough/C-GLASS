@@ -289,7 +289,7 @@ template <class T> void OutputManagerBase<T>::WriteTime() {
 /* Convert all existing spec files into txt files */
 template <class T> void OutputManagerBase<T>::Convert() {
   for (auto spec = species_->begin(); spec != species_->end(); ++spec) {
-    if ((*spec)->GetSpecFlag() &&
+    if ((*spec)->GetSpecFlag() && (*spec)->GetSpecValid() &&
              params_->i_step != params_->prev_step &&
              params_->i_step % (*spec)->GetNSpec() == 0) {
       (*spec)->ConvertSpecs(params_->i_step * params_->delta);

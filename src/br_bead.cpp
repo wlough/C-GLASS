@@ -229,7 +229,7 @@ void BrBead::ConvertSpec(std::fstream &ispec, std::fstream &otext) {
     ispec.read(reinterpret_cast<char *>(&u), sizeof(u));
   ispec.read(reinterpret_cast<char *>(&diameter), sizeof(diameter));
   ispec.read(reinterpret_cast<char *>(&length), sizeof(length));
-  ispec.write(reinterpret_cast<char *>(&chiral_handedness), sizeof(int));
+  ispec.read(reinterpret_cast<char *>(&chiral_handedness), sizeof(int));
   otext << position[0] << " " << position[1] << " " << position[2] << " " 
         << scaled_position[0] << " " << scaled_position[1] << " "
         << scaled_position[2] << " " << orientation[0] << " " << orientation[1] 

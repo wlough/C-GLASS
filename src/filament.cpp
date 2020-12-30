@@ -1452,7 +1452,7 @@ void Filament::ConvertSpec(std::fstream &ispec, std::fstream &otext) {
   ispec.read(reinterpret_cast<char *>(&poly), sizeof(unsigned char));
 
   otext << "bending_stiffness curvature poly" << std::endl;
-  otext << " " << bending_stiffness << " " << curvature << " " << poly << std::endl;
+  otext << bending_stiffness << " " << curvature << " " << poly << std::endl;
 }
 
 void Filament::ReadSpec(std::fstream &ispec) {
