@@ -87,8 +87,8 @@ void Crosslink::SinglyKMC() {
   std::fill(bind_factors.begin() + n_neighbors_bond, bind_factors.end(), bind_factor_site);
  
   if (n_neighbors > 0) {
-    if (!static_flag_ && polar_affinity_ < 1) {
-      anchors_[0].CalculatePolarAffinity(bind_factors);
+    if (!static_flag_ && polar_affinity_ != 1.0) {
+      anchors_[0].CalculatePolarAffinity(kmc_bind_factor);
     }
     kmc_bind.LUCalcTotProbsSD(anchors_[0].GetNeighborListMemBonds(), 
                               anchors_[0].GetNeighborListMemSites(), 

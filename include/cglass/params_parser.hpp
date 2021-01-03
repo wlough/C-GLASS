@@ -2,7 +2,7 @@
 #define _CGLASS_PARAMS_PARSER_H_
 
 #include "auxiliary.hpp"
-#include "yaml-cpp/yaml.h"
+#include <yaml-cpp/yaml.h>
 
 typedef std::pair<std::string, std::string> sid_label;
 
