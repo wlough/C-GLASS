@@ -5,13 +5,16 @@
 **************************/
 Site::Site(unsigned long seed) : Object(seed) {
   n_bonds_ = 0;
+  type_ = obj_type::site;
   std::fill(tangent_, tangent_ + 3, 0.0);
   std::fill(random_force_, random_force_ + 3, 0.0);
 }
+
 void Site::AddBond(Bond* bond, directed_type dir) {
   bonds_.push_back(std::make_pair(bond, dir));
   n_bonds_++;
 }
+
 Bond* Site::GetBond(int i) {
   if (i < 0 || i >= bonds_.size()) {
     std::cerr << "ERROR! Requested adjacent bond out of bounds!\n";
@@ -100,9 +103,13 @@ void Site::CalcTangent() {
     std::fill(tangent_, tangent_ + 3, 0.0);
   }
 }
+
 void Site::SetRandomForce(double* f_rand) {
   std::copy(f_rand, f_rand + 3, random_force_);
 }
+
+void Site::SetMeshPtr(Object *obj_ptr) { mesh_ptr_ = obj_ptr; }
+
 double const* const Site::GetTangent() { return tangent_; }
 double const* const Site::GetRandomForce() { return random_force_; }
 void Site::AddRandomForce() {
@@ -110,6 +117,7 @@ void Site::AddRandomForce() {
     force_[i] += random_force_[i];
   }
 }
+
 bool Site::HasNeighbor(int other_oid) {
   if (n_bonds_ == 0) {
     return false;
@@ -125,6 +133,17 @@ bool Site::HasNeighbor(int other_oid) {
 void Site::WriteSpec(std::fstream& op) {
   for (int i = 0; i < 3; ++i)
     op.write(reinterpret_cast<char*>(&position_[i]), sizeof(double));
+}
+
+void Site::WriteSpecTextHeader(std::fstream &otext) {
+  otext << "position[0] position[1] position[2]" << std::endl;
+}
+
+void Site::ConvertSpec(std::fstream &ispec, std::fstream &otext) {
+  double position[3];
+  for (int i = 0; i < 3; ++i)
+    ispec.read(reinterpret_cast<char*>(&position[i]), sizeof(double));
+  otext << position[0] << " " << position[1] << " " << position[2] << std::endl;
 }
 
 void Site::ReadSpec(std::fstream& ip) {

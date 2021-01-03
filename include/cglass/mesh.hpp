@@ -22,20 +22,22 @@ class Mesh : public Object {
   int n_bonds_ = 0;
   int n_bonds_max_ = 0;
   std::vector<Site> sites_;
+  std::vector<Site*> site_ptrs_; // for meshes w/ sites that are species
   std::vector<Bond> bonds_;
   double bond_length_ = -1;
   double true_length_ = -1;
   Bond *GetRandomBond();
-  void UpdateInteractors();
+  virtual void UpdateInteractors();
   void UpdateSiteOrientations();
   void RelocateMesh(double const *const new_pos, double const *const u);
+  
+ public:
+  Mesh(unsigned long seed);
   void AddRandomBondToSite(double l, int i_site);
   void AddBondToSite(double *u, double l, int i_site);
   void AddSite(Site s);
+  void AddSitePtr(Site *s);
   void AddBond(Site *s1, Site *s2);
-
- public:
-  Mesh(unsigned long seed);
   void InitSiteAt(double *new_pos, double d);
   void InitBondAt(double *new_pos, double *u, double l, double d);
   void InitRandomSite(double d);
@@ -75,6 +77,7 @@ class Mesh : public Object {
   virtual void UpdateDrTot();
   virtual double const GetDrTot();
   virtual void ZeroDrTot();
+  virtual void SetNBondsMax(int n) {n_bonds_max_ = n;}
   virtual void SetPosition(double const *const new_pos);
   //virtual std::vector<Interaction *> *GetInteractions();
   virtual void ClearInteractions();
@@ -91,6 +94,11 @@ class Mesh : public Object {
   virtual const bool CheckInteractorUpdate();
   virtual const double GetLambdaAtBond(int bond_oid);
   virtual const double GetTrueLength() const;
+
+  // Convert binary data to text. Static to avoid needing to istantiate
+  // species members.
+  static void ConvertSpec(std::fstream &ispec, std::fstream &otext);
+  static void WriteSpecTextHeader(std::fstream &otext);
 };
 
 #endif  // _CGLASS_MESH_H_

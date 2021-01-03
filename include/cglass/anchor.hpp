@@ -11,7 +11,8 @@ class Anchor : public Object {
   bool bound_;
   bool static_flag_;
   bool active_;
-  bool end_pausing_;
+  bool plus_end_pausing_;
+  bool minus_end_pausing_;
   crosslink_parameters *sparams_;
   int step_direction_;
 
@@ -32,13 +33,18 @@ class Anchor : public Object {
   double polar_affinity_;
   double f_stall_;
   double force_dep_vel_flag_;
+  
+  double input_tol = 1e-8; // Tolerance for comparing inputs to 0
 
   bind_state state_;
 
   NeighborList neighbors_;
 
-  Bond *bond_;
-  Mesh *mesh_;
+  Bond *bond_ = nullptr;
+  Site *site_ = nullptr;
+  Mesh *mesh_ = nullptr;
+
+  double *obj_area_ = nullptr;
 
   int mesh_n_bonds_;
 
@@ -60,7 +66,9 @@ class Anchor : public Object {
   void SetDiffusion();
   void AttachObjRandom(Object *o);
   void AttachObjLambda(Object *o, double lambda);
+  void AttachObjCenter(Object *o);
   void AttachObjMeshLambda(Object *o, double mesh_lambda);
+  void AttachObjMeshCenter(Object *o);
   void CalculatePolarAffinity(std::vector<double> &doubly_binding_rates);
   void SetBondLambda(double l);
   void SetMeshLambda(double ml);
@@ -71,6 +79,8 @@ class Anchor : public Object {
   void AddNeighbor(Object *neighbor);
   void ClearNeighbors();
   const Object *const *GetNeighborListMem();
+  const std::vector<Bond*>& GetNeighborListMemBonds();
+  const std::vector<Site*>& GetNeighborListMemSites();
   void WriteSpec(std::fstream &ospec);
   void ReadSpec(std::fstream &ispec);
   void BindToPosition(double *bind_pos);
@@ -80,12 +90,23 @@ class Anchor : public Object {
   double const GetMeshLambda();
   double const GetBondLambda();
   Object *GetNeighbor(int i_neighbor);
+  Site *GetSiteNeighbor(int i_neighbor);
+  Bond *GetBondNeighbor(int i_neighbor);
   const int GetNNeighbors() const;
+  const int GetNNeighborsSite() const;
+  const int GetNNeighborsBond() const;
   const double GetOnRate() const;
   const double GetOffRate() const;
   const double GetMaxVelocity() const;
   const double GetDiffusionConst() const;
   const double GetKickAmplitude() const;
+  const double* const GetObjArea();
+  void SetObjArea(double* obj_area);
+
+  // Convert binary data to text. Static to avoid needing to istantiate
+  // species members.
+  static void ConvertSpec(std::fstream &ispec, std::fstream &otext);
+  static void WriteSpecTextHeader(std::fstream &otext);
 };
 
 #endif

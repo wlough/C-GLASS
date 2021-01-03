@@ -4,6 +4,7 @@
 //#include "cell_list.hpp"
 #include "auxiliary.hpp"
 #include "cell_list.hpp"
+#include "cortex.hpp"
 #include "crosslink_manager.hpp"
 #include "minimum_distance.hpp"
 #include "potential_manager.hpp"
@@ -33,7 +34,8 @@ class InteractionManager {
   int n_interactions_;
   int i_update_ = 0;
   system_parameters *params_;
-  space_struct *space_;
+  SpaceBase *space_;
+  Cortex *cortex_;
   std::vector<SpeciesBase *> *species_;
 
   MinimumDistance mindist_;
@@ -65,6 +67,7 @@ class InteractionManager {
   void PairBondCrosslinks();
   void FlagDuplicateInteractions();
   bool CheckBondAnchorPair(Object *anchor, Object *bond);
+  bool CheckSiteAnchorPair(Object *anchor, Object *site);
   void ClearObjectInteractions();
   void ApplyInteractions();
   void CalculateInteractions();
@@ -72,7 +75,7 @@ class InteractionManager {
  public:
   InteractionManager() {}
   void Init(system_parameters *params, std::vector<SpeciesBase *> *species,
-            space_struct *space, bool processing = false);
+            SpaceBase *space, Cortex *cortex, bool processing = false);
   void InitInteractions();
   void Interact();
   void CalculatePressure();
@@ -91,6 +94,7 @@ class InteractionManager {
   void InitOutputs(bool reading_inputs = false,
                    run_options *run_opts = nullptr);
   void ReadInputs();
+  void Convert();
   void ResetCellList();
   void InitCrosslinkSpecies(sid_label &slab, ParamsParser &parser,
                             unsigned long seed);

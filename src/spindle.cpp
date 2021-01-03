@@ -288,6 +288,43 @@ void Spindle::WriteSpec(std::fstream &ospec) {
   }
 }
 
+void Spindle::WriteSpecTextHeader(std::fstream &otext) {
+  otext << "diameter length position[0] position[1] position[2] "
+        << "orientation[0] orientation[1] orientation[2] "
+        << "nfilaments" << std::endl;
+}
+
+void Spindle::ConvertSpec(std::fstream &ispec, std::fstream &otext) {
+  if (ispec.eof())
+    return;
+  double diameter, length;
+  double position[3], orientation[3];
+  int nfilaments;
+  ispec.read(reinterpret_cast<char *>(&diameter), sizeof(double));
+  ispec.read(reinterpret_cast<char *>(&length), sizeof(double));
+  for (int i = 0; i < 3; ++i) {
+    ispec.read(reinterpret_cast<char *>(&position[i]), sizeof(double));
+  }
+  for (int i = 0; i < 3; ++i) {
+    ispec.read(reinterpret_cast<char *>(&orientation[i]), sizeof(double));
+  }
+  ispec.read(reinterpret_cast<char *>(&nfilaments), sizeof(int));
+  otext << diameter << " " << length << position[0] << " " << position[1] << " " 
+        << position[2] << " " << orientation[0] << " " << orientation[1] 
+        << " " << orientation[2] << " " << nfilaments << std::endl;
+  otext << "theta phi" << std::endl;
+  for (int i = 0; i < nfilaments; ++i) {
+      double theta, phi;
+      ispec.read(reinterpret_cast<char *>(&theta), sizeof(double));
+      ispec.read(reinterpret_cast<char *>(&phi), sizeof(double));
+      otext << theta << " " << phi << std::endl;
+  }
+  Filament::WriteSpecTextHeader(otext);
+  for (int i = 0; i < nfilaments; ++i) {
+    Filament::ConvertSpec(ispec, otext);
+  }
+}
+
 void Spindle::ReadSpec(std::fstream &ispec) {
   if (ispec.eof())
     return;

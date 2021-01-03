@@ -18,7 +18,6 @@ private:
   draw_type draw_;
   bind_state state_;
   LookupTable *lut_;
-  std::vector<int> kmc_filter_;
   bool static_flag_ = false;
   bool asymmetric_spring_flag_ = false;
   double k_spring_;
@@ -26,7 +25,8 @@ private:
   double k_align_;
   double rest_length_;
   double rcapture_;
-  double bind_site_density_;
+  double linear_bind_site_density_;
+  double surface_bind_site_density_;
   double tether_force_;
   double e_dep_factor_;
   double fdep_length_;
@@ -39,7 +39,7 @@ private:
   void UpdateAnchorsToMesh();
   void UpdateAnchorPositions();
   void UpdateXlinkState();
-
+  double *obj_area_ = nullptr;
 public:
   Crosslink(unsigned long seed);
   void Init(crosslink_parameters *sparams);
@@ -69,8 +69,15 @@ public:
   const double GetDrTot();
   void InsertAt(double const *const new_pos, double const *const u);
   const int GetNNeighbors() const;
+  void SetObjArea(double *obj_area);
+  const double* const GetObjArea();
   const double *const GetPosition();
   const double *const GetOrientation();
+
+  // Convert binary data to text. Static to avoid needing to istantiate
+  // species members.
+  static void ConvertSpec(std::fstream &ispec, std::fstream &otext);
+  static void WriteSpecTextHeader(std::fstream &otext);
 };
 
 #endif

@@ -1441,6 +1441,20 @@ void Filament::WriteSpec(std::fstream &ospec) {
   ospec.write(reinterpret_cast<char *>(&poly_), sizeof(unsigned char));
 }
 
+void Filament::ConvertSpec(std::fstream &ispec, std::fstream &otext) {
+  double bending_stiffness, curvature;
+  unsigned char poly;
+  if (ispec.eof())
+    return;
+  Mesh::ConvertSpec(ispec, otext);
+  ispec.read(reinterpret_cast<char *>(&bending_stiffness), sizeof(double));
+  ispec.read(reinterpret_cast<char *>(&curvature), sizeof(double));
+  ispec.read(reinterpret_cast<char *>(&poly), sizeof(unsigned char));
+
+  otext << "bending_stiffness curvature poly" << std::endl;
+  otext << bending_stiffness << " " << curvature << " " << poly << std::endl;
+}
+
 void Filament::ReadSpec(std::fstream &ispec) {
   if (ispec.eof())
     return;

@@ -7,6 +7,7 @@
 #include "rigid_filament_species.hpp"
 #include "spherocylinder_species.hpp"
 #include "spindle_species.hpp"
+#include "receptor_species.hpp"
 
 class SpeciesFactory {
  public:
@@ -23,7 +24,10 @@ class SpeciesFactory {
       return new SpindleSpecies(seed);
     } else if (sid == +species_id::spherocylinder) {
       return new SpherocylinderSpecies(seed);
+    } else if (sid == +species_id::receptor) {
+      return new ReceptorSpecies(seed);
     }
+
     Logger::Error("Species ID not recognized in SpeciesFactory!");
     return nullptr;
   }

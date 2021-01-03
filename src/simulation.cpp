@@ -1,4 +1,3 @@
-
 #include "cglass/simulation.hpp"
 
 /* Initialize simulation parameters and run simulation */
@@ -214,7 +213,8 @@ void Simulation::InitSimulation() {
 #endif
   space_.Init(&params_);
   InitObjects();
-  ix_mgr_.Init(&params_, &species_, space_.GetStruct());
+  cortex_ = new Cortex(rng_->GetSeed());
+  ix_mgr_.Init(&params_, &species_, space_.GetSpaceBase(), cortex_);
   InitSpecies();
   ix_mgr_.InitInteractions();
   InsertSpecies(params_.load_checkpoint, params_.load_checkpoint);
@@ -231,11 +231,11 @@ void Simulation::InitObjects() {
   Object::SetParams(&params_);
   Object::SetNDim(params_.n_dim);
   Object::SetDelta(params_.delta);
-  Object::SetSpace(space_.GetStruct());
+  Object::SetSpace(space_.GetSpaceBase());
   SpeciesBase::SetParams(&params_);
-  SpeciesBase::SetSpace(space_.GetStruct());
+  SpeciesBase::SetSpace(space_.GetSpaceBase());
   AnalysisBase::SetParams(&params_);
-  AnalysisBase::SetSpace(space_.GetStruct());
+  AnalysisBase::SetSpace(space_.GetSpaceBase());
 }
 
 /* Generate graphics window and draw initial simulation setup */
@@ -245,7 +245,7 @@ void Simulation::InitGraphics() {
 // If NOGRAPH is defined, skip drawing and grabbing
 #ifndef NOGRAPH
   // Initialize graphics structures
-  graphics_.Init(&graph_array_, space_.GetStruct(), background_color,
+  graphics_.Init(&graph_array_, space_.GetSpaceBase(), background_color,
                  params_.draw_boundary, params_.auto_graph);
 
 // This line was interferring with graphics on Windows, and removing it did no
@@ -281,8 +281,11 @@ void Simulation::InitSpecies() {
       continue;
     }
     species_.push_back(species_factory.CreateSpecies(sid, rng_->GetSeed()));
+    if (sid == +species_id::receptor) {
+      species_.back()->SetMesh(cortex_);
+    }
     species_.back()->Init(slab->second, parser_);
-    if (species_.back()->GetNInsert() > 0) {
+if (species_.back()->GetNInsert() > 0) {
 #ifdef TRACE
       if (species_.back()->GetNInsert() > 20) {
         Logger::Warning("Simulation run in trace mode with a large number of "
@@ -338,8 +341,8 @@ void Simulation::InsertSpecies(bool force_overlap, bool processing) {
         // First check that we are respecting boundary conditions
         std::vector<Object *> last_ixors;
         (*spec)->GetLastInteractors(last_ixors);
-        if (params_.boundary != 0 && !processing &&
-            ix_mgr_.CheckBoundaryConditions(last_ixors)) {
+        if (params_.boundary != 0 && !processing && ((*spec)->GetSID() !=
+            +species_id::receptor) && ix_mgr_.CheckBoundaryConditions(last_ixors)) {
           (*spec)->PopMember();
           /* We are not counting boundary condition failures in insertion
            failures, since insertion failures are for packing issues */
@@ -472,6 +475,7 @@ void Simulation::ClearSimulation() {
   }
 #endif
   delete rng_;
+  delete cortex_;
   Logger::Info("Simulation complete");
 }
 
@@ -517,7 +521,7 @@ void Simulation::GetGraphicsStructure() {
 /* Initialize output files */
 void Simulation::InitOutputs() {
   Logger::Debug("Initializing output files");
-  output_mgr_.Init(&params_, &species_, space_.GetStruct());
+  output_mgr_.Init(&params_, &species_, space_.GetSpaceBase());
   // if (!params_.load_checkpoint)
   ix_mgr_.InitOutputs();
   /* If analyzing run time, record cpu time here */
@@ -528,9 +532,10 @@ void Simulation::InitOutputs() {
 
 /* Determine which output files we are reading */
 void Simulation::InitInputs(run_options run_opts) {
-  output_mgr_.Init(&params_, &species_, space_.GetStruct(), true, &run_opts);
+  output_mgr_.Init(&params_, &species_, space_.GetSpaceBase(), true, &run_opts);
   ix_mgr_.InitOutputs(true, &run_opts);
   /* Initialize object positions from output files if post-processing */
+  if (run_opts.convert) return;
   output_mgr_.ReadInputs();
   ix_mgr_.ReadInputs();
 }
@@ -579,7 +584,8 @@ void Simulation::InitProcessing(run_options run_opts) {
 
   space_.Init(&params_);
   InitObjects();
-  ix_mgr_.Init(&params_, &species_, space_.GetStruct(), true);
+  cortex_ = new Cortex(rng_->GetSeed());
+  ix_mgr_.Init(&params_, &species_, space_.GetSpaceBase(), cortex_, true);
   InitSpecies();
   // ix_mgr_.InitInteractions();
   InsertSpecies(true, true);
@@ -616,12 +622,19 @@ void Simulation::InitProcessing(run_options run_opts) {
  * generation, etc. */
 void Simulation::RunProcessing(run_options run_opts) {
   Logger::Info("Processing outputs for %s", run_name_.c_str());
-  for (i_step_ = 0; true; ++i_step_) {
+
+  for (i_step_ = 0; i_step_ <= params_.n_steps; ++i_step_) {
     params_.i_step = i_step_;
     time_ = params_.i_step * params_.delta;
     PrintComplete();
     if (early_exit) {
       break;
+    }
+    if (run_opts.convert) {
+      // Convert all spec files to text files
+      output_mgr_.Convert();
+      ix_mgr_.Convert();
+      continue;
     }
     if (run_opts.analysis_flag && params_.i_step >= params_.n_steps_equil) {
       bool struct_update = false;

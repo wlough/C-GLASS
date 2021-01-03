@@ -39,15 +39,13 @@ typedef species_parameters<species_id::rigid_filament> rigid_filament_parameters
 template <>
 struct species_parameters<species_id::filament>
     : public species_base_parameters {
-  bool randomize_intrinsic_curvature_handedness = false;
-  double persistence_length = 400;
   double packing_fraction = -1;
+  double persistence_length = 400;
   double perlen_ratio = -1;
   bool polydispersity_flag = false;
   double max_length = 500;
   double min_length = 5;
   double min_bond_length = 1.5;
-  double flock_color_ext = 4.71;
   double driving_factor = 0;
   int n_equil = 0;
   bool nematic_driving = false;
@@ -57,6 +55,7 @@ struct species_parameters<species_id::filament>
   double radius_of_curvature = -1;
   double intrinsic_curvature = 0;
   double intrinsic_curvature_sig = 0;
+  bool randomize_intrinsic_curvature_handedness = false;
   double intrinsic_curvature_min = 0;
   bool highlight_handedness = false;
   bool highlight_curvature = false;
@@ -84,7 +83,7 @@ struct species_parameters<species_id::filament>
   double flock_contact_min = 0.5;
   bool highlight_flock = false;
   double flock_color_int = 1.57;
-  bool force_induced_catastrophe_flag = false;
+  double flock_color_ext = 4.71;
   bool number_fluctuation_analysis = false;
   int number_fluctuation_boxes = 6;
   int number_fluctuation_centers = 10;
@@ -96,6 +95,7 @@ struct species_parameters<species_id::filament>
   double flagella_amplitude = 1;
   double friction_ratio = 2;
   bool dynamic_instability_flag = false;
+  bool force_induced_catastrophe_flag = false;
   bool optical_trap_flag = false;
   double optical_trap_spring = 20;
   bool optical_trap_fixed = false;
@@ -161,7 +161,8 @@ struct species_parameters<species_id::crosslink>
   int begin_with_bound_crosslinks = 0;
   bool use_binding_volume = true;
   bool infinite_reservoir_flag = false;
-  double bind_site_density = 1;
+  double linear_bind_site_density = 1;
+  double surface_bind_site_density = 1;
   bool static_flag = false;
   double diffusion_s = 0;
   double diffusion_d = 0;
@@ -170,11 +171,11 @@ struct species_parameters<species_id::crosslink>
   double k_on_s = 10;
   double k_off_s = 2;
   double k_on_d = 10;
-  double k_spring = 10;
   double k_off_d = 2;
   double energy_dep_factor = 0;
   double force_dep_length = 0;
   double polar_affinity = 1;
+  double k_spring = 10;
   double k_spring_compress = -1.;
   double f_stall = 100;
   bool force_dep_vel_flag = true;
@@ -184,18 +185,25 @@ struct species_parameters<species_id::crosslink>
   std::string tether_draw_type = "orientation";
   double tether_diameter = 0.5;
   double tether_color = 3.1416;
-  bool end_pausing = false;
+  bool minus_end_pausing = false;
+  bool plus_end_pausing = false;
   double r_capture = 5;
   int lut_grid_num = 256;
 };
 typedef species_parameters<species_id::crosslink> crosslink_parameters;
 
+template <>
+struct species_parameters<species_id::receptor>
+    : public species_base_parameters {
+  std::string component = "cortex";
+  double concentration = -1;
+  bool binding_analysis = false;
+};
+typedef species_parameters<species_id::receptor> receptor_parameters;
+
 struct system_parameters {
   long seed = 7859459105545;
-  int species_insertion_reattempt_threshold = 10;
-  int species_insertion_failure_threshold = 10000;
   int n_runs = 1;
-  bool coarse_grained_mesh_interactions = false;
   int n_random = 1;
   std::string run_name = "sc";
   int n_dim = 3;
@@ -240,7 +248,10 @@ struct system_parameters {
   double insert_radius = -1;
   bool interaction_flag = true;
   bool remove_duplicate_interactions = false;
+  bool coarse_grained_mesh_interactions = false;
   int mesh_coarsening = 2;
+  int species_insertion_failure_threshold = 10000;
+  int species_insertion_reattempt_threshold = 10;
   bool uniform_crystal = false;
   int n_steps_equil = 0;
   int n_steps_target = 100000;
@@ -253,7 +264,6 @@ struct system_parameters {
   bool auto_graph = false;
   bool local_order_analysis = false;
   double local_order_width = 50;
-  bool reduced = false;
   double local_order_bin_width = 0.5;
   int local_order_n_analysis = 100;
   int density_analysis = 0;
@@ -261,6 +271,7 @@ struct system_parameters {
   bool density_com_only = false;
   bool overlap_analysis = false;
   bool highlight_overlaps = false;
+  bool reduced = false;
   bool reload_reduce_switch = false;
   bool checkpoint_flag = false;
   int n_checkpoint = 10000;

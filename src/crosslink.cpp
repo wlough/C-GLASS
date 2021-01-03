@@ -21,11 +21,12 @@ void Crosslink::Init(crosslink_parameters *sparams) {
   static_flag_ = sparams_->static_flag;
   k_align_ = sparams_->k_align;
   // rcapture_ = sparams_->r_capture;
-  bind_site_density_ = sparams_->bind_site_density;
+  linear_bind_site_density_ = sparams_->linear_bind_site_density;
+  surface_bind_site_density_ = sparams_->surface_bind_site_density;
   e_dep_factor_ = sparams_->energy_dep_factor;
   fdep_length_ = sparams_->force_dep_length;
   polar_affinity_ = sparams_->polar_affinity;
-  /* TODO generalize crosslinks to more than two anchors */
+  
   Anchor anchor1(rng_.GetSeed());
   Anchor anchor2(rng_.GetSeed());
   anchors_.push_back(anchor1);
@@ -55,6 +56,7 @@ void Crosslink::GetAnchors(std::vector<Object *> &ixors) {
 
 /* Perform kinetic monte carlo step of protein with 1 head attached. */
 void Crosslink::SinglyKMC() {
+
   double roll = rng_.RandomUniform();
   int head_bound = 0;
   // Set up KMC objects and calculate probabilities
@@ -64,28 +66,35 @@ void Crosslink::SinglyKMC() {
   }
   /* Must populate filter with 1 for every neighbor, since KMC
   expects a mask. We already guarantee uniqueness, so we won't overcount. */
-  int n_neighbors = anchors_[0].GetNNeighbors();
-  std::vector<int> kmc_filter(n_neighbors, 1);
+  int n_neighbors_bond = anchors_[0].GetNNeighborsBond();
+  int n_neighbors_site = anchors_[0].GetNNeighborsSite();
+  int n_neighbors = n_neighbors_bond + n_neighbors_site;
+ 
   /* Initialize KMC calculation */
-  KMC<Object> kmc_bind(anchors_[0].pos, n_neighbors, delta_, lut_);
+  KMC<Bond, Site> kmc_bind(anchors_[0].pos, n_neighbors_bond, n_neighbors_site, delta_, lut_);
 
   /* Initialize periodic boundary conditions */
   kmc_bind.SetPBCs(n_dim_, space_->n_periodic, space_->unit_cell);
 
   /* Calculate probability to bind */
   double kmc_bind_prob = 0;
-  double k_on_d_prime = anchors_[1].GetOnRate() * bind_site_density_;
+  double bind_factor_bond = anchors_[1].GetOnRate() * linear_bind_site_density_;
+  double bind_factor_site = anchors_[1].GetOnRate() * surface_bind_site_density_;
 
-  std::vector<double> kmc_bind_factor(n_neighbors, k_on_d_prime);
+  /* Fill vector of bind factors with bond factors, then site factors */
+  std::vector<double> bind_factors(n_neighbors);
+  std::fill(bind_factors.begin(), bind_factors.begin() + n_neighbors_bond, bind_factor_bond);
+  std::fill(bind_factors.begin() + n_neighbors_bond, bind_factors.end(), bind_factor_site);
+ 
   if (n_neighbors > 0) {
     if (!static_flag_ && polar_affinity_ != 1.0) {
-      anchors_[0].CalculatePolarAffinity(kmc_bind_factor);
+      anchors_[0].CalculatePolarAffinity(bind_factors);
     }
-    kmc_bind.LUCalcTotProbsSD(anchors_[0].GetNeighborListMem(), kmc_filter,
-                              anchors_[0].GetBoundOID(), kmc_bind_factor);
+    kmc_bind.LUCalcTotProbsSD(anchors_[0].GetNeighborListMemBonds(), 
+                              anchors_[0].GetNeighborListMemSites(), 
+                              anchors_[0].GetBoundOID(), bind_factors); 
     kmc_bind_prob = kmc_bind.getTotProb();
-  }
-  // Find out whether we bind, unbind, or neither.
+  } // Find out whether we bind, unbind, or neither.
   int head_activate = choose_kmc_double(unbind_prob, kmc_bind_prob, roll);
   // Change status of activated head
   if (head_activate == 0) {
@@ -99,30 +108,48 @@ void Crosslink::SinglyKMC() {
      * passed by reference */
     double bind_lambda;
     /* Find out which rod we are binding to */
-    int i_bind = kmc_bind.whichRodBindSD(bind_lambda, roll);
-    if (i_bind < 0) { // || bind_lambda < 0) {
+    int i_bind = kmc_bind.whichObjBindSD(bind_lambda, roll);
+    if (i_bind < 0) {
       printf("i_bind = %d\nbind_lambda = %2.2f\n", i_bind, bind_lambda);
       Logger::Error("kmc_bind.whichRodBindSD in Crosslink::SinglyKMC"
                     " returned an invalid result!");
     }
-    Object *bind_obj = anchors_[0].GetNeighbor(i_bind);
-    double obj_length = bind_obj->GetLength();
-    /* KMC returns bind_lambda to be with respect to center of rod. We want it
-       to be specified from the tail of the rod to be consistent */
-    bind_lambda += 0.5 * obj_length;
-    /* KMC can return values that deviate a very small amount from the true rod
-       length. Bind to ends if lambda < 0 or lambda > bond_length. */
-    if (bind_lambda > obj_length) {
-      bind_lambda = obj_length;
-    } else if (bind_lambda < 0) {
-      bind_lambda = 0;
+    // i_bind is index in concatenated bonds/sites vector 
+    Object *bind_obj;
+    if (i_bind < n_neighbors_bond) {
+      bind_obj = anchors_[0].GetBondNeighbor(i_bind);
+    } else {
+      bind_obj = anchors_[0].GetSiteNeighbor(i_bind - n_neighbors_bond);
     }
-    anchors_[1].AttachObjLambda(bind_obj, bind_lambda);
-    SetDoubly();
+
+    switch (bind_obj->GetType()) {
+      case obj_type::site: {
+        anchors_[1].AttachObjCenter(bind_obj);
+        SetDoubly();
+        break;
+      }
+      case obj_type::bond: {
+        double obj_length = bind_obj->GetLength();
+        /* KMC returns bind_lambda to be with respect to center of rod. We want 
+        it to be specified from the tail of the rod to be consistent */
+        bind_lambda += 0.5 * obj_length;
+        /* KMC can return values that deviate a very small amount from the true 
+        rod length. Bind to ends if lambda < 0 or lambda > bond_length. */
+        if (bind_lambda > obj_length) {
+          bind_lambda = obj_length;
+        } else if (bind_lambda < 0) {
+          bind_lambda = 0;
+        }
+        anchors_[1].AttachObjLambda(bind_obj, bind_lambda);
+        SetDoubly();
+        break;
+      }
+      default:
+        Logger::Error("Crosslink attempted to doubly bind to generic object");
+    }
     Logger::Trace("Crosslink %d became doubly bound to obj %d", GetOID(),
                   bind_obj->GetOID());
   }
-  kmc_filter.clear();
 }
 
 /* Perform kinetic monte carlo step of protein with 2 heads of protein
@@ -190,7 +217,7 @@ void Crosslink::UpdateAnchorsToMesh() {
 }
 
 void Crosslink::UpdateAnchorPositions() {
-  anchors_[0].UpdatePosition();
+  anchors_[0].UpdatePosition();   
   anchors_[1].UpdatePosition();
 }
 
@@ -272,18 +299,19 @@ void Crosslink::CalculateTetherForces() {
   UpdatePeriodic();
 }
 
-/* Attach a crosslink anchor to object in a random fashion. Currently only
- * bonds are used, but can be extended to sites (sphere-like objects) */
+/* Attach a crosslink anchor to object in a random fashion */
 void Crosslink::AttachObjRandom(Object *obj) {
   /* Attaching to random bond implies first anchor binding from solution, so
    * this crosslink should be new and should not be singly or doubly bound */
-  if (obj->GetType() == +obj_type::bond) {
+  if ((obj->GetType() == +obj_type::bond) || (obj->GetType() == +obj_type::site)) {
     anchors_[0].AttachObjRandom(obj);
+    //if (obj->GetType() == +obj_type::site) {
+      //Logger::Info("New xlink at pos[0] = %f, pos[1] = %f", anchors_[0].pos[0], anchors_[0].pos[1]);
+    //}
     SetMeshID(obj->GetMeshID());
     SetSingly();
   } else {
-    /* TODO: add binding to sphere or site-like objects */
-    Logger::Error("Crosslink binding to non-bond objects not yet implemented.");
+    Logger::Error("Crosslink binding to %s type objects not yet implemented.", obj->GetType()._to_string());
   }
 }
 
@@ -355,6 +383,38 @@ void Crosslink::WriteSpec(std::fstream &ospec) {
   anchors_[1].WriteSpec(ospec);
 }
 
+void Crosslink::WriteSpecTextHeader(std::fstream &otext) {
+  otext << "is_doubly diameter length position[0] position[1] position[2] "
+        << "orientation[0] orientation[1] orientation[2]" << std::endl;
+}
+
+void Crosslink::ConvertSpec(std::fstream &ispec, std::fstream &otext) {
+  if (ispec.eof())
+    return;
+  bool is_doubly;
+  double diameter, length;
+  double position[3], orientation[3];
+  // Read in all data from spec file ispec
+  ispec.read(reinterpret_cast<char *>(&is_doubly), sizeof(bool));
+  ispec.read(reinterpret_cast<char *>(&diameter), sizeof(double));
+  ispec.read(reinterpret_cast<char *>(&length), sizeof(double));
+  for (int i = 0; i < 3; ++i) {
+    ispec.read(reinterpret_cast<char *>(&position[i]), sizeof(double));
+  }
+  for (int i = 0; i < 3; ++i) {
+    ispec.read(reinterpret_cast<char *>(&orientation[i]), sizeof(double));
+  }
+  // Write out data to SpecText file otext
+  otext << is_doubly << " " << diameter << " " << length << " " << position[0] << " " 
+        << position[1] << " " << position[2] << " " << orientation[0] 
+        << " " << orientation[1] << " " << orientation[2] << std::endl;
+  // Convert anchor data
+  Anchor::WriteSpecTextHeader(otext);
+  for (int i = 0; i < 2; ++i) {
+    Anchor::ConvertSpec(ispec, otext);
+  }
+}
+
 void Crosslink::ReadSpec(std::fstream &ispec) {
   if (ispec.eof())
     return;
@@ -424,6 +484,18 @@ void Crosslink::InsertAt(double const *const new_pos, double const *const u) {
   anchors_[0].SetBound();
   anchors_[0].SetStatic(true);
   SetSingly();
+}
+
+void Crosslink::SetObjArea(double *obj_area) {
+  if (!obj_area) Logger::Warning("Crosslink received nullptr obj_area");
+  obj_area_ = obj_area;
+  anchors_[0].SetObjArea(obj_area);
+  anchors_[1].SetObjArea(obj_area);
+}
+
+const double* const Crosslink::GetObjArea() {
+  if (!obj_area_) Logger::Warning("Crosslink sent nullptr obj_area");
+  return obj_area_;
 }
 
 const int Crosslink::GetNNeighbors() const {

@@ -20,6 +20,10 @@ size_t RNG::GetSize() { return gsl_rng_size(rng_); }
 const double RNG::RandomUniform() { return gsl_rng_uniform_pos(rng_); }
 
 const int RNG::RandomPoisson(const double mean) {
+  if (mean > 400000) {
+    Logger::Warning("Large input mean value in RNG::RandomPoisson may cause"
+                    " slowdown.");
+  }
   return gsl_ran_poisson(rng_, mean);
 }
 
@@ -43,7 +47,7 @@ void RNG::RandomUnitVector(const int n_dim, double *vec) {
   Logger::Trace("Generated random unit vector: [%2.2f %2.2f %2.2f]", vec[0],
                 vec[1], vec[2]);
 }
-void RNG::RandomCoordinate(const space_struct *const s, double *vec,
+void RNG::RandomCoordinate(const SpaceBase *const s, double *vec,
                            const double buffer) {
   double R = s->radius;
   int n_dim = s->n_dim;
@@ -118,16 +122,16 @@ void RNG::RandomCoordinate(const space_struct *const s, double *vec,
                 vec[1], vec[2]);
 }
 
-void RNG::RandomBoundaryCoordinate(const space_struct *const s, double *vec) {
+void RNG::RandomBoundaryCoordinate(const SpaceBase *const s, double *vec) {
   double R = s->radius;
   int n_dim = s->n_dim;
   switch (s->type) {
-    case +boundary_type::none: {
+    case boundary_type::none: {
       Logger::Error(
           "Random boundary vector cannot be created for boundary type = none");
       break;
     }
-    case +boundary_type::box: {
+    case boundary_type::box: {
       int roll_pm = RandomInt(2) * 2 - 1;
       int roll_plane = RandomInt(n_dim);
       for (int i = 0; i < n_dim; ++i) {
@@ -139,14 +143,14 @@ void RNG::RandomBoundaryCoordinate(const space_struct *const s, double *vec) {
       }
       break;
     }
-    case +boundary_type::sphere: {
+    case boundary_type::sphere: {
       RandomUnitVector(n_dim, vec);
       for (int i = 0; i < n_dim; ++i) {
         vec[i] *= R;
       }
       break;
     }
-    case +boundary_type::budding: {
+    case boundary_type::budding: {
       double r = s->bud_radius;
       double d = s->bud_height;
       
@@ -158,11 +162,11 @@ void RNG::RandomBoundaryCoordinate(const space_struct *const s, double *vec) {
       double a_ratio = 0;
       double roll = RandomUniform();
       if (n_dim == 2) {
-        // arc length for segment  = 2*r*(pi-theta)
+        // arc length for segment = 2*r*(pi-theta)
         a_ratio = r * (M_PI - beta) / (r * (M_PI - beta) + R * (M_PI - alpha));
       }
       else {
-        // surface area for segment  = 2*pi*r^2*(1+cos(theta))
+        // surface area for segment = 2*pi*r^2*(1+cos(theta))
         a_ratio = 
             SQR(r) * (1 + cos(beta)) / (SQR(r) * (1 + cos(beta)) + SQR(R) * (1 + 
             cos(alpha)));
@@ -176,6 +180,7 @@ void RNG::RandomBoundaryCoordinate(const space_struct *const s, double *vec) {
         rho = r;
         vec[n_dim - 1] += d;
       } else {
+        // place on mother cell boundary
         theta = RandomUniform() * (M_PI - alpha) + alpha; // alpha to pi
         rho = R;        
       }
@@ -193,6 +198,6 @@ void RNG::RandomBoundaryCoordinate(const space_struct *const s, double *vec) {
     default: 
       Logger::Error("Boundary type unrecognized in RandomBoundaryCoordinate");
   }
-  Logger::Trace("Generated random coordinate: [%2.2f %2.2f %2.2f]", vec[0],
+  Logger::Trace("Generated random boundary coordinate: [%2.2f %2.2f %2.2f]", vec[0],
                 vec[1], vec[2]);
 }

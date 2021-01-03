@@ -31,6 +31,7 @@ analysis/data*
 *.time
 *.overlaps
 *.orientation_corr
+analysis/diffusion.ipynb
 sc-*
 results
 octave-workspace
@@ -53,3 +54,6 @@ build*
 !CMake*
 *__pycache__*
 version_generator.cpp
+.vscode
+rhs_files
+analysis/rhs

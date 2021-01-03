@@ -3,6 +3,7 @@
 
 #include "object.hpp"
 #include "params_parser.hpp"
+#include "cortex.hpp"
 
 class SpeciesBase {
 private:
@@ -11,11 +12,13 @@ private:
 protected:
   int n_members_ = 0;
   int spec_file_iterator_ = -1;
+  bool spec_valid_ = true;
   static const system_parameters *params_;
-  static const space_struct *space_;
+  static const SpaceBase *space_;
   RNG rng_;
   std::fstream oposit_file_;
   std::fstream iposit_file_;
+  std::fstream ospec_text_file_;
   std::fstream ospec_file_;
   std::fstream ispec_file_;
   std::string checkpoint_file_;
@@ -24,11 +27,12 @@ protected:
 public:
   SpeciesBase(unsigned long seed);
   static void SetParams(system_parameters *params);
-  static void SetSpace(space_struct *space);
+  static void SetSpace(SpaceBase *space);
   void SetSID(species_id sid);
   virtual void UpdatePositions() {}
   virtual void Draw(std::vector<graph_struct *> &graph_array) {}
   virtual void Init(std::string spec_name, ParamsParser &parser) {}
+  virtual void SetMesh(Cortex* cx) {}
   virtual void InitMembers() {}
   virtual void ZeroForces() {}
   virtual void GetInteractors(std::vector<Object *> &ix) {}
@@ -57,6 +61,7 @@ public:
     return params_->checkpoint_flag;
   }
   virtual std::string GetInsertionType() const { return ""; }
+  virtual bool GetSpecValid() {return spec_valid_; }
   virtual bool CheckInteractionAnalysis() { return false; }
   virtual int GetCount() const { return 0; }
   virtual void WriteOutputs(std::string run_name) {}
@@ -67,15 +72,18 @@ public:
   virtual void ReadCheckpoints() {}
   virtual void ReadPosits() {}
   virtual void ReadPositsFromSpecs() {}
+  virtual void ConvertSpecs(double) {}
   virtual void InitAnalysis() {}
   virtual void RunAnalysis() {}
   virtual void FinalizeAnalysis() {}
   virtual void InitOutputFiles(std::string run_name);
+  virtual void InitConvertFiles(std::string run_name);
   virtual void InitPositFile(std::string run_name);
   virtual void InitSpecFile(std::string run_name);
+  virtual void InitConvertSpecFile(std::string run_name);
   virtual void InitPositFileInput(std::string run_name);
-  virtual void InitSpecFileInput(std::string run_name);
-  virtual bool InitSpecFileInputFromFile(std::string run_name);
+  virtual void InitSpecFileInput(std::string run_name, bool convert);
+  virtual bool InitSpecFileInputFromFile(std::string run_name, bool convert);
   virtual bool HandleEOF();
   virtual void InitInputFiles(std::string run_name, bool posits_only,
                               bool with_reloads);

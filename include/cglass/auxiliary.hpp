@@ -6,6 +6,7 @@
 #include "macros.hpp"
 #include "parameters.hpp"
 #include "logger.hpp"
+#include "space_base.hpp"
 
 extern bool early_exit;
 

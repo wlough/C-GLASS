@@ -30,6 +30,7 @@ Object::Object(unsigned long seed) : rng_(seed) {
   contact_number_ = 0;
   n_contact_ = 0;
   has_overlap_ = false;
+  n_anchored_ = 0;
   gid = oid_;
   interactor_update_ = false;
 }
@@ -43,12 +44,12 @@ void Object::InitOID() {
 int Object::_next_oid_ = 0;
 std::mutex Object::_obj_mtx_;
 system_parameters *Object::params_ = nullptr;
-space_struct *Object::space_ = nullptr;
+SpaceBase *Object::space_ = nullptr;
 int Object::n_dim_ = 0;
 double Object::delta_ = 0;
 
 void Object::SetParams(system_parameters *params) { params_ = params; }
-void Object::SetSpace(space_struct *space) { space_ = space; }
+void Object::SetSpace(SpaceBase *space) { space_ = space; }
 void Object::SetNDim(int n_dim) { n_dim_ = n_dim; }
 void Object::SetDelta(double delta) { delta_ = delta; }
 const double Object::GetDelta() { return delta_; }
@@ -139,6 +140,8 @@ void Object::ZeroPolarOrder() {
   polar_order_ = 0;
 }
 void Object::SetInteractor(bool ix) { interacting_ = ix; }
+void Object::IncrementNAnchored() { n_anchored_++; }
+void Object::DecrementNAnchored() { n_anchored_--; }
 double const *const Object::GetPosition() { return position_; }
 double const *const Object::GetPrevPosition() { return prev_position_; }
 double const *const Object::GetPrevOrientation() { return prev_orientation_; }
@@ -161,6 +164,7 @@ bool const Object::CheckInteractorUpdate() {
   return false;
 }
 void Object::HasOverlap(bool overlap) { has_overlap_ = overlap; }
+int const Object::GetNAnchored() { return n_anchored_; }
 int const Object::GetMeshID() const { return mesh_id_; }
 void Object::SetMeshID(int mid) { mesh_id_ = mid; }
 void Object::SetOID(int oid) { oid_ = oid; }
@@ -292,6 +296,29 @@ double const Object::GetVolume() {
   }
   return -1;
 }
+double const Object::GetArea() {
+  if (type_ == +obj_type::cortex) {
+    return space_->BoundaryArea();
+  }
+  if (n_dim_ == 2) {
+    if (length_ == 0) {
+      return M_PI * diameter_;
+    } else {
+      return 2.0 * length_ + M_PI * diameter_;
+    }
+  }
+  if (n_dim_ == 3) {
+    if (length_ == 0) {
+      return M_PI * diameter_ * diameter_;
+    } else {
+      return M_PI * diameter_ * diameter_ +
+             M_PI * length_ * diameter_;
+    }
+    return -1;
+  }
+  return -1;
+}
+
 double const Object::GetDrTot() {
   UpdateDrTot();
   return dr_tot_;
@@ -421,8 +448,38 @@ void Object::ReadPosit(std::fstream &iposit) {
   iposit.read(reinterpret_cast<char *>(&diameter_), sizeof(diameter_));
   iposit.read(reinterpret_cast<char *>(&length_), sizeof(length_));
 }
+void Object::WritePositTextHeader(std::fstream &otext) {
+  otext << "position[0] position[1] position[2] scaled_position[0] "
+        << "scaled_position[1] scaled_position[2] orientation[0] "
+        << "orientation[1] orientation[2] diameter length" << std::endl;
+}
+
+void Object::ConvertPosit(std::fstream &iposit, std::fstream &otext) {
+  double position[3], scaled_position[3], orientation[3];
+  double diameter, length;
+  if (iposit.eof())
+    return;
+  for (auto &posit : position)
+    iposit.read(reinterpret_cast<char *>(&posit), sizeof(posit));
+  for (auto &spos : scaled_position)
+    iposit.read(reinterpret_cast<char *>(&spos), sizeof(spos));
+  for (auto &u : orientation)
+    iposit.read(reinterpret_cast<char *>(&u), sizeof(u));
+  iposit.read(reinterpret_cast<char *>(&diameter), sizeof(diameter));
+  iposit.read(reinterpret_cast<char *>(&length), sizeof(length));
+  otext << position[0] << " " << position[1] << " " << position[2] << " " 
+        << scaled_position[0] << " " << scaled_position[1] << " "
+        << scaled_position[2] << " " << orientation[0] << " " << orientation[1] 
+        << " " << orientation[2] << " " << diameter << " " << length << std::endl;
+}
 void Object::WriteSpec(std::fstream &ospec) { WritePosit(ospec); }
 void Object::ReadSpec(std::fstream &ispec) { ReadPosit(ispec); }
+void Object::ConvertSpec(std::fstream &ispec, std::fstream &otext) {
+  ConvertPosit(ispec, otext);
+}
+void Object::WriteSpecTextHeader(std::fstream &otext) {
+  WritePositTextHeader(otext);
+}
 void Object::ReadPositFromSpec(std::fstream &ispec) { ReadPosit(ispec); }
 void Object::GetAvgPosition(double *ap) {
   std::copy(position_, position_ + 3, ap);

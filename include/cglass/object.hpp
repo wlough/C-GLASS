@@ -16,11 +16,11 @@ private:
 
 protected:
   static system_parameters *params_;
-  static space_struct *space_;
+  static SpaceBase *space_;
   static int n_dim_;
   static double delta_;
   species_id sid_;
-  obj_type type_;
+  obj_type type_ = obj_type::generic;
   graph_struct g_;
   RNG rng_;
   draw_type draw_;
@@ -43,6 +43,7 @@ protected:
   bool interacting_;
   bool is_mesh_;
   bool has_overlap_;
+  int n_anchored_;
   bool interactor_update_;
 
   std::vector<Object *> interactors_;
@@ -61,7 +62,7 @@ public:
 
   // Static functions
   static void SetParams(system_parameters *params);
-  static void SetSpace(space_struct *space);
+  static void SetSpace(SpaceBase *space);
   static void SetNDim(int n_dim);
   static void SetDelta(double delta);
   static const double GetDelta();
@@ -87,6 +88,8 @@ public:
   void AddPolarOrder(const double po);
   void AddContactNumber(const double cn);
   void SetInteractor(bool ix);
+  void IncrementNAnchored();
+  void DecrementNAnchored();
   void ToggleIsMesh();
   virtual void CalcPolarOrder();
   virtual void ZeroPolarOrder();
@@ -111,6 +114,7 @@ public:
   const double GetContactNumber();
   const bool IsInteractor();
   const bool IsMesh();
+  const int GetNAnchored();
   const bool CheckInteractorUpdate();
   void HasOverlap(bool overlap);
   void SetOID(int oid);
@@ -137,6 +141,7 @@ public:
   virtual const double GetInteractorDiameter();
   virtual const double GetInteractorLength();
   virtual const double GetVolume();
+  virtual const double GetArea();
   virtual void UpdateDrTot();
   virtual const double GetDrTot();
   virtual void ZeroDrTot();
@@ -161,9 +166,16 @@ public:
   virtual void WriteCheckpointHeader(std::fstream &ocheck);
   virtual void ReadCheckpoint(std::fstream &icheck);
   virtual void ReadCheckpointHeader(std::fstream &icheck);
+
+  // Convert binary data to text. Static to avoid needing to istantiate
+  // species members.
+  static void ConvertPosit(std::fstream &iposit, std::fstream &otext);
+  static void ConvertSpec(std::fstream &ispec, std::fstream &otext);
+  static void WritePositTextHeader(std::fstream &otext);
+  static void WriteSpecTextHeader(std::fstream &otext);
 };
 
-// void MinimumDistance(Object* o1, Object* o2, Interaction *ix, space_struct
-// *space); void BoundaryConditions(Object * o1, space_struct *space);
+// void MinimumDistance(Object* o1, Object* o2, Interaction *ix, SpaceBase
+// *space); void BoundaryConditions(Object * o1, SpaceBase *space);
 
 #endif // _CGLASS_OBJECT_H_
