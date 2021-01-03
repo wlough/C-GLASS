@@ -15,15 +15,16 @@ class CrosslinkManager {
  private:
   system_parameters *params_;
   CrosslinkOutputManager output_mgr_;
-  double obj_volume_;
+  double obj_length_;
+  double obj_area_;
   double rcutoff_ = 0;  // Cutoff for binding any crosslink and bond
   bool update_;
   std::vector<CrosslinkSpecies *> xlink_species_;
   std::vector<Object *> *objs_;
-  space_struct *space_;
+  SpaceBase *space_;
 
  public:
-  void Init(system_parameters *params, space_struct *space,
+  void Init(system_parameters *params, SpaceBase *space,
             std::vector<Object *> *objs);
   void GetInteractors(std::vector<Object *> &ixors);
   void UpdateCrosslinks();
@@ -43,6 +44,7 @@ class CrosslinkManager {
   void ZeroDrTot();
   const double GetDrMax();
   void ReadInputs();
+  void Convert();
   void InsertCrosslinks();
   void InsertAttachedCrosslinks();
   const double GetRCutoff() const {

@@ -20,7 +20,7 @@ class BeadSpringSpecies : public Species<BeadSpring, species_id::bead_spring> {
 
  public:
   BeadSpringSpecies() : Species() { SetSID(species_id::bead_spring); }
-  void Init(system_parameters *params, species_base_parameters *sparams, space_struct *space) {
+  void Init(system_parameters *params, species_base_parameters *sparams, SpaceBase *space) {
     Species::Init(params, sparams, space);
     midstep_ = true;
     if (sparams_.packing_fraction > 0) {

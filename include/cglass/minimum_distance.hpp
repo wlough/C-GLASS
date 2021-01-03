@@ -10,7 +10,7 @@ private:
   static int n_periodic_;
   static double *unit_cell_;
   static double boundary_cut2_;
-  static space_struct *space_;
+  static SpaceBase *space_;
 
 public:
   void PointPoint(double const *const r1, double const *const s1,
@@ -61,7 +61,7 @@ public:
                     double buffer);
 
   MinimumDistance() {}
-  static void Init(space_struct *space, double boundary_cutoff_sq);
+  static void Init(SpaceBase *space, double boundary_cutoff_sq);
   void ObjectObject(Interaction &ix);
   bool CheckBoundaryInteraction(Interaction &ix);
   bool CheckOutsideBoundary(Object &o1);

@@ -42,7 +42,7 @@ class CentrosomeSpecies : public Species<Centrosome> {
     SetSID(species_id::centrosome);
     midstep_ = true;
   }
-  void Init(system_parameters *params, space_struct *space, long seed) {
+  void Init(system_parameters *params, SpaceBase *space, long seed) {
     Species::Init(params, space, seed);
     sparams_ = &(params_->centrosome);
   }

@@ -56,6 +56,11 @@ public:
   void WriteSpec(std::fstream &ospec);
   void ReadCheckpoint(std::fstream &icheck);
   void ReadSpec(std::fstream &ispec);
+
+  // Convert binary data to text. Static to avoid needing to istantiate
+  // species members.
+  static void ConvertSpec(std::fstream &ispec, std::fstream &otext);
+  static void WriteSpecTextHeader(std::fstream &otext);
 };
 
 #endif // _CGLASS_SPINDLE_H_

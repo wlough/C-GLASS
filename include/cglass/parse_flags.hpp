@@ -25,6 +25,7 @@ struct run_options {
   bool auto_graph = false;
   bool with_reloads = false;
   bool single_frame = false;
+  bool convert = false;
   std::string param_file;
   std::string run_name = "sc";
 };
@@ -34,7 +35,7 @@ struct run_options {
    string array below when adding new flags. */
 
 // Define flags here
-static const int n_flags = 15;
+static const int n_flags = 16;
 static struct option long_options[] = {{"help", no_argument, 0, 'h'},
                                        {"version", no_argument, 0, 'v'},
                                        {"debug", no_argument, 0, 'd'},
@@ -50,6 +51,7 @@ static struct option long_options[] = {{"help", no_argument, 0, 'h'},
                                        {"blank", no_argument, 0, 'b'},
                                        {"with-reloads", no_argument, 0, 'w'},
                                        {"single-frame", no_argument, 0, 'M'},
+                                       {"convert", no_argument, 0, 'c'},
                                        {0, 0, 0, 0}};
 
 // Descriptions for flags
@@ -82,6 +84,8 @@ static const std::string desc[n_flags][2] = {
     {"run analysis using any existing spec files from reloaded runs", "none"},
     {"runs movie, but only generates a single bitmap image to record the final "
      "system state",
+     "none"},
+    {"converts posit and spec files to text files",
      "none"}};
 
 /*************************
@@ -91,7 +95,7 @@ static const std::string desc[n_flags][2] = {
 **************************/
 static void show_help_info(std::string progname) {
   std::cout << "\n"
-            << "  SimCORE usage: " << std::endl;
+            << "  C-GLASS usage: " << std::endl;
   std::cout << "    " << progname
             << " params_file --flag1 option1 --flag2 option2 ..." << std::endl;
   std::cout << "\n"
@@ -128,7 +132,7 @@ static run_options parse_opts(int argc, char *argv[]) {
   int tmp;
   while (1) {
     int option_index = 0;
-    tmp = getopt_long(argc, argv, "hvdmaplwbMGg:r:n:R:", long_options,
+    tmp = getopt_long(argc, argv, "hvdmaplwbMGcg:r:n:R:", long_options,
                       &option_index);
     if (tmp == -1)
       break;
@@ -186,6 +190,9 @@ static run_options parse_opts(int argc, char *argv[]) {
       run_opts.single_frame = true;
       run_opts.make_movie = true;
       break;
+    case 'c':
+      run_opts.convert = true;
+      break;
     case '?':
       exit(1);
     default:
@@ -237,6 +244,9 @@ static run_options parse_opts(int argc, char *argv[]) {
   if (run_opts.blank_flag) {
     printf("  Doing a blank run -- generating parameter files without running "
            "simulation.\n");
+  }  
+  if (run_opts.convert) {
+    printf("Converting spec/posit files to text files.\n");
   }
   return run_opts;
 }

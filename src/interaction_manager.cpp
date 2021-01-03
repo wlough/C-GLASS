@@ -3,11 +3,12 @@
 
 void InteractionManager::Init(system_parameters *params,
                               std::vector<SpeciesBase *> *species,
-                              space_struct *space, bool processing) {
+                              SpaceBase *space, Cortex *cortex, bool processing) {
   // Set up pointer structures
   params_ = params;
   species_ = species;
   space_ = space;
+  cortex_ = cortex;
   processing_ = processing;
 
   // Initialize owned structures
@@ -121,6 +122,7 @@ void InteractionManager::UpdateInteractors() {
        ++spec_it) {
     (*spec_it)->GetInteractors(ix_objects_);
   }
+  
   // Add crosslinks as interactors
   interactors_.insert(interactors_.end(), ix_objects_.begin(),
                       ix_objects_.end());
@@ -150,6 +152,31 @@ bool InteractionManager::CheckBondAnchorPair(Object *anchor, Object *bond) {
     // Check that the anchor isn't already attached
     if (a->GetBondLambda() < 0) {
       a->AttachObjMeshLambda(bond, a->GetMeshLambda());
+      return true;
+    }
+  }
+  return false;
+}
+
+/* Checks whether or not the given anchor is supposed to be attached to the
+   given site by checking mesh_id of both the site and the anchor. If they
+   match, the anchor is attached to the mesh using the anchor mesh_lambda */
+bool InteractionManager::CheckSiteAnchorPair(Object *anchor, Object *site) {
+  // Check that the site and anchor share a mesh_id
+  if (anchor->GetMeshID() == site->GetMeshID()) {
+    Anchor *a = dynamic_cast<Anchor *>(anchor);
+    if (a == nullptr) {
+      Logger::Error("Object pointer was unsuccessfully dynamically cast to an "
+                    "Anchor pointer in CheckSiteAnchorPair!");
+    }
+    if (site->GetType() != +obj_type::site) {
+      Logger::Error(
+          "CheckSiteAnchorPair expected Site object pointer, but object"
+          " pointer does not have site obj_type!");
+    }
+    // Check that the anchor isn't already attached
+    if (a->GetBondLambda() < 0) {
+      a->AttachObjMeshCenter(site);
       return true;
     }
   }
@@ -192,7 +219,19 @@ void InteractionManager::PairBondCrosslinks() {
       if (CheckBondAnchorPair(obj2, obj1)) {
         n_anchors_attached++;
       }
+    } else if (obj1->GetSID() == +species_id::crosslink &&
+               obj2->GetType() == +obj_type::site) {
+      if (CheckSiteAnchorPair(obj1, obj2)) {
+        n_anchors_attached++;
+      }
+    } else if (obj2->GetSID() == +species_id::crosslink &&
+               obj1->GetType() == +obj_type::site) {
+      if (CheckSiteAnchorPair(obj2, obj1)) {
+        n_anchors_attached++;
+      }
     }
+
+
   }
   /* Check that all anchors found their bond attachments */
   if (n_anchors_attached != anchors.size()) {
@@ -742,6 +781,8 @@ void InteractionManager::InitOutputs(bool reading_inputs,
 
 void InteractionManager::ReadInputs() { xlink_.ReadInputs(); }
 
+void InteractionManager::Convert() { xlink_.Convert(); }
+
 void InteractionManager::InitCrosslinkSpecies(sid_label &slab,
                                               ParamsParser &parser,
                                               unsigned long seed) {
@@ -758,8 +799,11 @@ void InteractionManager::LoadCrosslinksFromCheckpoints(
 void InteractionManager::InsertCrosslinks() { xlink_.InsertCrosslinks(); }
 
 void InteractionManager::InsertAttachedCrosslinks() {
-     xlink_.InsertAttachedCrosslinks();
-     ForceUpdate();
+  if (processing_ && !run_interaction_analysis_) {
+    return;
+  }
+  xlink_.InsertAttachedCrosslinks();
+  ForceUpdate();
 }
 
 bool InteractionManager::CheckDynamicTimestep() {

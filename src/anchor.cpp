@@ -21,7 +21,8 @@ void Anchor::Init(crosslink_parameters *sparams) {
   k_on_d_ = sparams_->k_on_d;
   k_off_s_ = sparams_->k_off_s;
   k_off_d_ = sparams_->k_off_d;
-  end_pausing_ = sparams_->end_pausing;
+  plus_end_pausing_ = sparams_->plus_end_pausing;
+  minus_end_pausing_ = sparams_->minus_end_pausing;
   f_stall_ = sparams_->f_stall;
   force_dep_vel_flag_ = sparams_->force_dep_vel_flag;
   polar_affinity_ = sparams_->polar_affinity;
@@ -43,10 +44,10 @@ void Anchor::SetDiffusion() {
 }
 
 void Anchor::UpdateAnchorPositionToMesh() {
-  if (!bound_ || static_flag_)
+  if (!bound_ || static_flag_ || !bond_)
     return;
-  if (!bond_ || !mesh_) {
-    Logger::Error("Anchor tried to update position to nullptr bond or mesh");
+  if (!mesh_) {
+    Logger::Error("Anchor tried to update position to nullptr mesh");
   }
 
   /* Use the mesh to determine the bond lengths. The true bond lengths fluctuate
@@ -80,7 +81,7 @@ bool Anchor::CalcBondLambda() {
       bond_ = bond;
       bond_lambda_ = mesh_lambda_ - bond_->GetMeshLambda();
       bond_length_ = bond_->GetLength();
-    } else if (end_pausing_) {
+    } else if (minus_end_pausing_) {
       bond_lambda_ = 0;
     } else {
       Unbind();
@@ -92,7 +93,7 @@ bool Anchor::CalcBondLambda() {
       bond_ = bond;
       bond_lambda_ = mesh_lambda_ - bond_->GetMeshLambda();
       bond_length_ = bond_->GetLength();
-    } else if (end_pausing_) {
+    } else if (plus_end_pausing_) {
       bond_lambda_ = bond_length_;
     } else {
       Unbind();
@@ -113,8 +114,8 @@ bool Anchor::CalcBondLambda() {
 void Anchor::UpdatePosition() {
   // Currently only bound anchors diffuse/walk (no explicit unbound anchors)
   bool diffuse = GetDiffusionConst() > 0 ? true : false;
-  bool walker = GetMaxVelocity() > 0 ? true : false;
-  if (!bound_ || static_flag_ || (!diffuse && !walker)) {
+  bool walker = abs(GetMaxVelocity()) > input_tol ? true : false;
+  if (!bound_ || static_flag_ || !bond_ || (!diffuse && !walker)) {
     return;
   }
   // Diffuse or walk along the mesh, updating mesh_lambda
@@ -132,6 +133,9 @@ void Anchor::UpdatePosition() {
 void Anchor::ApplyAnchorForces() {
   if (!bound_ || static_flag_) {
     return;
+  }
+  if (site_) {
+    return; // Forces on sites not implemented
   }
   if (!bond_) {
     Logger::Error("Anchor attempted to apply forces to nullptr bond");
@@ -181,7 +185,7 @@ bool Anchor::CheckMesh() {
   // Check if we moved off the mesh tail
   if (mesh_lambda_ < 0) {
     // Stick to mesh ends if we have end_pausing
-    if (end_pausing_) {
+    if (minus_end_pausing_) {
       mesh_lambda_ = 0;
     } else {
       // Otherwise, unbind
@@ -190,7 +194,7 @@ bool Anchor::CheckMesh() {
     }
   } else if (mesh_lambda_ > mesh_length_) {
     // Same thing for walking off the head
-    if (end_pausing_) {
+    if (plus_end_pausing_) {
       mesh_lambda_ = mesh_length_;
     } else {
       Unbind();
@@ -204,8 +208,11 @@ void Anchor::Unbind() {
   if (static_flag_) {
     Logger::Error("Static anchor attempted to unbind");
   }
+  if (site_) site_->DecrementNAnchored();
+  else if (bond_) bond_->DecrementNAnchored();
   bound_ = false;
   bond_ = nullptr;
+  site_ = nullptr;
   mesh_ = nullptr;
   mesh_n_bonds_ = -1;
   bond_length_ = -1;
@@ -249,9 +256,14 @@ void Anchor::UpdateAnchorPositionToBond() {
 /*Creates Vector that has different binding rates for parallel and anti-parallel
  * bonds*/
 void Anchor::CalculatePolarAffinity(std::vector<double> &doubly_binding_rates) {
-  double const *const orientation = bond_->GetOrientation();
+  double orientation[3]; 
+  if (bond_) std::copy(bond_->GetOrientation(), bond_->GetOrientation() + 3, orientation);
+  else if (site_) std::copy(site_->GetOrientation(), site_->GetOrientation() + 3, orientation);
+  else
+    Logger::Error("Bond and site are nullptr in Anchor::CalculatePolarAffinity"); 
   for (int i = 0; i < doubly_binding_rates.size(); ++i) {
     Object *obj = neighbors_.GetNeighbor(i);
+    if (obj->GetType() == +obj_type::site) continue;
     double const *const i_orientation = obj->GetOrientation();
     double alignment = dot_product(n_dim_, orientation, i_orientation);
     if (alignment < 0) {
@@ -276,16 +288,31 @@ void Anchor::Draw(std::vector<graph_struct *> &graph_array) {
 }
 
 void Anchor::AttachObjRandom(Object *o) {
-  double length = o->GetLength();
-  double lambda = length * rng_.RandomUniform();
-  AttachObjLambda(o, lambda);
+  switch (o->GetType()) {
+    case obj_type::bond: {
+      double length = o->GetLength();
+      double lambda = length * rng_.RandomUniform();
+      AttachObjLambda(o, lambda);
+      break;
+    }
+    case obj_type::site: {
+      *obj_area_ -= o->GetArea();
+      AttachObjCenter(o);
+      break;
+    }
+    default: {
+      Logger::Error("Crosslink binding to %s type objects not yet implemented in" 
+                    " Anchor::AttachObjRandom", o->GetType()._to_string());
+    }
+  }
 }
-
+    
 void Anchor::AttachObjLambda(Object *o, double lambda) {
+  o->IncrementNAnchored();
   if (o->GetType() != +obj_type::bond) {
     Logger::Error(
-        "Crosslink binding to non-bond objects not yet implemented in "
-        "AttachObjLambda.");
+        "Crosslink binding to %s objects not implemented in "
+        "AttachObjLambda.", o->GetType()._to_string());
   }
   bond_ = dynamic_cast<Bond *>(o);
   if (bond_ == nullptr) {
@@ -315,10 +342,38 @@ void Anchor::AttachObjLambda(Object *o, double lambda) {
   bound_ = true;
 }
 
+/* Attach object in center of site. Site binding likelihood weighted by 
+ * surface area, but binding places crosslinks in center regardless. */
+void Anchor::AttachObjCenter(Object *o) {
+  o->IncrementNAnchored();
+  if (o->GetType() != +obj_type::site) {
+    Logger::Error(
+        "Crosslink binding to non-site objects not implemented in "
+        "AttachObjCenter.");
+  }
+  site_ = dynamic_cast<Site *>(o);
+  if (site_ == nullptr) {
+    Logger::Error("Object ptr passed to anchor was not referencing a site!");
+  }
+  mesh_ = dynamic_cast<Mesh *>(site_->GetMeshPtr());
+  if (mesh_ == nullptr) {
+    Logger::Error("Object ptr passed to anchor was not referencing a mesh!");
+  }
+
+  mesh_lambda_ = -1; // not used for sites
+  SetMeshID(site_->GetMeshID());
+  std::copy(site_->GetPosition(), site_->GetPosition() + 3, position_); 
+  std::copy(site_->GetOrientation(), site_->GetOrientation() + 3, orientation_);
+  UpdatePeriodic();
+  ZeroDrTot();
+  bound_ = true;
+}
+
 void Anchor::AttachObjMeshLambda(Object *o, double mesh_lambda) {
+  o->IncrementNAnchored();
   if (o->GetType() != +obj_type::bond) {
     Logger::Error(
-        "Crosslink binding to non-bond objects not yet implemented in "
+        "Crosslink binding to non-bond objects not allowed in "
         "AttachObjMeshLambda.");
   }
   bond_ = dynamic_cast<Bond *>(o);
@@ -344,6 +399,30 @@ void Anchor::AttachObjMeshLambda(Object *o, double mesh_lambda) {
   ZeroDrTot();
 }
 
+void Anchor::AttachObjMeshCenter(Object *o) {
+  o->IncrementNAnchored();
+  if (o->GetType() != +obj_type::site) {
+    Logger::Error(
+        "Crosslink binding to non-bond objects not allowed in "
+        "AttachObjMeshCenter.");
+  }
+  site_ = dynamic_cast<Site *>(o);
+  if (site_ == nullptr) {
+    Logger::Error("Object ptr passed to anchor was not referencing a site!");
+  }
+  mesh_ = dynamic_cast<Mesh *>(site_->GetMeshPtr());
+  if (mesh_ == nullptr) {
+    Logger::Error("Object ptr passed to anchor was not referencing a mesh!");
+  }
+  Logger::Trace("Attaching anchor %d to mesh %d", GetOID(), mesh_->GetMeshID());
+
+  bound_ = true;
+  bond_lambda_ = 0;
+  mesh_n_bonds_ = -1;
+  SetMeshID(site_->GetMeshID());
+  ZeroDrTot();
+}
+
 void Anchor::BindToPosition(double *bind_pos) {
   for (int i = 0; i < n_dim_; ++i) {
     position_[i] = bind_pos[i];
@@ -354,10 +433,9 @@ void Anchor::BindToPosition(double *bind_pos) {
 bool Anchor::IsBound() { return bound_; }
 
 int const Anchor::GetBoundOID() {
-  if (!bond_) {
-    return -1;
-  }
-  return bond_->GetOID();
+  if (site_) return site_->GetOID();
+  else if (bond_) return bond_->GetOID();
+  else return -1;
 }
 
 /* Temporary function for setting bound state for singly-bound crosslinks,
@@ -373,11 +451,30 @@ const Object *const *Anchor::GetNeighborListMem() {
   return neighbors_.GetNeighborListMem();
 }
 
+const std::vector<Site*>& Anchor::GetNeighborListMemSites() {
+  return neighbors_.GetNeighborListMemSites();
+}
+
+const std::vector<Bond*> &Anchor::GetNeighborListMemBonds() {
+  return neighbors_.GetNeighborListMemBonds();
+}
+
 Object *Anchor::GetNeighbor(int i_neighbor) {
   return neighbors_.GetNeighbor(i_neighbor);
 }
 
+Site *Anchor::GetSiteNeighbor(int i_neighbor) {
+  return neighbors_.GetSiteNeighbor(i_neighbor);
+}
+
+Bond *Anchor::GetBondNeighbor(int i_neighbor) {
+  return neighbors_.GetBondNeighbor(i_neighbor);
+}
 const int Anchor::GetNNeighbors() const { return neighbors_.NNeighbors(); }
+const int Anchor::GetNNeighborsBond() const { return neighbors_.NNeighborsBond(); }
+const int Anchor::GetNNeighborsSite() const { return neighbors_.NNeighborsSite(); }
+
+
 
 void Anchor::WriteSpec(std::fstream &ospec) {
   ospec.write(reinterpret_cast<char *>(&bound_), sizeof(bool));
@@ -392,6 +489,35 @@ void Anchor::WriteSpec(std::fstream &ospec) {
   ospec.write(reinterpret_cast<char *>(&mesh_lambda_), sizeof(double));
   int attached_mesh_id = mesh_ != nullptr ? mesh_->GetMeshID() : -1;
   ospec.write(reinterpret_cast<char *>(&attached_mesh_id), sizeof(int));
+}
+
+void Anchor::WriteSpecTextHeader(std::fstream &otext) {
+  otext << "bound active static_flag position[0] position[1] position[2] "
+        << "orientation[0] orientation[1] orientation[2] mesh_lambda "
+        << "mesh_id" << std::endl;
+}
+
+void Anchor::ConvertSpec(std::fstream &ispec, std::fstream &otext) {
+  bool bound, active, static_flag;
+  double position[3], orientation[3];
+  double mesh_lambda;
+  int mesh_id;
+  if (ispec.eof())
+    return;
+  ispec.read(reinterpret_cast<char *>(&bound), sizeof(bool));
+  ispec.read(reinterpret_cast<char *>(&active), sizeof(bool));
+  ispec.read(reinterpret_cast<char *>(&static_flag), sizeof(bool));
+  for (int i = 0; i < 3; ++i) {
+    ispec.read(reinterpret_cast<char *>(&position[i]), sizeof(double));
+  }
+  for (int i = 0; i < 3; ++i) {
+    ispec.read(reinterpret_cast<char *>(&orientation[i]), sizeof(double));
+  }
+  ispec.read(reinterpret_cast<char *>(&mesh_lambda), sizeof(double));
+  ispec.read(reinterpret_cast<char *>(&mesh_id), sizeof(int));
+  otext << bound << " " << active << " " << static_flag << " " << position[0] << " " 
+        << position[1] << " " << position[2] << " " << orientation[0] << " " << orientation[1] 
+        << " " << orientation[2] << " " << mesh_lambda << " " << mesh_id << std::endl;
 }
 
 void Anchor::ReadSpec(std::fstream &ispec) {
@@ -512,3 +638,14 @@ const double Anchor::GetKickAmplitude() const {
     return 0;
   }
 }
+
+const double* const Anchor::GetObjArea() {
+  if (!obj_area_) Logger::Warning("Anchor passed nullptr obj_area");
+  return obj_area_;
+}
+
+void Anchor::SetObjArea(double* obj_area) {
+  if (!obj_area) Logger::Warning("Anchor received nullptr obj_area");
+  obj_area_ = obj_area;
+}
+

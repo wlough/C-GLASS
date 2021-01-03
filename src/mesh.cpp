@@ -23,6 +23,7 @@ void Mesh::Reserve() {
 
 Site *Mesh::GetSite(int i) { return &(sites_[i]); }
 Bond *Mesh::GetBond(int i) { return &(bonds_[i]); }
+
 void Mesh::AddSite(Site s) {
   if (n_sites_ == n_bonds_max_ + 1) {
     Logger::Error("Attempting to add site beyond allocated maximum.\n"
@@ -32,9 +33,20 @@ void Mesh::AddSite(Site s) {
   sites_.push_back(s);
   sites_.back().SetColor(color_, draw_);
   sites_.back().SetMeshID(GetMeshID());
+  sites_.back().SetMeshPtr(this);
   n_sites_++;
   Logger::Trace("Added site number %d, id: %d", n_sites_,
                 sites_.back().GetOID());
+}
+
+void Mesh::AddSitePtr(Site *s) {
+  site_ptrs_.push_back(s);
+  site_ptrs_.back()->SetColor(color_, draw_);
+  site_ptrs_.back()->SetMeshID(GetMeshID());
+  site_ptrs_.back()->SetMeshPtr(this);
+  n_sites_++;
+  Logger::Trace("Added site number %d, id: %d", n_sites_,
+                site_ptrs_.back()->GetOID());
 }
 
 // Adds bond to mesh between sites 1 and 2
@@ -248,7 +260,7 @@ void Mesh::InitRandomSite(double d) {
 void Mesh::InitRandomBond(double d) {
   rng_.RandomUnitVector(n_dim_, orientation_);
   if (params_->insert_radius > 0) {
-    space_struct space_temp(*space_);
+    SpaceBase space_temp(*space_);
     space_temp.radius = params_->insert_radius;
     rng_.RandomCoordinate(&space_temp, position_, d);
   } else {
@@ -262,7 +274,7 @@ void Mesh::InitRandomBond(double d) {
 }
 void Mesh::InitRandomBondOriented(double *u, double d) {
   if (params_->insert_radius > 0) {
-    space_struct space_temp(*space_);
+    SpaceBase space_temp(*space_);
     space_temp.radius = params_->insert_radius;
     rng_.RandomCoordinate(&space_temp, position_, d);
   } else {
@@ -508,6 +520,24 @@ void Mesh::WriteSpec(std::fstream &op) {
     // WriteSpec for sites only writes the site position
     it->WriteSpec(op);
   }
+}
+
+void Mesh::WriteSpecTextHeader(std::fstream &otext) {
+  otext << "diameter length bond_length nsites" << std::endl;
+}
+
+void Mesh::ConvertSpec(std::fstream &ispec, std::fstream &otext) {
+  double diameter, length, bond_length;
+  int nsites;
+  if (ispec.eof())
+    return;
+  ispec.read(reinterpret_cast<char *>(&diameter), sizeof(double));
+  ispec.read(reinterpret_cast<char *>(&length), sizeof(double));
+  ispec.read(reinterpret_cast<char *>(&bond_length), sizeof(double));
+  ispec.read(reinterpret_cast<char *>(&nsites), sizeof(int));
+  otext << diameter << " " << length << " " << bond_length << " " << nsites << std::endl;
+  Site::WriteSpecTextHeader(otext);
+  for (int i = 0; i < nsites; i++) Site::ConvertSpec(ispec, otext);
 }
 
 void Mesh::ReadCheckpoint(std::fstream &ip) {

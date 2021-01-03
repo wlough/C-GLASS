@@ -305,8 +305,10 @@ crosslink:                          # Parameters specific to crosslinks.
                                          # reservoir when going from unbound to
                                          # singly bound.  Only applicable for
                                          # crosslinks in solution.
-  bind_site_density: [1, double]    # The linear binding site density along
-                                    # filament that crosslinker ends bind to
+  linear_bind_site_density: [1, double] # The linear binding site density along
+                                        # filament that crosslinker ends bind to
+  surface_bind_site_density: [1, double] # The surface binding site density of a site that crosslinker
+                                         # ends bind to 
   static_flag: [false, bool]        # Flag for setting one crosslinker head to be fixed in space
   diffusion_s: [0, double]          # Diffusion coefficient for singly bound crosslinks
   diffusion_d: [0, double]          # Diffusion coefficient for doubly bound crosslinks
@@ -338,10 +340,18 @@ crosslink:                          # Parameters specific to crosslinks.
   tether_draw_type: [orientation, string] # Method of coloring crosslink tethers using graphics.
   tether_diameter: [0.5, double]    # Diameter used for graphically representing crosslink tethers.
   tether_color: [3.1416, double]    # Color for graphically representing crosslink tethers.
-  end_pausing: [false, bool]        # If 0, diffusing or walking crosslinks that move off the
-                                    # filament automatically unbind. If 1, crosslinks that try to
+  minus_end_pausing: [false, bool]  # If false, diffusing or walking crosslinks that move off the
+                                    # filament automatically unbind. If true, crosslinks that try to
+                                    # do so will remain at the filament tip until unbinding.
+  plus_end_pausing: [false, bool]   # If false, diffusing or walking crosslinks that move off the
+                                    # filament automatically unbind. If true, crosslinks that try to
                                     # do so will remain at the filament tip until unbinding.
   r_capture: [5, double]            # Max range allowed for singly to doubly bound crosslink.
                                     # Calculated using k_spring, rest_length. User input ignored.
   lut_grid_num: [256, int]          # Number of grid points used in one dimension of the the lookup table (LUT).
                                     # Total entries go as the square of this number e.g. 256 x 256
+
+receptor:
+  component: [cortex, string]       # The mesh object that holds receptor sites
+  concentration: [-1, double]       # Number of receptors per unit area (3D) or length (2D) of component
+  binding_analysis: [false, bool]  # Post-process analysis of number of bound receptors.

@@ -17,6 +17,7 @@ class Site : public Object {
   int n_bonds_;
   double theta_ = 0;
   double phi_ = 0;
+  Object *mesh_ptr_;
 
  public:
   Site(unsigned long seed);
@@ -40,8 +41,15 @@ class Site : public Object {
   void ReadSpec(std::fstream &ip);
   void SetTheta(const double theta) { theta_ = theta; }
   void SetPhi(const double phi) { phi_ = phi; }
+  Object *GetMeshPtr() { return mesh_ptr_; }
+  void SetMeshPtr(Object *obj_ptr);
   const double GetTheta() const { return theta_; }
   const double GetPhi() const { return phi_; }
+
+  // Convert binary data to text. Static to avoid needing to istantiate
+  // species members.
+  static void ConvertSpec(std::fstream &ispec, std::fstream &otext);
+  static void WriteSpecTextHeader(std::fstream &otext);
 };
 
 #endif  // _CGLASS_SITE_H_
