@@ -1,13 +1,14 @@
 #include "cglass/crosslink_manager.hpp"
 
-void CrosslinkManager::Init(system_parameters *params, SpaceBase *space,
-                            std::vector<Object *> *objs) {
+void CrosslinkManager::Init(system_parameters *params, SpaceBase *space, 
+                            Tracker *tracker, std::vector<Object *> *objs) {
   objs_ = objs;
   update_ = false;
   obj_length_ = 0.0;
   obj_area_ = 0.0;
   params_ = params;
   space_ = space;
+  tracker_ = tracker;
 }
 
 void CrosslinkManager::InitSpecies(sid_label &slab, ParamsParser &parser,
@@ -22,7 +23,8 @@ void CrosslinkManager::InitSpecies(sid_label &slab, ParamsParser &parser,
     xlink_species_.pop_back();
   } else {
     xlink_species_.back()->InitInteractionEnvironment(objs_, &obj_length_, 
-                                                      &obj_area_, &update_);
+                                                      &obj_area_, tracker_,
+                                                      &update_);
     rcutoff_ = xlink_species_.back()->GetRCutoff();
   }
 }

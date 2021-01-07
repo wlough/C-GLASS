@@ -38,7 +38,10 @@ void Crosslink::Init(crosslink_parameters *sparams) {
                 anchors_[0].GetOID(), anchors_[1].GetOID());
 }
 
-void Crosslink::InitInteractionEnvironment(LookupTable *lut) { lut_ = lut; }
+void Crosslink::InitInteractionEnvironment(LookupTable *lut, Tracker *tracker) { 
+  lut_ = lut;
+  tracker_ = tracker;
+}
 
 /* Function used to set anchor[0] position etc to xlink position etc */
 void Crosslink::UpdatePosition() {}
@@ -94,6 +97,7 @@ void Crosslink::SinglyKMC() {
                               anchors_[0].GetNeighborListMemSites(), 
                               anchors_[0].GetBoundOID(), bind_factors); 
     kmc_bind_prob = kmc_bind.getTotProb();
+    tracker_->TrackSD(kmc_bind_prob);
   } // Find out whether we bind, unbind, or neither.
   int head_activate = choose_kmc_double(unbind_prob, kmc_bind_prob, roll);
   // Change status of activated head
@@ -104,6 +108,8 @@ void Crosslink::SinglyKMC() {
     Logger::Trace("Crosslink %d came unbound", GetOID());
   } else if (head_activate == 1) {
     // Bind unbound head
+    
+    tracker_->BindSD();
     /* Position on rod where protein will bind with respect to center of rod,
      * passed by reference */
     double bind_lambda;

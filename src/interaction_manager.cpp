@@ -3,13 +3,15 @@
 
 void InteractionManager::Init(system_parameters *params,
                               std::vector<SpeciesBase *> *species,
-                              SpaceBase *space, Cortex *cortex, bool processing) {
+                              SpaceBase *space, Cortex *cortex, 
+                              Tracker *tracker, bool processing) {
   // Set up pointer structures
   params_ = params;
   species_ = species;
   space_ = space;
   cortex_ = cortex;
   processing_ = processing;
+  tracker_ = tracker;
 
   // Initialize owned structures
   no_init_ = false;
@@ -23,7 +25,7 @@ void InteractionManager::Init(system_parameters *params,
 
   // Update dr distance should be half the cell length, and we are comparing the
   // squares of the trajectory distances
-  xlink_.Init(params_, space_, &ix_objects_);
+  xlink_.Init(params_, space_, tracker_, &ix_objects_);
   no_boundaries_ = false;
   if (space_->type == +boundary_type::none)
     no_boundaries_ = true;

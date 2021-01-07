@@ -4,6 +4,7 @@
 //#include "species.hpp"
 #include "anchor.hpp"
 #include "minimum_distance.hpp"
+#include "tracker.hpp"
 #include <KMC/kmc.hpp>
 #include <KMC/kmc_choose.hpp>
 
@@ -40,10 +41,11 @@ private:
   void UpdateAnchorPositions();
   void UpdateXlinkState();
   double *obj_area_ = nullptr;
+  Tracker *tracker_ = nullptr;
 public:
   Crosslink(unsigned long seed);
   void Init(crosslink_parameters *sparams);
-  void InitInteractionEnvironment(LookupTable *lut);
+  void InitInteractionEnvironment(LookupTable *lut, Tracker *tracker);
   void AttachObjRandom(Object *obj);
   void UpdateCrosslinkForces();
   void UpdateCrosslinkPositions();

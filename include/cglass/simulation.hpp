@@ -31,6 +31,7 @@ class Simulation {
   Space space_;
   std::vector<SpeciesBase *> species_;
   Cortex *cortex_;
+  Tracker tracker_;
   void InitSimulation();
   void InitObjects();
   void InitSpecies();

@@ -24,6 +24,7 @@ private:
   bool infinite_reservoir_flag_;
   double k_on_;
   bool static_flag_;
+  Tracker *tracker_ = nullptr;
   LookupTable lut_;
   std::vector<Object *> *objs_;
 
@@ -40,7 +41,7 @@ public:
   CrosslinkSpecies(unsigned long seed);
   void Init(std::string spec_name, ParamsParser &parser);
   void InitInteractionEnvironment(std::vector<Object *> *objs, double *obj_len,
-                                  double *obj_area, bool *update);
+                                  double *obj_area, Tracker *tracker, bool *update);
   void TestKMCStepSize();
   void GetInteractors(std::vector<Object *> &ixors);
   void UpdatePositions();
