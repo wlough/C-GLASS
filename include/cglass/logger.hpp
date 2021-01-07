@@ -27,6 +27,7 @@ public:
   // Logging functions
   void Trace(const char *msg, va_list args) const;
   void Debug(const char *msg, va_list args) const;
+  void Track(const char *msg, va_list args) const;
   void Info(const char *msg, va_list args) const;
   void Warning(const char *msg, va_list args) const;
   void Error(const char *msg, va_list args) const;
@@ -42,6 +43,7 @@ public:
   static void SetOutput(const char *fname);
   // Logging functions.
   static void Trace(const char *msg, ...);
+  static void Track(const char *msg, ...);
   static void Debug(const char *msg, ...);
   static void Info(const char *msg, ...);
   static void Warning(const char *msg, ...);

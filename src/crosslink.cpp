@@ -177,6 +177,7 @@ void Crosslink::DoublyKMC() {
     f_dep *= k_spring_ * tether_stretch;
   }
   double unbind_prob = anchors_[0].GetOffRate() * delta_ * exp(e_dep + f_dep);
+  tracker_->TrackDS(unbind_prob);
   double roll = rng_.RandomUniform();
   int head_activate = -1;
   if (static_flag_) {
@@ -188,12 +189,16 @@ void Crosslink::DoublyKMC() {
     head_activate = choose_kmc_double(unbind_prob, unbind_prob, roll);
   }
   if (head_activate == 0) {
+    // Track unbinding
+    tracker_->UnbindDS();
     Logger::Trace("Doubly-bound crosslink %d came unbound from %d", GetOID(),
                   anchors_[0].GetBoundOID());
     anchors_[0] = anchors_[1];
     anchors_[1].Unbind();
     SetSingly();
   } else if (head_activate == 1) {
+    // Track unbinding
+    tracker_->UnbindDS();
     Logger::Trace("Doubly-bound crosslink %d came unbound from %d", GetOID(),
                   anchors_[1].GetBoundOID());
     anchors_[1].Unbind();
