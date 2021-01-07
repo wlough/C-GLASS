@@ -22,9 +22,10 @@ class CrosslinkManager {
   std::vector<CrosslinkSpecies *> xlink_species_;
   std::vector<Object *> *objs_;
   SpaceBase *space_;
+  Tracker *tracker_ = nullptr;
 
  public:
-  void Init(system_parameters *params, SpaceBase *space,
+  void Init(system_parameters *params, SpaceBase *space, Tracker *tracker,
             std::vector<Object *> *objs);
   void GetInteractors(std::vector<Object *> &ixors);
   void UpdateCrosslinks();

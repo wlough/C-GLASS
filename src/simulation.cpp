@@ -214,7 +214,7 @@ void Simulation::InitSimulation() {
   space_.Init(&params_);
   InitObjects();
   cortex_ = new Cortex(rng_->GetSeed());
-  ix_mgr_.Init(&params_, &species_, space_.GetSpaceBase(), cortex_);
+  ix_mgr_.Init(&params_, &species_, space_.GetSpaceBase(), cortex_, &tracker_);
   InitSpecies();
   ix_mgr_.InitInteractions();
   InsertSpecies(params_.load_checkpoint, params_.load_checkpoint);
@@ -476,6 +476,7 @@ void Simulation::ClearSimulation() {
 #endif
   delete rng_;
   delete cortex_;
+  tracker_.PrintTrack();
   Logger::Info("Simulation complete");
 }
 
@@ -585,7 +586,7 @@ void Simulation::InitProcessing(run_options run_opts) {
   space_.Init(&params_);
   InitObjects();
   cortex_ = new Cortex(rng_->GetSeed());
-  ix_mgr_.Init(&params_, &species_, space_.GetSpaceBase(), cortex_, true);
+  ix_mgr_.Init(&params_, &species_, space_.GetSpaceBase(), cortex_, &tracker_, true);
   InitSpecies();
   // ix_mgr_.InitInteractions();
   InsertSpecies(true, true);

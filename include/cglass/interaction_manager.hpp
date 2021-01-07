@@ -36,6 +36,7 @@ class InteractionManager {
   system_parameters *params_;
   SpaceBase *space_;
   Cortex *cortex_;
+  Tracker *tracker_;
   std::vector<SpeciesBase *> *species_;
 
   MinimumDistance mindist_;
@@ -75,7 +76,8 @@ class InteractionManager {
  public:
   InteractionManager() {}
   void Init(system_parameters *params, std::vector<SpeciesBase *> *species,
-            SpaceBase *space, Cortex *cortex, bool processing = false);
+            SpaceBase *space, Cortex *cortex, Tracker *tracker,
+            bool processing = false);
   void InitInteractions();
   void Interact();
   void CalculatePressure();

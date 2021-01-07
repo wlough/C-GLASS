@@ -16,18 +16,19 @@ void CrosslinkSpecies::Init(std::string spec_name, ParamsParser &parser) {
 
 void CrosslinkSpecies::AddMember() {
   Species::AddMember();
-  members_.back().InitInteractionEnvironment(&lut_);
+  members_.back().InitInteractionEnvironment(&lut_, tracker_);
   members_.back().SetObjArea(obj_area_);
   *update_ = true;
 }
 
 void CrosslinkSpecies::InitInteractionEnvironment(std::vector<Object *> *objs,
                                                   double *obj_len, double *obj_area,
-                                                  bool *update) {
+                                                  Tracker *tracker, bool *update) {
   objs_ = objs;
   obj_length_ = obj_len;
   obj_area_ = obj_area;
   update_ = update;
+  tracker_ = tracker;
   LUTFiller *lut_filler_ptr = MakeLUTFiller();
   lut_ = LookupTable(lut_filler_ptr);
   if (sparams_.use_binding_volume) {
@@ -208,7 +209,7 @@ void CrosslinkSpecies::InsertAttachedCrosslinksSpecies() {
   }
   Crosslink xlink(rng_.GetSeed());
   xlink.Init(&sparams_);
-  xlink.InitInteractionEnvironment(&lut_);
+  xlink.InitInteractionEnvironment(&lut_, tracker_);
   xlink.SetSID(GetSID());
   members_.resize(begin_with_bound_crosslinks_, xlink);
   UpdateBoundCrosslinks();
@@ -525,7 +526,7 @@ void CrosslinkSpecies::ReadSpecs() {
   } else if (n_members_ != members_.size()) {
     Crosslink xlink(rng_.GetSeed());
     xlink.Init(&sparams_);
-    xlink.InitInteractionEnvironment(&lut_);
+    xlink.InitInteractionEnvironment(&lut_, tracker_);
     xlink.SetSID(GetSID());
     members_.resize(n_members_, xlink);
   }
