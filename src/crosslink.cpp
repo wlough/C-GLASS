@@ -67,8 +67,9 @@ void Crosslink::SinglyKMC() {
   if (static_flag_) {
     unbind_prob = 0;
   }
-  /* Must populate filter with 1 for every neighbor, since KMC
-  expects a mask. We already guarantee uniqueness, so we won't overcount. */
+  tracker_->TrackSU(unbind_prob);
+  /* Use auto-filter populated with 1's for every neighbor.
+  We already guarantee uniqueness, so we won't overcount. */
   int n_neighbors_bond = anchors_[0].GetNNeighborsBond();
   int n_neighbors_site = anchors_[0].GetNNeighborsSite();
   int n_neighbors = n_neighbors_bond + n_neighbors_site;
@@ -103,12 +104,14 @@ void Crosslink::SinglyKMC() {
   // Change status of activated head
   if (head_activate == 0) {
     // Unbind bound head
+    // Track unbinding
+    tracker_->UnbindSU();
     anchors_[0].Unbind();
     SetUnbound();
     Logger::Trace("Crosslink %d came unbound", GetOID());
   } else if (head_activate == 1) {
     // Bind unbound head
-    
+    // Track binding
     tracker_->BindSD();
     /* Position on rod where protein will bind with respect to center of rod,
      * passed by reference */
