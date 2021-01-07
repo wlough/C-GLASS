@@ -232,10 +232,15 @@ void CrosslinkSpecies::CalculateBindingFree() {
   } else { // Have a constant number of crosslinkers in a space
     free_concentration = (sparams_.num - n_members_) / space_->volume;
   }
-  int linear_bind_num = rng_.RandomPoisson(linear_bind_site_density_ * free_concentration *
-                     (*obj_length_) * k_on_ * params_->delta);
-  int surface_bind_num = rng_.RandomPoisson(surface_bind_site_density_ * free_concentration *
-                     (*obj_area_) * k_on_ * params_->delta);
+  double expected_lin_bind_n = linear_bind_site_density_ * free_concentration *
+                     (*obj_length_) * k_on_ * params_->delta;
+  double expected_surf_bind_n = surface_bind_site_density_ * free_concentration *
+                     (*obj_area_) * k_on_ * params_->delta;
+  int linear_bind_num = rng_.RandomPoisson(expected_lin_bind_n);
+  int surface_bind_num = rng_.RandomPoisson(expected_surf_bind_n);
+  // Track US probabilities
+  tracker_->TrackUS(expected_lin_bind_n + expected_surf_bind_n);
+  tracker_->BindUS(linear_bind_num + surface_bind_num);
   // Use a Poisson distribution to calculate the number of particles
   // binding from distribution
   for (int i = 0; i < linear_bind_num; ++i) {

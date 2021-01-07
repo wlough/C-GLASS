@@ -39,6 +39,7 @@ show_help() {
     echo "  -d      build Doxygen documentation"
     echo "  -t      build and run C-GLASS unit tests"
     echo "  -D      build C-GLASS in Debug mode"
+    echo "  -P      build C-GLASS in Probability Tracking mode"
     echo "  -T      build C-GLASS in Trace mode (verbose logging)"
 }
 
@@ -49,7 +50,7 @@ CMAKE_FLAGS="-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
 build_docs=false
 run_tests=false
 install_packages=false
-while getopts "h?cIgwodtDT" opt; do
+while getopts "h?cIgwodtPDT" opt; do
     case "$opt" in
     h|\?)
         show_help
@@ -72,6 +73,8 @@ while getopts "h?cIgwodtDT" opt; do
     t)  
         run_tests=true
         CMAKE_FLAGS="${CMAKE_FLAGS} -DTESTS=TRUE"
+        ;;
+    P)  CMAKE_FLAGS="${CMAKE_FLAGS} -DTRACK=TRUE"
         ;;
     D)  CMAKE_FLAGS="${CMAKE_FLAGS} -DDEBUG=TRUE"
         ;;

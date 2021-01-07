@@ -29,6 +29,11 @@ void LoggerService::Trace(const char *msg, va_list args) const {
   WriteMsg("TRACE", msg, args);
 #endif
 }
+void LoggerService::Track(const char *msg, va_list args) const {
+#ifdef TRACK
+  WriteMsg("TRACK", msg, args);
+#endif
+}
 
 void LoggerService::Error(const char *msg, va_list args) const {
   WriteMsg("ERROR", msg, args);
@@ -83,6 +88,13 @@ void Logger::Trace(const char *msg, ...) {
   va_list args;
   va_start(args, msg);
   LoggerService::Get().Trace(msg, args);
+  va_end(args);
+}
+
+void Logger::Track(const char *msg, ...) {
+  va_list args;
+  va_start(args, msg);
+  LoggerService::Get().Track(msg, args);
   va_end(args);
 }
 
