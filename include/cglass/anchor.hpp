@@ -16,8 +16,8 @@ class Anchor : public Object {
   crosslink_parameters *sparams_;
   int step_direction_;
 
-  double bond_length_;
-  double bond_lambda_;
+  double rod_length_;
+  double rod_lambda_;
   double mesh_length_;
   double mesh_lambda_;
   double max_velocity_s_;
@@ -40,8 +40,8 @@ class Anchor : public Object {
 
   NeighborList neighbors_;
 
-  Bond *bond_ = nullptr;
-  Site *site_ = nullptr;
+  Bond *rod_ = nullptr;
+  Site *sphere_ = nullptr;
   Mesh *mesh_ = nullptr;
 
   double *obj_area_ = nullptr;

@@ -68,25 +68,25 @@ void Crosslink::SinglyKMC() {
     unbind_prob = 0;
   }
   tracker_->TrackSU(unbind_prob);
-  int n_neighbors_bond = anchors_[0].GetNNeighborsRod();
-  int n_neighbors_site = anchors_[0].GetNNeighborsSphere();
-  int n_neighbors = n_neighbors_bond + n_neighbors_site;
+  int n_neighbors_rod = anchors_[0].GetNNeighborsRod();
+  int n_neighbors_sphere = anchors_[0].GetNNeighborsSphere();
+  int n_neighbors = n_neighbors_rod + n_neighbors_sphere;
  
   /* Initialize KMC calculation */
-  KMC<Rod, Sphere> kmc_bind(anchors_[0].pos, n_neighbors_bond, n_neighbors_site, delta_, lut_);
+  KMC<Rod, Sphere> kmc_bind(anchors_[0].pos, n_neighbors_rod, n_neighbors_sphere, delta_, lut_);
 
   /* Initialize periodic boundary conditions */
   kmc_bind.SetPBCs(n_dim_, space_->n_periodic, space_->unit_cell);
 
   /* Calculate probability to bind */
   double kmc_bind_prob = 0;
-  double bind_factor_bond = anchors_[1].GetOnRate() * linear_bind_site_density_;
-  double bind_factor_site = anchors_[1].GetOnRate() * surface_bind_site_density_;
+  double bind_factor_rod = anchors_[1].GetOnRate() * linear_bind_site_density_;
+  double bind_factor_sphere = anchors_[1].GetOnRate() * surface_bind_site_density_;
 
-  /* Fill vector of bind factors with bond factors, then site factors */
+  /* Fill vector of bind factors with rod factors, then sphere factors */
   std::vector<double> bind_factors(n_neighbors);
-  std::fill(bind_factors.begin(), bind_factors.begin() + n_neighbors_bond, bind_factor_bond);
-  std::fill(bind_factors.begin() + n_neighbors_bond, bind_factors.end(), bind_factor_site);
+  std::fill(bind_factors.begin(), bind_factors.begin() + n_neighbors_rod, bind_factor_rod);
+  std::fill(bind_factors.begin() + n_neighbors_rod, bind_factors.end(), bind_factor_sphere);
  
   if (n_neighbors > 0) {
     if (!static_flag_ && polar_affinity_ != 1.0) {
@@ -123,21 +123,21 @@ void Crosslink::SinglyKMC() {
       Logger::Error("kmc_bind.whichRodBindSD in Crosslink::SinglyKMC"
                     " returned an invalid result!");
     }
-    // i_bind is index in concatenated bonds/sites vector 
+    // i_bind is index in concatenated rods/spheres vector 
     Object *bind_obj;
-    if (i_bind < n_neighbors_bond) {
+    if (i_bind < n_neighbors_rod) {
       bind_obj = anchors_[0].GetRodNeighbor(i_bind);
     } else {
-      bind_obj = anchors_[0].GetSphereNeighbor(i_bind - n_neighbors_bond);
+      bind_obj = anchors_[0].GetSphereNeighbor(i_bind - n_neighbors_rod);
     }
 
-    switch (bind_obj->GetType()) {
-      case obj_type::site: {
+    switch (bind_obj->GetShape()) {
+      case shape::sphere: {
         anchors_[1].AttachObjCenter(bind_obj);
         SetDoubly();
         break;
       }
-      case obj_type::bond: {
+      case shape::rod: {
         double obj_length = bind_obj->GetLength();
         /* KMC returns bind_lambda to be with respect to center of rod. We want 
         it to be specified from the tail of the rod to be consistent */
@@ -315,14 +315,14 @@ void Crosslink::CalculateTetherForces() {
 
 /* Attach a crosslink anchor to object in a random fashion */
 void Crosslink::AttachObjRandom(Object *obj) {
-  /* Attaching to random bond implies first anchor binding from solution, so
+  /* Attaching to random obj implies first anchor binding from solution, so
    * this crosslink should be new and should not be singly or doubly bound */
-  if ((obj->GetType() == +obj_type::bond) || (obj->GetType() == +obj_type::site)) {
+  if ((obj->GetShape() == +shape::rod) || (obj->GetShape() == +shape::sphere)) {
     anchors_[0].AttachObjRandom(obj);
     SetMeshID(obj->GetMeshID());
     SetSingly();
   } else {
-    Logger::Error("Crosslink binding to %s type objects not yet implemented.", obj->GetType()._to_string());
+    Logger::Error("Crosslink binding to %s shaped objects not yet implemented.", obj->GetShape()._to_string());
   }
 }
 
