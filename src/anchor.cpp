@@ -296,6 +296,7 @@ void Anchor::AttachObjRandom(Object *o) {
       break;
     }
     case obj_type::site: {
+      if (o->GetNAnchored() > 0) return;
       *obj_area_ -= o->GetArea();
       AttachObjCenter(o);
       break;
