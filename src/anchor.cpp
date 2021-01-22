@@ -452,28 +452,28 @@ const Object *const *Anchor::GetNeighborListMem() {
   return neighbors_.GetNeighborListMem();
 }
 
-const std::vector<Site*>& Anchor::GetNeighborListMemSites() {
-  return neighbors_.GetNeighborListMemSites();
+const std::vector<Sphere*>& Anchor::GetNeighborListMemSpheres() {
+  return neighbors_.GetNeighborListMemSpheres();
 }
 
-const std::vector<Bond*> &Anchor::GetNeighborListMemBonds() {
-  return neighbors_.GetNeighborListMemBonds();
+const std::vector<Rod*> &Anchor::GetNeighborListMemRods() {
+  return neighbors_.GetNeighborListMemRods();
 }
 
 Object *Anchor::GetNeighbor(int i_neighbor) {
   return neighbors_.GetNeighbor(i_neighbor);
 }
 
-Site *Anchor::GetSiteNeighbor(int i_neighbor) {
-  return neighbors_.GetSiteNeighbor(i_neighbor);
+Sphere *Anchor::GetSphereNeighbor(int i_neighbor) {
+  return neighbors_.GetSphereNeighbor(i_neighbor);
 }
 
-Bond *Anchor::GetBondNeighbor(int i_neighbor) {
-  return neighbors_.GetBondNeighbor(i_neighbor);
+Rod *Anchor::GetRodNeighbor(int i_neighbor) {
+  return neighbors_.GetRodNeighbor(i_neighbor);
 }
 const int Anchor::GetNNeighbors() const { return neighbors_.NNeighbors(); }
-const int Anchor::GetNNeighborsBond() const { return neighbors_.NNeighborsBond(); }
-const int Anchor::GetNNeighborsSite() const { return neighbors_.NNeighborsSite(); }
+const int Anchor::GetNNeighborsRod() const { return neighbors_.NNeighborsRod(); }
+const int Anchor::GetNNeighborsSphere() const { return neighbors_.NNeighborsSphere(); }
 
 
 

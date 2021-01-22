@@ -3,7 +3,7 @@
 /**************************
 ** Bond member functions **
 **************************/
-Bond::Bond(unsigned long seed) : Object(seed) { type_ = obj_type::bond; }
+Bond::Bond(unsigned long seed) : Rod(seed) { type_ = obj_type::bond; }
 
 void Bond::Init(Site *s1, Site *s2) {
   s1->AddBond(this, OUTGOING);
