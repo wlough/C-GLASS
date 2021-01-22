@@ -213,8 +213,9 @@ void CrosslinkSpecies::InsertAttachedCrosslinksSpecies() {
   xlink.SetSID(GetSID());
   members_.resize(begin_with_bound_crosslinks_, xlink);
   UpdateBoundCrosslinks();
+  // Begin with bound crosslinks currently just implemented to start on rods
   for (int i=0; i < begin_with_bound_crosslinks_; ++i) {
-    BindCrosslink(obj_type::bond);
+    BindCrosslink(shape::rod);
   }
 }
 
@@ -244,48 +245,48 @@ void CrosslinkSpecies::CalculateBindingFree() {
   // Use a Poisson distribution to calculate the number of particles
   // binding from distribution
   for (int i = 0; i < linear_bind_num; ++i) {
-    /* Create a new crosslink and bind an anchor to a random bond
+    /* Create a new crosslink and bind an anchor to a random rod
      * in the system */
-    BindCrosslink(obj_type::bond);
+    BindCrosslink(shape::rod);
   }
   for (int i = 0; i < surface_bind_num; ++i) {
-    /* Create a new crosslink and bind an anchor to a random site
+    /* Create a new crosslink and bind an anchor to a random sphere
      * in the system */
-    BindCrosslink(obj_type::site);
+    BindCrosslink(shape::sphere);
   }
 }
 
 /* Returns a random object with selection probability proportional to object
    length */
-Object *CrosslinkSpecies::GetRandomObject(obj_type type) {
+Object *CrosslinkSpecies::GetRandomObject(shape sh) {
   double roll = rng_.RandomUniform();
-  switch(type) { 
-    case obj_type::bond:
+  switch(sh) { 
+    case shape::rod:
       roll *= (*obj_length_); 
       break;
-    case obj_type::site:
+    case shape::sphere:
       roll *= (*obj_area_); 
       break;
     default:
       Logger::Error("Binding to object type %s not yet implemented in " 
-                    "CrosslinkSpecies::GetRandomObject", type._to_string());
+                    "CrosslinkSpecies::GetRandomObject", sh._to_string());
   }
   double vol = 0;
 
   // Search through interactors to find an object of type type
   for (auto obj = objs_->begin(); obj != objs_->end(); ++obj) {
-    if ((*obj)->GetType() == type) {
-      switch(type) {
-        case obj_type::bond:
+    if ((*obj)->GetShape() == sh) {
+      switch(sh) {
+        case shape::rod:
           vol += (*obj)->GetLength();
           break;
-        case obj_type::site:
-          // currently sites only hold one anchor
+        case shape::sphere:
+          // spheres only hold one anchor RICHELLE FIX
           vol += (*obj)->GetArea();
           break;
         default:
           Logger::Error("Binding to object type %s not yet implemented in " 
-                        "CrosslinkSpecies::GetRandomObject", type._to_string());
+                        "CrosslinkSpecies::GetRandomObject", sh._to_string());
 
       }
       if (vol > roll) {
@@ -300,11 +301,11 @@ Object *CrosslinkSpecies::GetRandomObject(obj_type type) {
 }
 
 /* A crosslink binds to an object from solution */
-void CrosslinkSpecies::BindCrosslink(obj_type type) {
+void CrosslinkSpecies::BindCrosslink(shape sh) {
   /* Create crosslink object and initialize. Crosslink will
    * initially be singly-bound. */
   AddMember();
-  members_.back().AttachObjRandom(GetRandomObject(type));
+  members_.back().AttachObjRandom(GetRandomObject(sh));
 }
 
 /* Return singly-bound anchors, for finding neighbors to bind to */
@@ -315,7 +316,7 @@ void CrosslinkSpecies::GetInteractors(std::vector<Object *> &ixors) {
 }
 
 /* Returns all anchors, not just singly-bound anchors. Used for reassigning
-   bound anchors to bonds upon a checkpoint reload */
+   bound anchors to objects upon a checkpoint reload */
 void CrosslinkSpecies::GetAnchorInteractors(std::vector<Object *> &ixors) {
   for (auto xlink = members_.begin(); xlink != members_.end(); ++xlink) {
     xlink->GetAnchors(ixors);
@@ -348,7 +349,7 @@ void CrosslinkSpecies::UpdatePositions() {
 void CrosslinkSpecies::UpdateObjectArea() {
   *obj_area_ = 0.0;
   for (auto obj = objs_->begin(); obj != objs_->end(); ++obj) {
-    if ((*obj)->GetType() == +obj_type::site) {
+    if ((*obj)->GetShape() == +shape::sphere) {
       if ((*obj)->GetNAnchored() == 0) *obj_area_ += (*obj)->GetArea();
     }
   }

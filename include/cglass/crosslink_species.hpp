@@ -30,12 +30,12 @@ private:
 
   LUTFiller *MakeLUTFiller();
   void CalculateBindingFree();
-  void BindCrosslink(obj_type type);
+  void BindCrosslink(shape sh);
   void UpdateBoundCrosslinks();
   void UpdateBoundCrosslinkForces();
   void UpdateBoundCrosslinkPositions();
   void ApplyCrosslinkTetherForces();
-  Object *GetRandomObject(obj_type type);
+  Object *GetRandomObject(shape sh);
 
 public:
   CrosslinkSpecies(unsigned long seed);
