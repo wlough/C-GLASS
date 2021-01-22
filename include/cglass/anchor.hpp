@@ -17,7 +17,7 @@ class Anchor : public Object {
   int step_direction_;
 
   double rod_length_;
-  double rod_lambda_;
+  double bond_lambda_;
   double mesh_length_;
   double mesh_lambda_;
   double max_velocity_s_;
@@ -40,19 +40,23 @@ class Anchor : public Object {
 
   NeighborList neighbors_;
 
-  Bond *rod_ = nullptr;
-  Site *sphere_ = nullptr;
+  Rod *rod_ = nullptr;
+  Sphere *sphere_ = nullptr;
+  Composite *comp_ = nullptr;
+
+  // Retain these for walking behaviors
+  Bond *bond_ = nullptr;
   Mesh *mesh_ = nullptr;
 
   double *obj_area_ = nullptr;
 
   int mesh_n_bonds_;
 
-  void UpdateAnchorPositionToBond();
+  void UpdateAnchorPositionToRod();
   void Diffuse();
   void Walk();
   bool CheckMesh();
-  bool CalcBondLambda();
+  bool CalcRodLambda();
 
  public:
   Anchor(unsigned long seed);
@@ -70,7 +74,7 @@ class Anchor : public Object {
   void AttachObjMeshLambda(Object *o, double mesh_lambda);
   void AttachObjMeshCenter(Object *o);
   void CalculatePolarAffinity(std::vector<double> &doubly_binding_rates);
-  void SetBondLambda(double l);
+  void SetRodLambda(double l);
   void SetMeshLambda(double ml);
   void SetBound();
   void Unbind();

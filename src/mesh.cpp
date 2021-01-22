@@ -6,9 +6,10 @@
 int Mesh::_next_mesh_id_ = 0;
 std::mutex Mesh::_mesh_mtx_;
 
-Mesh::Mesh(unsigned long seed) : Object(seed) {
+Mesh::Mesh(unsigned long seed) : Composite(seed) {
   InitMeshID();
   is_mesh_ = true;
+  comp_type_ = comp_type::mesh;
 }
 
 void Mesh::InitMeshID() {
