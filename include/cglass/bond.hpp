@@ -2,9 +2,10 @@
 #define _CGLASS_BOND_H_
 
 #include "site.hpp"
+#include "rod.hpp"
 
 // Bonds, ie graph edges
-class Bond : public Object {
+class Bond : public Rod {
  protected:
   Site *sites_[2];
   int bond_number_ = 0;

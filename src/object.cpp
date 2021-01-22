@@ -169,6 +169,7 @@ int const Object::GetMeshID() const { return mesh_id_; }
 void Object::SetMeshID(int mid) { mesh_id_ = mid; }
 void Object::SetOID(int oid) { oid_ = oid; }
 void Object::ToggleIsMesh() { is_mesh_ = !is_mesh_; }
+shape const Object::GetShape() { return shape_; }
 obj_type const Object::GetType() { return type_; }
 species_id const Object::GetSID() { return sid_; }
 void Object::SetType(obj_type type) { type_ = type; }

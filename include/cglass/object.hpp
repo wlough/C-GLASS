@@ -96,6 +96,7 @@ public:
   virtual void ZeroPolarOrder();
   species_id const GetSID();
   obj_type const GetType();
+  shape const GetShape();
   const int GetOID() const;
   const int GetMeshID() const;
   const double *const GetPosition();

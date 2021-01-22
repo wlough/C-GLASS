@@ -3,7 +3,7 @@
 /**************************
 ** Site member functions **
 **************************/
-Site::Site(unsigned long seed) : Object(seed) {
+Site::Site(unsigned long seed) : Sphere(seed) {
   n_bonds_ = 0;
   type_ = obj_type::site;
   std::fill(tangent_, tangent_ + 3, 0.0);

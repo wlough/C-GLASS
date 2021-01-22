@@ -68,12 +68,12 @@ void Crosslink::SinglyKMC() {
     unbind_prob = 0;
   }
   tracker_->TrackSU(unbind_prob);
-  int n_neighbors_bond = anchors_[0].GetNNeighborsBond();
-  int n_neighbors_site = anchors_[0].GetNNeighborsSite();
+  int n_neighbors_bond = anchors_[0].GetNNeighborsRod();
+  int n_neighbors_site = anchors_[0].GetNNeighborsSphere();
   int n_neighbors = n_neighbors_bond + n_neighbors_site;
  
   /* Initialize KMC calculation */
-  KMC<Bond, Site> kmc_bind(anchors_[0].pos, n_neighbors_bond, n_neighbors_site, delta_, lut_);
+  KMC<Rod, Sphere> kmc_bind(anchors_[0].pos, n_neighbors_bond, n_neighbors_site, delta_, lut_);
 
   /* Initialize periodic boundary conditions */
   kmc_bind.SetPBCs(n_dim_, space_->n_periodic, space_->unit_cell);
@@ -94,8 +94,8 @@ void Crosslink::SinglyKMC() {
     }
     /* Use auto-filter populated with 1's for every neighbor.
     We already guarantee uniqueness, so we won't overcount. */
-    kmc_bind.LUCalcTotProbsSD(anchors_[0].GetNeighborListMemBonds(), 
-                              anchors_[0].GetNeighborListMemSites(), 
+    kmc_bind.LUCalcTotProbsSD(anchors_[0].GetNeighborListMemRods(), 
+                              anchors_[0].GetNeighborListMemSpheres(), 
                               anchors_[0].GetBoundOID(), bind_factors); 
     kmc_bind_prob = kmc_bind.getTotProb();
     tracker_->TrackSD(kmc_bind_prob);
@@ -126,9 +126,9 @@ void Crosslink::SinglyKMC() {
     // i_bind is index in concatenated bonds/sites vector 
     Object *bind_obj;
     if (i_bind < n_neighbors_bond) {
-      bind_obj = anchors_[0].GetBondNeighbor(i_bind);
+      bind_obj = anchors_[0].GetRodNeighbor(i_bind);
     } else {
-      bind_obj = anchors_[0].GetSiteNeighbor(i_bind - n_neighbors_bond);
+      bind_obj = anchors_[0].GetSphereNeighbor(i_bind - n_neighbors_bond);
     }
 
     switch (bind_obj->GetType()) {
