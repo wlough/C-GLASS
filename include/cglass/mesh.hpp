@@ -2,11 +2,12 @@
 #define _CGLASS_MESH_H_
 
 #include "bond.hpp"
+#include "composite.hpp"
 
 typedef std::vector<Bond>::iterator bond_iterator;
 typedef std::vector<Site>::iterator site_iterator;
 
-class Mesh : public Object {
+class Mesh : public Composite {
  private:
   static int _next_mesh_id_;
   static std::mutex _mesh_mtx_;

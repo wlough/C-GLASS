@@ -10,9 +10,11 @@ class Object {
 private:
   int oid_;
   int mesh_id_;
+  int comp_id_;
   static int _next_oid_;
   static std::mutex _obj_mtx_;
   void InitOID();
+  Object *comp_ptr_; // If part of a composite
 
 protected:
   static system_parameters *params_;
@@ -21,6 +23,7 @@ protected:
   static double delta_;
   species_id sid_;
   obj_type type_ = obj_type::generic;
+  comp_type comp_type_ = comp_type::not_comp;
   shape shape_ = shape::generic;
   graph_struct g_;
   RNG rng_;
@@ -43,6 +46,7 @@ protected:
   double contact_number_;
   bool interacting_;
   bool is_mesh_;
+  bool is_comp_ = false;
   bool has_overlap_;
   int n_anchored_;
   bool interactor_update_;
@@ -96,8 +100,10 @@ public:
   virtual void ZeroPolarOrder();
   species_id const GetSID();
   obj_type const GetType();
+  comp_type const GetCompType();
   shape const GetShape();
   const int GetOID() const;
+  const int GetCompID() const;
   const int GetMeshID() const;
   const double *const GetPosition();
   const double *const GetPrevPosition();
@@ -168,6 +174,7 @@ public:
   virtual void WriteCheckpointHeader(std::fstream &ocheck);
   virtual void ReadCheckpoint(std::fstream &icheck);
   virtual void ReadCheckpointHeader(std::fstream &icheck);
+  virtual Object *GetCompPtr() { return comp_ptr_; }
 
   // Convert binary data to text. Static to avoid needing to istantiate
   // species members.

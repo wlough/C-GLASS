@@ -42,6 +42,7 @@ class Site : public Sphere {
   void SetTheta(const double theta) { theta_ = theta; }
   void SetPhi(const double phi) { phi_ = phi; }
   Object *GetMeshPtr() { return mesh_ptr_; }
+  Object *GetCompPtr() { return mesh_ptr_; }
   void SetMeshPtr(Object *obj_ptr);
   const double GetTheta() const { return theta_; }
   const double GetPhi() const { return phi_; }
