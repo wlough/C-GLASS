@@ -68,8 +68,6 @@ void Crosslink::SinglyKMC() {
     unbind_prob = 0;
   }
   tracker_->TrackSU(unbind_prob);
-  /* Use auto-filter populated with 1's for every neighbor.
-  We already guarantee uniqueness, so we won't overcount. */
   int n_neighbors_bond = anchors_[0].GetNNeighborsBond();
   int n_neighbors_site = anchors_[0].GetNNeighborsSite();
   int n_neighbors = n_neighbors_bond + n_neighbors_site;
@@ -94,6 +92,8 @@ void Crosslink::SinglyKMC() {
     if (!static_flag_ && polar_affinity_ != 1.0) {
       anchors_[0].CalculatePolarAffinity(bind_factors);
     }
+    /* Use auto-filter populated with 1's for every neighbor.
+    We already guarantee uniqueness, so we won't overcount. */
     kmc_bind.LUCalcTotProbsSD(anchors_[0].GetNeighborListMemBonds(), 
                               anchors_[0].GetNeighborListMemSites(), 
                               anchors_[0].GetBoundOID(), bind_factors); 
@@ -319,9 +319,6 @@ void Crosslink::AttachObjRandom(Object *obj) {
    * this crosslink should be new and should not be singly or doubly bound */
   if ((obj->GetType() == +obj_type::bond) || (obj->GetType() == +obj_type::site)) {
     anchors_[0].AttachObjRandom(obj);
-    //if (obj->GetType() == +obj_type::site) {
-      //Logger::Info("New xlink at pos[0] = %f, pos[1] = %f", anchors_[0].pos[0], anchors_[0].pos[1]);
-    //}
     SetMeshID(obj->GetMeshID());
     SetSingly();
   } else {

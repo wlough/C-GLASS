@@ -275,6 +275,7 @@ struct system_parameters {
   bool reload_reduce_switch = false;
   bool checkpoint_flag = false;
   int n_checkpoint = 10000;
+  bool knockout_xlink = false;
   bool no_midstep = false;
 };
 

@@ -349,7 +349,7 @@ void CrosslinkSpecies::UpdateObjectArea() {
   *obj_area_ = 0.0;
   for (auto obj = objs_->begin(); obj != objs_->end(); ++obj) {
     if ((*obj)->GetType() == +obj_type::site) {
-      *obj_area_ += (*obj)->GetArea();
+      if ((*obj)->GetNAnchored() == 0) *obj_area_ += (*obj)->GetArea();
     }
   }
 }

@@ -3,5 +3,6 @@
 
 #include "object.hpp"
 class Rod : public Object {
+  Rod(unsigned long seed);
 };
 #endif // _CGLASS_ROD_H_
