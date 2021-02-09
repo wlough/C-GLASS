@@ -28,7 +28,9 @@ public:
         nlist_rod_.push_back(dynamic_cast<Rod*>(obj));
         break;
       case shape::sphere:
-        nlist_sphere_.push_back(dynamic_cast<Sphere*>(obj));
+        if (obj->GetNAnchored() == 0) {
+          nlist_sphere_.push_back(dynamic_cast<Sphere*>(obj));
+        }
         break;
       default:
         break;

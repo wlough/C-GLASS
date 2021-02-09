@@ -32,6 +32,8 @@ private:
   double e_dep_factor_;
   double fdep_length_;
   double polar_affinity_;
+  std::map<Sphere *, std::pair<std::vector<double>, std::vector<Anchor*> > > *bound_curr_;
+  std::vector<std::string> *bind_species_;
   std::vector<Anchor> anchors_;
   void CalculateTetherForces();
   void CalculateBinding();
@@ -45,7 +47,8 @@ private:
 public:
   Crosslink(unsigned long seed);
   void Init(crosslink_parameters *sparams);
-  void InitInteractionEnvironment(LookupTable *lut, Tracker *tracker);
+  void InitInteractionEnvironment(LookupTable *lut, Tracker *tracker, 
+                                  std::map<Sphere *, std::pair<std::vector<double>, std::vector<Anchor*> > > *bound_curr);
   void AttachObjRandom(Object *obj);
   void UpdateCrosslinkForces();
   void UpdateCrosslinkPositions();
@@ -72,6 +75,7 @@ public:
   void InsertAt(double const *const new_pos, double const *const u);
   const int GetNNeighbors() const;
   void SetObjArea(double *obj_area);
+  void SetSpheresBoundCurr(double *obj_area);
   const double* const GetObjArea();
   const double *const GetPosition();
   const double *const GetOrientation();

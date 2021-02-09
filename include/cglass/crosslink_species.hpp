@@ -24,9 +24,11 @@ private:
   bool infinite_reservoir_flag_;
   double k_on_;
   bool static_flag_;
+  std::vector<std::string> bind_species_;
   Tracker *tracker_ = nullptr;
   LookupTable lut_;
   std::vector<Object *> *objs_;
+  std::map<Sphere *, std::pair<std::vector<double>, std::vector<Anchor*> > > *bound_curr_;
 
   LUTFiller *MakeLUTFiller();
   void CalculateBindingFree();
@@ -40,8 +42,10 @@ private:
 public:
   CrosslinkSpecies(unsigned long seed);
   void Init(std::string spec_name, ParamsParser &parser);
+  void LoadBindingSpecies();
   void InitInteractionEnvironment(std::vector<Object *> *objs, double *obj_len,
-                                  double *obj_area, Tracker *tracker, bool *update);
+                                  double *obj_area, Tracker *tracker, bool *update,
+                                  std::map<Sphere *, std::pair<std::vector<double>, std::vector<Anchor*> > > *bound_curr);
   void TestKMCStepSize();
   void GetInteractors(std::vector<Object *> &ixors);
   void UpdatePositions();

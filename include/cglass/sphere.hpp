@@ -4,6 +4,7 @@
 #include "object.hpp"
 
 class Sphere : public Object {
+    protected:
     public:
       Sphere(unsigned long seed);
 };

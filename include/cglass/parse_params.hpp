@@ -598,6 +598,8 @@ species_base_parameters *parse_species_params(std::string sid,
       params.spring_length = jt->second.as<double>();
       } else if (param_name.compare("spb_diameter")==0) {
       params.spb_diameter = jt->second.as<double>();
+      } else if (param_name.compare("nuc_site_insertion")==0) {
+      params.nuc_site_insertion = jt->second.as<std::string>();
       } else {
         Logger::Warning("Unrecognized %s parameter: '%s'", sid.c_str(), param_name.c_str());
       }
@@ -699,6 +701,8 @@ species_base_parameters *parse_species_params(std::string sid,
       params.r_capture = jt->second.as<double>();
       } else if (param_name.compare("lut_grid_num")==0) {
       params.lut_grid_num = jt->second.as<int>();
+      } else if (param_name.compare("bind_file")==0) {
+      params.bind_file = jt->second.as<std::string>();
       } else {
         Logger::Warning("Unrecognized %s parameter: '%s'", sid.c_str(), param_name.c_str());
       }

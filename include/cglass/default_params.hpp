@@ -112,6 +112,7 @@
   default_config["spindle"]["k_align"] = "0";
   default_config["spindle"]["spring_length"] = "0";
   default_config["spindle"]["spb_diameter"] = "5";
+  default_config["spindle"]["nuc_site_insertion"] = "random";
   default_config["crosslink"]["concentration"] = "0";
   default_config["crosslink"]["begin_with_bound_crosslinks"] = "0";
   default_config["crosslink"]["use_binding_volume"] = "true";
@@ -144,6 +145,7 @@
   default_config["crosslink"]["plus_end_pausing"] = "false";
   default_config["crosslink"]["r_capture"] = "5";
   default_config["crosslink"]["lut_grid_num"] = "256";
+  default_config["crosslink"]["bind_file"] = "none";
   default_config["receptor"]["component"] = "cortex";
   default_config["receptor"]["concentration"] = "-1";
   default_config["receptor"]["binding_analysis"] = "false";
