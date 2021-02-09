@@ -104,7 +104,7 @@ knockout_xlink: [false, bool]        # Use knockout algorithm to limit occupancy
 no_midstep: [false, bool]            # Specify the simulation is not using a mid step algorithm
 
 species:                             # Shared parameters used for all species.
-  name: [species, string]          # Label given to species (e.g. microtubule, kinesin, etc)
+  name: [species, string]            # Label given to species (e.g. microtubule, kinesin, etc)
   num: [0, int]                      # Number of members of a species at initialization.
   diameter: [1, double]              # Diameter of species, for point-like objects and greater
   length: [0, double]                # Length of species, for line-like objects and greater
@@ -284,6 +284,7 @@ spindle:
   k_align: [0, double]
   spring_length: [0, double]
   spb_diameter: [5, double]
+  nuc_site_insertion: [random, string] # Insertion type for nucleation site. random or centered_orientated
 
 crosslink:                          # Parameters specific to crosslinks.
   # crosslink insertion type can be the following:
@@ -351,8 +352,9 @@ crosslink:                          # Parameters specific to crosslinks.
                                     # Calculated using k_spring, rest_length. User input ignored.
   lut_grid_num: [256, int]          # Number of grid points used in one dimension of the the lookup table (LUT).
                                     # Total entries go as the square of this number e.g. 256 x 256
+  bind_file: [none, string]      # File of species names (with that crosslink can bind to.
 
 receptor:
   component: [cortex, string]       # The mesh object that holds receptor sites
   concentration: [-1, double]       # Number of receptors per unit area (3D) or length (2D) of component
-  binding_analysis: [false, bool]  # Post-process analysis of number of bound receptors.
+  binding_analysis: [false, bool]   # Post-process analysis of number of bound receptors.

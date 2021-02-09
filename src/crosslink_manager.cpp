@@ -24,7 +24,7 @@ void CrosslinkManager::InitSpecies(sid_label &slab, ParamsParser &parser,
   } else {
     xlink_species_.back()->InitInteractionEnvironment(objs_, &obj_length_, 
                                                       &obj_area_, tracker_,
-                                                      &update_);
+                                                      &update_, &bound_curr_);
     rcutoff_ = xlink_species_.back()->GetRCutoff();
   }
 }
@@ -35,12 +35,12 @@ void CrosslinkManager::UpdateObjsVolume() {
   obj_length_ = 0;
   obj_area_ = 0;
   for (auto it = objs_->begin(); it != objs_->end(); ++it) {
-    switch ((*it)->GetType()) {
-      case obj_type::bond:
+    switch ((*it)->GetShape()) {
+      case shape::rod:
         obj_length_ += (*it)->GetLength();
         break;
-      case obj_type::site:
-        obj_area_ += (*it)->GetArea();
+      case shape::sphere:
+        if ((*it)->GetNAnchored() == 0) obj_area_ += (*it)->GetArea();
         break;
       default:
         break;
@@ -78,6 +78,22 @@ void CrosslinkManager::UpdateCrosslinks() {
   for (auto it = xlink_species_.begin(); it != xlink_species_.end(); ++it) {
     (*it)->UpdatePositions();
   }
+  Knockout();
+}
+
+// Loop over all spheres bound in the last dt. If multiple xlinks want to bind
+// to a site, roll based on their relative probabilities, and unbind all of the
+// "losers".
+void CrosslinkManager::Knockout() {
+  for (auto it = bound_curr_.begin(); it != bound_curr_.end(); ++it) {
+    // Add an anchor now that loop over xlinks is complete (collisions have
+    // already happened in this dt).
+    it->first->IncrementNAnchored();
+    if ((it->second.first).size()>1) {
+      Logger::Error("Collision");
+    }
+  }
+  bound_curr_.clear();
 }
 
 void CrosslinkManager::InsertCrosslinks() {

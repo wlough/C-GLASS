@@ -212,7 +212,6 @@ void Anchor::Unbind() {
     Logger::Error("Static anchor attempted to unbind");
   }
   if (sphere_) sphere_->DecrementNAnchored();
-  else if (rod_) rod_->DecrementNAnchored();
   bound_ = false;
   rod_ = nullptr;
   sphere_ = nullptr;
@@ -301,7 +300,9 @@ void Anchor::AttachObjRandom(Object *o) {
       break;
     }
     case shape::sphere: {
-      if (o->GetNAnchored() > 0) return;
+      if (o->GetNAnchored() > 0) {
+        Logger::Error("Xlink tried to bind to already occupied sphere!");
+      }
       *obj_area_ -= o->GetArea();
       AttachObjCenter(o);
       break;
@@ -361,7 +362,7 @@ void Anchor::AttachObjCenter(Object *o) {
   o->IncrementNAnchored();
   if (o->GetShape() != +shape::sphere) {
     Logger::Error(
-        "Crosslink binding to non-site objects not implemented in "
+        "Crosslink binding to non-sphere objects not implemented in "
         "AttachObjCenter.");
   }
   sphere_ = dynamic_cast<Sphere *>(o);

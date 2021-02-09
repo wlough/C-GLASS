@@ -51,6 +51,7 @@ protected:
   int n_anchored_;
   bool interactor_update_;
 
+
   std::vector<Object *> interactors_;
   std::vector<object_interaction> ixs_;
   void UpdateKMC();
@@ -160,8 +161,6 @@ public:
   virtual void GetInteractions(std::vector<object_interaction> &ixs);
   virtual void ClearInteractions();
   virtual void Cleanup();
-  // virtual void BindAnchor(anchor *ix);
-  // virtual void UnbindAnchor();
 
   // I/O functions
   virtual void Report();

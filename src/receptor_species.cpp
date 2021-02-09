@@ -41,7 +41,7 @@ void ReceptorSpecies::AddMember() {
   double pos[3];
   double u[3] = {1,0,0};
   if (sparams_.component.compare("cortex") == 0) {
-    rng_.RandomBoundaryCoordinate(space_, pos);
+   rng_.RandomBoundaryCoordinate(space_, pos);
   } else {
     Logger::Error("Receptors on species not yet implemented in Receptor::Set"
                   "Component");

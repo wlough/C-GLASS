@@ -38,9 +38,11 @@ void Crosslink::Init(crosslink_parameters *sparams) {
                 anchors_[0].GetOID(), anchors_[1].GetOID());
 }
 
-void Crosslink::InitInteractionEnvironment(LookupTable *lut, Tracker *tracker) { 
+void Crosslink::InitInteractionEnvironment(LookupTable *lut, Tracker *tracker, 
+                                           std::map<Sphere *, std::pair<std::vector<double>, std::vector<Anchor*> > > *bound_curr) { 
   lut_ = lut;
   tracker_ = tracker;
+  bound_curr_ = bound_curr;
 }
 
 /* Function used to set anchor[0] position etc to xlink position etc */
@@ -123,41 +125,33 @@ void Crosslink::SinglyKMC() {
       Logger::Error("kmc_bind.whichRodBindSD in Crosslink::SinglyKMC"
                     " returned an invalid result!");
     }
-    // i_bind is index in concatenated rods/spheres vector 
-    Object *bind_obj;
     if (i_bind < n_neighbors_rod) {
-      bind_obj = anchors_[0].GetRodNeighbor(i_bind);
-    } else {
-      bind_obj = anchors_[0].GetSphereNeighbor(i_bind - n_neighbors_rod);
-    }
-
-    switch (bind_obj->GetShape()) {
-      case shape::sphere: {
-        anchors_[1].AttachObjCenter(bind_obj);
-        SetDoubly();
-        break;
+      Rod *bind_obj = anchors_[0].GetRodNeighbor(i_bind);
+      double obj_length = bind_obj->GetLength();
+      /* KMC returns bind_lambda to be with respect to center of rod. We want 
+      it to be specified from the tail of the rod to be consistent */
+      bind_lambda += 0.5 * obj_length;
+      /* KMC can return values that deviate a very small amount from the true 
+      rod length. Bind to ends if lambda < 0 or lambda > bond_length. */
+      if (bind_lambda > obj_length) {
+        bind_lambda = obj_length;
+      } else if (bind_lambda < 0) {
+        bind_lambda = 0;
       }
-      case shape::rod: {
-        double obj_length = bind_obj->GetLength();
-        /* KMC returns bind_lambda to be with respect to center of rod. We want 
-        it to be specified from the tail of the rod to be consistent */
-        bind_lambda += 0.5 * obj_length;
-        /* KMC can return values that deviate a very small amount from the true 
-        rod length. Bind to ends if lambda < 0 or lambda > bond_length. */
-        if (bind_lambda > obj_length) {
-          bind_lambda = obj_length;
-        } else if (bind_lambda < 0) {
-          bind_lambda = 0;
-        }
-        anchors_[1].AttachObjLambda(bind_obj, bind_lambda);
-        SetDoubly();
-        break;
-      }
-      default:
-        Logger::Error("Crosslink attempted to doubly bind to generic object");
-    }
-    Logger::Trace("Crosslink %d became doubly bound to obj %d", GetOID(),
+      anchors_[1].AttachObjLambda(bind_obj, bind_lambda);
+      SetDoubly();
+      Logger::Trace("Crosslink %d became doubly bound to obj %d", GetOID(),
                   bind_obj->GetOID());
+    } else {
+      Sphere *bind_obj = anchors_[0].GetSphereNeighbor(i_bind - n_neighbors_rod);
+      (*bound_curr_)[bind_obj].first.push_back(kmc_bind.getProb(i_bind));
+      (*bound_curr_)[bind_obj].second.push_back(&anchors_[1]);
+      anchors_[1].AttachObjCenter(bind_obj);
+      bind_obj->DecrementNAnchored(); // For knockout loop- allow collisions
+      SetDoubly();
+      Logger::Trace("Crosslink %d became doubly bound to obj %d", GetOID(),
+                  bind_obj->GetOID());
+    }
   }
 }
 
@@ -193,8 +187,9 @@ void Crosslink::DoublyKMC() {
     tracker_->UnbindDS();
     Logger::Trace("Doubly-bound crosslink %d came unbound from %d", GetOID(),
                   anchors_[0].GetBoundOID());
+    Anchor temp = anchors_[0];
     anchors_[0] = anchors_[1];
-    anchors_[1].Unbind();
+    anchors_[1] = temp;
     SetSingly();
   } else if (head_activate == 1) {
     // Track unbinding
@@ -252,6 +247,7 @@ void Crosslink::UpdateCrosslinkForces() {
 }
 
 void Crosslink::UpdateCrosslinkPositions() {
+  // Richelle- separate out the binding so that we do knockout loop FIRST
   /* Have anchors diffuse/walk along mesh */
   UpdateAnchorPositions();
   /* Check if an anchor became unbound do to diffusion, etc */
@@ -270,8 +266,9 @@ void Crosslink::UpdateXlinkState() {
   if (IsDoubly() && !anchors_[1].IsBound()) {
     SetSingly();
   } else if (IsDoubly() && !anchors_[0].IsBound()) {
+    Anchor temp = anchors_[0];
     anchors_[0] = anchors_[1];
-    anchors_[1].Unbind();
+    anchors_[1] = temp;
     SetSingly();
   }
   if (IsSingly() && anchors_[1].IsBound()) {

@@ -21,6 +21,13 @@ void BrRod::InsertRod(std::string insertion_type, double buffer) {
     std::fill(position_, position_ + 3, 0.0);
     std::fill(orientation_, orientation_ + 3, 0.0);
     orientation_[n_dim_ - 1] = 1.0;
+  } else if (insertion_type.compare("random_angled") == 0) {
+    position_[0]=30*cos(40*M_PI/180)-30;
+    position_[1]=30*sin(40*M_PI/180);
+    position_[2]=0;
+    orientation_[0]=-cos(40*M_PI/180);
+    orientation_[1]=-sin(40*M_PI/180);
+    orientation_[2]=0;
   } else {
     Logger::Error("BrRod insertion type not recognized!");
   }

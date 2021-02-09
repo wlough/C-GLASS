@@ -14,19 +14,24 @@ void CrosslinkSpecies::Init(std::string spec_name, ParamsParser &parser) {
   sparams_.num = (int)round(sparams_.concentration * space_->volume);
 }
 
+void CrosslinkSpecies::LoadBindingSpecies() {
+  YAML::Node node = YAML::LoadFile(sparams_.bind_file);
+}
 void CrosslinkSpecies::AddMember() {
   Species::AddMember();
-  members_.back().InitInteractionEnvironment(&lut_, tracker_);
+  members_.back().InitInteractionEnvironment(&lut_, tracker_, bound_curr_);
   members_.back().SetObjArea(obj_area_);
   *update_ = true;
 }
 
 void CrosslinkSpecies::InitInteractionEnvironment(std::vector<Object *> *objs,
                                                   double *obj_len, double *obj_area,
-                                                  Tracker *tracker, bool *update) {
+                                                  Tracker *tracker, bool *update,
+                       std::map<Sphere *, std::pair<std::vector<double>, std::vector<Anchor*> > > *bound_curr) {
   objs_ = objs;
   obj_length_ = obj_len;
   obj_area_ = obj_area;
+  bound_curr_ = bound_curr;
   update_ = update;
   tracker_ = tracker;
   LUTFiller *lut_filler_ptr = MakeLUTFiller();
@@ -209,7 +214,7 @@ void CrosslinkSpecies::InsertAttachedCrosslinksSpecies() {
   }
   Crosslink xlink(rng_.GetSeed());
   xlink.Init(&sparams_);
-  xlink.InitInteractionEnvironment(&lut_, tracker_);
+  xlink.InitInteractionEnvironment(&lut_, tracker_, bound_curr_);
   xlink.SetSID(GetSID());
   members_.resize(begin_with_bound_crosslinks_, xlink);
   UpdateBoundCrosslinks();
@@ -281,8 +286,9 @@ Object *CrosslinkSpecies::GetRandomObject(shape sh) {
           vol += (*obj)->GetLength();
           break;
         case shape::sphere:
-          // spheres only hold one anchor RICHELLE FIX
-          vol += (*obj)->GetArea();
+          if ((*obj)->GetNAnchored()==0) {
+            vol += (*obj)->GetArea();
+          }
           break;
         default:
           Logger::Error("Binding to object type %s not yet implemented in " 
@@ -532,7 +538,7 @@ void CrosslinkSpecies::ReadSpecs() {
   } else if (n_members_ != members_.size()) {
     Crosslink xlink(rng_.GetSeed());
     xlink.Init(&sparams_);
-    xlink.InitInteractionEnvironment(&lut_, tracker_);
+    xlink.InitInteractionEnvironment(&lut_, tracker_, bound_curr_);
     xlink.SetSID(GetSID());
     members_.resize(n_members_, xlink);
   }
