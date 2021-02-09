@@ -140,11 +140,16 @@ void Object::ZeroPolarOrder() {
   polar_order_ = 0;
 }
 void Object::SetInteractor(bool ix) { interacting_ = ix; }
-void Object::IncrementNAnchored() { n_anchored_++; }
+void Object::IncrementNAnchored() { 
+  n_anchored_++;
+  if (n_anchored_ > 1) {
+    Logger::Error("n_anchored_ should not be >1");
+  } 
+}
 void Object::DecrementNAnchored() { 
   n_anchored_--;
   if (n_anchored_ < 0) {
-    Logger::Error("Should not be <0");
+    Logger::Error("n_anchored_ should not be <0");
   }
 }
 double const *const Object::GetPosition() { return position_; }

@@ -315,7 +315,6 @@ void Anchor::AttachObjRandom(Object *o) {
 }
     
 void Anchor::AttachObjLambda(Object *o, double lambda) {
-  o->IncrementNAnchored();
   if (o->GetShape() != +shape::rod) {
     Logger::Error(
         "Crosslink binding to %s objects not implemented in "
@@ -388,7 +387,6 @@ void Anchor::AttachObjCenter(Object *o) {
 }
 
 void Anchor::AttachObjMeshLambda(Object *o, double mesh_lambda) {
-  o->IncrementNAnchored();
   if (o->GetShape() != +shape::rod) {
     Logger::Error(
         "Crosslink binding to non-rod objects not allowed in "
