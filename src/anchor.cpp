@@ -225,7 +225,7 @@ void Anchor::Unbind() {
   active_ = false;
   ClearNeighbors();
   ZeroForce();
-  SetMeshID(-1);
+  SetCompID(-1);
   std::fill(position_, position_ + 3, 0.0);
   std::fill(orientation_, orientation_ + 3, 0.0);
 }
@@ -349,7 +349,7 @@ void Anchor::AttachObjLambda(Object *o, double lambda) {
 
   /* Distance anchor is relative to entire mesh length */
   mesh_lambda_ = bond_->GetMeshLambda() + bond_lambda_;
-  SetMeshID(rod_->GetMeshID());
+  SetCompID(rod_->GetCompID());
   UpdateAnchorPositionToRod();
   ZeroDrTot();
   bound_ = true;
@@ -378,7 +378,7 @@ void Anchor::AttachObjCenter(Object *o) {
   }
 
   mesh_lambda_ = -1; // not used for sites
-  SetMeshID(sphere_->GetMeshID());
+  SetCompID(sphere_->GetCompID());
   std::copy(sphere_->GetPosition(), sphere_->GetPosition() + 3, position_); 
   std::copy(sphere_->GetOrientation(), sphere_->GetOrientation() + 3, orientation_);
   UpdatePeriodic();
@@ -417,7 +417,7 @@ void Anchor::AttachObjMeshLambda(Object *o, double mesh_lambda) {
         "Updating anchor to mesh from checkpoint resulted in an unbound "
         "anchor");
   }
-  SetMeshID(rod_->GetMeshID());
+  SetCompID(rod_->GetCompID());
   ZeroDrTot();
 }
 
@@ -443,7 +443,7 @@ void Anchor::AttachObjMeshCenter(Object *o) {
   bound_ = true;
   bond_lambda_ = 0;
   mesh_n_bonds_ = -1;
-  SetMeshID(sphere_->GetMeshID());
+  SetCompID(sphere_->GetCompID());
   ZeroDrTot();
 }
 
@@ -518,14 +518,14 @@ void Anchor::WriteSpec(std::fstream &ospec) {
 void Anchor::WriteSpecTextHeader(std::fstream &otext) {
   otext << "bound active static_flag position[0] position[1] position[2] "
         << "orientation[0] orientation[1] orientation[2] mesh_lambda "
-        << "mesh_id" << std::endl;
+        << "comp_id" << std::endl;
 }
 
 void Anchor::ConvertSpec(std::fstream &ispec, std::fstream &otext) {
   bool bound, active, static_flag;
   double position[3], orientation[3];
   double mesh_lambda;
-  int mesh_id;
+  int comp_id;
   if (ispec.eof())
     return;
   ispec.read(reinterpret_cast<char *>(&bound), sizeof(bool));
@@ -538,10 +538,10 @@ void Anchor::ConvertSpec(std::fstream &ispec, std::fstream &otext) {
     ispec.read(reinterpret_cast<char *>(&orientation[i]), sizeof(double));
   }
   ispec.read(reinterpret_cast<char *>(&mesh_lambda), sizeof(double));
-  ispec.read(reinterpret_cast<char *>(&mesh_id), sizeof(int));
+  ispec.read(reinterpret_cast<char *>(&comp_id), sizeof(int));
   otext << bound << " " << active << " " << static_flag << " " << position[0] << " " 
         << position[1] << " " << position[2] << " " << orientation[0] << " " << orientation[1] 
-        << " " << orientation[2] << " " << mesh_lambda << " " << mesh_id << std::endl;
+        << " " << orientation[2] << " " << mesh_lambda << " " << comp_id << std::endl;
 }
 
 void Anchor::ReadSpec(std::fstream &ispec) {

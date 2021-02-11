@@ -247,7 +247,6 @@ void Crosslink::UpdateCrosslinkForces() {
 }
 
 void Crosslink::UpdateCrosslinkPositions() {
-  // Richelle- separate out the binding so that we do knockout loop FIRST
   /* Have anchors diffuse/walk along mesh */
   UpdateAnchorPositions();
   /* Check if an anchor became unbound do to diffusion, etc */
@@ -316,7 +315,7 @@ void Crosslink::AttachObjRandom(Object *obj) {
    * this crosslink should be new and should not be singly or doubly bound */
   if ((obj->GetShape() == +shape::rod) || (obj->GetShape() == +shape::sphere)) {
     anchors_[0].AttachObjRandom(obj);
-    SetMeshID(obj->GetMeshID());
+    SetCompID(obj->GetCompID());
     SetSingly();
   } else {
     Logger::Error("Crosslink binding to %s shaped objects not yet implemented.", obj->GetShape()._to_string());
@@ -455,11 +454,11 @@ void Crosslink::ReadCheckpoint(std::fstream &icheck) {
   Object::ReadCheckpoint(icheck);
   anchors_[0].ReadCheckpointHeader(icheck);
   anchors_[1].ReadCheckpointHeader(icheck);
-  Logger::Trace("Reloading anchor from checkpoint with mid %d",
-                anchors_[0].GetMeshID());
+  Logger::Trace("Reloading anchor from checkpoint with cid %d",
+                anchors_[0].GetCompID());
   if (IsDoubly()) {
-    Logger::Trace("Reloading anchor from checkpoint with mid %d",
-                  anchors_[1].GetMeshID());
+    Logger::Trace("Reloading anchor from checkpoint with cid %d",
+                  anchors_[1].GetCompID());
   }
 }
 

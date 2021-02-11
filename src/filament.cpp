@@ -170,9 +170,9 @@ void Filament::InitFilamentLength() {
     n_bonds_max_ = n_bonds_;
   }
 
-  Logger::Trace("Filament initialized with length %2.2f with %d bonds, mesh_id:"
+  Logger::Trace("Filament initialized with length %2.2f with %d bonds, comp_id:"
                 " %d",
-                length_, n_bonds_, GetMeshID());
+                length_, n_bonds_, GetCompID());
   true_length_ = length_;
   if (flexure_number_ >= 0) {
     peclet_number_ = flexure_number_ * bending_stiffness_ / length_;

@@ -136,11 +136,11 @@ void InteractionManager::UpdateInteractors() {
 }
 
 /* Checks whether or not the given anchor is supposed to be attached to the
-   given bond by checking mesh_id of both the bond and the anchor. If they
+   given bond by checking comp_id of both the bond and the anchor. If they
    match, the anchor is attached to the mesh using the anchor mesh_lambda */
 bool InteractionManager::CheckBondAnchorPair(Object *anchor, Object *bond) {
-  // Check that the bond and anchor share a mesh_id
-  if (anchor->GetMeshID() == bond->GetMeshID()) {
+  // Check that the bond and anchor share a comp_id
+  if (anchor->GetCompID() == bond->GetCompID()) {
     Anchor *a = dynamic_cast<Anchor *>(anchor);
     if (a == nullptr) {
       Logger::Error("Object pointer was unsuccessfully dynamically cast to an "
@@ -161,11 +161,11 @@ bool InteractionManager::CheckBondAnchorPair(Object *anchor, Object *bond) {
 }
 
 /* Checks whether or not the given anchor is supposed to be attached to the
-   given site by checking mesh_id of both the site and the anchor. If they
+   given site by checking comp_id of both the site and the anchor. If they
    match, the anchor is attached to the mesh using the anchor mesh_lambda */
 bool InteractionManager::CheckSiteAnchorPair(Object *anchor, Object *site) {
-  // Check that the site and anchor share a mesh_id
-  if (anchor->GetMeshID() == site->GetMeshID()) {
+  // Check that the site and anchor share a comp_id
+  if (anchor->GetCompID() == site->GetCompID()) {
     Anchor *a = dynamic_cast<Anchor *>(anchor);
     if (a == nullptr) {
       Logger::Error("Object pointer was unsuccessfully dynamically cast to an "
@@ -407,9 +407,9 @@ void InteractionManager::ProcessPairInteraction(ix_iterator ix) {
     return;
   }
 
-  // Check that object 1 is part of a mesh, in which case...
-  // ...check that object 1 is of the same mesh of object 2, in which case...
-  if (obj1->GetMeshID() > 0 && obj1->GetMeshID() == obj2->GetMeshID()) {
+  // Check that object 1 is part of a comp, in which case...
+  // ...check that object 1 is of the same comp of object 2, in which case...
+  if (obj1->GetCompID() > 0 && obj1->GetCompID() == obj2->GetCompID()) {
     // ..check if object 1 or object 2 are crosslinks, in which case: do not
     // interact
     if (obj1->GetSID() == +species_id::crosslink ||

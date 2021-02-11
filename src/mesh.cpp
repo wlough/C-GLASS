@@ -3,18 +3,10 @@
 /**************************
 ** Mesh member functions **
 **************************/
-int Mesh::_next_mesh_id_ = 0;
-std::mutex Mesh::_mesh_mtx_;
 
 Mesh::Mesh(unsigned long seed) : Composite(seed) {
-  InitMeshID();
   is_mesh_ = true;
   comp_type_ = comp_type::mesh;
-}
-
-void Mesh::InitMeshID() {
-  std::lock_guard<std::mutex> lk(_mesh_mtx_);
-  SetMeshID(++_next_mesh_id_);
 }
 
 void Mesh::Reserve() {
@@ -33,7 +25,7 @@ void Mesh::AddSite(Site s) {
   }
   sites_.push_back(s);
   sites_.back().SetColor(color_, draw_);
-  sites_.back().SetMeshID(GetMeshID());
+  sites_.back().SetCompID(GetCompID());
   sites_.back().SetMeshPtr(this);
   n_sites_++;
   Logger::Trace("Added site number %d, id: %d", n_sites_,
@@ -43,7 +35,7 @@ void Mesh::AddSite(Site s) {
 void Mesh::AddSitePtr(Site *s) {
   site_ptrs_.push_back(s);
   site_ptrs_.back()->SetColor(color_, draw_);
-  site_ptrs_.back()->SetMeshID(GetMeshID());
+  site_ptrs_.back()->SetCompID(GetCompID());
   site_ptrs_.back()->SetMeshPtr(this);
   n_sites_++;
   Logger::Trace("Added site number %d, id: %d", n_sites_,
@@ -63,7 +55,7 @@ void Mesh::AddBond(Site *site1, Site *site2) {
   Bond b(rng_.GetSeed());
   bonds_.push_back(b);
   bonds_.back().SetColor(color_, draw_);
-  bonds_.back().SetMeshID(GetMeshID());
+  bonds_.back().SetCompID(GetCompID());
   bonds_.back().SetSID(GetSID());
   bonds_.back().SetMeshPtr(this);
   bonds_.back().SetBondNumber(n_bonds_);
@@ -109,7 +101,7 @@ void Mesh::RemoveBondFromTip() {
 void Mesh::DoubleGranularityLinear() {
   Logger::Trace("Mesh %d doubling bonds for dynamic instability, n_bonds: %d ->"
                 " %d, bond_length: %2.2f -> %2.2f",
-                GetMeshID(), n_bonds_, 2 * n_bonds_, bond_length_,
+                GetCompID(), n_bonds_, 2 * n_bonds_, bond_length_,
                 0.5 * bond_length_);
   int n_bonds_old = n_bonds_;
   bond_length_ /= 2;
@@ -140,7 +132,7 @@ void Mesh::HalfGranularityLinear() {
   }
   Logger::Trace("Mesh %d halving bonds for dynamic instability, n_bonds: %d ->"
                 " %d, bond_length: %2.2f -> %2.2f",
-                GetMeshID(), n_bonds_, n_bonds_ / 2, bond_length_,
+                GetCompID(), n_bonds_, n_bonds_ / 2, bond_length_,
                 2 * bond_length_);
 
   int n_bonds_new = n_bonds_ / 2;
@@ -199,7 +191,7 @@ void Mesh::UpdatePrevPositions() {
 }
 
 void Mesh::InitSiteAt(double *new_pos, double d) {
-  Logger::Trace("Mesh %d inserting site at [%2.2f %2.2f %2.2f]", GetMeshID(),
+  Logger::Trace("Mesh %d inserting site at [%2.2f %2.2f %2.2f]", GetCompID(),
                 new_pos[0], new_pos[1], new_pos[2]);
   Site s(rng_.GetSeed());
   s.SetPosition(new_pos);
@@ -512,7 +504,7 @@ void Mesh::ReadSpec(std::fstream &ip) {
    double[3*n_sites] site_positions
    */
 void Mesh::WriteSpec(std::fstream &op) {
-  Logger::Trace("Writing specs for mesh id %d", GetMeshID());
+  Logger::Trace("Writing specs for mesh id %d", GetCompID());
   op.write(reinterpret_cast<char *>(&diameter_), sizeof(diameter_));
   op.write(reinterpret_cast<char *>(&length_), sizeof(length_));
   op.write(reinterpret_cast<char *>(&bond_length_), sizeof(bond_length_));
@@ -550,7 +542,7 @@ void Mesh::ReadCheckpoint(std::fstream &ip) {
   for (auto it = bonds_.begin(); it != bonds_.end(); ++it) {
     it->ReadCheckpointHeader(ip);
   }
-  Logger::Trace("Reloaded mesh from checkpoint with mid %d", GetMeshID());
+  Logger::Trace("Reloaded mesh from checkpoint with cid %d", GetCompID());
 }
 
 void Mesh::WriteCheckpoint(std::fstream &op) {
@@ -736,7 +728,7 @@ const double Mesh::GetLambdaAtBond(int bond_oid) {
     }
     lambda += it->GetLength();
   }
-  Logger::Error("Mesh %d could not find bond with OID %d", GetMeshID(),
+  Logger::Error("Mesh %d could not find bond with OID %d", GetCompID(),
                 bond_oid);
   return -1;
 }

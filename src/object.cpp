@@ -25,7 +25,6 @@ Object::Object(unsigned long seed) : rng_(seed) {
   interacting_ = true;
   is_mesh_ = false;
   dr_tot_ = 0;
-  mesh_id_ = 0;
   polar_order_ = 0;
   contact_number_ = 0;
   n_contact_ = 0;
@@ -113,7 +112,7 @@ void Object::CalcPolarOrder() {
   contact_number_ = 0;
   for (auto ix = ixs_.begin(); ix != ixs_.end(); ++ix) {
     // Ignore intrafilament bonds
-    if (ix->first->obj1->GetMeshID() == ix->first->obj2->GetMeshID())
+    if (ix->first->obj1->GetCompID() == ix->first->obj2->GetCompID())
       continue;
     // if (ix->first->pause_interaction)
     // continue;
@@ -175,9 +174,8 @@ bool const Object::CheckInteractorUpdate() {
 }
 void Object::HasOverlap(bool overlap) { has_overlap_ = overlap; }
 int const Object::GetNAnchored() { return n_anchored_; }
-int const Object::GetMeshID() const { return mesh_id_; }
 int const Object::GetCompID() const { return comp_id_; }
-void Object::SetMeshID(int mid) { mesh_id_ = mid; }
+void Object::SetCompID(int cid) { comp_id_ = cid; }
 void Object::SetOID(int oid) { oid_ = oid; }
 void Object::ToggleIsMesh() { is_mesh_ = !is_mesh_; }
 shape const Object::GetShape() { return shape_; }
@@ -378,13 +376,13 @@ void Object::ApplyInteractions() {
 void Object::FlagDuplicateInteractions() {
   int n_interactions = ixs_.size();
   for (int i = 0; i < n_interactions - 1; ++i) {
-    int other_mid = ixs_[i].second ? ixs_[i].first->obj1->GetMeshID()
-                                   : ixs_[i].first->obj2->GetMeshID();
+    int other_cid = ixs_[i].second ? ixs_[i].first->obj1->GetCompID()
+                                   : ixs_[i].first->obj2->GetCompID();
     for (int j = i + 1; j < n_interactions; ++j) {
-      int other_mid2 = ixs_[j].second ? ixs_[j].first->obj1->GetMeshID()
-                                      : ixs_[j].first->obj2->GetMeshID();
+      int other_cid2 = ixs_[j].second ? ixs_[j].first->obj1->GetCompID()
+                                      : ixs_[j].first->obj2->GetCompID();
 
-      if (other_mid == other_mid2) {
+      if (other_cid == other_cid2) {
         if (ixs_[i].first->dr_mag2 < ixs_[j].first->dr_mag2) {
           ixs_[j].first->pause_interaction = true;
         } else {
@@ -411,9 +409,9 @@ void Object::WriteCheckpointHeader(std::fstream &ocheck) {
   void *rng_state = rng_.GetState();
   size_t rng_size = rng_.GetSize();
   int oid = GetOID();
-  int mid = GetMeshID();
+  int cid = GetCompID();
   ocheck.write(reinterpret_cast<char *>(&oid), sizeof(int));
-  ocheck.write(reinterpret_cast<char *>(&mid), sizeof(int));
+  ocheck.write(reinterpret_cast<char *>(&cid), sizeof(int));
   ocheck.write(reinterpret_cast<char *>(&rng_size), sizeof(size_t));
   ocheck.write(reinterpret_cast<char *>(rng_state), rng_size);
 }
@@ -429,13 +427,13 @@ void Object::ReadCheckpointHeader(std::fstream &icheck) {
   void *rng_state = rng_.GetState();
   size_t rng_size;
   int oid;
-  int mid;
+  int cid;
   icheck.read(reinterpret_cast<char *>(&oid), sizeof(int));
-  icheck.read(reinterpret_cast<char *>(&mid), sizeof(int));
+  icheck.read(reinterpret_cast<char *>(&cid), sizeof(int));
   icheck.read(reinterpret_cast<char *>(&rng_size), sizeof(size_t));
   icheck.read(reinterpret_cast<char *>(rng_state), rng_size);
   SetOID(oid);
-  SetMeshID(mid);
+  SetCompID(cid);
 }
 
 void Object::WritePosit(std::fstream &oposit) {
