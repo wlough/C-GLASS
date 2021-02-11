@@ -9,7 +9,6 @@
 class Object {
 private:
   int oid_;
-  int mesh_id_;
   int comp_id_;
   static int _next_oid_;
   static std::mutex _obj_mtx_;
@@ -105,7 +104,6 @@ public:
   shape const GetShape();
   const int GetOID() const;
   const int GetCompID() const;
-  const int GetMeshID() const;
   const double *const GetPosition();
   const double *const GetPrevPosition();
   const double *const GetPrevOrientation();
@@ -127,7 +125,7 @@ public:
   const bool CheckInteractorUpdate();
   void HasOverlap(bool overlap);
   void SetOID(int oid);
-  void SetMeshID(int mid);
+  void SetCompID(int cid);
 
   // Virtual functions
   virtual void Init(species_base_parameters *sparams) {}

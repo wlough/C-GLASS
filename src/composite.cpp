@@ -10,5 +10,5 @@ Composite::Composite(unsigned long seed) : Object(seed) {
 }
 void Composite::InitCompID() {
   std::lock_guard<std::mutex> lk(_comp_mtx_);
-  SetMeshID(++_next_comp_id_);
+  SetCompID(++_next_comp_id_);
 }
