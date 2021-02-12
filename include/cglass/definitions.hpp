@@ -24,7 +24,7 @@ BETTER_ENUM(poly_state, unsigned char, grow, shrink, pause);  // make these 0,
                                                               // 1, 2 explicitly
 BETTER_ENUM(bind_state, unsigned char, unbound, singly, doubly);
 BETTER_ENUM(obj_type, unsigned char, generic, bond, site, cortex);
-BETTER_ENUM(comp_type, unsigned char, generic, not_comp, mesh);
+BETTER_ENUM(comp_type, unsigned char, generic, mesh, point_cover, not_comp);
 BETTER_ENUM(shape, unsigned char, sphere, rod, generic)
 
 struct graph_struct {

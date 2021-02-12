@@ -126,6 +126,7 @@ public:
   void HasOverlap(bool overlap);
   void SetOID(int oid);
   void SetCompID(int cid);
+  void SetCompPtr(Object* comp);
 
   // Virtual functions
   virtual void Init(species_base_parameters *sparams) {}

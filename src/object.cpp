@@ -176,6 +176,7 @@ void Object::HasOverlap(bool overlap) { has_overlap_ = overlap; }
 int const Object::GetNAnchored() { return n_anchored_; }
 int const Object::GetCompID() const { return comp_id_; }
 void Object::SetCompID(int cid) { comp_id_ = cid; }
+void Object::SetCompPtr(Object* comp) { comp_ptr_ = comp; }
 void Object::SetOID(int oid) { oid_ = oid; }
 void Object::ToggleIsMesh() { is_mesh_ = !is_mesh_; }
 shape const Object::GetShape() { return shape_; }
