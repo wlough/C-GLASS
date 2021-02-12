@@ -1,6 +1,6 @@
 #include "cglass/receptor.hpp"
 
-Receptor::Receptor(unsigned long seed) : Site(seed) {
+Receptor::Receptor(unsigned long seed) : Sphere(seed) {
   SetSID(species_id::receptor);
 }
 
