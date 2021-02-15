@@ -372,9 +372,11 @@ void Anchor::AttachObjCenter(Object *o) {
   if (comp_ == nullptr) {
     Logger::Error("Object ptr passed to anchor was not referencing a composite!");
   }
-  if (comp_->GetCompType() == +comp_type::mesh) mesh_ = dynamic_cast<Mesh *>(sphere_->GetCompPtr());
-  if (mesh_ == nullptr) {
-    Logger::Error("Object ptr passed to anchor was not referencing a mesh!");
+  if (comp_->GetCompType() == +comp_type::mesh) {
+    mesh_ = dynamic_cast<Mesh *>(sphere_->GetCompPtr());
+    if (mesh_ == nullptr) {
+      Logger::Error("Object ptr passed to anchor was not referencing a mesh!");
+    }
   }
 
   mesh_lambda_ = -1; // not used for sites
@@ -402,9 +404,11 @@ void Anchor::AttachObjMeshLambda(Object *o, double mesh_lambda) {
   if (comp_ == nullptr) {
     Logger::Error("Object ptr passed to anchor was not referencing a composite!");
   }
-  if (comp_->GetCompType() == +comp_type::mesh) mesh_ = dynamic_cast<Mesh *>(rod_->GetCompPtr());
-  if (mesh_ == nullptr) {
-    Logger::Error("Object ptr passed to anchor was not referencing a mesh!");
+  if (comp_->GetCompType() == +comp_type::mesh) {
+    mesh_ = dynamic_cast<Mesh *>(rod_->GetCompPtr());
+    if (mesh_ == nullptr) {
+      Logger::Error("Object ptr passed to anchor was not referencing a mesh!");
+    }
   }
   Logger::Trace("Attaching anchor %d to comp %d", GetOID(), comp_->GetCompID());
 
@@ -436,7 +440,12 @@ void Anchor::AttachObjMeshCenter(Object *o) {
   if (comp_ == nullptr) {
     Logger::Error("Object ptr passed to anchor was not referencing a composite!");
   }
-  if (comp_->GetCompType() == +comp_type::mesh) mesh_ = dynamic_cast<Mesh *>(sphere_->GetCompPtr());
+  if (comp_->GetCompType() == +comp_type::mesh) {
+    mesh_ = dynamic_cast<Mesh *>(sphere_->GetCompPtr());
+    if (mesh_ == nullptr) {
+      Logger::Error("Object ptr passed to anchor was not referencing a mesh!");
+    }
+  }
   
   Logger::Trace("Attaching anchor %d to comp %d", GetOID(), comp_->GetCompID());
 

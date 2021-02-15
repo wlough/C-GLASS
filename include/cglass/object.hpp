@@ -22,7 +22,7 @@ protected:
   static double delta_;
   species_id sid_;
   obj_type type_ = obj_type::generic;
-  comp_type comp_type_ = comp_type::not_comp;
+  comp_type comp_type_ = comp_type::generic;
   shape shape_ = shape::generic;
   graph_struct g_;
   RNG rng_;
