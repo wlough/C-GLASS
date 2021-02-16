@@ -16,7 +16,7 @@ class Anchor : public Object {
   crosslink_parameters *sparams_;
   int step_direction_;
 
-  double bond_length_;
+  double rod_length_;
   double bond_lambda_;
   double mesh_length_;
   double mesh_lambda_;
@@ -40,19 +40,23 @@ class Anchor : public Object {
 
   NeighborList neighbors_;
 
+  Rod *rod_ = nullptr;
+  Sphere *sphere_ = nullptr;
+  Composite *comp_ = nullptr;
+
+  // Retain these for walking behaviors
   Bond *bond_ = nullptr;
-  Site *site_ = nullptr;
   Mesh *mesh_ = nullptr;
 
   double *obj_area_ = nullptr;
 
   int mesh_n_bonds_;
 
-  void UpdateAnchorPositionToBond();
+  void UpdateAnchorPositionToRod();
   void Diffuse();
   void Walk();
   bool CheckMesh();
-  bool CalcBondLambda();
+  bool CalcRodLambda();
 
  public:
   Anchor(unsigned long seed);
@@ -70,7 +74,7 @@ class Anchor : public Object {
   void AttachObjMeshLambda(Object *o, double mesh_lambda);
   void AttachObjMeshCenter(Object *o);
   void CalculatePolarAffinity(std::vector<double> &doubly_binding_rates);
-  void SetBondLambda(double l);
+  void SetRodLambda(double l);
   void SetMeshLambda(double ml);
   void SetBound();
   void Unbind();
@@ -79,8 +83,8 @@ class Anchor : public Object {
   void AddNeighbor(Object *neighbor);
   void ClearNeighbors();
   const Object *const *GetNeighborListMem();
-  const std::vector<Bond*>& GetNeighborListMemBonds();
-  const std::vector<Site*>& GetNeighborListMemSites();
+  const std::vector<Rod*>& GetNeighborListMemRods();
+  const std::vector<Sphere*>& GetNeighborListMemSpheres();
   void WriteSpec(std::fstream &ospec);
   void ReadSpec(std::fstream &ispec);
   void BindToPosition(double *bind_pos);
@@ -90,11 +94,11 @@ class Anchor : public Object {
   double const GetMeshLambda();
   double const GetBondLambda();
   Object *GetNeighbor(int i_neighbor);
-  Site *GetSiteNeighbor(int i_neighbor);
-  Bond *GetBondNeighbor(int i_neighbor);
+  Sphere *GetSphereNeighbor(int i_neighbor);
+  Rod *GetRodNeighbor(int i_neighbor);
   const int GetNNeighbors() const;
-  const int GetNNeighborsSite() const;
-  const int GetNNeighborsBond() const;
+  const int GetNNeighborsSphere() const;
+  const int GetNNeighborsRod() const;
   const double GetOnRate() const;
   const double GetOffRate() const;
   const double GetMaxVelocity() const;

@@ -151,6 +151,7 @@ struct species_parameters<species_id::spindle>
   double k_align = 0;
   double spring_length = 0;
   double spb_diameter = 5;
+  std::string nuc_site_insertion = "random";
 };
 typedef species_parameters<species_id::spindle> spindle_parameters;
 
@@ -189,6 +190,7 @@ struct species_parameters<species_id::crosslink>
   bool plus_end_pausing = false;
   double r_capture = 5;
   int lut_grid_num = 256;
+  std::string bind_file = "none";
 };
 typedef species_parameters<species_id::crosslink> crosslink_parameters;
 
@@ -275,6 +277,7 @@ struct system_parameters {
   bool reload_reduce_switch = false;
   bool checkpoint_flag = false;
   int n_checkpoint = 10000;
+  bool knockout_xlink = false;
   bool no_midstep = false;
 };
 

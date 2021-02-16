@@ -15,7 +15,7 @@ class ReceptorSpecies: public Species<Receptor, species_id::receptor> {
 private:
   double concentration_; // concentration (# receptors/(object surface area))
 
-  Mesh* mesh_; // ptr to the Mesh object the receptor is on
+  PointCover* pc_; // ptr to the PointCover object the receptor is on
 
 public:
   ReceptorSpecies(unsigned long seed); // Constructor with RNG seed input
@@ -24,8 +24,8 @@ public:
   void Init(std::string spec_name, ParamsParser &parser);
 
   // Set the mesh that the receptor belongs to (currently only works with
-  // Cortex mesh)
-  void SetMesh(Cortex *cortex);
+  // Cortex pointcover)
+  void SetPC(Cortex *cortex);
 
   // Reserve space for the vector of receptors
   void Reserve();

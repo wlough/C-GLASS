@@ -38,6 +38,10 @@ if(TRACE)
     add_definitions(-DDEBUG=TRUE)
 endif()
 
+if(TRACK)
+    add_definitions(-DTRACK=TRUE)
+endif()
+
 if (TESTS)
     add_definitions(-DTESTS=TRUE)
 endif()

@@ -9,10 +9,11 @@
 class Object {
 private:
   int oid_;
-  int mesh_id_;
+  int comp_id_;
   static int _next_oid_;
   static std::mutex _obj_mtx_;
   void InitOID();
+  Object *comp_ptr_; // If part of a composite
 
 protected:
   static system_parameters *params_;
@@ -21,6 +22,8 @@ protected:
   static double delta_;
   species_id sid_;
   obj_type type_ = obj_type::generic;
+  comp_type comp_type_ = comp_type::generic;
+  shape shape_ = shape::generic;
   graph_struct g_;
   RNG rng_;
   draw_type draw_;
@@ -42,9 +45,11 @@ protected:
   double contact_number_;
   bool interacting_;
   bool is_mesh_;
+  bool is_comp_ = false;
   bool has_overlap_;
   int n_anchored_;
   bool interactor_update_;
+
 
   std::vector<Object *> interactors_;
   std::vector<object_interaction> ixs_;
@@ -95,8 +100,10 @@ public:
   virtual void ZeroPolarOrder();
   species_id const GetSID();
   obj_type const GetType();
+  comp_type const GetCompType();
+  shape const GetShape();
   const int GetOID() const;
-  const int GetMeshID() const;
+  const int GetCompID() const;
   const double *const GetPosition();
   const double *const GetPrevPosition();
   const double *const GetPrevOrientation();
@@ -118,7 +125,8 @@ public:
   const bool CheckInteractorUpdate();
   void HasOverlap(bool overlap);
   void SetOID(int oid);
-  void SetMeshID(int mid);
+  void SetCompID(int cid);
+  void SetCompPtr(Object* comp);
 
   // Virtual functions
   virtual void Init(species_base_parameters *sparams) {}
@@ -152,8 +160,6 @@ public:
   virtual void GetInteractions(std::vector<object_interaction> &ixs);
   virtual void ClearInteractions();
   virtual void Cleanup();
-  // virtual void BindAnchor(anchor *ix);
-  // virtual void UnbindAnchor();
 
   // I/O functions
   virtual void Report();
@@ -166,6 +172,7 @@ public:
   virtual void WriteCheckpointHeader(std::fstream &ocheck);
   virtual void ReadCheckpoint(std::fstream &icheck);
   virtual void ReadCheckpointHeader(std::fstream &icheck);
+  virtual Object *GetCompPtr() { return comp_ptr_; }
 
   // Convert binary data to text. Static to avoid needing to istantiate
   // species members.

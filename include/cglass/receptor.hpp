@@ -10,7 +10,7 @@
  * to the Anchor of a Crosslinker.
 */
 
-class Receptor: public Site {
+class Receptor: public Sphere {
 private:
   receptor_parameters *sparams_; // Input parameters unique to receptors
 public:

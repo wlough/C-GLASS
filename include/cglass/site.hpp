@@ -1,7 +1,7 @@
 #ifndef _CGLASS_SITE_H_
 #define _CGLASS_SITE_H_
 
-#include "object.hpp"
+#include "sphere.hpp"
 
 class Bond;  // Forward declaration
 enum directed_type { OUTGOING, INCOMING, NONE };
@@ -9,7 +9,7 @@ typedef std::pair<Bond*, directed_type> directed_bond;
 typedef std::vector<directed_bond>::iterator db_iterator;
 
 // Sites, ie graph vertices
-class Site : public Object {
+class Site : public Sphere {
  protected:
   std::vector<directed_bond> bonds_;
   double tangent_[3];  // if one or two bonds, vector tangent to bonds at site
@@ -42,6 +42,7 @@ class Site : public Object {
   void SetTheta(const double theta) { theta_ = theta; }
   void SetPhi(const double phi) { phi_ = phi; }
   Object *GetMeshPtr() { return mesh_ptr_; }
+  Object *GetCompPtr() { return mesh_ptr_; }
   void SetMeshPtr(Object *obj_ptr);
   const double GetTheta() const { return theta_; }
   const double GetPhi() const { return phi_; }

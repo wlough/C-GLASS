@@ -21,10 +21,12 @@ class CrosslinkManager {
   bool update_;
   std::vector<CrosslinkSpecies *> xlink_species_;
   std::vector<Object *> *objs_;
+  std::map<Sphere *, std::pair<std::vector<double>, std::vector<Anchor*> > > bound_curr_;
   SpaceBase *space_;
+  Tracker *tracker_ = nullptr;
 
  public:
-  void Init(system_parameters *params, SpaceBase *space,
+  void Init(system_parameters *params, SpaceBase *space, Tracker *tracker,
             std::vector<Object *> *objs);
   void GetInteractors(std::vector<Object *> &ixors);
   void UpdateCrosslinks();
@@ -34,6 +36,7 @@ class CrosslinkManager {
   void Draw(std::vector<graph_struct *> &graph_array);
   void AddNeighborToAnchor(Object *anchor, Object *neighbor);
   void WriteOutputs();
+  void Knockout();
   void InitOutputs(bool reading_inputs = false,
                    run_options *run_opts = nullptr);
   void GetAnchorInteractors(std::vector<Object *> &ixors);

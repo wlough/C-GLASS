@@ -2,16 +2,12 @@
 #define _CGLASS_MESH_H_
 
 #include "bond.hpp"
+#include "composite.hpp"
 
 typedef std::vector<Bond>::iterator bond_iterator;
 typedef std::vector<Site>::iterator site_iterator;
 
-class Mesh : public Object {
- private:
-  static int _next_mesh_id_;
-  static std::mutex _mesh_mtx_;
-  void InitMeshID();
-
+class Mesh : public Composite {
  protected:
   bool anchored_ = false;
   bool midstep_ = true;

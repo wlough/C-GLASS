@@ -85,11 +85,16 @@ void Spindle::GenerateNucleationSites() {
     Site s(rng_.GetSeed());
     nuc_sites_.push_back(s);
     nuc_sites_.back().SetDiameter(1); // For graphing
-
-    double theta =
+    double theta = 0;
+    double phi = 0;
+    if (sparams_->nuc_site_insertion == "random") {
+      theta =
         2.0 * (rng_.RandomUniform() - 0.5) * atan(spb_diameter_ / diameter_);
-    double phi =
+      phi =
         2.0 * (rng_.RandomUniform() - 0.5) * atan(spb_diameter_ / diameter_);
+    } else if (sparams_->nuc_site_insertion != "centered_oriented") {
+       Logger::Error("Nucleation site insertion type not recognized!");
+    }
     nuc_sites_.back().SetTheta(theta);
     nuc_sites_.back().SetPhi(phi);
     Logger::Trace("Theta: %2.2f, phi: %2.2f", theta, phi);
