@@ -34,7 +34,7 @@ double const Anchor::GetMeshLambda() { return mesh_lambda_; }
 
 double const Anchor::GetBondLambda() { return bond_lambda_; }
 
-void Anchor::SetBondLambda(double l) { bond_lambda_ = l; }
+void Anchor::SetRodLambda(double l) { bond_lambda_ = l; }
 void Anchor::SetMeshLambda(double ml) { mesh_lambda_ = ml; }
 
 void Anchor::SetDiffusion() {
@@ -44,70 +44,73 @@ void Anchor::SetDiffusion() {
 }
 
 void Anchor::UpdateAnchorPositionToMesh() {
-  if (!bound_ || static_flag_ || !bond_)
+  if (!bound_ || static_flag_ || !rod_)
     return;
   if (!mesh_) {
     Logger::Error("Anchor tried to update position to nullptr mesh");
   }
 
-  /* Use the mesh to determine the bond lengths. The true bond lengths fluctuate
+  /* Use the mesh to determine the rod lengths. The true rod lengths fluctuate
      about this, but should be considered approximations to the ideal mesh. */
   mesh_length_ = mesh_->GetTrueLength();
   /* Use current position along mesh (mesh_lambda) to determine whether the
      anchor fell off the mesh due to dynamic instability */
   if (!CheckMesh())
     return;
-  // Now figure out which bond we are on in the mesh according to mesh_lambda
-  bond_ = mesh_->GetBondAtLambda(mesh_lambda_);
+  // Now figure out which rod we are on in the mesh according to mesh_lambda
+  rod_ = mesh_->GetBondAtLambda(mesh_lambda_);
+  if (rod_->GetType() == +obj_type::bond) bond_ = dynamic_cast<Bond*>(rod_);
 
-  // Figure out how far we are from the bond tail: bond_lambda
-  if (!CalcBondLambda()) {
+  // Figure out how far we are from the rod tail: bond_lambda
+  if (!CalcRodLambda()) {
     return;
   }
   // Update anchor position with respect to bond
-  UpdateAnchorPositionToBond();
+  UpdateAnchorPositionToRod();
 }
 
-bool Anchor::CalcBondLambda() {
-  if (!bond_) {
-    Logger::Error("Attempted to calculate bond lambda when not attached to"
-                  " bond!");
+bool Anchor::CalcRodLambda() {
+  if (!rod_) {
+    Logger::Error("Attempted to calculate rod lambda when not attached to"
+                  " rod!");
   }
   bond_lambda_ = mesh_lambda_ - bond_->GetMeshLambda();
-  bond_length_ = bond_->GetLength();
+  rod_length_ = bond_->GetLength();
   if (bond_lambda_ < 0) {
     Bond *bond = bond_->GetNeighborBond(0);
     if (bond) {
+      rod_ = bond;
       bond_ = bond;
       bond_lambda_ = mesh_lambda_ - bond_->GetMeshLambda();
-      bond_length_ = bond_->GetLength();
+      rod_length_ = bond_->GetLength();
     } else if (minus_end_pausing_) {
       bond_lambda_ = 0;
     } else {
       Unbind();
       return false;
     }
-  } else if (bond_lambda_ > bond_length_) {
+  } else if (bond_lambda_ > rod_length_) {
     Bond *bond = bond_->GetNeighborBond(1);
     if (bond) {
+      rod_ = bond;
       bond_ = bond;
       bond_lambda_ = mesh_lambda_ - bond_->GetMeshLambda();
-      bond_length_ = bond_->GetLength();
+      rod_length_ = rod_->GetLength();
     } else if (plus_end_pausing_) {
-      bond_lambda_ = bond_length_;
+      bond_lambda_ = rod_length_;
     } else {
       Unbind();
       return false;
     }
   }
-  // assert(bond_lambda_ >= 0 && bond_lambda_ <= bond_length_);
-  if (bond_lambda_ < -1e-6 || bond_lambda_ > bond_length_ + 1e-6) {
+  // assert(bond_lambda_ >= 0 && bond_lambda_ <= rod_length_);
+  if (bond_lambda_ < -1e-6 || bond_lambda_ > rod_length_ + 1e-6) {
     Logger::Error(
         "Bond lambda out of expected range in UpdateAnchorPositionToMesh, "
-        "bond_num: %d, mesh lambda: %2.8f, mesh length: %2.8f, bond lambda: "
+        "rod_num: %d, mesh lambda: %2.8f, mesh length: %2.8f, bond lambda: "
         "%2.8f, bond length: %2.8f",
         bond_->GetBondNumber(), mesh_lambda_, mesh_length_, bond_lambda_,
-        bond_length_);
+        rod_length_);
   }
   return true;
 }
@@ -115,7 +118,7 @@ void Anchor::UpdatePosition() {
   // Currently only bound anchors diffuse/walk (no explicit unbound anchors)
   bool diffuse = GetDiffusionConst() > 0 ? true : false;
   bool walker = abs(GetMaxVelocity()) > input_tol ? true : false;
-  if (!bound_ || static_flag_ || !bond_ || (!diffuse && !walker)) {
+  if (!bound_ || static_flag_ || !rod_ || (!diffuse && !walker)) {
     return;
   }
   // Diffuse or walk along the mesh, updating mesh_lambda
@@ -134,19 +137,19 @@ void Anchor::ApplyAnchorForces() {
   if (!bound_ || static_flag_) {
     return;
   }
-  if (site_) {
-    return; // Forces on sites not implemented
+  if (sphere_) {
+    return; // Forces on spheres not implemented
   }
-  if (!bond_) {
+  if (!rod_) {
     Logger::Error("Anchor attempted to apply forces to nullptr bond");
   }
-  bond_->AddForce(force_);
+  rod_->AddForce(force_);
   double dlambda[3] = {0};
   for (int i = 0; i < n_dim_; ++i) {
-    dlambda[i] = (bond_lambda_ - 0.5 * bond_length_) * orientation_[i];
+    dlambda[i] = (bond_lambda_ - 0.5 * rod_length_) * orientation_[i];
   }
   cross_product(dlambda, force_, torque_, 3);
-  bond_->AddTorque(torque_);
+  rod_->AddTorque(torque_);
 }
 
 void Anchor::Activate() {
@@ -208,20 +211,21 @@ void Anchor::Unbind() {
   if (static_flag_) {
     Logger::Error("Static anchor attempted to unbind");
   }
-  if (site_) site_->DecrementNAnchored();
-  else if (bond_) bond_->DecrementNAnchored();
+  if (sphere_) sphere_->DecrementNAnchored();
   bound_ = false;
-  bond_ = nullptr;
-  site_ = nullptr;
+  rod_ = nullptr;
+  sphere_ = nullptr;
+  comp_ = nullptr;
   mesh_ = nullptr;
+  bond_ = nullptr;
   mesh_n_bonds_ = -1;
-  bond_length_ = -1;
+  rod_length_ = -1;
   bond_lambda_ = -1;
   mesh_lambda_ = -1;
   active_ = false;
   ClearNeighbors();
   ZeroForce();
-  SetMeshID(-1);
+  SetCompID(-1);
   std::fill(position_, position_ + 3, 0.0);
   std::fill(orientation_, orientation_ + 3, 0.0);
 }
@@ -240,16 +244,16 @@ void Anchor::Diffuse() {
   // Should this also add to bond lambda?
 }
 
-void Anchor::UpdateAnchorPositionToBond() {
-  if (!bond_) {
+void Anchor::UpdateAnchorPositionToRod() {
+  if (!rod_) {
     Logger::Error("Anchor tried to update position relative to nullptr bond");
   }
-  double const *const bond_position = bond_->GetPosition();
-  double const *const bond_orientation = bond_->GetOrientation();
+  double const *const rod_position = rod_->GetPosition();
+  double const *const rod_orientation = rod_->GetOrientation();
   for (int i = 0; i < n_dim_; ++i) {
-    orientation_[i] = bond_orientation[i];
-    position_[i] = bond_position[i] -
-                   (0.5 * bond_length_ - bond_lambda_) * bond_orientation[i];
+    orientation_[i] = rod_orientation[i];
+    position_[i] = rod_position[i] -
+                   (0.5 * rod_length_ - bond_lambda_) * rod_orientation[i];
   }
   UpdatePeriodic();
 }
@@ -257,13 +261,13 @@ void Anchor::UpdateAnchorPositionToBond() {
  * bonds*/
 void Anchor::CalculatePolarAffinity(std::vector<double> &doubly_binding_rates) {
   double orientation[3]; 
-  if (bond_) std::copy(bond_->GetOrientation(), bond_->GetOrientation() + 3, orientation);
-  else if (site_) std::copy(site_->GetOrientation(), site_->GetOrientation() + 3, orientation);
+  if (rod_) std::copy(rod_->GetOrientation(), rod_->GetOrientation() + 3, orientation);
+  else if (sphere_) std::copy(sphere_->GetOrientation(), sphere_->GetOrientation() + 3, orientation);
   else
     Logger::Error("Bond and site are nullptr in Anchor::CalculatePolarAffinity"); 
   for (int i = 0; i < doubly_binding_rates.size(); ++i) {
     Object *obj = neighbors_.GetNeighbor(i);
-    if (obj->GetType() == +obj_type::site) continue;
+    if (obj->GetShape() == +shape::sphere) continue;
     double const *const i_orientation = obj->GetOrientation();
     double alignment = dot_product(n_dim_, orientation, i_orientation);
     if (alignment < 0) {
@@ -288,14 +292,17 @@ void Anchor::Draw(std::vector<graph_struct *> &graph_array) {
 }
 
 void Anchor::AttachObjRandom(Object *o) {
-  switch (o->GetType()) {
-    case obj_type::bond: {
+  switch (o->GetShape()) {
+    case shape::rod: {
       double length = o->GetLength();
       double lambda = length * rng_.RandomUniform();
       AttachObjLambda(o, lambda);
       break;
     }
-    case obj_type::site: {
+    case shape::sphere: {
+      if (o->GetNAnchored() > 0) {
+        Logger::Error("Xlink tried to bind to already occupied sphere!");
+      }
       *obj_area_ -= o->GetArea();
       AttachObjCenter(o);
       break;
@@ -308,36 +315,42 @@ void Anchor::AttachObjRandom(Object *o) {
 }
     
 void Anchor::AttachObjLambda(Object *o, double lambda) {
-  o->IncrementNAnchored();
-  if (o->GetType() != +obj_type::bond) {
+  if (o->GetShape() != +shape::rod) {
     Logger::Error(
         "Crosslink binding to %s objects not implemented in "
-        "AttachObjLambda.", o->GetType()._to_string());
+        "AttachObjLambda.", o->GetShape()._to_string());
   }
+  rod_ = dynamic_cast<Rod *>(o);
   bond_ = dynamic_cast<Bond *>(o);
   if (bond_ == nullptr) {
     Logger::Error("Object ptr passed to anchor was not referencing a bond!");
   }
-  mesh_ = dynamic_cast<Mesh *>(bond_->GetMeshPtr());
-  if (mesh_ == nullptr) {
-    Logger::Error("Object ptr passed to anchor was not referencing a mesh!");
+  comp_ = dynamic_cast<Composite *>(rod_->GetCompPtr());
+  if (comp_ == nullptr) {
+    Logger::Error("Object ptr passed to anchor was not referencing a composite!");
   }
-  mesh_n_bonds_ = mesh_->GetNBonds();
-  bond_length_ = bond_->GetLength();
-  mesh_length_ = mesh_->GetTrueLength();
+  if (comp_->GetCompType() == +comp_type::mesh) {
+    mesh_ = dynamic_cast<Mesh *>(rod_->GetCompPtr());
+    if (mesh_ == nullptr) {
+      Logger::Error("Object ptr passed to anchor was not referencing a mesh!");
+    }
+    mesh_n_bonds_ = mesh_->GetNBonds();
+    mesh_length_ = mesh_->GetTrueLength();
+  }
+  rod_length_ = rod_->GetLength();
   bond_lambda_ = lambda;
 
-  if (bond_lambda_ < 0 || bond_lambda_ > bond_length_) {
+  if (bond_lambda_ < 0 || bond_lambda_ > rod_length_) {
     printf("bond_lambda: %2.2f\n", bond_lambda_);
     Logger::Error("Lambda passed to anchor does not match length of "
-                  "corresponding bond! lambda: %2.2f, bond_length: %2.2f ",
-                  bond_lambda_, bond_length_);
+                  "corresponding bond! lambda: %2.2f, rod_length: %2.2f ",
+                  bond_lambda_, rod_length_);
   }
 
   /* Distance anchor is relative to entire mesh length */
   mesh_lambda_ = bond_->GetMeshLambda() + bond_lambda_;
-  SetMeshID(bond_->GetMeshID());
-  UpdateAnchorPositionToBond();
+  SetCompID(rod_->GetCompID());
+  UpdateAnchorPositionToRod();
   ZeroDrTot();
   bound_ = true;
 }
@@ -346,45 +359,58 @@ void Anchor::AttachObjLambda(Object *o, double lambda) {
  * surface area, but binding places crosslinks in center regardless. */
 void Anchor::AttachObjCenter(Object *o) {
   o->IncrementNAnchored();
-  if (o->GetType() != +obj_type::site) {
+  if (o->GetShape() != +shape::sphere) {
     Logger::Error(
-        "Crosslink binding to non-site objects not implemented in "
+        "Crosslink binding to non-sphere objects not implemented in "
         "AttachObjCenter.");
   }
-  site_ = dynamic_cast<Site *>(o);
-  if (site_ == nullptr) {
-    Logger::Error("Object ptr passed to anchor was not referencing a site!");
+  sphere_ = dynamic_cast<Sphere *>(o);
+  if (sphere_ == nullptr) {
+    Logger::Error("Object ptr passed to anchor was not referencing a sphere!");
   }
-  mesh_ = dynamic_cast<Mesh *>(site_->GetMeshPtr());
-  if (mesh_ == nullptr) {
-    Logger::Error("Object ptr passed to anchor was not referencing a mesh!");
+  comp_ = dynamic_cast<Composite *>(sphere_->GetCompPtr());
+  if (comp_ == nullptr) {
+    Logger::Error("Object ptr passed to anchor was not referencing a composite!");
+  }
+  if (comp_->GetCompType() == +comp_type::mesh) {
+    mesh_ = dynamic_cast<Mesh *>(sphere_->GetCompPtr());
+    if (mesh_ == nullptr) {
+      Logger::Error("Object ptr passed to anchor was not referencing a mesh!");
+    }
   }
 
   mesh_lambda_ = -1; // not used for sites
-  SetMeshID(site_->GetMeshID());
-  std::copy(site_->GetPosition(), site_->GetPosition() + 3, position_); 
-  std::copy(site_->GetOrientation(), site_->GetOrientation() + 3, orientation_);
+  SetCompID(sphere_->GetCompID());
+  std::copy(sphere_->GetPosition(), sphere_->GetPosition() + 3, position_); 
+  std::copy(sphere_->GetOrientation(), sphere_->GetOrientation() + 3, orientation_);
   UpdatePeriodic();
   ZeroDrTot();
   bound_ = true;
 }
 
 void Anchor::AttachObjMeshLambda(Object *o, double mesh_lambda) {
-  o->IncrementNAnchored();
-  if (o->GetType() != +obj_type::bond) {
+  if (o->GetShape() != +shape::rod) {
     Logger::Error(
-        "Crosslink binding to non-bond objects not allowed in "
+        "Crosslink binding to non-rod objects not allowed in "
         "AttachObjMeshLambda.");
   }
+  rod_ = dynamic_cast<Rod *>(o);
   bond_ = dynamic_cast<Bond *>(o);
   if (bond_ == nullptr) {
     Logger::Error("Object ptr passed to anchor was not referencing a bond!");
   }
-  mesh_ = dynamic_cast<Mesh *>(bond_->GetMeshPtr());
-  if (mesh_ == nullptr) {
-    Logger::Error("Object ptr passed to anchor was not referencing a mesh!");
+  if (rod_->GetType() == +obj_type::bond) bond_ = dynamic_cast<Bond *>(o);
+  comp_ = dynamic_cast<Composite *>(rod_->GetCompPtr());
+  if (comp_ == nullptr) {
+    Logger::Error("Object ptr passed to anchor was not referencing a composite!");
   }
-  Logger::Trace("Attaching anchor %d to mesh %d", GetOID(), mesh_->GetMeshID());
+  if (comp_->GetCompType() == +comp_type::mesh) {
+    mesh_ = dynamic_cast<Mesh *>(rod_->GetCompPtr());
+    if (mesh_ == nullptr) {
+      Logger::Error("Object ptr passed to anchor was not referencing a mesh!");
+    }
+  }
+  Logger::Trace("Attaching anchor %d to comp %d", GetOID(), comp_->GetCompID());
 
   bound_ = true;
   mesh_lambda_ = mesh_lambda;
@@ -395,7 +421,7 @@ void Anchor::AttachObjMeshLambda(Object *o, double mesh_lambda) {
         "Updating anchor to mesh from checkpoint resulted in an unbound "
         "anchor");
   }
-  SetMeshID(bond_->GetMeshID());
+  SetCompID(rod_->GetCompID());
   ZeroDrTot();
 }
 
@@ -406,20 +432,27 @@ void Anchor::AttachObjMeshCenter(Object *o) {
         "Crosslink binding to non-bond objects not allowed in "
         "AttachObjMeshCenter.");
   }
-  site_ = dynamic_cast<Site *>(o);
-  if (site_ == nullptr) {
-    Logger::Error("Object ptr passed to anchor was not referencing a site!");
+  sphere_ = dynamic_cast<Sphere *>(o);
+  if (sphere_ == nullptr) {
+    Logger::Error("Object ptr passed to anchor was not referencing a sphere!");
   }
-  mesh_ = dynamic_cast<Mesh *>(site_->GetMeshPtr());
-  if (mesh_ == nullptr) {
-    Logger::Error("Object ptr passed to anchor was not referencing a mesh!");
+  comp_ = dynamic_cast<Composite *>(sphere_->GetCompPtr());
+  if (comp_ == nullptr) {
+    Logger::Error("Object ptr passed to anchor was not referencing a composite!");
   }
-  Logger::Trace("Attaching anchor %d to mesh %d", GetOID(), mesh_->GetMeshID());
+  if (comp_->GetCompType() == +comp_type::mesh) {
+    mesh_ = dynamic_cast<Mesh *>(sphere_->GetCompPtr());
+    if (mesh_ == nullptr) {
+      Logger::Error("Object ptr passed to anchor was not referencing a mesh!");
+    }
+  }
+  
+  Logger::Trace("Attaching anchor %d to comp %d", GetOID(), comp_->GetCompID());
 
   bound_ = true;
   bond_lambda_ = 0;
   mesh_n_bonds_ = -1;
-  SetMeshID(site_->GetMeshID());
+  SetCompID(sphere_->GetCompID());
   ZeroDrTot();
 }
 
@@ -433,14 +466,14 @@ void Anchor::BindToPosition(double *bind_pos) {
 bool Anchor::IsBound() { return bound_; }
 
 int const Anchor::GetBoundOID() {
-  if (site_) return site_->GetOID();
-  else if (bond_) return bond_->GetOID();
+  if (sphere_) return sphere_->GetOID();
+  else if (rod_) return rod_->GetOID();
   else return -1;
 }
 
 /* Temporary function for setting bound state for singly-bound crosslinks,
    in order to get them to draw while not technically bound to a bond
-   ( e.g. bond_ -> null ) */
+   ( e.g. rod_ -> null ) */
 void Anchor::SetBound() { bound_ = true; }
 
 void Anchor::AddNeighbor(Object *neighbor) { neighbors_.AddNeighbor(neighbor); }
@@ -451,28 +484,28 @@ const Object *const *Anchor::GetNeighborListMem() {
   return neighbors_.GetNeighborListMem();
 }
 
-const std::vector<Site*>& Anchor::GetNeighborListMemSites() {
-  return neighbors_.GetNeighborListMemSites();
+const std::vector<Sphere*>& Anchor::GetNeighborListMemSpheres() {
+  return neighbors_.GetNeighborListMemSpheres();
 }
 
-const std::vector<Bond*> &Anchor::GetNeighborListMemBonds() {
-  return neighbors_.GetNeighborListMemBonds();
+const std::vector<Rod*> &Anchor::GetNeighborListMemRods() {
+  return neighbors_.GetNeighborListMemRods();
 }
 
 Object *Anchor::GetNeighbor(int i_neighbor) {
   return neighbors_.GetNeighbor(i_neighbor);
 }
 
-Site *Anchor::GetSiteNeighbor(int i_neighbor) {
-  return neighbors_.GetSiteNeighbor(i_neighbor);
+Sphere *Anchor::GetSphereNeighbor(int i_neighbor) {
+  return neighbors_.GetSphereNeighbor(i_neighbor);
 }
 
-Bond *Anchor::GetBondNeighbor(int i_neighbor) {
-  return neighbors_.GetBondNeighbor(i_neighbor);
+Rod *Anchor::GetRodNeighbor(int i_neighbor) {
+  return neighbors_.GetRodNeighbor(i_neighbor);
 }
 const int Anchor::GetNNeighbors() const { return neighbors_.NNeighbors(); }
-const int Anchor::GetNNeighborsBond() const { return neighbors_.NNeighborsBond(); }
-const int Anchor::GetNNeighborsSite() const { return neighbors_.NNeighborsSite(); }
+const int Anchor::GetNNeighborsRod() const { return neighbors_.NNeighborsRod(); }
+const int Anchor::GetNNeighborsSphere() const { return neighbors_.NNeighborsSphere(); }
 
 
 
@@ -487,21 +520,21 @@ void Anchor::WriteSpec(std::fstream &ospec) {
     ospec.write(reinterpret_cast<char *>(&orientation_[i]), sizeof(double));
   }
   ospec.write(reinterpret_cast<char *>(&mesh_lambda_), sizeof(double));
-  int attached_mesh_id = mesh_ != nullptr ? mesh_->GetMeshID() : -1;
-  ospec.write(reinterpret_cast<char *>(&attached_mesh_id), sizeof(int));
+  int attached_comp_id = comp_ != nullptr ? comp_->GetCompID() : -1;
+  ospec.write(reinterpret_cast<char *>(&attached_comp_id), sizeof(int));
 }
 
 void Anchor::WriteSpecTextHeader(std::fstream &otext) {
   otext << "bound active static_flag position[0] position[1] position[2] "
         << "orientation[0] orientation[1] orientation[2] mesh_lambda "
-        << "mesh_id" << std::endl;
+        << "comp_id" << std::endl;
 }
 
 void Anchor::ConvertSpec(std::fstream &ispec, std::fstream &otext) {
   bool bound, active, static_flag;
   double position[3], orientation[3];
   double mesh_lambda;
-  int mesh_id;
+  int comp_id;
   if (ispec.eof())
     return;
   ispec.read(reinterpret_cast<char *>(&bound), sizeof(bool));
@@ -514,10 +547,10 @@ void Anchor::ConvertSpec(std::fstream &ispec, std::fstream &otext) {
     ispec.read(reinterpret_cast<char *>(&orientation[i]), sizeof(double));
   }
   ispec.read(reinterpret_cast<char *>(&mesh_lambda), sizeof(double));
-  ispec.read(reinterpret_cast<char *>(&mesh_id), sizeof(int));
+  ispec.read(reinterpret_cast<char *>(&comp_id), sizeof(int));
   otext << bound << " " << active << " " << static_flag << " " << position[0] << " " 
         << position[1] << " " << position[2] << " " << orientation[0] << " " << orientation[1] 
-        << " " << orientation[2] << " " << mesh_lambda << " " << mesh_id << std::endl;
+        << " " << orientation[2] << " " << mesh_lambda << " " << comp_id << std::endl;
 }
 
 void Anchor::ReadSpec(std::fstream &ispec) {
@@ -531,8 +564,8 @@ void Anchor::ReadSpec(std::fstream &ispec) {
     ispec.read(reinterpret_cast<char *>(&orientation_[i]), sizeof(double));
   }
   ispec.read(reinterpret_cast<char *>(&mesh_lambda_), sizeof(double));
-  int attached_mesh_id = -1; // Just a place holder at the moment
-  ispec.read(reinterpret_cast<char *>(&attached_mesh_id), sizeof(int));
+  int attached_comp_id = -1; // Just a place holder at the moment
+  ispec.read(reinterpret_cast<char *>(&attached_comp_id), sizeof(int));
   UpdatePeriodic();
   if (active_)
     step_direction_ = -sparams_->step_direction;

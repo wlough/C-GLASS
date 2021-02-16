@@ -38,7 +38,12 @@ void Crosslink::Init(crosslink_parameters *sparams) {
                 anchors_[0].GetOID(), anchors_[1].GetOID());
 }
 
-void Crosslink::InitInteractionEnvironment(LookupTable *lut) { lut_ = lut; }
+void Crosslink::InitInteractionEnvironment(LookupTable *lut, Tracker *tracker, 
+                                           std::map<Sphere *, std::pair<std::vector<double>, std::vector<Anchor*> > > *bound_curr) { 
+  lut_ = lut;
+  tracker_ = tracker;
+  bound_curr_ = bound_curr;
+}
 
 /* Function used to set anchor[0] position etc to xlink position etc */
 void Crosslink::UpdatePosition() {}
@@ -64,46 +69,52 @@ void Crosslink::SinglyKMC() {
   if (static_flag_) {
     unbind_prob = 0;
   }
-  /* Must populate filter with 1 for every neighbor, since KMC
-  expects a mask. We already guarantee uniqueness, so we won't overcount. */
-  int n_neighbors_bond = anchors_[0].GetNNeighborsBond();
-  int n_neighbors_site = anchors_[0].GetNNeighborsSite();
-  int n_neighbors = n_neighbors_bond + n_neighbors_site;
+  tracker_->TrackSU(unbind_prob);
+  int n_neighbors_rod = anchors_[0].GetNNeighborsRod();
+  int n_neighbors_sphere = anchors_[0].GetNNeighborsSphere();
+  int n_neighbors = n_neighbors_rod + n_neighbors_sphere;
  
   /* Initialize KMC calculation */
-  KMC<Bond, Site> kmc_bind(anchors_[0].pos, n_neighbors_bond, n_neighbors_site, delta_, lut_);
+  KMC<Rod, Sphere> kmc_bind(anchors_[0].pos, n_neighbors_rod, n_neighbors_sphere, delta_, lut_);
 
   /* Initialize periodic boundary conditions */
   kmc_bind.SetPBCs(n_dim_, space_->n_periodic, space_->unit_cell);
 
   /* Calculate probability to bind */
   double kmc_bind_prob = 0;
-  double bind_factor_bond = anchors_[1].GetOnRate() * linear_bind_site_density_;
-  double bind_factor_site = anchors_[1].GetOnRate() * surface_bind_site_density_;
+  double bind_factor_rod = anchors_[1].GetOnRate() * linear_bind_site_density_;
+  double bind_factor_sphere = anchors_[1].GetOnRate() * surface_bind_site_density_;
 
-  /* Fill vector of bind factors with bond factors, then site factors */
+  /* Fill vector of bind factors with rod factors, then sphere factors */
   std::vector<double> bind_factors(n_neighbors);
-  std::fill(bind_factors.begin(), bind_factors.begin() + n_neighbors_bond, bind_factor_bond);
-  std::fill(bind_factors.begin() + n_neighbors_bond, bind_factors.end(), bind_factor_site);
+  std::fill(bind_factors.begin(), bind_factors.begin() + n_neighbors_rod, bind_factor_rod);
+  std::fill(bind_factors.begin() + n_neighbors_rod, bind_factors.end(), bind_factor_sphere);
  
   if (n_neighbors > 0) {
     if (!static_flag_ && polar_affinity_ != 1.0) {
       anchors_[0].CalculatePolarAffinity(bind_factors);
     }
-    kmc_bind.LUCalcTotProbsSD(anchors_[0].GetNeighborListMemBonds(), 
-                              anchors_[0].GetNeighborListMemSites(), 
+    /* Use auto-filter populated with 1's for every neighbor.
+    We already guarantee uniqueness, so we won't overcount. */
+    kmc_bind.LUCalcTotProbsSD(anchors_[0].GetNeighborListMemRods(), 
+                              anchors_[0].GetNeighborListMemSpheres(), 
                               anchors_[0].GetBoundOID(), bind_factors); 
     kmc_bind_prob = kmc_bind.getTotProb();
+    tracker_->TrackSD(kmc_bind_prob);
   } // Find out whether we bind, unbind, or neither.
   int head_activate = choose_kmc_double(unbind_prob, kmc_bind_prob, roll);
   // Change status of activated head
   if (head_activate == 0) {
     // Unbind bound head
+    // Track unbinding
+    tracker_->UnbindSU();
     anchors_[0].Unbind();
     SetUnbound();
     Logger::Trace("Crosslink %d came unbound", GetOID());
   } else if (head_activate == 1) {
     // Bind unbound head
+    // Track binding
+    tracker_->BindSD();
     /* Position on rod where protein will bind with respect to center of rod,
      * passed by reference */
     double bind_lambda;
@@ -114,41 +125,33 @@ void Crosslink::SinglyKMC() {
       Logger::Error("kmc_bind.whichRodBindSD in Crosslink::SinglyKMC"
                     " returned an invalid result!");
     }
-    // i_bind is index in concatenated bonds/sites vector 
-    Object *bind_obj;
-    if (i_bind < n_neighbors_bond) {
-      bind_obj = anchors_[0].GetBondNeighbor(i_bind);
-    } else {
-      bind_obj = anchors_[0].GetSiteNeighbor(i_bind - n_neighbors_bond);
-    }
-
-    switch (bind_obj->GetType()) {
-      case obj_type::site: {
-        anchors_[1].AttachObjCenter(bind_obj);
-        SetDoubly();
-        break;
+    if (i_bind < n_neighbors_rod) {
+      Rod *bind_obj = anchors_[0].GetRodNeighbor(i_bind);
+      double obj_length = bind_obj->GetLength();
+      /* KMC returns bind_lambda to be with respect to center of rod. We want 
+      it to be specified from the tail of the rod to be consistent */
+      bind_lambda += 0.5 * obj_length;
+      /* KMC can return values that deviate a very small amount from the true 
+      rod length. Bind to ends if lambda < 0 or lambda > bond_length. */
+      if (bind_lambda > obj_length) {
+        bind_lambda = obj_length;
+      } else if (bind_lambda < 0) {
+        bind_lambda = 0;
       }
-      case obj_type::bond: {
-        double obj_length = bind_obj->GetLength();
-        /* KMC returns bind_lambda to be with respect to center of rod. We want 
-        it to be specified from the tail of the rod to be consistent */
-        bind_lambda += 0.5 * obj_length;
-        /* KMC can return values that deviate a very small amount from the true 
-        rod length. Bind to ends if lambda < 0 or lambda > bond_length. */
-        if (bind_lambda > obj_length) {
-          bind_lambda = obj_length;
-        } else if (bind_lambda < 0) {
-          bind_lambda = 0;
-        }
-        anchors_[1].AttachObjLambda(bind_obj, bind_lambda);
-        SetDoubly();
-        break;
-      }
-      default:
-        Logger::Error("Crosslink attempted to doubly bind to generic object");
-    }
-    Logger::Trace("Crosslink %d became doubly bound to obj %d", GetOID(),
+      anchors_[1].AttachObjLambda(bind_obj, bind_lambda);
+      SetDoubly();
+      Logger::Trace("Crosslink %d became doubly bound to obj %d", GetOID(),
                   bind_obj->GetOID());
+    } else {
+      Sphere *bind_obj = anchors_[0].GetSphereNeighbor(i_bind - n_neighbors_rod);
+      (*bound_curr_)[bind_obj].first.push_back(kmc_bind.getProb(i_bind));
+      (*bound_curr_)[bind_obj].second.push_back(&anchors_[1]);
+      anchors_[1].AttachObjCenter(bind_obj);
+      bind_obj->DecrementNAnchored(); // For knockout loop- allow collisions
+      SetDoubly();
+      Logger::Trace("Crosslink %d became doubly bound to obj %d", GetOID(),
+                  bind_obj->GetOID());
+    }
   }
 }
 
@@ -168,6 +171,7 @@ void Crosslink::DoublyKMC() {
     f_dep *= k_spring_ * tether_stretch;
   }
   double unbind_prob = anchors_[0].GetOffRate() * delta_ * exp(e_dep + f_dep);
+  tracker_->TrackDS(unbind_prob);
   double roll = rng_.RandomUniform();
   int head_activate = -1;
   if (static_flag_) {
@@ -179,12 +183,17 @@ void Crosslink::DoublyKMC() {
     head_activate = choose_kmc_double(unbind_prob, unbind_prob, roll);
   }
   if (head_activate == 0) {
+    // Track unbinding
+    tracker_->UnbindDS();
     Logger::Trace("Doubly-bound crosslink %d came unbound from %d", GetOID(),
                   anchors_[0].GetBoundOID());
+    Anchor temp = anchors_[0];
     anchors_[0] = anchors_[1];
-    anchors_[1].Unbind();
+    anchors_[1] = temp;
     SetSingly();
   } else if (head_activate == 1) {
+    // Track unbinding
+    tracker_->UnbindDS();
     Logger::Trace("Doubly-bound crosslink %d came unbound from %d", GetOID(),
                   anchors_[1].GetBoundOID());
     anchors_[1].Unbind();
@@ -256,8 +265,9 @@ void Crosslink::UpdateXlinkState() {
   if (IsDoubly() && !anchors_[1].IsBound()) {
     SetSingly();
   } else if (IsDoubly() && !anchors_[0].IsBound()) {
+    Anchor temp = anchors_[0];
     anchors_[0] = anchors_[1];
-    anchors_[1].Unbind();
+    anchors_[1] = temp;
     SetSingly();
   }
   if (IsSingly() && anchors_[1].IsBound()) {
@@ -301,17 +311,14 @@ void Crosslink::CalculateTetherForces() {
 
 /* Attach a crosslink anchor to object in a random fashion */
 void Crosslink::AttachObjRandom(Object *obj) {
-  /* Attaching to random bond implies first anchor binding from solution, so
+  /* Attaching to random obj implies first anchor binding from solution, so
    * this crosslink should be new and should not be singly or doubly bound */
-  if ((obj->GetType() == +obj_type::bond) || (obj->GetType() == +obj_type::site)) {
+  if ((obj->GetShape() == +shape::rod) || (obj->GetShape() == +shape::sphere)) {
     anchors_[0].AttachObjRandom(obj);
-    //if (obj->GetType() == +obj_type::site) {
-      //Logger::Info("New xlink at pos[0] = %f, pos[1] = %f", anchors_[0].pos[0], anchors_[0].pos[1]);
-    //}
-    SetMeshID(obj->GetMeshID());
+    SetCompID(obj->GetCompID());
     SetSingly();
   } else {
-    Logger::Error("Crosslink binding to %s type objects not yet implemented.", obj->GetType()._to_string());
+    Logger::Error("Crosslink binding to %s shaped objects not yet implemented.", obj->GetShape()._to_string());
   }
 }
 
@@ -447,11 +454,11 @@ void Crosslink::ReadCheckpoint(std::fstream &icheck) {
   Object::ReadCheckpoint(icheck);
   anchors_[0].ReadCheckpointHeader(icheck);
   anchors_[1].ReadCheckpointHeader(icheck);
-  Logger::Trace("Reloading anchor from checkpoint with mid %d",
-                anchors_[0].GetMeshID());
+  Logger::Trace("Reloading anchor from checkpoint with cid %d",
+                anchors_[0].GetCompID());
   if (IsDoubly()) {
-    Logger::Trace("Reloading anchor from checkpoint with mid %d",
-                  anchors_[1].GetMeshID());
+    Logger::Trace("Reloading anchor from checkpoint with cid %d",
+                  anchors_[1].GetCompID());
   }
 }
 

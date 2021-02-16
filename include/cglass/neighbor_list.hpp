@@ -1,7 +1,6 @@
 #include "auxiliary.hpp"
-#include "object.hpp"
-#include "bond.hpp"
-#include "site.hpp"
+#include "rod.hpp"
+#include "sphere.hpp"
 #include <mutex>
 
 /* A data structure that is used to hold a list of particles that are nearby the
@@ -10,8 +9,8 @@ class NeighborList {
 private:
   std::mutex mtx_;
   std::vector<Object *> nlist_;
-  std::vector<Bond *> nlist_bond_;
-  std::vector<Site *> nlist_site_;
+  std::vector<Rod *> nlist_rod_;
+  std::vector<Sphere *> nlist_sphere_;
 
 public:
   NeighborList() {}
@@ -24,12 +23,14 @@ public:
   void AddNeighbor(Object *obj) {
     std::lock_guard<std::mutex> lk(mtx_);
     nlist_.push_back(obj);
-    switch(obj->GetType()) { 
-      case obj_type::bond:
-        nlist_bond_.push_back(dynamic_cast<Bond*>(obj));
+    switch(obj->GetShape()) { 
+      case shape::rod:
+        nlist_rod_.push_back(dynamic_cast<Rod*>(obj));
         break;
-      case obj_type::site:
-        nlist_site_.push_back(dynamic_cast<Site*>(obj));
+      case shape::sphere:
+        if (obj->GetNAnchored() == 0) {
+          nlist_sphere_.push_back(dynamic_cast<Sphere*>(obj));
+        }
         break;
       default:
         break;
@@ -37,23 +38,23 @@ public:
   }
   const Object *const *GetNeighborListMem() { return &nlist_[0]; }
   
-  const std::vector<Bond*>& GetNeighborListMemBonds() {
-    return nlist_bond_;
+  const std::vector<Rod*>& GetNeighborListMemRods() {
+    return nlist_rod_;
   }
 
-  const std::vector<Site*>& GetNeighborListMemSites() {
-    return nlist_site_;
+  const std::vector<Sphere*>& GetNeighborListMemSpheres() {
+    return nlist_sphere_;
   }
   void Clear() { 
     nlist_.clear();
-    nlist_bond_.clear();
-    nlist_site_.clear();
+    nlist_rod_.clear();
+    nlist_sphere_.clear();
    }
   const int NNeighbors() const { return nlist_.size(); }
 
-  const int NNeighborsSite() const { return nlist_site_.size(); }
+  const int NNeighborsSphere() const { return nlist_sphere_.size(); }
 
-  const int NNeighborsBond() const { return nlist_bond_.size(); }
+  const int NNeighborsRod() const { return nlist_rod_.size(); }
 
   Object *GetNeighbor(int i_neighbor) {
     if (i_neighbor >= nlist_.size()) {
@@ -62,17 +63,17 @@ public:
     return nlist_[i_neighbor];
   }
 
-  Site *GetSiteNeighbor(int i_neighbor) {
-    if (i_neighbor >= nlist_site_.size()) {
+  Sphere *GetSphereNeighbor(int i_neighbor) {
+    if (i_neighbor >= nlist_sphere_.size()) {
       Logger::Error("Invalid index received in class NeighborList");
     }
-    return nlist_site_[i_neighbor];
+    return nlist_sphere_[i_neighbor];
   }
 
-  Bond *GetBondNeighbor(int i_neighbor) {
-    if (i_neighbor >= nlist_bond_.size()) {
+  Rod *GetRodNeighbor(int i_neighbor) {
+    if (i_neighbor >= nlist_rod_.size()) {
       Logger::Error("Invalid index received in class NeighborList");
     }
-    return nlist_bond_[i_neighbor];
+    return nlist_rod_[i_neighbor];
   }
 };

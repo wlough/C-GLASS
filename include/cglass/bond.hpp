@@ -2,9 +2,10 @@
 #define _CGLASS_BOND_H_
 
 #include "site.hpp"
+#include "rod.hpp"
 
 // Bonds, ie graph edges
-class Bond : public Object {
+class Bond : public Rod {
  protected:
   Site *sites_[2];
   int bond_number_ = 0;
@@ -39,6 +40,7 @@ class Bond : public Object {
   virtual bool HasNeighbor(int other_oid);
   void SetMeshPtr(Object *obj_ptr);
   Object *GetMeshPtr() { return mesh_ptr_; }
+  Object *GetCompPtr() { return mesh_ptr_; }
   void SetMeshLambda(double lambda) { mesh_lambda_ = lambda; }
   //const double GetInteractorLength();
   const double GetMeshLambda() const { return mesh_lambda_; }

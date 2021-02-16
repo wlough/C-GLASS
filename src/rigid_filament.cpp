@@ -49,9 +49,9 @@ void RigidFilament::InitRigidFilamentLength() {
     length_ = min_length_;
   }
   Logger::Trace(
-      "RigidFilament initialized with length %2.2f with %d bonds, mesh_id:"
+      "RigidFilament initialized with length %2.2f with %d bonds, comp_id:"
       " %d",
-      length_, n_bonds_, GetMeshID());
+      length_, n_bonds_, GetCompID());
   true_length_ = length_;
   bond_length_ = length_;
   n_bonds_max_ = 1;
@@ -386,8 +386,8 @@ void RigidFilament::WritePosit(std::fstream &oposit) {
     oposit.write(reinterpret_cast<char *>(&u), sizeof(u));
   oposit.write(reinterpret_cast<char *>(&diameter_), sizeof(diameter_));
   oposit.write(reinterpret_cast<char *>(&length_), sizeof(length_));
-  auto mesh_id = GetMeshID();
-  oposit.write(reinterpret_cast<char *>(&mesh_id), sizeof(mesh_id));
+  auto comp_id = GetCompID();
+  oposit.write(reinterpret_cast<char *>(&comp_id), sizeof(comp_id));
 }
 
 /* double[3] avg_pos
@@ -408,9 +408,9 @@ void RigidFilament::ReadPosit(std::fstream &iposit) {
     iposit.read(reinterpret_cast<char *>(&orientation_[i]), sizeof(double));
   iposit.read(reinterpret_cast<char *>(&diameter_), sizeof(diameter_));
   iposit.read(reinterpret_cast<char *>(&length_), sizeof(length_));
-  int mesh_id = 0;
-  iposit.read(reinterpret_cast<char *>(mesh_id), sizeof(int));
-  SetMeshID(mesh_id);
+  int comp_id = 0;
+  iposit.read(reinterpret_cast<char *>(comp_id), sizeof(int));
+  SetCompID(comp_id);
   UpdateBondPositions();
 }
 
