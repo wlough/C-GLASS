@@ -484,11 +484,11 @@ const Object *const *Anchor::GetNeighborListMem() {
   return neighbors_.GetNeighborListMem();
 }
 
-const std::vector<Sphere*>& Anchor::GetNeighborListMemSpheres() {
+const std::vector<const Sphere*>& Anchor::GetNeighborListMemSpheres() {
   return neighbors_.GetNeighborListMemSpheres();
 }
 
-const std::vector<Rod*> &Anchor::GetNeighborListMemRods() {
+const std::vector<const Rod*> &Anchor::GetNeighborListMemRods() {
   return neighbors_.GetNeighborListMemRods();
 }
 
