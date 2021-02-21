@@ -9,8 +9,8 @@ class NeighborList {
 private:
   std::mutex mtx_;
   std::vector<Object *> nlist_;
-  std::vector<Rod *> nlist_rod_;
-  std::vector<Sphere *> nlist_sphere_;
+  std::vector<const Rod *> nlist_rod_;
+  std::vector<const Sphere *> nlist_sphere_;
 
 public:
   NeighborList() {}
@@ -25,11 +25,11 @@ public:
     nlist_.push_back(obj);
     switch(obj->GetShape()) { 
       case shape::rod:
-        nlist_rod_.push_back(dynamic_cast<Rod*>(obj));
+        nlist_rod_.push_back(dynamic_cast<const Rod*>(obj));
         break;
       case shape::sphere:
         if (obj->GetNAnchored() == 0) {
-          nlist_sphere_.push_back(dynamic_cast<Sphere*>(obj));
+          nlist_sphere_.push_back(dynamic_cast<const Sphere*>(obj));
         }
         break;
       default:
@@ -38,11 +38,11 @@ public:
   }
   const Object *const *GetNeighborListMem() { return &nlist_[0]; }
   
-  const std::vector<Rod*>& GetNeighborListMemRods() {
+  const std::vector<const Rod*>& GetNeighborListMemRods() {
     return nlist_rod_;
   }
 
-  const std::vector<Sphere*>& GetNeighborListMemSpheres() {
+  const std::vector<const Sphere*>& GetNeighborListMemSpheres() {
     return nlist_sphere_;
   }
   void Clear() { 
@@ -67,13 +67,13 @@ public:
     if (i_neighbor >= nlist_sphere_.size()) {
       Logger::Error("Invalid index received in class NeighborList");
     }
-    return nlist_sphere_[i_neighbor];
+    return const_cast<Sphere *>(nlist_sphere_[i_neighbor]);
   }
 
   Rod *GetRodNeighbor(int i_neighbor) {
     if (i_neighbor >= nlist_rod_.size()) {
       Logger::Error("Invalid index received in class NeighborList");
     }
-    return nlist_rod_[i_neighbor];
+    return const_cast<Rod *>(nlist_rod_[i_neighbor]);
   }
 };
