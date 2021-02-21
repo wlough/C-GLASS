@@ -68,14 +68,14 @@ void CrosslinkSpecies::TestKMCStepSize() {
   bool throw_error = false;
   if (probs[0] > prob_thresh || std::isnan(probs[0])) {
     Logger::Warning(
-        "Probability of double event (U->S->U = %f) is too high. Try "
+        "Probability of double event (U->S->U = %f) is high. Try "
         "decreasing delta, concentration, or singly (un)binding parameters.",
         probs[0]);
     throw_error = true;
   }
   if (probs[1] > prob_thresh || std::isnan(probs[1])) {
     Logger::Warning(
-        "Probability of double event (U->S->D = %f) is too high. Try "
+        "Probability of double event (U->S->D = %f) is high. Try "
         "decreasing delta, concentration, or binding parameters.",
         probs[1]);
     throw_error = true;
@@ -87,7 +87,7 @@ void CrosslinkSpecies::TestKMCStepSize() {
     throw_error = true;
   }
   if (probs[3] > prob_thresh || std::isnan(probs[3])) {
-    Logger::Warning(" !!!Probability of double event (D->S->U = %f) is too "
+    Logger::Warning(" !!!Probability of double event (D->S->U = %f) is "
                     "high. Try decreasing delta or unbinding parameters.",
                     probs[3]);
     throw_error = true;
@@ -98,8 +98,8 @@ void CrosslinkSpecies::TestKMCStepSize() {
     Logger::Error("The likelyhood of a double KMC event is too high. Fix "
                   "before continuing.");
 #else
-    Logger::Warning("The likelyhood of a double KMC event is too high. Fix "
-                  "before continuing.");
+    Logger::Warning("The likelyhood of a double KMC event is high. Might want "
+        "to fix before continuing.");
 #endif
   }
 
