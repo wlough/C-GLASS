@@ -352,9 +352,10 @@ crosslink:                          # Parameters specific to crosslinks.
                                     # Calculated using k_spring, rest_length. User input ignored.
   lut_grid_num: [256, int]          # Number of grid points used in one dimension of the the lookup table (LUT).
                                     # Total entries go as the square of this number e.g. 256 x 256
-  bind_file: [none, string]      # File of species names (with that crosslink can bind to.
+  bind_file: [none, string]         # File of species crosslink can bind to, and binding rates. If none, bind to
+                                    # all and use given xlink parameters.
 
 receptor:
   component: [cortex, string]       # The mesh object that holds receptor sites
   concentration: [-1, double]       # Number of receptors per unit area (3D) or length (2D) of component
-  binding_analysis: [false, bool]   # Post-process analysis of number of bound receptors.
+  induce_catastrophe: [false, bool] # Induce catastrophe when xlinked to filament

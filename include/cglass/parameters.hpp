@@ -199,7 +199,7 @@ struct species_parameters<species_id::receptor>
     : public species_base_parameters {
   std::string component = "cortex";
   double concentration = -1;
-  bool binding_analysis = false;
+  bool induce_catastrophe = false;
 };
 typedef species_parameters<species_id::receptor> receptor_parameters;
 
