@@ -10,6 +10,7 @@ void Receptor::SetParameters() {
   draw_ = draw_type::_from_string(sparams_->draw_type.c_str());
   length_ = sparams_->length;
   diameter_ = sparams_->diameter;
+  induces_catastrophe_ = sparams_->induce_catastrophe;
 }
 
 // Copy parameters struct as a member, set parameters, and add as an interactor

@@ -682,3 +682,25 @@ void Anchor::SetObjArea(double* obj_area) {
   obj_area_ = obj_area;
 }
 
+// Returns true if the anchor is a catastrophe-inducer (it is bound
+// to a receptor that had the induce_catastrophe flag checked)
+bool Anchor::InducesCatastrophe() {
+  if (!sphere_ || !(sphere_->InducesCatastrophe())) return false;
+  return true;
+}
+
+// Returns true if anchor is attached to a RigidFilament or Filament.
+bool Anchor::AttachedToFilament() {
+
+  // Check if attached to bond of a filament
+  if (!rod_ || !mesh_ || (mesh_->GetSID() != +species_id::filament)) {
+    return false;
+  }
+  return true;
+}
+
+// Depolymerize attached anchor
+void Anchor::InduceCatastrophe() {
+  Filament* fil = dynamic_cast<Filament*>(mesh_);
+  fil->Depolymerize();
+}

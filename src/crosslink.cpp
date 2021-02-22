@@ -305,6 +305,15 @@ void Crosslink::CalculateTetherForces() {
   }
   anchors_[0].AddForce(force_);
   anchors_[1].SubForce(force_);
+
+  // If one anchor induces catastrophe and the other is attached to a filament, depolymerize
+  // attached filament.
+  if (anchors_[0].InducesCatastrophe() && anchors_[1].AttachedToFilament()) {
+    anchors_[1].InduceCatastrophe();
+  } else if (anchors_[1].InducesCatastrophe() && anchors_[0].AttachedToFilament()) {
+    anchors_[0].InduceCatastrophe();
+  }
+  
   // Update xlink's position (for drawing)
   UpdatePeriodic();
 }

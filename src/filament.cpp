@@ -1146,6 +1146,10 @@ void Filament::RescaleBonds() {
   CalculateAngles();
 }
 
+void Filament::Depolymerize() {
+  poly_ = poly_state::shrink;
+}
+
 void Filament::UpdatePolyState() {
   double p_g2s = p_g2s_;
   double p_p2s = p_p2s_;
