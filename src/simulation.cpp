@@ -245,8 +245,9 @@ void Simulation::InitGraphics() {
 // If NOGRAPH is defined, skip drawing and grabbing
 #ifndef NOGRAPH
   // Initialize graphics structures
-  graphics_.Init(&graph_array_, space_.GetSpaceBase(), background_color,
-                 params_.draw_boundary, params_.auto_graph);
+  graphics_.Init(&graph_array_, space_.GetStruct(), background_color,
+                 params_.draw_boundary, params_.auto_graph,
+                 params_.object_opacity);
 
 // This line was interferring with graphics on Windows, and removing it did no
 // harm
@@ -280,12 +281,16 @@ void Simulation::InitSpecies() {
       ix_mgr_.InitCrosslinkSpecies(*slab, parser_, rng_->GetSeed());
       continue;
     }
+    if (sid == +species_id::optical_trap) {
+      ix_mgr_.InitOpticalTrapSpecies(*slab, parser_, rng_->GetSeed());
+      continue;
+    }
     species_.push_back(species_factory.CreateSpecies(sid, rng_->GetSeed()));
     if (sid == +species_id::receptor) {
       species_.back()->SetPC(cortex_);
     }
     species_.back()->Init(slab->second, parser_);
-if (species_.back()->GetNInsert() > 0) {
+    if (species_.back()->GetNInsert() > 0) {
 #ifdef TRACE
       if (species_.back()->GetNInsert() > 20) {
         Logger::Warning("Simulation run in trace mode with a large number of "
@@ -341,8 +346,9 @@ void Simulation::InsertSpecies(bool force_overlap, bool processing) {
         // First check that we are respecting boundary conditions
         std::vector<Object *> last_ixors;
         (*spec)->GetLastInteractors(last_ixors);
-        if (params_.boundary != 0 && !processing && ((*spec)->GetSID() !=
-            +species_id::receptor) && ix_mgr_.CheckBoundaryConditions(last_ixors)) {
+        if (params_.boundary != 0 && !processing &&
+            ((*spec)->GetSID() != +species_id::receptor) &&
+            ix_mgr_.CheckBoundaryConditions(last_ixors)) {
           (*spec)->PopMember();
           /* We are not counting boundary condition failures in insertion
            failures, since insertion failures are for packing issues */
@@ -446,6 +452,8 @@ void Simulation::InsertSpecies(bool force_overlap, bool processing) {
   }
   /* Initialize static crosslink positions */
   ix_mgr_.InsertCrosslinks();
+  /* Initialize optical traps attached to species */
+  ix_mgr_.InsertOpticalTraps(&species_);
   /* Should do this all the time to force object counting */
   if (params_.load_checkpoint) {
     for (auto spec = species_.begin(); spec != species_.end(); ++spec) {
@@ -453,12 +461,13 @@ void Simulation::InsertSpecies(bool force_overlap, bool processing) {
     }
     ix_mgr_.LoadCrosslinksFromCheckpoints(run_name_,
                                           params_.checkpoint_run_name);
+    //TODO Load optical traps from checkpoints
   }
   ix_mgr_.ResetCellList(); // Forces rebuild cell list without redundancy
   ix_mgr_.Reset();
   // if (!processing) {
   ix_mgr_.CheckUpdateObjects(); // Forces update as well
-  //}  
+  //}
   ix_mgr_.InsertAttachedCrosslinks();
 }
 
@@ -536,7 +545,8 @@ void Simulation::InitInputs(run_options run_opts) {
   output_mgr_.Init(&params_, &species_, space_.GetSpaceBase(), true, &run_opts);
   ix_mgr_.InitOutputs(true, &run_opts);
   /* Initialize object positions from output files if post-processing */
-  if (run_opts.convert) return;
+  if (run_opts.convert)
+    return;
   output_mgr_.ReadInputs();
   ix_mgr_.ReadInputs();
 }
@@ -586,7 +596,8 @@ void Simulation::InitProcessing(run_options run_opts) {
   space_.Init(&params_);
   InitObjects();
   cortex_ = new Cortex(rng_->GetSeed());
-  ix_mgr_.Init(&params_, &species_, space_.GetSpaceBase(), cortex_, &tracker_, true);
+  ix_mgr_.Init(&params_, &species_, space_.GetSpaceBase(), cortex_, &tracker_,
+               true);
   InitSpecies();
   // ix_mgr_.InitInteractions();
   InsertSpecies(true, true);
