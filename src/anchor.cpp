@@ -693,7 +693,13 @@ bool Anchor::InducesCatastrophe() {
 bool Anchor::AttachedToFilament() {
 
   // Check if attached to bond of a filament
-  if (!rod_ || !mesh_ || (mesh_->GetSID() != +species_id::filament)) {
+  if (!rod_ || !bond_ || !mesh_ || (mesh_->GetSID() != +species_id::filament)) {
+    return false;
+  }
+  // Check if attached to last bond of filament
+  Bond *bond = bond_->GetNeighborBond(0);
+  if (bond) return false;
+  else if (rod_->GetLength() - (mesh_lambda_ - bond_->GetMeshLambda()) > rod_->GetDiameter()) {
     return false;
   }
   return true;
