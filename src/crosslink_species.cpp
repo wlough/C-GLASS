@@ -23,8 +23,8 @@ void CrosslinkSpecies::LoadBindingSpecies() {
     Logger::Error("Failed to load binding species file in crosslink_species.cpp");
   }
   if (!bnode[spec_name]) {
-    Logger::Error("Custom insert file for species %s did not contain correct species
-                   ID header", spec_name);
+    Logger::Error("Custom insert file for species %s did not contain correct species"
+                  "ID header", spec_name.c_str());
   }
   
 }
