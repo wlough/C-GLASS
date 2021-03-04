@@ -6,6 +6,7 @@ Spherocylinder::Spherocylinder(unsigned long seed) : BrRod(seed) {
 
 void Spherocylinder::SetParameters() {
   color_ = sparams_->color;
+  name_ = sparams_->name;
   draw_ = draw_type::_from_string(sparams_->draw_type.c_str());
   diameter_ = sparams_->diameter;
   length_ = sparams_->length;
