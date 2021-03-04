@@ -8,6 +8,7 @@ RigidFilament::RigidFilament(unsigned long seed) : Mesh(seed) {
 void RigidFilament::SetParameters() {
   /* Read parameters from filament parameters */
   color_ = sparams_->color;
+  name_ = sparams_->name;
   draw_ = draw_type::_from_string(sparams_->draw_type.c_str());
   length_ = sparams_->length;
   diameter_ = sparams_->diameter;

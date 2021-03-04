@@ -6,6 +6,7 @@ Anchor::Anchor(unsigned long seed) : Object(seed) {
 
 void Anchor::Init(crosslink_parameters *sparams) {
   sparams_ = sparams;
+  name_ = sparams_->name;
   diameter_ = sparams_->diameter;
   color_ = sparams_->color;
   draw_ = draw_type::_from_string(sparams_->draw_type.c_str());

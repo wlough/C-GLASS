@@ -20,6 +20,7 @@ protected:
   static SpaceBase *space_;
   static int n_dim_;
   static double delta_;
+  std::string name_;
   species_id sid_;
   obj_type type_ = obj_type::generic;
   comp_type comp_type_ = comp_type::generic;
@@ -49,7 +50,6 @@ protected:
   bool has_overlap_;
   int n_anchored_;
   bool interactor_update_;
-
 
   std::vector<Object *> interactors_;
   std::vector<object_interaction> ixs_;

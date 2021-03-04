@@ -7,6 +7,7 @@ Crosslink::Crosslink(unsigned long seed) : Object(seed) {
 
 void Crosslink::Init(crosslink_parameters *sparams) {
   sparams_ = sparams;
+  name_ = sparams_->name;
   length_ = -1;
   diameter_ = sparams_->tether_diameter;
   color_ = sparams_->tether_color;
