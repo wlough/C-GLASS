@@ -1,9 +1,9 @@
 #ifndef _CGLASS_SPECIES_BASE_H_
 #define _CGLASS_SPECIES_BASE_H_
 
+#include "cortex.hpp"
 #include "object.hpp"
 #include "params_parser.hpp"
-#include "cortex.hpp"
 
 class SpeciesBase {
 private:
@@ -32,7 +32,7 @@ public:
   virtual void UpdatePositions() {}
   virtual void Draw(std::vector<graph_struct *> &graph_array) {}
   virtual void Init(std::string spec_name, ParamsParser &parser) {}
-  virtual void SetPC(Cortex* cx) {}
+  virtual void SetPC(Cortex *cx) {}
   virtual void InitMembers() {}
   virtual void ZeroForces() {}
   virtual void GetInteractors(std::vector<Object *> &ix) {}
@@ -40,6 +40,7 @@ public:
   virtual double GetPotentialEnergy() { return 0; }
   virtual void ScalePositions() {}
   virtual void AddMember() {}
+  virtual void GetMemberPtrs(std::vector<Object *> &objs) {}
   virtual void SetLastMemberPosition(double const *const pos) {}
   virtual void ResetPreviousPositions() {}
   virtual void PopMember() {}
@@ -61,7 +62,7 @@ public:
     return params_->checkpoint_flag;
   }
   virtual std::string GetInsertionType() const { return ""; }
-  virtual bool GetSpecValid() {return spec_valid_; }
+  virtual bool GetSpecValid() { return spec_valid_; }
   virtual bool CheckInteractionAnalysis() { return false; }
   virtual int GetCount() const { return 0; }
   virtual void WriteOutputs(std::string run_name) {}

@@ -40,7 +40,7 @@ void OpticalTrap::Init(optical_trap_parameters *sparams) {
  */
 void OpticalTrap::InsertAndAttach(Object *obj) {
   attach_obj_ = obj;
-  SetMeshID(-1);
+  SetCompID(-1);
 
   AttachObjRelLambda(0); //TODO attach to minus end for now
   UpdateBeadPosition();
@@ -83,11 +83,6 @@ void OpticalTrap::ApplyOpticalTrapForce() {
 }
 
 void OpticalTrap::AttachObjRelLambda(double lambda) {
-  //if (attach_obj_->GetType() != +obj_type::bond) {
-  //  Logger::Error(
-  //      "Optical traps bound to non-bond objects not yet implemented in "
-  //      "AttachObjLambda.");
-  //}
 
   if (attach_obj_->GetType() == +obj_type::bond) {
     bond_ = dynamic_cast<Bond *>(attach_obj_);
@@ -96,14 +91,13 @@ void OpticalTrap::AttachObjRelLambda(double lambda) {
       Logger::Error(
           "Object ptr passed to optical trap was not referencing a bond!");
     }
-    mesh_ = dynamic_cast<Mesh *>(bond_->GetMeshPtr());
+    mesh_ = dynamic_cast<Mesh *>(bond_->GetCompPtr());
     if (mesh_ != nullptr) {
       mesh_n_bonds_ = mesh_->GetNBonds();
       mesh_length_ = mesh_->GetTrueLength();
       mesh_lambda_ = mesh_length_ * lambda;
       bond_lambda_ = mesh_lambda_ - bond_->GetMeshLambda();
-      SetMeshID(bond_->GetMeshID());
-      //  Logger::Error("Object ptr passed to anchor was not referencing a mesh!");
+      SetCompID(bond_->GetCompID());
     } else {
       bond_lambda_ = lambda * bond_length_;
     }
@@ -115,7 +109,7 @@ void OpticalTrap::AttachObjRelLambda(double lambda) {
     bond_ = mesh_->GetBondAtLambda(mesh_lambda_);
     bond_length_ = bond_->GetLength();
     bond_lambda_ = mesh_lambda_ - bond_->GetMeshLambda();
-    SetMeshID(mesh_->GetMeshID());
+    SetCompID(mesh_->GetCompID());
   } else {
     Logger::Error(
         "Optical traps for non-bond or non-mesh objects not yet implemented in "
@@ -149,7 +143,7 @@ void OpticalTrap::Draw(std::vector<graph_struct *> &graph_array) {
 }
 
 void OpticalTrap::WriteSpec(std::fstream &ospec) {
-  Logger::Trace("Writing optical trap specs, mesh id: %d", GetMeshID());
+  Logger::Trace("Writing optical trap specs, mesh id: %d", GetCompID());
   Object::WriteSpec(ospec);
   UpdateBeadPosition();
   double const *const bead_pos = bead_.GetPosition();
@@ -163,7 +157,7 @@ void OpticalTrap::WriteSpec(std::fstream &ospec) {
     ospec.write(reinterpret_cast<char *>(&bspos), sizeof(bspos));
   }
   /* TODO: Make this an object ID one day <10-08-20, ARL> */
-  int attach_id = attach_obj_->GetMeshID();
+  int attach_id = attach_obj_->GetCompID();
   ospec.write(reinterpret_cast<char *>(&attach_id), sizeof(attach_id));
 }
 

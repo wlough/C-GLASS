@@ -1,12 +1,12 @@
 #ifndef _CGLASS_DEFINITIONS_H_
 #define _CGLASS_DEFINITIONS_H_
 
-#include "macros.hpp"
 #include "logger.hpp"
+#include "macros.hpp"
 #include <math.h>
 
-#define BETTER_ENUMS_DEFAULT_CONSTRUCTOR(Enum) \
- public:                                       \
+#define BETTER_ENUMS_DEFAULT_CONSTRUCTOR(Enum)                                 \
+public:                                                                        \
   Enum() = default;
 #include "enum.hpp"
 
@@ -15,7 +15,7 @@
 #endif
 
 BETTER_ENUM(species_id, unsigned char, br_bead, filament, rigid_filament,
-            spherocylinder, spindle, crosslink, receptor, none);
+            spherocylinder, spindle, crosslink, receptor, optical_trap, none);
 BETTER_ENUM(draw_type, unsigned char, fixed, orientation, bw, none);
 BETTER_ENUM(potential_type, unsigned char, none, wca, soft, lj);
 BETTER_ENUM(boundary_type, unsigned char, none = 0, box = 1, sphere = 2,
@@ -42,8 +42,8 @@ struct graph_struct {
 //}
 
 #ifdef TESTS
-#define UNIT_TEST       \
-  template <typename T> \
+#define UNIT_TEST                                                              \
+  template <typename T>                                                        \
   friend class UnitTest;
 template <typename T>
 class UnitTest {};

@@ -351,8 +351,10 @@ crosslink:                          # Parameters specific to crosslinks.
                                     # do so will remain at the filament tip until unbinding.
   r_capture: [5, double]            # Max range allowed for singly to doubly bound crosslink.
                                     # Calculated using k_spring, rest_length. User input ignored.
-  lut_grid_num: [256, int]          # Number of grid points used in one dimension of the the lookup table (LUT).
+  lut_grid_num: [256, int]          # Number of grid points in one dimension of the the lookup table (LUT).
                                     # Total entries go as the square of this number e.g. 256 x 256
+  bind_file: [none, string]         # File of species names (that crosslinks bind to.)
+
 optical_trap:
   trap_spring: [1, double]          # Spring constant for optical trap, i.e. trap strength.
   attach_species: [filament, string] # What species does the optical trap bind to.

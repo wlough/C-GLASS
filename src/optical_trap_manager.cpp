@@ -6,7 +6,7 @@
 
 #include "cglass/optical_trap_manager.hpp"
 
-void OpticalTrapManager::Init(system_parameters *params, space_struct *space) {
+void OpticalTrapManager::Init(system_parameters *params, SpaceBase *space) {
   update_ = false;
   params_ = params;
   space_ = space;

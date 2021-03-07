@@ -24,12 +24,12 @@ private:
   system_parameters *params_;
   OpticalTrapOutputManager output_mgr_;
   std::vector<OpticalTrapSpecies *> otrap_species_;
-  space_struct *space_;
+  SpaceBase *space_;
 
   bool update_;
 
 public:
-  void Init(system_parameters *params, space_struct *space);
+  void Init(system_parameters *params, SpaceBase *space);
 
   void InitSpecies(sid_label &slab, ParamsParser &parser, unsigned long seed);
 
