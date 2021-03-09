@@ -789,7 +789,10 @@ void InteractionManager::InitOutputs(bool reading_inputs,
   otrap_.InitOutputs(reading_inputs, run_opts);
 }
 
-void InteractionManager::ReadInputs() { xlink_.ReadInputs(); }
+void InteractionManager::ReadInputs() {
+  xlink_.ReadInputs();
+  otrap_.ReadInputs();
+}
 
 void InteractionManager::Convert() { xlink_.Convert(); }
 
