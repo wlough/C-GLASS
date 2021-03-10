@@ -4,8 +4,12 @@ Anchor::Anchor(unsigned long seed) : Object(seed) {
   SetSID(species_id::crosslink);
 }
 
-void Anchor::Init(crosslink_parameters *sparams) {
+void Anchor::Init(crosslink_parameters *sparams, int anchor_num) {
   sparams_ = sparams;
+  anchor_num = sparams_->anchors[anchor_num].anchor_num;
+  if (anchor_num != anchor_num) {
+    Logger::Error("Anchor number does not match anchor index.");
+  }
   name_ = sparams_->name;
   diameter_ = sparams_->diameter;
   color_ = sparams_->color;

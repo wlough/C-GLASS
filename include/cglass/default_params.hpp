@@ -113,6 +113,7 @@
   default_config["spindle"]["spring_length"] = "0";
   default_config["spindle"]["spb_diameter"] = "5";
   default_config["spindle"]["nuc_site_insertion"] = "random";
+  default_config["crosslink"]["anchor"]["anchor_num"] = "0";
   default_config["crosslink"]["concentration"] = "0";
   default_config["crosslink"]["begin_with_bound_crosslinks"] = "0";
   default_config["crosslink"]["use_binding_volume"] = "true";

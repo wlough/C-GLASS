@@ -191,6 +191,11 @@ struct species_parameters<species_id::crosslink>
   double r_capture = 5;
   int lut_grid_num = 256;
   std::string bind_file = "none";
+  struct anchor_parameters {
+    int anchor_num = 0;
+  };
+  anchor_parameters anchor_temp;
+  std::vector<anchor_parameters> anchors = {anchor_temp, anchor_temp};
 };
 typedef species_parameters<species_id::crosslink> crosslink_parameters;
 

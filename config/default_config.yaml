@@ -233,7 +233,7 @@ filament:                            # Parameters unique to filament class of ob
                                      # stochastically with poisson frequencies dictated by 
                                      # f_shrink_to_grow, etc. will use a 3-state polymerization 
                                      # model if one of f_pause_to_shrink, etc frequencies are nonzero.
-  force_induced_catastrophe_flag : [false, bool] # induces a force-dependent depolymerization rate for
+  force_induced_catastrophe_flag: [false, bool] # induces a force-dependent depolymerization rate for
                                                  # forces applied to the filament tip.
   optical_trap_flag: [false, bool]   # at initialization, the tail of every filament will be tethered
                                      # to its current position by a spring-like force.
@@ -354,6 +354,8 @@ crosslink:                          # Parameters specific to crosslinks.
                                     # Total entries go as the square of this number e.g. 256 x 256
   bind_file: [none, string]         # File of species crosslink can bind to, and binding rates. If none, bind to
                                     # all and use given xlink parameters.
+  anchor:
+    anchor_num: [0, int]              # Which anchor of the crosslink each parameter corresponds to
 
 receptor:
   component: [cortex, string]       # The mesh object that holds receptor sites
