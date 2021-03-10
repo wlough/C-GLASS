@@ -703,6 +703,26 @@ species_base_parameters *parse_species_params(std::string sid,
       params.lut_grid_num = jt->second.as<int>();
       } else if (param_name.compare("bind_file")==0) {
       params.bind_file = jt->second.as<std::string>();
+      } else if (param_name.compare("anchor")==0) {
+        int index = 0;
+        for (auto seq=jt->second.begin(); seq!= jt->second.end(); ++seq) {
+          if (index > 1) {
+            Logger::Error("Only two anchors allowed per crosslink.");
+          }
+          for (auto kt = seq->second.begin(); kt != seq->second.end(); ++kt) {
+            if (!kt->second.IsScalar())  {
+              continue;
+            }
+            std::string sub_param_name = kt->first.as<std::string>();
+            if (false) {
+            } else if (sub_param_name.compare("anchor_num")==0) {
+              params.anchors[index].anchor_num = kt->second.as<int>();
+            } else {
+              Logger::Warning("Unrecognized parameter '%s'", sub_param_name.c_str());
+            }
+          }
+          index++;
+        }
       } else {
         Logger::Warning("Unrecognized %s parameter: '%s'", sid.c_str(), param_name.c_str());
       }

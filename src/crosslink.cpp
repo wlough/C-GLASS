@@ -32,8 +32,8 @@ void Crosslink::Init(crosslink_parameters *sparams) {
   Anchor anchor2(rng_.GetSeed());
   anchors_.push_back(anchor1);
   anchors_.push_back(anchor2);
-  anchors_[0].Init(sparams_);
-  anchors_[1].Init(sparams_);
+  anchors_[0].Init(sparams_, 0);
+  anchors_[1].Init(sparams_, 1);
   SetSingly();
   Logger::Trace("Initializing crosslink %d with anchors %d and %d", GetOID(),
                 anchors_[0].GetOID(), anchors_[1].GetOID());

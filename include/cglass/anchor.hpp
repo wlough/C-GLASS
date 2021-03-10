@@ -60,7 +60,7 @@ class Anchor : public Object {
 
  public:
   Anchor(unsigned long seed);
-  void Init(crosslink_parameters *sparams);
+  void Init(crosslink_parameters *sparams, int anchor_num);
   bool IsBound();
   void UpdatePosition();
   void Activate();
