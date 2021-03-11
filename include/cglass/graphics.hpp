@@ -97,9 +97,9 @@ public:
                            // "box" and "sphere"
 
 public:
-  void Init(std::vector<graph_struct *> *const graph_array,
-            space_struct *s_struct, double background, int draw_boundary,
-            int auto_graph, double alpha = 1.); // Init. Must always be called.
+  void Init(std::vector<graph_struct *> *const graph_array, SpaceBase *s,
+            double background, int draw_boundary, int auto_graph,
+            double alpha = 1.); // Init. Must always be called.
   void Clear();
 
   void DrawLoop();

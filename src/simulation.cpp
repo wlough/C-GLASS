@@ -245,7 +245,7 @@ void Simulation::InitGraphics() {
 // If NOGRAPH is defined, skip drawing and grabbing
 #ifndef NOGRAPH
   // Initialize graphics structures
-  graphics_.Init(&graph_array_, space_.GetStruct(), background_color,
+  graphics_.Init(&graph_array_, space_.GetSpaceBase(), background_color,
                  params_.draw_boundary, params_.auto_graph,
                  params_.object_opacity);
 
