@@ -203,6 +203,8 @@ struct species_parameters<species_id::optical_trap>
   double bead_diameter = 2;
   double trap_color = 3.1416;
   double bead_color = 1.5708;
+  std::string trap_motion = "stationary";
+  double const_force = 1;
 };
 typedef species_parameters<species_id::optical_trap> optical_trap_parameters;
 

@@ -362,6 +362,11 @@ optical_trap:
   bead_diameter: [2, double]          # Radius for graphically representing bead in trap
   trap_color: [3.1416, double]      # Color for graphically representing trap
   bead_color: [1.5708, double]      # Color for graphically representing bead in trap
+  trap_motion: [stationary, string] # How optical traps should move. Motion is 
+                                    # constrained to the direction attached species initial points (for now)
+  const_force: [1, double]          # When trap_motion is set as const_force, 
+                                    # the optical trap will move to maintain constant 
+                                    # force in the direction of motion at this value.
 
 receptor:
   component: [cortex, string]       # The mesh object that holds receptor sites

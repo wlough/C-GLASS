@@ -27,6 +27,8 @@ private:
 
   double trap_spring_;
 
+  double vel_[3] = {0};
+
   Object bead_; //Purely for graphing right now
 
 public:
@@ -37,6 +39,7 @@ public:
   void ApplyOpticalTrapForce();
   void CalculateOpticalTrapForce();
   void UpdateBeadPosition();
+  void UpdateTrapPosition() {}
   double const GetMeshLambda() { return mesh_lambda_; };
   double const GetBondLambda() { return bond_lambda_; };
   void Draw(std::vector<graph_struct *> &graph_array);

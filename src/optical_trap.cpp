@@ -46,6 +46,7 @@ void OpticalTrap::InsertAndAttach(Object *obj) {
   UpdateBeadPosition();
   // Bead and trap are initially set to same position
   SetPosition(bead_.GetPosition());
+  SetOrientation(bond_->GetOrientation());
   UpdatePeriodic();
 
   return;
@@ -80,6 +81,17 @@ void OpticalTrap::ApplyOpticalTrapForce() {
   cross_product(dlambda, force_, torque_, 3);
   //printf("torque = (%f, %f, %f)\n", torque_[0], torque_[1], torque_[2]);
   bond_->AddTorque(torque_);
+
+  // Change location to maintain constant force at next time step
+  if (sparams_->trap_motion.compare("const_force") == 0) {
+    // Distanced moved in the direction of initial filament orientation
+    double dpos_orient_proj =
+        (sparams_->const_force - dot_product(3, force_, orientation_)) /
+        trap_spring_;
+    for (int i = 0; i < n_dim_; ++i) {
+      position_[i] += orientation_[i] * dpos_orient_proj;
+    }
+  }
 }
 
 void OpticalTrap::AttachObjRelLambda(double lambda) {
@@ -111,9 +123,9 @@ void OpticalTrap::AttachObjRelLambda(double lambda) {
     bond_lambda_ = mesh_lambda_ - bond_->GetMeshLambda();
     SetCompID(mesh_->GetCompID());
   } else {
-    Logger::Error(
-        "Optical traps for non-bond or non-mesh objects not yet implemented in "
-        "AttachObjLambda.");
+    Logger::Error("Optical traps for non-bond or non-mesh objects not yet "
+                  "implemented in "
+                  "AttachObjLambda.");
   }
 
   if (bond_lambda_ < 0 || bond_lambda_ > bond_length_) {
