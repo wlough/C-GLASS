@@ -314,8 +314,13 @@ void Crosslink::AttachObjRandom(Object *obj) {
   /* Attaching to random obj implies first anchor binding from solution, so
    * this crosslink should be new and should not be singly or doubly bound */
   if ((obj->GetShape() == +shape::rod) || (obj->GetShape() == +shape::sphere)) {
-    int roll = rng_.RandomInt(2);
-    anchors_[roll].AttachObjRandom(obj);
+    int roll = rng_.RandomUniform();
+    int index = 0;
+    // weight by onrate and density. Saved linear_bind_site_density_ even though it doesn't
+    // do anything in case we move this param out of crosslink in the future.
+    index = (int)(roll >= 1 / ((anchors_[0].GetKonS()*linear_bind_site_density_) /
+                               (anchors_[1].GetKonS()*linear_bind_site_density_) + 1));
+    anchors_[index].AttachObjRandom(obj);
     SetCompID(obj->GetCompID());
     SetSingly(roll);
   } else {

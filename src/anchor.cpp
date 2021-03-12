@@ -683,6 +683,10 @@ void Anchor::SetObjArea(double* obj_area) {
   obj_area_ = obj_area;
 }
 
+const double Anchor::GetKonS() const {
+  return k_on_s_;
+}
+
 // Returns true if the anchor is a catastrophe-inducer (it is bound
 // to a receptor that had the induce_catastrophe flag checked)
 bool Anchor::InducesCatastrophe() {

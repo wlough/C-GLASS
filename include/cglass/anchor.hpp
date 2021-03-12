@@ -4,6 +4,10 @@
 #include "filament.hpp"
 #include "neighbor_list.hpp"
 
+struct bind_params {
+  double k_on_s;
+};
+
 /* Class for bound crosslink heads (called anchors). Tracks and updates its
    absolute position in space and relative position to its bound object. */
 class Anchor : public Object {
@@ -16,7 +20,6 @@ class Anchor : public Object {
   crosslink_parameters *sparams_;
   int step_direction_;
 
-  double anchor_num_;
   double rod_length_;
   double bond_lambda_;
   double mesh_length_;
@@ -52,7 +55,11 @@ class Anchor : public Object {
   double *obj_area_ = nullptr;
 
   int mesh_n_bonds_;
+  // use a map of species names to binding parameters to
+  // store binding parameters for specific species
+  std::map<std::string, bind_params> bind_map;
 
+  // Helper functions
   void UpdateAnchorPositionToRod();
   void Diffuse();
   void Walk();
@@ -61,7 +68,7 @@ class Anchor : public Object {
 
  public:
   Anchor(unsigned long seed);
-  void Init(crosslink_parameters *sparams, int anchor_num);
+  void Init(crosslink_parameters *sparams, int index);
   bool IsBound();
   void UpdatePosition();
   void Activate();
@@ -105,6 +112,8 @@ class Anchor : public Object {
   const double GetMaxVelocity() const;
   const double GetDiffusionConst() const;
   const double GetKickAmplitude() const;
+  const double GetKonS() const;
+  const double GetLinearBindSiteDensity() const;
   const double* const GetObjArea();
   void SetObjArea(double* obj_area);
 
