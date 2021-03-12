@@ -314,8 +314,6 @@ crosslink:                          # Parameters specific to crosslinks.
   static_flag: [false, bool]        # Flag for setting one crosslinker head to be fixed in space
   diffusion_s: [0, double]          # Diffusion coefficient for singly bound crosslinks
   diffusion_d: [0, double]          # Diffusion coefficient for doubly bound crosslinks
-  velocity_s: [0, double]           # Bound crosslink head velocities when walkers are singly bound.
-  velocity_d: [0, double]           # Bound crosslink head velocities when walkers are doubly bound.
   k_on_s: [10, double]              # On-rate for binding crosslinks from solution to bonds.
   k_off_s: [2, double]              # Off-rate for bound crosslinks to go from bound to solution.
   k_on_d: [10, double]              # On-rate for singly bound to doubly bound crosslinks.
@@ -354,8 +352,10 @@ crosslink:                          # Parameters specific to crosslinks.
                                     # Total entries go as the square of this number e.g. 256 x 256
   bind_file: [none, string]         # File of species crosslink can bind to, and binding rates. If none, bind to
                                     # all and use given xlink parameters.
-  anchor:
-    anchor_num: [0, int]              # Which anchor of the crosslink each parameter corresponds to
+  anchors:
+    velocity_s: [0, double]           # Bound crosslink head velocities when walkers are singly bound.
+    velocity_d: [0, double]           # Bound crosslink head velocities when walkers are doubly bound.
+    color: [0, double]
 
 receptor:
   component: [cortex, string]       # The mesh object that holds receptor sites

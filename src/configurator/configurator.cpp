@@ -145,27 +145,25 @@ void Configurator::WriteParameters() {
 }
 
 void Configurator::WriteParam() {
-  if (!subnode_->second.IsSequence() && subnode_->second.size() != 2) {
-    if (subnode_->first.as<std::string>().compare("anchor") == 0) {
-      parameters_ << "  struct anchor_parameters {\n";
+  if (subnode_->first.as<std::string>().compare("anchors") == 0) {
+    parameters_ << "  struct anchor_parameters {\n";
 
-      YAML::const_iterator subnode_temp = subnode_;
+    YAML::const_iterator subnode_temp = subnode_;
 
-      // Recursively write out anchor parameters
-      for (subnode_ = subnode_temp->second.begin(); subnode_ != subnode_temp->second.end(); ++subnode_) {
-        parameters_ << "  ";
-        WriteParam();
-      }
-      subnode_ = subnode_temp;
-      parameters_ << "  };\n"
-                     "  anchor_parameters anchor_temp;\n"
-                     "  std::vector<anchor_parameters> anchors = {anchor_temp, anchor_temp};\n";
-      return;
-    } else {
-      fprintf(stderr, "ERROR! Parameter config received an invalid parameter "
-                      "that was expected to be sequence of [value, type]\n");
-      exit(1);
+    // Recursively write out anchor parameters
+    for (subnode_ = subnode_temp->second.begin(); subnode_ != subnode_temp->second.end(); ++subnode_) {
+      parameters_ << "  ";
+      WriteParam();
     }
+    subnode_ = subnode_temp;
+    parameters_ << "  };\n"
+                   "  anchor_parameters anchor_temp;\n"
+                   "  std::vector<anchor_parameters> anchors = {anchor_temp, anchor_temp};\n";
+    return;
+  } else if (!subnode_->second.IsSequence() && subnode_->second.size() != 2) {
+    fprintf(stderr, "ERROR! Parameter config received an invalid parameter "
+                    "that was expected to be sequence of [value, type]\n");
+    exit(1);
   }
   pname_ = subnode_->first.as<std::string>();
   pvalue_ = subnode_->second[0].as<std::string>();
@@ -193,8 +191,16 @@ void Configurator::WriteDefParam(std::string parent = "", std::string subparent 
       default_config_ << "  default_config[\"" << parent << "\"][\"" << pname_
                       << "\"] = \"" << pvalue_ << "\";\n";
     } else {
-      default_config_ << "  default_config[\"" << parent << "\"][\"" << subparent
-                      << "\"][\"" << pname_ << "\"] = \"" << pvalue_ << "\";\n";
+      if (subparent.compare("anchors") == 0) {
+        // Add default config to both anchors
+        default_config_ << "  default_config[\"" << parent << "\"][\"" << subparent
+                        << "\"][0][\"" << pname_ << "\"] = \"" << pvalue_ << "\";\n";
+        default_config_ << "  default_config[\"" << parent << "\"][\"" << subparent
+                        << "\"][1][\"" << pname_ << "\"] = \"" << pvalue_ << "\";\n";
+      } else {
+        std::cerr << "Error: configurator only set up for anchor subspecies parameters.\n";
+        return;
+      }
     }
   }
 }
@@ -356,14 +362,13 @@ void Configurator::WriteParseSystemParams() {
 
 void Configurator::ParseParam(std::string iterator, bool store) {
   pname_ = subnode_->first.as<std::string>();
-  if (pname_.compare("anchor") == 0) {
+  if (pname_.compare("anchors") == 0) {
     parse_params_ << "      } else if (param_name.compare(\"" << pname_ << "\")==0) {\n"
-                     "        int index = 0;\n"
-                     "        for (auto seq=jt->second.begin(); seq!= jt->second.end(); ++seq) {\n"
-                     "          if (index > 1) {\n"
+                     "        for (size_t i = 0; i < jt->second.size(); ++i) {\n"
+                     "          if (i > 1) {\n"
                      "            Logger::Error(\"Only two anchors allowed per crosslink.\");\n"
                      "          }\n"
-                     "          for (auto kt = seq->second.begin(); kt != seq->second.end(); ++kt) {\n"
+                     "          for (auto kt = jt->second[i].begin(); kt != jt->second[i].end(); ++kt) {\n"
                      "            if (!kt->second.IsScalar())  {\n"
                      "              continue;\n"
                      "            }\n"
@@ -372,20 +377,25 @@ void Configurator::ParseParam(std::string iterator, bool store) {
     for (YAML::const_iterator subit = subnode_->second.begin(); subit != subnode_->second.end();
            ++subit) {
       if (subit->second.IsSequence() && subit->second.size() == 2) {
-        pname_ = subit->first.as<std::string>();
+        std::string sub_name = subit->first.as<std::string>();
         ptype_ = subit->second[1].as<std::string>();
         if (ptype_.compare("string") == 0) {
           ptype_ = "std::string";
         }
-        parse_params_ <<
-                         "            } else if (sub_param_name.compare(\"" << pname_ << "\")==0) {\n"
-                         "              params.anchors[index]." << pname_ << " = kt->second.as<"
-                         << ptype_ << ">();\n";
+        parse_params_ << "            } else if (sub_param_name.compare(\"" << sub_name << "\")==0) {\n"
+                         "              params." << pname_ << "[i]." << sub_name << 
+                         " = kt->second.as<" << ptype_ << ">();\n"
+                         "              if (jt->second.size() < 2 || !jt->second[(int)!i][\"" << sub_name << "\"]) {\n"
+                         "                 params." << pname_ << "[(int)!i]." << sub_name << " = params." << pname_ 
+                         << "[i]." << sub_name << ";\n"
+                         "              }\n";
       }
     }
-    parse_params_ << "            } else {\n              "
-                     "Logger::Warning(\"Unrecognized parameter '%s'\", sub_param_name.c_str());\n"
-                     "            }\n          }\n          index++;\n        }\n";
+    parse_params_ << "            } else {\n"
+                     "              Logger::Warning(\"Unrecognized parameter '%s'\", sub_param_name.c_str());\n"
+                     "            }\n"
+                     "          }\n"
+                     "        }\n";
     return;
   }
   ptype_ = subnode_->second[1].as<std::string>();

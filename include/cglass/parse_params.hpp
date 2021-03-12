@@ -655,10 +655,6 @@ species_base_parameters *parse_species_params(std::string sid,
       params.diffusion_s = jt->second.as<double>();
       } else if (param_name.compare("diffusion_d")==0) {
       params.diffusion_d = jt->second.as<double>();
-      } else if (param_name.compare("velocity_s")==0) {
-      params.velocity_s = jt->second.as<double>();
-      } else if (param_name.compare("velocity_d")==0) {
-      params.velocity_d = jt->second.as<double>();
       } else if (param_name.compare("k_on_s")==0) {
       params.k_on_s = jt->second.as<double>();
       } else if (param_name.compare("k_off_s")==0) {
@@ -703,25 +699,36 @@ species_base_parameters *parse_species_params(std::string sid,
       params.lut_grid_num = jt->second.as<int>();
       } else if (param_name.compare("bind_file")==0) {
       params.bind_file = jt->second.as<std::string>();
-      } else if (param_name.compare("anchor")==0) {
-        int index = 0;
-        for (auto seq=jt->second.begin(); seq!= jt->second.end(); ++seq) {
-          if (index > 1) {
+      } else if (param_name.compare("anchors")==0) {
+        for (size_t i = 0; i < jt->second.size(); ++i) {
+          if (i > 1) {
             Logger::Error("Only two anchors allowed per crosslink.");
           }
-          for (auto kt = seq->second.begin(); kt != seq->second.end(); ++kt) {
+          for (auto kt = jt->second[i].begin(); kt != jt->second[i].end(); ++kt) {
             if (!kt->second.IsScalar())  {
               continue;
             }
             std::string sub_param_name = kt->first.as<std::string>();
             if (false) {
-            } else if (sub_param_name.compare("anchor_num")==0) {
-              params.anchors[index].anchor_num = kt->second.as<int>();
+            } else if (sub_param_name.compare("velocity_s")==0) {
+              params.anchors[i].velocity_s = kt->second.as<double>();
+              if (jt->second.size() < 2 || !jt->second[(int)!i]["velocity_s"]) {
+                 params.anchors[(int)!i].velocity_s = params.anchors[i].velocity_s;
+              }
+            } else if (sub_param_name.compare("velocity_d")==0) {
+              params.anchors[i].velocity_d = kt->second.as<double>();
+              if (jt->second.size() < 2 || !jt->second[(int)!i]["velocity_d"]) {
+                 params.anchors[(int)!i].velocity_d = params.anchors[i].velocity_d;
+              }
+            } else if (sub_param_name.compare("color")==0) {
+              params.anchors[i].color = kt->second.as<double>();
+              if (jt->second.size() < 2 || !jt->second[(int)!i]["color"]) {
+                 params.anchors[(int)!i].color = params.anchors[i].color;
+              }
             } else {
               Logger::Warning("Unrecognized parameter '%s'", sub_param_name.c_str());
             }
           }
-          index++;
         }
       } else {
         Logger::Warning("Unrecognized %s parameter: '%s'", sid.c_str(), param_name.c_str());

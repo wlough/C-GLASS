@@ -16,6 +16,7 @@ class Anchor : public Object {
   crosslink_parameters *sparams_;
   int step_direction_;
 
+  double anchor_num_;
   double rod_length_;
   double bond_lambda_;
   double mesh_length_;

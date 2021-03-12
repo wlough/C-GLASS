@@ -167,8 +167,6 @@ struct species_parameters<species_id::crosslink>
   bool static_flag = false;
   double diffusion_s = 0;
   double diffusion_d = 0;
-  double velocity_s = 0;
-  double velocity_d = 0;
   double k_on_s = 10;
   double k_off_s = 2;
   double k_on_d = 10;
@@ -192,7 +190,9 @@ struct species_parameters<species_id::crosslink>
   int lut_grid_num = 256;
   std::string bind_file = "none";
   struct anchor_parameters {
-    int anchor_num = 0;
+    double velocity_s = 0;
+    double velocity_d = 0;
+    double color = 0;
   };
   anchor_parameters anchor_temp;
   std::vector<anchor_parameters> anchors = {anchor_temp, anchor_temp};

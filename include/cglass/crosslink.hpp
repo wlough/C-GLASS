@@ -32,6 +32,7 @@ private:
   double e_dep_factor_;
   double fdep_length_;
   double polar_affinity_;
+  int bound_anchor_ = 0; // Index of anchor that is bound if Singly
   std::map<Sphere *, std::pair<std::vector<double>, std::vector<Anchor*> > > *bound_curr_;
   std::vector<std::string> *bind_species_;
   std::vector<Anchor> anchors_;
@@ -56,7 +57,7 @@ public:
   void GetInteractors(std::vector<Object *> &ixors);
   void Draw(std::vector<graph_struct *> &graph_array);
   void SetDoubly();
-  void SetSingly();
+  void SetSingly(int bound_anchor);
   void SetUnbound();
   void SetAnchorStates();
   const bool IsDoubly() const;
