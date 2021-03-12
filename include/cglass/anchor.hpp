@@ -1,7 +1,7 @@
 #ifndef _CGLASS_ANCHOR_H_
 #define _CGLASS_ANCHOR_H_
 
-#include "mesh.hpp"
+#include "filament.hpp"
 #include "neighbor_list.hpp"
 
 /* Class for bound crosslink heads (called anchors). Tracks and updates its
@@ -16,6 +16,7 @@ class Anchor : public Object {
   crosslink_parameters *sparams_;
   int step_direction_;
 
+  double anchor_num_;
   double rod_length_;
   double bond_lambda_;
   double mesh_length_;
@@ -60,7 +61,7 @@ class Anchor : public Object {
 
  public:
   Anchor(unsigned long seed);
-  void Init(crosslink_parameters *sparams);
+  void Init(crosslink_parameters *sparams, int anchor_num);
   bool IsBound();
   void UpdatePosition();
   void Activate();
@@ -107,8 +108,14 @@ class Anchor : public Object {
   const double* const GetObjArea();
   void SetObjArea(double* obj_area);
 
-  // Convert binary data to text. Static to avoid needing to istantiate
-  // species members.
+  // Richelle turn these two functions into members/getters that get set at binding time
+  // once you get this working.
+  bool InducesCatastrophe();
+  bool AttachedToFilament();
+  void InduceCatastrophe();
+
+  // Convert binary data to text. Static to avoid needing to instantiate
+  // species members in conversion mode.
   static void ConvertSpec(std::fstream &ispec, std::fstream &otext);
   static void WriteSpecTextHeader(std::fstream &otext);
 };

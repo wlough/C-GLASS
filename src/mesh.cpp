@@ -61,7 +61,7 @@ void Mesh::AddBond(Site *site1, Site *site2) {
   bonds_.back().SetBondNumber(n_bonds_);
   bonds_.back().SetMeshLambda(true_length_);
   bonds_.back().SetEquilLength(bond_length_);
-  bonds_.back().Init(site1, site2);
+  bonds_.back().Init(name_, site1, site2);
   /* Initialize site orientations */
   site1->SetOrientation(bonds_.back().GetOrientation());
   site2->SetOrientation(bonds_.back().GetOrientation());

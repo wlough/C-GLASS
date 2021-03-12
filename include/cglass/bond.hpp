@@ -19,7 +19,7 @@ class Bond : public Rod {
 
  public:
   Bond(unsigned long seed);
-  void Init(Site *s1, Site *s2);
+  void Init(const std::string& name, Site *s1, Site *s2);
   void ReInit();
   void Report();
   void ReportSites();

@@ -45,6 +45,7 @@ class CentrosomeSpecies : public Species<Centrosome> {
   void Init(system_parameters *params, SpaceBase *space, long seed) {
     Species::Init(params, space, seed);
     sparams_ = &(params_->centrosome);
+    name_ = sparams_->name;
   }
   void UpdatePositions() {
     for (auto it = members_.begin(); it != members_.end(); ++it) {

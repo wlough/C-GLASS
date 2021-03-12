@@ -7,9 +7,11 @@ Receptor::Receptor(unsigned long seed) : Sphere(seed) {
 // Set parameters from sparams struct
 void Receptor::SetParameters() {
   color_ = sparams_->color;
+  name_ = sparams_->name;
   draw_ = draw_type::_from_string(sparams_->draw_type.c_str());
   length_ = sparams_->length;
   diameter_ = sparams_->diameter;
+  induces_catastrophe_ = sparams_->induce_catastrophe;
 }
 
 // Copy parameters struct as a member, set parameters, and add as an interactor

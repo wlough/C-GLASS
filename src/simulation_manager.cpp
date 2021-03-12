@@ -181,6 +181,32 @@ void SimulationManager::LoadDefaultParams() {
           if (!pnode_[param_name][sub_param]) {
             pnode_[param_name][sub_param] =
                 default_config[param_name][sub_param];
+          } else if (jt->second.IsSequence()) {
+            // Save in anchor/subspecies parameters
+            for (size_t i = 0; i < jt->second.size(); ++i) {
+              for (YAML::const_iterator kt = jt->second[i].begin(); kt != jt->second[i].end(); ++kt) {
+                if (i > 1) {
+                  Logger::Error("Only two default anchor parameters allowed!");
+                }
+                std::string sub_sub_param = kt->first.as<std::string>();
+                // Default is for anchor params to be identical, unless none exist.
+                // Copy one anchor to another if there is only one listed; if none are listed, assign both to default.
+                if ((pnode_[param_name][sub_param].size() == 0)) {
+                  pnode_[param_name][sub_param].push_back(jt->second[i]);
+                }
+                if ((pnode_[param_name][sub_param].size() == 1)) {
+                  pnode_[param_name][sub_param].push_back(pnode_[param_name][sub_param][0]);
+                }
+                // Copy specific anchor params to second anchor if there are two listed
+                if (!pnode_[param_name][sub_param][i][sub_sub_param]) {
+                  if (pnode_[param_name][sub_param][(int)!i][sub_sub_param]) {
+                    pnode_[param_name][sub_param][i][sub_sub_param] = pnode_[param_name][sub_param][!i][sub_sub_param];
+                  } else {
+                    pnode_[param_name][sub_param][i][sub_sub_param] = default_config[param_name][sub_param][i][sub_sub_param];
+                  }
+                }
+              }
+            }
           }
         }
       } else if (pnode_[param_name].IsSequence()) {

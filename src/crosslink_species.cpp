@@ -15,7 +15,18 @@ void CrosslinkSpecies::Init(std::string spec_name, ParamsParser &parser) {
 }
 
 void CrosslinkSpecies::LoadBindingSpecies() {
-  YAML::Node node = YAML::LoadFile(sparams_.bind_file);
+  YAML::Node bnode;
+  std::string spec_name = GetSID()._to_string();
+  try {
+    bnode = YAML::LoadFile(sparams_.bind_file);
+  } catch (...) {
+    Logger::Error("Failed to load binding species file in crosslink_species.cpp");
+  }
+  if (!bnode[spec_name]) {
+    Logger::Error("Custom insert file for species %s did not contain correct species"
+                  "ID header", spec_name.c_str());
+  }
+  
 }
 void CrosslinkSpecies::AddMember() {
   Species::AddMember();

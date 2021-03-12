@@ -6,6 +6,7 @@ Filament::Filament(unsigned long seed) : Mesh(seed) {
 void Filament::SetParameters() {
   /* Read parameters from filament parameters */
   color_ = sparams_->color;
+  name_ = sparams_->name;
   draw_ = draw_type::_from_string(sparams_->draw_type.c_str());
   length_ = sparams_->length;
   /* Bending_stiffness = persistence_length*kT. Bending_stiffness is used in
@@ -1144,6 +1145,10 @@ void Filament::RescaleBonds() {
   }
   UpdateBondPositions();
   CalculateAngles();
+}
+
+void Filament::Depolymerize() {
+  poly_ = poly_state::shrink;
 }
 
 void Filament::UpdatePolyState() {

@@ -4,17 +4,18 @@ Anchor::Anchor(unsigned long seed) : Object(seed) {
   SetSID(species_id::crosslink);
 }
 
-void Anchor::Init(crosslink_parameters *sparams) {
+void Anchor::Init(crosslink_parameters *sparams, int index) {
   sparams_ = sparams;
+  name_ = sparams_->name;
   diameter_ = sparams_->diameter;
-  color_ = sparams_->color;
+  color_ = sparams_->anchors[index].color;
   draw_ = draw_type::_from_string(sparams_->draw_type.c_str());
   static_flag_ = false; // Must be explicitly set to true by Crosslink
   Unbind();
   step_direction_ =
       (sparams_->step_direction == 0 ? 0 : SIGNOF(sparams_->step_direction));
-  max_velocity_s_ = sparams->velocity_s;
-  max_velocity_d_ = sparams->velocity_d;
+  max_velocity_s_ = sparams->anchors[index].velocity_s;
+  max_velocity_d_ = sparams->anchors[index].velocity_d;
   diffusion_s_ = sparams->diffusion_s;
   diffusion_d_ = sparams->diffusion_d;
   k_on_s_ = sparams_->k_on_s;
@@ -682,3 +683,31 @@ void Anchor::SetObjArea(double* obj_area) {
   obj_area_ = obj_area;
 }
 
+// Returns true if the anchor is a catastrophe-inducer (it is bound
+// to a receptor that had the induce_catastrophe flag checked)
+bool Anchor::InducesCatastrophe() {
+  if (!sphere_ || !(sphere_->InducesCatastrophe())) return false;
+  return true;
+}
+
+// Returns true if anchor is attached to a RigidFilament or Filament.
+bool Anchor::AttachedToFilament() {
+
+  // Check if attached to bond of a filament
+  if (!rod_ || !bond_ || !mesh_ || (mesh_->GetSID() != +species_id::filament)) {
+    return false;
+  }
+  // Check if attached to last bond of filament
+  Bond *bond = bond_->GetNeighborBond(0);
+  if (bond) return false;
+  else if (rod_->GetLength() - (mesh_lambda_ - bond_->GetMeshLambda()) > rod_->GetDiameter()) {
+    return false;
+  }
+  return true;
+}
+
+// Depolymerize attached anchor
+void Anchor::InduceCatastrophe() {
+  Filament* fil = dynamic_cast<Filament*>(mesh_);
+  fil->Depolymerize();
+}

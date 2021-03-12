@@ -10,6 +10,7 @@ class ParamsParser {
 private:
   YAML::Node sim_node_;
   YAML::Node species_node_;
+  YAML::Node subspecies_node_;
   std::vector<sid_label> labels_;
   void CheckDuplicateLabels();
   void ParseSpeciesParameters();

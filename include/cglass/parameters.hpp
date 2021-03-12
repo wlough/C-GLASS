@@ -167,8 +167,6 @@ struct species_parameters<species_id::crosslink>
   bool static_flag = false;
   double diffusion_s = 0;
   double diffusion_d = 0;
-  double velocity_s = 0;
-  double velocity_d = 0;
   double k_on_s = 10;
   double k_off_s = 2;
   double k_on_d = 10;
@@ -191,6 +189,13 @@ struct species_parameters<species_id::crosslink>
   double r_capture = 5;
   int lut_grid_num = 256;
   std::string bind_file = "none";
+  struct anchor_parameters {
+    double velocity_s = 0;
+    double velocity_d = 0;
+    double color = 0;
+  };
+  anchor_parameters anchor_temp;
+  std::vector<anchor_parameters> anchors = {anchor_temp, anchor_temp};
 };
 typedef species_parameters<species_id::crosslink> crosslink_parameters;
 
@@ -213,7 +218,7 @@ struct species_parameters<species_id::receptor>
     : public species_base_parameters {
   std::string component = "cortex";
   double concentration = -1;
-  bool binding_analysis = false;
+  bool induce_catastrophe = false;
 };
 typedef species_parameters<species_id::receptor> receptor_parameters;
 
