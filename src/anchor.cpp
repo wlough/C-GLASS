@@ -4,22 +4,18 @@ Anchor::Anchor(unsigned long seed) : Object(seed) {
   SetSID(species_id::crosslink);
 }
 
-void Anchor::Init(crosslink_parameters *sparams, int anchor_num) {
+void Anchor::Init(crosslink_parameters *sparams, int index) {
   sparams_ = sparams;
-  anchor_num = sparams_->anchors[anchor_num].anchor_num;
-  if (anchor_num != anchor_num) {
-    Logger::Error("Anchor number does not match anchor index.");
-  }
   name_ = sparams_->name;
   diameter_ = sparams_->diameter;
-  color_ = sparams_->color;
+  color_ = sparams_->anchors[index].color;
   draw_ = draw_type::_from_string(sparams_->draw_type.c_str());
   static_flag_ = false; // Must be explicitly set to true by Crosslink
   Unbind();
   step_direction_ =
       (sparams_->step_direction == 0 ? 0 : SIGNOF(sparams_->step_direction));
-  max_velocity_s_ = sparams->velocity_s;
-  max_velocity_d_ = sparams->velocity_d;
+  max_velocity_s_ = sparams->anchors[index].velocity_s;
+  max_velocity_d_ = sparams->anchors[index].velocity_d;
   diffusion_s_ = sparams->diffusion_s;
   diffusion_d_ = sparams->diffusion_d;
   k_on_s_ = sparams_->k_on_s;
