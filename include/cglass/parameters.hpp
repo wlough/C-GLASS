@@ -162,8 +162,7 @@ struct species_parameters<species_id::crosslink>
   int begin_with_bound_crosslinks = 0;
   bool use_binding_volume = true;
   bool infinite_reservoir_flag = false;
-  double linear_bind_site_density = 1;
-  double surface_bind_site_density = 1;
+  double bind_site_density = 1;
   bool static_flag = false;
   double diffusion_s = 0;
   double diffusion_d = 0;

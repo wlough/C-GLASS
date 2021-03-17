@@ -6,6 +6,9 @@
 
 struct bind_params {
   double k_on_s;
+  density_type dens_type;
+  double bind_site_density;
+  bool single_occupancy;
 };
 
 /* Class for bound crosslink heads (called anchors). Tracks and updates its
@@ -37,7 +40,9 @@ class Anchor : public Object {
   double polar_affinity_;
   double f_stall_;
   double force_dep_vel_flag_;
-  
+  bool use_bind_file_;
+  std::map<std::string, bind_params> *bind_param_map_;
+
   double input_tol = 1e-8; // Tolerance for comparing inputs to 0
 
   bind_state state_;
@@ -52,12 +57,11 @@ class Anchor : public Object {
   Bond *bond_ = nullptr;
   Mesh *mesh_ = nullptr;
 
+  // Richelle- completely replace obj_area with bind_rate.
   double *obj_area_ = nullptr;
+  double *bind_rate_ = nullptr;
 
   int mesh_n_bonds_;
-  // use a map of species names to binding parameters to
-  // store binding parameters for specific species
-  std::map<std::string, bind_params> bind_map;
 
   // Helper functions
   void UpdateAnchorPositionToRod();
@@ -68,7 +72,7 @@ class Anchor : public Object {
 
  public:
   Anchor(unsigned long seed);
-  void Init(crosslink_parameters *sparams, int index);
+  void Init(crosslink_parameters *sparams, int index, std::map<std::string, bind_params> *bind_param_map);
   bool IsBound();
   void UpdatePosition();
   void Activate();
@@ -116,6 +120,8 @@ class Anchor : public Object {
   const double GetLinearBindSiteDensity() const;
   const double* const GetObjArea();
   void SetObjArea(double* obj_area);
+  const double* const GetBindRate();
+  void SetBindRate(double* bind_rate);
 
   // Richelle turn these two functions into members/getters that get set at binding time
   // once you get this working.

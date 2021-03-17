@@ -22,28 +22,31 @@ void Crosslink::Init(crosslink_parameters *sparams) {
   static_flag_ = sparams_->static_flag;
   k_align_ = sparams_->k_align;
   // rcapture_ = sparams_->r_capture;
-  linear_bind_site_density_ = sparams_->linear_bind_site_density;
-  surface_bind_site_density_ = sparams_->surface_bind_site_density;
+  bind_site_density_ = sparams_->bind_site_density;
   e_dep_factor_ = sparams_->energy_dep_factor;
   fdep_length_ = sparams_->force_dep_length;
   polar_affinity_ = sparams_->polar_affinity;
+  use_bind_file_ = sparams_->bind_file.compare("none");
   
   Anchor anchor1(rng_.GetSeed());
   Anchor anchor2(rng_.GetSeed());
   anchors_.push_back(anchor1);
   anchors_.push_back(anchor2);
-  anchors_[0].Init(sparams_, 0);
-  anchors_[1].Init(sparams_, 1);
+  anchors_[0].Init(sparams_, 0, bind_param_map_);
+  anchors_[1].Init(sparams_, 1, bind_param_map_);
   SetSingly(bound_anchor_);
   Logger::Trace("Initializing crosslink %d with anchors %d and %d", GetOID(),
                 anchors_[0].GetOID(), anchors_[1].GetOID());
 }
 
 void Crosslink::InitInteractionEnvironment(LookupTable *lut, Tracker *tracker, 
-                                           std::map<Sphere *, std::pair<std::vector<double>, std::vector<Anchor*> > > *bound_curr) { 
+                                           std::map<Sphere *, std::pair<std::vector<double>, 
+                                           std::vector<Anchor*> > > *bound_curr,
+                                           std::map<std::string, bind_params> *bind_param_map) { 
   lut_ = lut;
   tracker_ = tracker;
   bound_curr_ = bound_curr;
+  bind_param_map_ = bind_param_map;
 }
 
 /* Function used to set anchor[0] position etc to xlink position etc */
@@ -83,13 +86,31 @@ void Crosslink::SinglyKMC() {
 
   /* Calculate probability to bind */
   double kmc_bind_prob = 0;
-  double bind_factor_rod = anchors_[(int)!bound_anchor_].GetOnRate() * linear_bind_site_density_;
-  double bind_factor_sphere = anchors_[(int)!bound_anchor_].GetOnRate() * surface_bind_site_density_;
+  double bind_factor_rod = anchors_[(int)!bound_anchor_].GetOnRate() * bind_site_density_;
+  double bind_factor_sphere = anchors_[(int)!bound_anchor_].GetOnRate() * bind_site_density_;
 
   /* Fill vector of bind factors with rod factors, then sphere factors */
   std::vector<double> bind_factors(n_neighbors);
-  std::fill(bind_factors.begin(), bind_factors.begin() + n_neighbors_rod, bind_factor_rod);
-  std::fill(bind_factors.begin() + n_neighbors_rod, bind_factors.end(), bind_factor_sphere);
+  const std::vector<Rod*>& rod_nbr_list = anchors_[bound_anchor_].GetNeighborListMemRods();
+  const std::vector<Sphere*>& sphere_nbr_list = anchors_[bound_anchor_].GetNeighborListMemSpheres();
+  if (use_bind_file_) {
+    for (int i = 0; i < rod_nbr_list.size(); ++i) {
+      // Richelle- save ptr here too for map
+      // Richelle- save k_on_d to the map and replace below
+      std::string name = rod_nbr_list[i]->GetName();
+      bind_factors[i] = anchors_[(int)!bound_anchor_].GetOnRate() * (*bind_param_map_)[name].bind_site_density;
+    }
+    for (int i = 0; i < sphere_nbr_list.size(); ++i) {
+      // Richelle- save ptr here too for map
+      // Richelle- save k_on_d to the map and replace below
+      std::string name = sphere_nbr_list[i]->GetName();
+      bind_factors[rod_nbr_list.size() + i] =
+               anchors_[(int)!bound_anchor_].GetOnRate() * (*bind_param_map_)[name].bind_site_density;
+    }
+  } else {
+    std::fill(bind_factors.begin(), bind_factors.begin() + n_neighbors_rod, bind_factor_rod);
+    std::fill(bind_factors.begin() + n_neighbors_rod, bind_factors.end(), bind_factor_sphere);
+  }
  
   if (n_neighbors > 0) {
     if (!static_flag_ && polar_affinity_ != 1.0) {
@@ -316,10 +337,10 @@ void Crosslink::AttachObjRandom(Object *obj) {
   if ((obj->GetShape() == +shape::rod) || (obj->GetShape() == +shape::sphere)) {
     int roll = rng_.RandomUniform();
     int index = 0;
-    // weight by onrate and density. Saved linear_bind_site_density_ even though it doesn't
+    // weight by onrate and density. Saved bind_site_density_ even though it doesn't
     // do anything in case we move this param out of crosslink in the future.
-    index = (int)(roll >= 1 / ((anchors_[0].GetKonS()*linear_bind_site_density_) /
-                               (anchors_[1].GetKonS()*linear_bind_site_density_) + 1));
+    index = (int)(roll >= 1 / ((anchors_[0].GetKonS()*bind_site_density_) /
+                               (anchors_[1].GetKonS()*bind_site_density_) + 1));
     anchors_[index].AttachObjRandom(obj);
     SetCompID(obj->GetCompID());
     SetSingly(roll);
@@ -505,6 +526,13 @@ void Crosslink::SetObjArea(double *obj_area) {
   obj_area_ = obj_area;
   anchors_[0].SetObjArea(obj_area);
   anchors_[1].SetObjArea(obj_area);
+}
+
+void Crosslink::SetBindRate(double *bind_rate) {
+  if (!bind_rate) Logger::Warning("Crosslink received nullptr obj_area");
+  bind_rate_ = bind_rate;
+  anchors_[0].SetBindRate(bind_rate);
+  anchors_[1].SetBindRate(bind_rate);
 }
 
 const double* const Crosslink::GetObjArea() {
