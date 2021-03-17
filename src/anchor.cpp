@@ -4,7 +4,7 @@ Anchor::Anchor(unsigned long seed) : Object(seed) {
   SetSID(species_id::crosslink);
 }
 
-void Anchor::Init(crosslink_parameters *sparams, int index) {
+void Anchor::Init(crosslink_parameters *sparams, int index, std::map<std::string, bind_params> *bind_param_map) {
   sparams_ = sparams;
   name_ = sparams_->name;
   diameter_ = sparams_->diameter;
@@ -27,6 +27,8 @@ void Anchor::Init(crosslink_parameters *sparams, int index) {
   f_stall_ = sparams_->f_stall;
   force_dep_vel_flag_ = sparams_->force_dep_vel_flag;
   polar_affinity_ = sparams_->polar_affinity;
+  use_bind_file_ = sparams_->bind_file.compare("none");
+  bind_param_map_ = bind_param_map;
   assert(polar_affinity_ >= 0 && polar_affinity_ <= 1);
   SetDiffusion();
 }
@@ -304,13 +306,25 @@ void Anchor::AttachObjRandom(Object *o) {
       if (o->GetNAnchored() > 0) {
         Logger::Error("Xlink tried to bind to already occupied sphere!");
       }
-      *obj_area_ -= o->GetArea();
+      if (!use_bind_file_) {
+        *obj_area_ -= o->GetArea();
+      }
       AttachObjCenter(o);
       break;
     }
     default: {
       Logger::Error("Crosslink binding to %s type objects not yet implemented in" 
                     " Anchor::AttachObjRandom", o->GetType()._to_string());
+    }
+    if (use_bind_file_) {
+      std::string name = o->GetName();
+      // Decrease bind rate for the rest of the timestep if single occupancy is used
+      if ((*bind_param_map_)[name].single_occupancy) {
+         double obj_amount = ((*bind_param_map_)[name].dens_type == +density_type::linear) 
+                           ? o->GetLength() : o->GetArea();
+         *bind_rate_ -= (*bind_param_map_)[name].k_on_s * 
+                        (*bind_param_map_)[name].bind_site_density * obj_amount;
+      }
     }
   }
 }
@@ -681,6 +695,16 @@ const double* const Anchor::GetObjArea() {
 void Anchor::SetObjArea(double* obj_area) {
   if (!obj_area) Logger::Warning("Anchor received nullptr obj_area");
   obj_area_ = obj_area;
+}
+
+const double* const Anchor::GetBindRate() {
+  if (!bind_rate_) Logger::Warning("Anchor passed nullptr bind_rate");
+  return bind_rate_;
+}
+
+void Anchor::SetBindRate(double* bind_rate) {
+  if (!bind_rate) Logger::Warning("Anchor received nullptr bind_rate");
+  bind_rate_ = bind_rate;
 }
 
 const double Anchor::GetKonS() const {

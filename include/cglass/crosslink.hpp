@@ -26,15 +26,16 @@ private:
   double k_align_;
   double rest_length_;
   double rcapture_;
-  double linear_bind_site_density_;
-  double surface_bind_site_density_;
+  double bind_site_density_;
   double tether_force_;
   double e_dep_factor_;
   double fdep_length_;
   double polar_affinity_;
+  bool use_bind_file_;
   int bound_anchor_ = 0; // Index of anchor that is bound if Singly
   std::map<Sphere *, std::pair<std::vector<double>, std::vector<Anchor*> > > *bound_curr_;
-  std::vector<std::string> *bind_species_;
+  std::map<std::string, bind_params> *bind_param_map_;
+  double *bind_rate_;
   std::vector<Anchor> anchors_;
   void CalculateTetherForces();
   void CalculateBinding();
@@ -49,7 +50,9 @@ public:
   Crosslink(unsigned long seed);
   void Init(crosslink_parameters *sparams);
   void InitInteractionEnvironment(LookupTable *lut, Tracker *tracker, 
-                                  std::map<Sphere *, std::pair<std::vector<double>, std::vector<Anchor*> > > *bound_curr);
+                                  std::map<Sphere *, std::pair<std::vector<double>, 
+                                  std::vector<Anchor*> > > *bound_curr,
+                                  std::map<std::string, bind_params> *bind_param_map);
   void AttachObjRandom(Object *obj);
   void UpdateCrosslinkForces();
   void UpdateCrosslinkPositions();
@@ -76,6 +79,7 @@ public:
   void InsertAt(double const *const new_pos, double const *const u);
   const int GetNNeighbors() const;
   void SetObjArea(double *obj_area);
+  void SetBindRate(double *bind_rate);
   void SetSpheresBoundCurr(double *obj_area);
   const double* const GetObjArea();
   const double *const GetPosition();
