@@ -785,6 +785,8 @@ species_base_parameters *parse_species_params(std::string sid,
       params.trap_motion = jt->second.as<std::string>();
       } else if (param_name.compare("const_force")==0) {
       params.const_force = jt->second.as<double>();
+      } else if (param_name.compare("bind_file")==0) {
+      params.bind_file = jt->second.as<std::string>();
       } else {
         Logger::Warning("Unrecognized %s parameter: '%s'", sid.c_str(), param_name.c_str());
       }

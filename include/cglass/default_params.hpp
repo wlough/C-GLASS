@@ -158,6 +158,7 @@
   default_config["optical_trap"]["bead_color"] = "1.5708";
   default_config["optical_trap"]["trap_motion"] = "stationary";
   default_config["optical_trap"]["const_force"] = "1";
+  default_config["optical_trap"]["bind_file"] = "none";
   default_config["receptor"]["component"] = "cortex";
   default_config["receptor"]["concentration"] = "-1";
   default_config["receptor"]["induce_catastrophe"] = "false";
