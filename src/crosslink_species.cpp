@@ -51,6 +51,9 @@ void CrosslinkSpecies::LoadBindingSpecies() {
     if (it->second["k_on_s"]) {
       bind_param_map_[param_name].k_on_s = it->second["k_on_s"].as<double>();
     }
+    if (it->second["k_on_d"]) {
+      bind_param_map_[param_name].k_on_d = it->second["k_on_d"].as<double>();
+    }
     if (it->second["density_type"]) {
       bind_param_map_[param_name].dens_type = 
                       density_type::_from_string(it->second["density_type"].Scalar().c_str());
@@ -451,32 +454,24 @@ void CrosslinkSpecies::UpdatePositions() {
   // it->SanityCheck();
   //}
 }
-
-// Richelle- rename this something more appropriate
-void CrosslinkSpecies::UpdateObjectArea() {
-  *obj_area_ = 0.0;
+void CrosslinkSpecies::UpdateBindRate() {
+  if (!use_bind_file_) return;  
   bind_rate_ = 0;
   for (auto obj = objs_->begin(); obj != objs_->end(); ++obj) {
-    if (use_bind_file_) {
-      std::string name = (*obj)->GetName();
-      // Find if name of object is in the map
-      // Richelle- save pointer to map location to avoid calling it each time.
-      if (bind_param_map_.find(name) != bind_param_map_.end()) {
-        // obj_amount is area if surface density used, length if linear density used
-        double obj_amount = (bind_param_map_[name].dens_type == +density_type::linear) 
-                            ? (*obj)->GetLength() : (*obj)->GetArea();
-        // Do not contribute area/length if object is already occupied and single occupancy is
-        // selected
-        if (bind_param_map_[name].single_occupancy && ((*obj)->GetNAnchored() > 0)) {
-          obj_amount = 0;
-        }
-        bind_rate_ += bind_param_map_[name].k_on_s * 
-                      bind_param_map_[name].bind_site_density * obj_amount;
+    std::string name = (*obj)->GetName();
+    // Find if name of object is in the map
+    auto bind_param_it = bind_param_map_.find(name);
+    if (bind_param_it != bind_param_map_.end()) {
+      // obj_amount is area if surface density used, length if linear density used
+      double obj_amount = (bind_param_it->second.dens_type == +density_type::linear) 
+                          ? (*obj)->GetLength() : (*obj)->GetArea();
+      // Do not contribute area/length if object is already occupied and single occupancy is
+      // selected
+      if (bind_param_it->second.single_occupancy && ((*obj)->GetNAnchored() > 0)) {
+        obj_amount = 0;
       }
-    } else {
-      if ((*obj)->GetShape() == +shape::sphere) {
-        if ((*obj)->GetNAnchored() == 0) *obj_area_ += (*obj)->GetArea();
-      }
+      bind_rate_ += bind_param_it->second.k_on_s * 
+                    bind_param_it->second.bind_site_density * obj_amount;
     }
   }
 }

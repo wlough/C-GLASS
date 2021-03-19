@@ -609,6 +609,30 @@ const double Anchor::GetOnRate() const {
   }
 }
 
+const double Anchor::GetOnRateBindFile(std::string &name) const {
+  if (!use_bind_file_) {
+    Logger::Error("Anchor::GetOnRateBindFile called with use_bind_file_=false!");
+    return 0;
+  }
+  switch (state_) {
+  case +bind_state::unbound:
+    return (*bind_param_map_)[name].k_on_s;
+    break;
+  case +bind_state::singly:
+    return (*bind_param_map_)[name].k_on_d;
+    break;
+  case +bind_state::doubly:
+    Logger::Error(
+        "Crosslinker is already doubly bound. No on rate exists because both "
+        "anchors are bound");
+    return 0;
+    break;
+  default:
+    Logger::Error("State of anchor is not a bind_state enum.");
+    return 0;
+  }
+}
+
 const double Anchor::GetOffRate() const {
   switch (state_) {
   case +bind_state::singly:
