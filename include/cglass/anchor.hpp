@@ -6,6 +6,7 @@
 
 struct bind_params {
   double k_on_s;
+  double k_on_d;
   density_type dens_type;
   double bind_site_density;
   bool single_occupancy;
@@ -112,6 +113,7 @@ class Anchor : public Object {
   const int GetNNeighborsSphere() const;
   const int GetNNeighborsRod() const;
   const double GetOnRate() const;
+  const double GetOnRateBindFile(std::string &name) const;
   const double GetOffRate() const;
   const double GetMaxVelocity() const;
   const double GetDiffusionConst() const;
@@ -122,9 +124,6 @@ class Anchor : public Object {
   void SetObjArea(double* obj_area);
   const double* const GetBindRate();
   void SetBindRate(double* bind_rate);
-
-  // Richelle turn these two functions into members/getters that get set at binding time
-  // once you get this working.
   bool InducesCatastrophe();
   bool AttachedToFilament();
   void InduceCatastrophe();

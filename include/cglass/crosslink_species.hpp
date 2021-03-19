@@ -63,7 +63,7 @@ public:
   void TestKMCStepSize();
   void GetInteractors(std::vector<Object *> &ixors);
   void UpdatePositions();
-  void UpdateObjectArea();
+  void UpdateBindRate();
   void CleanUp();
   void Draw(std::vector<graph_struct *> &graph_array);
   void BindCrosslinkObj(Object *obj);

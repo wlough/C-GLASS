@@ -77,6 +77,7 @@ void CrosslinkManager::UpdateCrosslinks() {
   UpdateObjsVolume();
   for (auto it = xlink_species_.begin(); it != xlink_species_.end(); ++it) {
     (*it)->UpdatePositions();
+    (*it)->UpdateBindRate();
   }
   Knockout();
 }

@@ -95,14 +95,10 @@ void Crosslink::SinglyKMC() {
   const std::vector<Sphere*>& sphere_nbr_list = anchors_[bound_anchor_].GetNeighborListMemSpheres();
   if (use_bind_file_) {
     for (int i = 0; i < rod_nbr_list.size(); ++i) {
-      // Richelle- save ptr here too for map
-      // Richelle- save k_on_d to the map and replace below
       std::string name = rod_nbr_list[i]->GetName();
       bind_factors[i] = anchors_[(int)!bound_anchor_].GetOnRate() * (*bind_param_map_)[name].bind_site_density;
     }
     for (int i = 0; i < sphere_nbr_list.size(); ++i) {
-      // Richelle- save ptr here too for map
-      // Richelle- save k_on_d to the map and replace below
       std::string name = sphere_nbr_list[i]->GetName();
       bind_factors[rod_nbr_list.size() + i] =
                anchors_[(int)!bound_anchor_].GetOnRate() * (*bind_param_map_)[name].bind_site_density;
