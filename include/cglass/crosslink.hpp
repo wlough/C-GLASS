@@ -34,7 +34,7 @@ private:
   bool use_bind_file_;
   int bound_anchor_ = 0; // Index of anchor that is bound if Singly
   std::map<Sphere *, std::pair<std::vector<double>, std::vector<Anchor*> > > *bound_curr_;
-  std::map<std::string, bind_params> *bind_param_map_;
+  std::vector<std::map<std::string, bind_params> > *bind_param_map_;
   double *bind_rate_;
   std::vector<Anchor> anchors_;
   void CalculateTetherForces();
@@ -52,7 +52,8 @@ public:
   void InitInteractionEnvironment(LookupTable *lut, Tracker *tracker, 
                                   std::map<Sphere *, std::pair<std::vector<double>, 
                                   std::vector<Anchor*> > > *bound_curr,
-                                  std::map<std::string, bind_params> *bind_param_map);
+                                  std::vector<std::map<std::string, bind_params> > 
+                                  *bind_param_map);
   void AttachObjRandom(Object *obj);
   void UpdateCrosslinkForces();
   void UpdateCrosslinkPositions();
