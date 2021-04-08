@@ -73,7 +73,7 @@ class Anchor : public Object {
 
  public:
   Anchor(unsigned long seed);
-  void Init(crosslink_parameters *sparams, int index, std::map<std::string, bind_params> *bind_param_map);
+  void Init(crosslink_parameters *sparams, int index, std::map<std::string, bind_params> &bind_param_map);
   bool IsBound();
   void UpdatePosition();
   void Activate();

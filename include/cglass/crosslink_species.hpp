@@ -31,8 +31,8 @@ private:
   std::map<Sphere *, std::pair<std::vector<double>, std::vector<Anchor*> > > *bound_curr_;
   
   // use a map of species names to binding parameters to
-  // store binding parameters for specific species
-  std::map<std::string, bind_params> bind_param_map_;
+  // store binding parameters for specific species for each anchor
+  std::vector<std::map<std::string, bind_params> > bind_param_map_;
 
   // A default binding parameter list to initialize bind_param_map to
   bind_params default_bind_params_;

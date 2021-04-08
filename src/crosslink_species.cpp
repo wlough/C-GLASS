@@ -1,6 +1,6 @@
 #include "cglass/crosslink_species.hpp"
 
-CrosslinkSpecies::CrosslinkSpecies(unsigned long seed) : Species(seed) {
+CrosslinkSpecies::CrosslinkSpecies(unsigned long seed) : Species(seed), bind_param_map_(2) {
   SetSID(species_id::crosslink);
 }
 void CrosslinkSpecies::Init(std::string spec_name, ParamsParser &parser) {
@@ -35,36 +35,38 @@ void CrosslinkSpecies::InitializeBindParams() {
 
 void CrosslinkSpecies::LoadBindingSpecies() {
   YAML::Node bnode;
-  try {
-    bnode = YAML::LoadFile(sparams_.bind_file);
-  } catch (...) {
-    Logger::Error("Failed to load binding species file in crosslink_species.cpp");
-  }
-  for (auto it = bnode.begin(); it != bnode.end(); ++it) {
-    std::string param_name = it->first.as<std::string>();
-    // Error if there is already a map entry with given string name
-    if (bind_param_map_.find(param_name) != bind_param_map_.end()) {
-      Logger::Error("Duplicate species names found in Crosslink bind file.");
+  for (int anchor_index = 0; anchor_index < 2; ++anchor_index) {
+    try {
+      bnode = YAML::LoadFile(sparams_.bind_file);
+    } catch (...) {
+      Logger::Error("Failed to load binding species file in crosslink_species.cpp");
     }
-    // Initialize to default
-    bind_param_map_[param_name] = default_bind_params_;
-    if (it->second["k_on_s"]) {
-      bind_param_map_[param_name].k_on_s = it->second["k_on_s"].as<double>();
-    }
-    if (it->second["k_on_d"]) {
-      bind_param_map_[param_name].k_on_d = it->second["k_on_d"].as<double>();
-    }
-    if (it->second["density_type"]) {
-      bind_param_map_[param_name].dens_type = 
-                      density_type::_from_string(it->second["density_type"].Scalar().c_str());
-    } else {
-      Logger::Warning("No density type found for species name %s, defaulting to linear.", param_name.c_str());
-    }
-    if (it->second["bind_site_density"]) {
-      bind_param_map_[param_name].bind_site_density = it->second["bind_site_density"].as<double>();
-    }
-    if (it->second["single_occupancy"]) {
-      bind_param_map_[param_name].bind_site_density = it->second["single_occupancy"].as<bool>();
+    for (auto it = bnode.begin(); it != bnode.end(); ++it) {
+      std::string param_name = it->first.as<std::string>();
+      // Error if there is already a map entry with given string name
+      if (bind_param_map_[anchor_index].find(param_name) != bind_param_map_[anchor_index].end()) {
+        Logger::Error("Duplicate species names found in Crosslink bind file.");
+      }
+      // Initialize to default
+      bind_param_map_[anchor_index][param_name] = default_bind_params_;
+      if (it->second["k_on_s"]) {
+        bind_param_map_[anchor_index][param_name].k_on_s = it->second["k_on_s"].as<double>();
+      }
+      if (it->second["k_on_d"]) {
+        bind_param_map_[anchor_index][param_name].k_on_d = it->second["k_on_d"].as<double>();
+      }
+      if (it->second["density_type"]) {
+        bind_param_map_[anchor_index][param_name].dens_type = 
+                        density_type::_from_string(it->second["density_type"].Scalar().c_str());
+      } else {
+        Logger::Warning("No density type found for species name %s, defaulting to linear.", param_name.c_str());
+      }
+      if (it->second["bind_site_density"]) {
+        bind_param_map_[anchor_index][param_name].bind_site_density = it->second["bind_site_density"].as<double>();
+      }
+      if (it->second["single_occupancy"]) {
+        bind_param_map_[anchor_index][param_name].bind_site_density = it->second["single_occupancy"].as<bool>();
+      }
     }
   }
 }
@@ -331,27 +333,29 @@ Object *CrosslinkSpecies::GetRandomObjectBindFile() {
     Logger::Error("GetRandomObjectBindFile called with no bind file in use.");
   }
   // Count up bind rates to pick correct object
-  for (auto obj = objs_->begin(); obj != objs_->end(); ++obj) {
-    name = (*obj)->GetName();
+  for (int anchor_index = 0; anchor_index < 2; ++anchor_index) {
+    for (auto obj = objs_->begin(); obj != objs_->end(); ++obj) {
+      name = (*obj)->GetName();
 
-    // Do not count objects that are not in bind_param_map
-    if (bind_param_map_.find(name) == bind_param_map_.end()) continue;
+      // Do not count objects that are not in bind_param_map
+      if (bind_param_map_[anchor_index].find(name) == bind_param_map_[anchor_index].end()) continue;
 
-    // obj_amount is area if surface density used, length if linear density used
-    double obj_amount = (bind_param_map_[name].dens_type == +density_type::linear) 
-                        ? (*obj)->GetLength() : (*obj)->GetArea();
+      // obj_amount is area if surface density used, length if linear density used
+      double obj_amount = (bind_param_map_[anchor_index][name].dens_type == +density_type::linear) 
+                          ? (*obj)->GetLength() : (*obj)->GetArea();
 
-    // Do not contribute area/length if object is already occupied and single occupancy is
-    // selected
-    if (bind_param_map_[name].single_occupancy && ((*obj)->GetNAnchored() > 0)) {
-      obj_amount = 0;
-    }
-    bind_rate_count += bind_param_map_[name].k_on_s * 
-                 bind_param_map_[name].bind_site_density * obj_amount;
-    if (bind_rate_count > roll) {
-      Logger::Trace("Binding free crosslink to random object: xl %d -> obj %d",
-                    members_.back().GetOID(), (*obj)->GetOID());
-      return *obj;
+      // Do not contribute area/length if object is already occupied and single occupancy is
+      // selected
+      if (bind_param_map_[anchor_index][name].single_occupancy && ((*obj)->GetNAnchored() > 0)) {
+        obj_amount = 0;
+      }
+      bind_rate_count += bind_param_map_[anchor_index][name].k_on_s * 
+                   bind_param_map_[anchor_index][name].bind_site_density * obj_amount;
+      if (bind_rate_count > roll) {
+        Logger::Trace("Binding free crosslink to random object: xl %d -> obj %d",
+                      members_.back().GetOID(), (*obj)->GetOID());
+        return *obj;
+      }
     }
   }
   Logger::Error("CrosslinkSpecies::GetRandomObjectBindFile should never get here!");
@@ -454,24 +458,27 @@ void CrosslinkSpecies::UpdatePositions() {
   // it->SanityCheck();
   //}
 }
+
 void CrosslinkSpecies::UpdateBindRate() {
   if (!use_bind_file_) return;  
   bind_rate_ = 0;
-  for (auto obj = objs_->begin(); obj != objs_->end(); ++obj) {
-    std::string name = (*obj)->GetName();
-    // Find if name of object is in the map
-    auto bind_param_it = bind_param_map_.find(name);
-    if (bind_param_it != bind_param_map_.end()) {
-      // obj_amount is area if surface density used, length if linear density used
-      double obj_amount = (bind_param_it->second.dens_type == +density_type::linear) 
-                          ? (*obj)->GetLength() : (*obj)->GetArea();
-      // Do not contribute area/length if object is already occupied and single occupancy is
-      // selected
-      if (bind_param_it->second.single_occupancy && ((*obj)->GetNAnchored() > 0)) {
-        obj_amount = 0;
+  for (int anchor_index = 0; anchor_index < 2; ++anchor_index) {
+    for (auto obj = objs_->begin(); obj != objs_->end(); ++obj) {
+      std::string name = (*obj)->GetName();
+      // Find if name of object is in the map
+      auto bind_param_it = bind_param_map_[anchor_index].find(name);
+      if (bind_param_it != bind_param_map_[anchor_index].end()) {
+        // obj_amount is area if surface density used, length if linear density used
+        double obj_amount = (bind_param_it->second.dens_type == +density_type::linear) 
+                            ? (*obj)->GetLength() : (*obj)->GetArea();
+        // Do not contribute area/length if object is already occupied and single occupancy is
+        // selected
+        if (bind_param_it->second.single_occupancy && ((*obj)->GetNAnchored() > 0)) {
+          obj_amount = 0;
+        }
+        bind_rate_ += bind_param_it->second.k_on_s * 
+                      bind_param_it->second.bind_site_density * obj_amount;
       }
-      bind_rate_ += bind_param_it->second.k_on_s * 
-                    bind_param_it->second.bind_site_density * obj_amount;
     }
   }
 }
