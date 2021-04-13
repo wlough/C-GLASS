@@ -4,7 +4,7 @@ Anchor::Anchor(unsigned long seed) : Object(seed) {
   SetSID(species_id::crosslink);
 }
 
-void Anchor::Init(crosslink_parameters *sparams, int index, std::map<std::string, bind_params> &bind_param_map) {
+void Anchor::Init(crosslink_parameters *sparams, int index) {
   sparams_ = sparams;
   name_ = sparams_->name;
   diameter_ = sparams_->diameter;
@@ -28,9 +28,12 @@ void Anchor::Init(crosslink_parameters *sparams, int index, std::map<std::string
   force_dep_vel_flag_ = sparams_->force_dep_vel_flag;
   polar_affinity_ = sparams_->polar_affinity;
   use_bind_file_ = sparams_->bind_file.compare("none");
-  bind_param_map_ = &bind_param_map;
   assert(polar_affinity_ >= 0 && polar_affinity_ <= 1);
   SetDiffusion();
+}
+
+void Anchor::SetBindParamMap(std::map<std::string, bind_params> &bind_param_map) {
+  bind_param_map_ = &bind_param_map;
 }
 
 double const Anchor::GetMeshLambda() { return mesh_lambda_; }

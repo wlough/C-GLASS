@@ -58,7 +58,6 @@ class Anchor : public Object {
   Bond *bond_ = nullptr;
   Mesh *mesh_ = nullptr;
 
-  // Richelle- completely replace obj_area with bind_rate.
   double *obj_area_ = nullptr;
   double *bind_rate_ = nullptr;
 
@@ -73,7 +72,8 @@ class Anchor : public Object {
 
  public:
   Anchor(unsigned long seed);
-  void Init(crosslink_parameters *sparams, int index, std::map<std::string, bind_params> &bind_param_map);
+  void Init(crosslink_parameters *sparams, int index);
+  void SetBindParamMap(std::map<std::string, bind_params> &bind_param_map);
   bool IsBound();
   void UpdatePosition();
   void Activate();
