@@ -35,7 +35,7 @@ void CrosslinkSpecies::InitializeBindParams() {
 
 void CrosslinkSpecies::LoadBindingSpecies() {
   YAML::Node bnode;
-  for (int anchor_index = 0; anchor_index < 2; ++anchor_index) {
+  for (int anchor_index = 0; anchor_index < 1; ++anchor_index) {
     try {
       bnode = YAML::LoadFile(sparams_.bind_file);
     } catch (...) {
@@ -65,7 +65,7 @@ void CrosslinkSpecies::LoadBindingSpecies() {
         bind_param_map_[anchor_index][param_name].bind_site_density = it->second["bind_site_density"].as<double>();
       }
       if (it->second["single_occupancy"]) {
-        bind_param_map_[anchor_index][param_name].bind_site_density = it->second["single_occupancy"].as<bool>();
+        bind_param_map_[anchor_index][param_name].single_occupancy = it->second["single_occupancy"].as<bool>();
       }
     }
   }
@@ -73,9 +73,10 @@ void CrosslinkSpecies::LoadBindingSpecies() {
 
 void CrosslinkSpecies::AddMember() {
   Species::AddMember();
-  members_.back().InitInteractionEnvironment(&lut_, tracker_, bound_curr_, &bind_param_map_);
+  members_.back().InitInteractionEnvironment(&lut_, tracker_, bound_curr_);
   members_.back().SetObjArea(obj_area_);
   members_.back().SetBindRate(&bind_rate_);
+  members_.back().SetBindParamMap(&bind_param_map_);
   *update_ = true;
 }
 
@@ -269,7 +270,10 @@ void CrosslinkSpecies::InsertAttachedCrosslinksSpecies() {
   }
   Crosslink xlink(rng_.GetSeed());
   xlink.Init(&sparams_);
-  xlink.InitInteractionEnvironment(&lut_, tracker_, bound_curr_, &bind_param_map_);
+  xlink.InitInteractionEnvironment(&lut_, tracker_, bound_curr_);
+  xlink.SetObjArea(obj_area_);
+  xlink.SetBindRate(&bind_rate_);
+  xlink.SetBindParamMap(&bind_param_map_);
   xlink.SetSID(GetSID());
   members_.resize(begin_with_bound_crosslinks_, xlink);
   UpdateBoundCrosslinks();
@@ -333,7 +337,7 @@ Object *CrosslinkSpecies::GetRandomObjectBindFile() {
     Logger::Error("GetRandomObjectBindFile called with no bind file in use.");
   }
   // Count up bind rates to pick correct object
-  for (int anchor_index = 0; anchor_index < 2; ++anchor_index) {
+  for (int anchor_index = 0; anchor_index < 1; ++anchor_index) {
     for (auto obj = objs_->begin(); obj != objs_->end(); ++obj) {
       name = (*obj)->GetName();
 
@@ -462,7 +466,7 @@ void CrosslinkSpecies::UpdatePositions() {
 void CrosslinkSpecies::UpdateBindRate() {
   if (!use_bind_file_) return;  
   bind_rate_ = 0;
-  for (int anchor_index = 0; anchor_index < 2; ++anchor_index) {
+  for (int anchor_index = 0; anchor_index < 1; ++anchor_index) {
     for (auto obj = objs_->begin(); obj != objs_->end(); ++obj) {
       std::string name = (*obj)->GetName();
       // Find if name of object is in the map
@@ -660,7 +664,10 @@ void CrosslinkSpecies::ReadSpecs() {
   } else if (n_members_ != members_.size()) {
     Crosslink xlink(rng_.GetSeed());
     xlink.Init(&sparams_);
-    xlink.InitInteractionEnvironment(&lut_, tracker_, bound_curr_, &bind_param_map_);
+    xlink.InitInteractionEnvironment(&lut_, tracker_, bound_curr_);
+    xlink.SetObjArea(obj_area_);
+    xlink.SetBindRate(&bind_rate_);
+    xlink.SetBindParamMap(&bind_param_map_);
     xlink.SetSID(GetSID());
     members_.resize(n_members_, xlink);
   }

@@ -51,9 +51,9 @@ public:
   void Init(crosslink_parameters *sparams);
   void InitInteractionEnvironment(LookupTable *lut, Tracker *tracker, 
                                   std::map<Sphere *, std::pair<std::vector<double>, 
-                                  std::vector<Anchor*> > > *bound_curr,
-                                  std::vector<std::map<std::string, bind_params> > 
-                                  *bind_param_map);
+                                  std::vector<Anchor*> > > *bound_curr);
+  void SetBindParamMap(std::vector<std::map<std::string, bind_params> > 
+                       *bind_param_map);
   void AttachObjRandom(Object *obj);
   void UpdateCrosslinkForces();
   void UpdateCrosslinkPositions();

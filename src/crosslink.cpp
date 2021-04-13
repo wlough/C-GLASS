@@ -32,8 +32,9 @@ void Crosslink::Init(crosslink_parameters *sparams) {
   Anchor anchor2(rng_.GetSeed());
   anchors_.push_back(anchor1);
   anchors_.push_back(anchor2);
-  anchors_[0].Init(sparams_, 0, bind_param_map_->at(0));
-  anchors_[1].Init(sparams_, 1, bind_param_map_->at(1));
+  anchors_[0].Init(sparams_, 0);
+  // Richelle- Change back when map is set up w/ both anchors
+  anchors_[1].Init(sparams_, 1);
   SetSingly(bound_anchor_);
   Logger::Trace("Initializing crosslink %d with anchors %d and %d", GetOID(),
                 anchors_[0].GetOID(), anchors_[1].GetOID());
@@ -41,12 +42,10 @@ void Crosslink::Init(crosslink_parameters *sparams) {
 
 void Crosslink::InitInteractionEnvironment(LookupTable *lut, Tracker *tracker, 
                                            std::map<Sphere *, std::pair<std::vector<double>, 
-                                           std::vector<Anchor*> > > *bound_curr,
-                                           std::vector<std::map<std::string, bind_params> > *bind_param_map) { 
+                                           std::vector<Anchor*> > > *bound_curr) { 
   lut_ = lut;
   tracker_ = tracker;
   bound_curr_ = bound_curr;
-  bind_param_map_ = bind_param_map;
 }
 
 /* Function used to set anchor[0] position etc to xlink position etc */
@@ -96,14 +95,16 @@ void Crosslink::SinglyKMC() {
   if (use_bind_file_) {
     for (int i = 0; i < rod_nbr_list.size(); ++i) {
       std::string name = rod_nbr_list[i]->GetName();
-      bind_factors[i] = anchors_[(int)!bound_anchor_].GetOnRate()
-                        * bind_param_map_->at((int)!bound_anchor_)[name].bind_site_density;
+      // Richelle change this back to (int)!bound_anchor_ once you figure out the anchor/bf question
+      bind_factors[i] = bind_param_map_->at(0)[name].k_on_d
+                        * bind_param_map_->at(0)[name].bind_site_density;
     }
     for (int i = 0; i < sphere_nbr_list.size(); ++i) {
       std::string name = sphere_nbr_list[i]->GetName();
+      // Richelle change this back to (int)!bound_anchor_ once you figure out the anchor/bf question
       bind_factors[rod_nbr_list.size() + i] =
-               anchors_[(int)!bound_anchor_].GetOnRate()
-               * bind_param_map_->at((int)!bound_anchor_)[name].bind_site_density;
+               bind_param_map_->at(0)[name].k_on_d
+               * bind_param_map_->at(0)[name].bind_site_density;
     }
   } else {
     std::fill(bind_factors.begin(), bind_factors.begin() + n_neighbors_rod, bind_factor_rod);
@@ -517,6 +518,13 @@ void Crosslink::InsertAt(double const *const new_pos, double const *const u) {
   anchors_[bound_anchor_].SetBound();
   anchors_[bound_anchor_].SetStatic(true);
   SetSingly(bound_anchor_);
+}
+
+void Crosslink::SetBindParamMap(std::vector<std::map<std::string, bind_params> > *bind_param_map) {
+  bind_param_map_ = bind_param_map;
+  anchors_[0].SetBindParamMap(bind_param_map_->at(0));
+  // Richelle- Change back when map is set up w/ both anchors
+  anchors_[1].SetBindParamMap(bind_param_map_->at(0));
 }
 
 void Crosslink::SetObjArea(double *obj_area) {
