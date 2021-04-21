@@ -187,11 +187,15 @@ struct species_parameters<species_id::crosslink>
   bool plus_end_pausing = false;
   double r_capture = 5;
   int lut_grid_num = 256;
-  std::string bind_file = "none";
   struct anchor_parameters {
     double velocity_s = 0;
     double velocity_d = 0;
     double color = 0;
+    std::string bind_file = "none";
+    double k_on_s = 10;
+    double k_off_s = 2;
+    double k_on_d = 10;
+    double k_off_d = 2;
   };
   anchor_parameters anchor_temp;
   std::vector<anchor_parameters> anchors = {anchor_temp, anchor_temp};

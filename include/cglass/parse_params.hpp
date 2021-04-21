@@ -695,8 +695,6 @@ species_base_parameters *parse_species_params(std::string sid,
       params.r_capture = jt->second.as<double>();
       } else if (param_name.compare("lut_grid_num")==0) {
       params.lut_grid_num = jt->second.as<int>();
-      } else if (param_name.compare("bind_file")==0) {
-      params.bind_file = jt->second.as<std::string>();
       } else if (param_name.compare("anchors")==0) {
         for (size_t i = 0; i < jt->second.size(); ++i) {
           if (i > 1) {
@@ -722,6 +720,31 @@ species_base_parameters *parse_species_params(std::string sid,
               params.anchors[i].color = kt->second.as<double>();
               if (jt->second.size() < 2 || !jt->second[(int)!i]["color"]) {
                  params.anchors[(int)!i].color = params.anchors[i].color;
+              }
+            } else if (sub_param_name.compare("bind_file")==0) {
+              params.anchors[i].bind_file = kt->second.as<std::string>();
+              if (jt->second.size() < 2 || !jt->second[(int)!i]["bind_file"]) {
+                 params.anchors[(int)!i].bind_file = params.anchors[i].bind_file;
+              }
+            } else if (sub_param_name.compare("k_on_s")==0) {
+              params.anchors[i].k_on_s = kt->second.as<double>();
+              if (jt->second.size() < 2 || !jt->second[(int)!i]["k_on_s"]) {
+                 params.anchors[(int)!i].k_on_s = params.anchors[i].k_on_s;
+              }
+            } else if (sub_param_name.compare("k_off_s")==0) {
+              params.anchors[i].k_off_s = kt->second.as<double>();
+              if (jt->second.size() < 2 || !jt->second[(int)!i]["k_off_s"]) {
+                 params.anchors[(int)!i].k_off_s = params.anchors[i].k_off_s;
+              }
+            } else if (sub_param_name.compare("k_on_d")==0) {
+              params.anchors[i].k_on_d = kt->second.as<double>();
+              if (jt->second.size() < 2 || !jt->second[(int)!i]["k_on_d"]) {
+                 params.anchors[(int)!i].k_on_d = params.anchors[i].k_on_d;
+              }
+            } else if (sub_param_name.compare("k_off_d")==0) {
+              params.anchors[i].k_off_d = kt->second.as<double>();
+              if (jt->second.size() < 2 || !jt->second[(int)!i]["k_off_d"]) {
+                 params.anchors[(int)!i].k_off_d = params.anchors[i].k_off_d;
               }
             } else {
               Logger::Warning("Unrecognized parameter '%s'", sub_param_name.c_str());
