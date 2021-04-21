@@ -27,7 +27,7 @@ void Anchor::Init(crosslink_parameters *sparams, int index) {
   f_stall_ = sparams_->f_stall;
   force_dep_vel_flag_ = sparams_->force_dep_vel_flag;
   polar_affinity_ = sparams_->polar_affinity;
-  use_bind_file_ = sparams_->bind_file.compare("none");
+  use_bind_file_ = sparams_->anchors[index].bind_file.compare("none");
   assert(polar_affinity_ >= 0 && polar_affinity_ <= 1);
   SetDiffusion();
 }

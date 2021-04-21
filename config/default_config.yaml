@@ -348,12 +348,15 @@ crosslink:                          # Parameters specific to crosslinks.
                                     # Calculated using k_spring, rest_length. User input ignored.
   lut_grid_num: [256, int]          # Number of grid points used in one dimension of the the lookup table (LUT).
                                     # Total entries go as the square of this number e.g. 256 x 256
-  bind_file: [none, string]         # File of species crosslink can bind to, and binding rates. If none, bind to
-                                    # all and use given xlink parameters.
   anchors:
     velocity_s: [0, double]           # Bound crosslink head velocities when walkers are singly bound.
     velocity_d: [0, double]           # Bound crosslink head velocities when walkers are doubly bound.
-    color: [0, double]
+    color: [0, double]                # Anchor color
+    bind_file: [none, string]         # File of species crosslink can bind to, and binding rates. If none, bind to
+    k_on_s: [10, double]              # On-rate for binding crosslinks from solution to bonds.
+    k_off_s: [2, double]              # Off-rate for bound crosslinks to go from bound to solution.
+    k_on_d: [10, double]              # On-rate for singly bound to doubly bound crosslinks.
+    k_off_d: [2, double]              # Off-rate for doubly bound to singly bound crosslinks.                                  # all and use given xlink parameters.
 
 receptor:
   component: [cortex, string]       # The mesh object that holds receptor sites

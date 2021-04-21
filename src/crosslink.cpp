@@ -26,7 +26,7 @@ void Crosslink::Init(crosslink_parameters *sparams) {
   e_dep_factor_ = sparams_->energy_dep_factor;
   fdep_length_ = sparams_->force_dep_length;
   polar_affinity_ = sparams_->polar_affinity;
-  use_bind_file_ = sparams_->bind_file.compare("none");
+  use_bind_file_ = sparams_->anchors[0].bind_file.compare("none");
   
   Anchor anchor1(rng_.GetSeed());
   Anchor anchor2(rng_.GetSeed());

@@ -11,14 +11,18 @@ void CrosslinkSpecies::Init(std::string spec_name, ParamsParser &parser) {
   xlink_concentration_ = sparams_.concentration;
   infinite_reservoir_flag_ = sparams_.infinite_reservoir_flag;
   sparams_.num = (int)round(sparams_.concentration * space_->volume);
-  std::string bind_file = sparams_.bind_file;
+  std::vector<std::string> bind_file = {sparams_.anchors[0].bind_file, sparams_.anchors[1].bind_file};
   
   // Create a default set of specific binding parameters
   InitializeBindParams();
 
+  if (bool(bind_file[0].compare("none"))!=bool(bind_file[1].compare("none"))) {
+    Logger::Error("Cannot have bind file=none for one anchor and a bind file for the other.");
+  }
+
   // If bind file is not "none", load bind file parameters and calulate the number of 
   // expected binding events per file.
-  if (bind_file.compare("none")) {
+  if (bind_file[0].compare("none")) {
     LoadBindingSpecies();
     use_bind_file_ = true;
   }
@@ -35,9 +39,9 @@ void CrosslinkSpecies::InitializeBindParams() {
 
 void CrosslinkSpecies::LoadBindingSpecies() {
   YAML::Node bnode;
-  for (int anchor_index = 0; anchor_index < 1; ++anchor_index) {
+  for (int anchor_index = 0; anchor_index < 2; ++anchor_index) {
     try {
-      bnode = YAML::LoadFile(sparams_.bind_file);
+      bnode = YAML::LoadFile(sparams_.anchors[anchor_index].bind_file);
     } catch (...) {
       Logger::Error("Failed to load binding species file in crosslink_species.cpp");
     }
@@ -337,7 +341,7 @@ Object *CrosslinkSpecies::GetRandomObjectBindFile() {
     Logger::Error("GetRandomObjectBindFile called with no bind file in use.");
   }
   // Count up bind rates to pick correct object
-  for (int anchor_index = 0; anchor_index < 1; ++anchor_index) {
+  for (int anchor_index = 0; anchor_index < 2; ++anchor_index) {
     for (auto obj = objs_->begin(); obj != objs_->end(); ++obj) {
       name = (*obj)->GetName();
 
@@ -466,7 +470,7 @@ void CrosslinkSpecies::UpdatePositions() {
 void CrosslinkSpecies::UpdateBindRate() {
   if (!use_bind_file_) return;  
   bind_rate_ = 0;
-  for (int anchor_index = 0; anchor_index < 1; ++anchor_index) {
+  for (int anchor_index = 0; anchor_index < 2; ++anchor_index) {
     for (auto obj = objs_->begin(); obj != objs_->end(); ++obj) {
       std::string name = (*obj)->GetName();
       // Find if name of object is in the map

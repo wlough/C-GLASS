@@ -119,6 +119,16 @@
   default_config["crosslink"]["anchors"][1]["velocity_d"] = "0";
   default_config["crosslink"]["anchors"][0]["color"] = "0";
   default_config["crosslink"]["anchors"][1]["color"] = "0";
+  default_config["crosslink"]["anchors"][0]["bind_file"] = "none";
+  default_config["crosslink"]["anchors"][1]["bind_file"] = "none";
+  default_config["crosslink"]["anchors"][0]["k_on_s"] = "10";
+  default_config["crosslink"]["anchors"][1]["k_on_s"] = "10";
+  default_config["crosslink"]["anchors"][0]["k_off_s"] = "2";
+  default_config["crosslink"]["anchors"][1]["k_off_s"] = "2";
+  default_config["crosslink"]["anchors"][0]["k_on_d"] = "10";
+  default_config["crosslink"]["anchors"][1]["k_on_d"] = "10";
+  default_config["crosslink"]["anchors"][0]["k_off_d"] = "2";
+  default_config["crosslink"]["anchors"][1]["k_off_d"] = "2";
   default_config["crosslink"]["concentration"] = "0";
   default_config["crosslink"]["begin_with_bound_crosslinks"] = "0";
   default_config["crosslink"]["use_binding_volume"] = "true";
@@ -148,7 +158,6 @@
   default_config["crosslink"]["plus_end_pausing"] = "false";
   default_config["crosslink"]["r_capture"] = "5";
   default_config["crosslink"]["lut_grid_num"] = "256";
-  default_config["crosslink"]["bind_file"] = "none";
   default_config["receptor"]["component"] = "cortex";
   default_config["receptor"]["concentration"] = "-1";
   default_config["receptor"]["induce_catastrophe"] = "false";
