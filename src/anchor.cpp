@@ -753,9 +753,9 @@ bool Anchor::AttachedToFilament() {
     return false;
   }
   // Check if attached to last bond of filament
-  Bond *bond = bond_->GetNeighborBond(0);
+  Bond *bond = bond_->GetNeighborBond(1);
   if (bond) return false;
-  else if (rod_->GetLength() - (mesh_lambda_ - bond_->GetMeshLambda()) > rod_->GetDiameter()) {
+  else if ((rod_->GetLength() - (mesh_lambda_ - bond_->GetMeshLambda())) > 2*rod_->GetDiameter()) {
     return false;
   }
   return true;
