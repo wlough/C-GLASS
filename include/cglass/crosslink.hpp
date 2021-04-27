@@ -33,9 +33,9 @@ private:
   double polar_affinity_;
   bool use_bind_file_;
   int bound_anchor_ = 0; // Index of anchor that is bound if Singly
-  std::map<Sphere *, std::pair<std::vector<double>, std::vector<Anchor*> > > *bound_curr_;
-  std::vector<std::map<std::string, bind_params> > *bind_param_map_;
-  double *bind_rate_;
+  std::map<Sphere *, std::pair<std::vector<double>, std::vector<Anchor*> > > *bound_curr_ = nullptr;
+  std::vector<std::map<std::string, bind_params> > *bind_param_map_ = nullptr;
+  double *bind_rate_ = nullptr;
   std::vector<Anchor> anchors_;
   void CalculateTetherForces();
   void CalculateBinding();
@@ -44,7 +44,7 @@ private:
   void UpdateAnchorsToMesh();
   void UpdateAnchorPositions();
   void UpdateXlinkState();
-  double *obj_area_ = nullptr;
+  double *obj_size_ = nullptr;
   Tracker *tracker_ = nullptr;
 public:
   Crosslink(unsigned long seed);
@@ -54,7 +54,7 @@ public:
                                   std::vector<Anchor*> > > *bound_curr);
   void SetBindParamMap(std::vector<std::map<std::string, bind_params> > 
                        *bind_param_map);
-  void AttachObjRandom(Object *obj);
+  void AttachObjRandom(std::pair<Object *, int> obj_index);
   void UpdateCrosslinkForces();
   void UpdateCrosslinkPositions();
   void GetAnchors(std::vector<Object *> &ixors);
@@ -79,10 +79,10 @@ public:
   const double GetDrTot();
   void InsertAt(double const *const new_pos, double const *const u);
   const int GetNNeighbors() const;
-  void SetObjArea(double *obj_area);
+  void SetObjSize(double *obj_size);
   void SetBindRate(double *bind_rate);
-  void SetSpheresBoundCurr(double *obj_area);
-  const double* const GetObjArea();
+  void SetSpheresBoundCurr(double *obj_size);
+  const double* const GetObjSize();
   const double *const GetPosition();
   const double *const GetOrientation();
 
