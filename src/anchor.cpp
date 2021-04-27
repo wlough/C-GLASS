@@ -270,7 +270,7 @@ void Anchor::CalculatePolarAffinity(std::vector<double> &doubly_binding_rates) {
   if (rod_) std::copy(rod_->GetOrientation(), rod_->GetOrientation() + 3, orientation);
   else if (sphere_) std::copy(sphere_->GetOrientation(), sphere_->GetOrientation() + 3, orientation);
   else
-    Logger::Error("Bond and site are nullptr in Anchor::CalculatePolarAffinity"); 
+    Logger::Error("Rod and sphere are nullptr in Anchor::CalculatePolarAffinity"); 
   for (int i = 0; i < doubly_binding_rates.size(); ++i) {
     Object *obj = neighbors_.GetNeighbor(i);
     if (obj->GetShape() == +shape::sphere) continue;
@@ -306,11 +306,12 @@ void Anchor::AttachObjRandom(Object *o) {
       break;
     }
     case shape::sphere: {
-      if (o->GetNAnchored() > 0) {
-        Logger::Error("Xlink tried to bind to already occupied sphere!");
-      }
+      // Automatically let spheres have occupancy 1 if no bind file is used.
       if (!use_bind_file_) {
-        *obj_area_ -= o->GetArea();
+        if (o->GetNAnchored() > 0) {
+          Logger::Error("Xlink tried to bind to already occupied sphere!");
+        }
+        *obj_size_ -= o->GetArea();
       }
       AttachObjCenter(o);
       break;
@@ -714,14 +715,14 @@ const double Anchor::GetKickAmplitude() const {
   }
 }
 
-const double* const Anchor::GetObjArea() {
-  if (!obj_area_) Logger::Warning("Anchor passed nullptr obj_area");
-  return obj_area_;
+const double* const Anchor::GetObjSize() {
+  if (!obj_size_) Logger::Warning("Anchor passed nullptr obj_size");
+  return obj_size_;
 }
 
-void Anchor::SetObjArea(double* obj_area) {
-  if (!obj_area) Logger::Warning("Anchor received nullptr obj_area");
-  obj_area_ = obj_area;
+void Anchor::SetObjSize(double* obj_size) {
+  if (!obj_size) Logger::Error("Anchor received nullptr obj_size");
+  obj_size_ = obj_size;
 }
 
 const double* const Anchor::GetBindRate() {

@@ -312,7 +312,7 @@ void InteractionManager::CheckUpdateObjects() {
                   " last update",
                   i_update_);
     ForceUpdate();
-    xlink_.UpdateObjsVolume();
+    xlink_.UpdateObjsSize();
     // XXX This has to be run before the first FlagDuplicateInteractions() call
     // if we check for overlaps at the beginning of the simulation...
     // ClearObjectInteractions();

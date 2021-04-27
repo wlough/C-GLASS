@@ -33,7 +33,6 @@ void Crosslink::Init(crosslink_parameters *sparams) {
   anchors_.push_back(anchor1);
   anchors_.push_back(anchor2);
   anchors_[0].Init(sparams_, 0);
-  // Richelle- Change back when map is set up w/ both anchors
   anchors_[1].Init(sparams_, 1);
   SetSingly(bound_anchor_);
   Logger::Trace("Initializing crosslink %d with anchors %d and %d", GetOID(),
@@ -95,16 +94,14 @@ void Crosslink::SinglyKMC() {
   if (use_bind_file_) {
     for (int i = 0; i < rod_nbr_list.size(); ++i) {
       std::string name = rod_nbr_list[i]->GetName();
-      // Richelle change this back to (int)!bound_anchor_ once you figure out the anchor/bf question
-      bind_factors[i] = bind_param_map_->at(0)[name].k_on_d
-                        * bind_param_map_->at(0)[name].bind_site_density;
+      bind_factors[i] = bind_param_map_->at((int)!bound_anchor_)[name].k_on_d
+                        * bind_param_map_->at((int)!bound_anchor_)[name].bind_site_density;
     }
     for (int i = 0; i < sphere_nbr_list.size(); ++i) {
       std::string name = sphere_nbr_list[i]->GetName();
-      // Richelle change this back to (int)!bound_anchor_ once you figure out the anchor/bf question
       bind_factors[rod_nbr_list.size() + i] =
-               bind_param_map_->at(0)[name].k_on_d
-               * bind_param_map_->at(0)[name].bind_site_density;
+               bind_param_map_->at((int)!bound_anchor_)[name].k_on_d
+               * bind_param_map_->at((int)!bound_anchor_)[name].bind_site_density;
     }
   } else {
     std::fill(bind_factors.begin(), bind_factors.begin() + n_neighbors_rod, bind_factor_rod);
@@ -330,21 +327,16 @@ void Crosslink::CalculateTetherForces() {
 }
 
 /* Attach a crosslink anchor to object in a random fashion */
-void Crosslink::AttachObjRandom(Object *obj) {
+void Crosslink::AttachObjRandom(std::pair<Object*, int> obj_index) {
   /* Attaching to random obj implies first anchor binding from solution, so
    * this crosslink should be new and should not be singly or doubly bound */
-  if ((obj->GetShape() == +shape::rod) || (obj->GetShape() == +shape::sphere)) {
+  if ((obj_index.first->GetShape() == +shape::rod) || (obj_index.first->GetShape() == +shape::sphere)) {
     int roll = rng_.RandomUniform();
-    int index = 0;
-    // weight by onrate and density. Saved bind_site_density_ even though it doesn't
-    // do anything in case we move this param out of crosslink in the future.
-    index = (int)(roll >= 1 / ((anchors_[0].GetKonS()*bind_site_density_) /
-                               (anchors_[1].GetKonS()*bind_site_density_) + 1));
-    anchors_[index].AttachObjRandom(obj);
-    SetCompID(obj->GetCompID());
-    SetSingly(roll);
+    bound_anchor_ = obj_index.second;
+    anchors_[obj_index.second].AttachObjRandom(obj_index.first);
+    SetCompID(obj_index.first->GetCompID());
   } else {
-    Logger::Error("Crosslink binding to %s shaped objects not yet implemented.", obj->GetShape()._to_string());
+    Logger::Error("Crosslink binding to %s shaped objects not yet implemented.", obj_index.first->GetShape()._to_string());
   }
 }
 
@@ -523,27 +515,26 @@ void Crosslink::InsertAt(double const *const new_pos, double const *const u) {
 void Crosslink::SetBindParamMap(std::vector<std::map<std::string, bind_params> > *bind_param_map) {
   bind_param_map_ = bind_param_map;
   anchors_[0].SetBindParamMap(bind_param_map_->at(0));
-  // Richelle- Change back when map is set up w/ both anchors
-  anchors_[1].SetBindParamMap(bind_param_map_->at(0));
+  anchors_[1].SetBindParamMap(bind_param_map_->at(1));
 }
 
-void Crosslink::SetObjArea(double *obj_area) {
-  if (!obj_area) Logger::Warning("Crosslink received nullptr obj_area");
-  obj_area_ = obj_area;
-  anchors_[0].SetObjArea(obj_area);
-  anchors_[1].SetObjArea(obj_area);
+void Crosslink::SetObjSize(double *obj_size) {
+  if (!obj_size) Logger::Error("Crosslink received nullptr obj_size");
+  obj_size_ = obj_size;
+  anchors_[0].SetObjSize(obj_size);
+  anchors_[1].SetObjSize(obj_size);
 }
 
 void Crosslink::SetBindRate(double *bind_rate) {
-  if (!bind_rate) Logger::Warning("Crosslink received nullptr obj_area");
+  if (!bind_rate) Logger::Warning("Crosslink received nullptr bind_rate");
   bind_rate_ = bind_rate;
   anchors_[0].SetBindRate(bind_rate);
   anchors_[1].SetBindRate(bind_rate);
 }
 
-const double* const Crosslink::GetObjArea() {
-  if (!obj_area_) Logger::Warning("Crosslink sent nullptr obj_area");
-  return obj_area_;
+const double* const Crosslink::GetObjSize() {
+  if (!obj_size_) Logger::Warning("Crosslink sent nullptr obj_size");
+  return obj_size_;
 }
 
 const int Crosslink::GetNNeighbors() const {

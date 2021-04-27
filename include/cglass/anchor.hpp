@@ -58,7 +58,7 @@ class Anchor : public Object {
   Bond *bond_ = nullptr;
   Mesh *mesh_ = nullptr;
 
-  double *obj_area_ = nullptr;
+  double *obj_size_ = nullptr;
   double *bind_rate_ = nullptr;
 
   int mesh_n_bonds_;
@@ -120,8 +120,8 @@ class Anchor : public Object {
   const double GetKickAmplitude() const;
   const double GetKonS() const;
   const double GetLinearBindSiteDensity() const;
-  const double* const GetObjArea();
-  void SetObjArea(double* obj_area);
+  const double* const GetObjSize();
+  void SetObjSize(double* obj_size);
   const double* const GetBindRate();
   void SetBindRate(double* bind_rate);
   bool InducesCatastrophe();

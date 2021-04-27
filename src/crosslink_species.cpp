@@ -5,7 +5,7 @@ CrosslinkSpecies::CrosslinkSpecies(unsigned long seed) : Species(seed), bind_par
 }
 void CrosslinkSpecies::Init(std::string spec_name, ParamsParser &parser) {
   Species::Init(spec_name, parser);
-  k_on_ = sparams_.k_on_s;
+  k_on_ = sparams_.anchors[0].k_on_s + sparams_.anchors[1].k_on_s;
   bind_site_density_ = sparams_.bind_site_density;
   begin_with_bound_crosslinks_ = sparams_.begin_with_bound_crosslinks;
   xlink_concentration_ = sparams_.concentration;
@@ -78,19 +78,18 @@ void CrosslinkSpecies::LoadBindingSpecies() {
 void CrosslinkSpecies::AddMember() {
   Species::AddMember();
   members_.back().InitInteractionEnvironment(&lut_, tracker_, bound_curr_);
-  members_.back().SetObjArea(obj_area_);
+  members_.back().SetObjSize(obj_size_);
   members_.back().SetBindRate(&bind_rate_);
   members_.back().SetBindParamMap(&bind_param_map_);
   *update_ = true;
 }
 
 void CrosslinkSpecies::InitInteractionEnvironment(std::vector<Object *> *objs,
-                                                  double *obj_len, double *obj_area,
+                                                  double *obj_size,
                                                   Tracker *tracker, bool *update,
                        std::map<Sphere *, std::pair<std::vector<double>, std::vector<Anchor*> > > *bound_curr) {
   objs_ = objs;
-  obj_length_ = obj_len;
-  obj_area_ = obj_area;
+  obj_size_ = obj_size;
   bound_curr_ = bound_curr;
   update_ = update;
   tracker_ = tracker;
@@ -275,7 +274,7 @@ void CrosslinkSpecies::InsertAttachedCrosslinksSpecies() {
   Crosslink xlink(rng_.GetSeed());
   xlink.Init(&sparams_);
   xlink.InitInteractionEnvironment(&lut_, tracker_, bound_curr_);
-  xlink.SetObjArea(obj_area_);
+  xlink.SetObjSize(obj_size_);
   xlink.SetBindRate(&bind_rate_);
   xlink.SetBindParamMap(&bind_param_map_);
   xlink.SetSID(GetSID());
@@ -283,7 +282,7 @@ void CrosslinkSpecies::InsertAttachedCrosslinksSpecies() {
   UpdateBoundCrosslinks();
   // Begin with bound crosslinks currently just implemented to start on rods
   for (int i=0; i < begin_with_bound_crosslinks_; ++i) {
-    BindCrosslink(shape::rod);
+    BindCrosslink();
   }
 }
 
@@ -307,126 +306,91 @@ void CrosslinkSpecies::CalculateBindingFree() {
       BindCrosslink();
     }
   } else {
-    double expected_lin_bind_n = bind_site_density_ * free_concentration *
-                       (*obj_length_) * k_on_ * params_->delta;
-    double expected_surf_bind_n = bind_site_density_ * free_concentration *
-                       (*obj_area_) * k_on_ * params_->delta;
+    double expected_bind_n = bind_site_density_ * free_concentration *
+                       (*obj_size_) * k_on_ * params_->delta;
     // Use a Poisson distribution to calculate the number of particles
-    int linear_bind_num = rng_.RandomPoisson(expected_lin_bind_n);
-    int surface_bind_num = rng_.RandomPoisson(expected_surf_bind_n);
+    int bind_num = rng_.RandomPoisson(expected_bind_n);
     // Track US probabilities
-    tracker_->TrackUS(expected_lin_bind_n + expected_surf_bind_n);
-    tracker_->BindUS(linear_bind_num + surface_bind_num);
-    for (int i = 0; i < linear_bind_num; ++i) {
+    tracker_->TrackUS(expected_bind_n);
+    tracker_->BindUS(bind_num);
+    for (int i = 0; i < bind_num; ++i) {
       /* Create a new crosslink and bind an anchor to a random rod
        * in the system */
-      BindCrosslink(shape::rod);
-    }
-    for (int i = 0; i < surface_bind_num; ++i) {
-      /* Create a new crosslink and bind an anchor to a random sphere
-       * in the system */
-      BindCrosslink(shape::sphere);
+      BindCrosslink();
     }
   }
 }
 
 /* Returns a random object with selection probability proportional to object
    bind rate. */
-Object *CrosslinkSpecies::GetRandomObjectBindFile() {
-  double bind_rate_count = 0;
-  std::string name = "";
-  // Roll to choose object
-  double roll = bind_rate_*rng_.RandomUniform();
-  if (!use_bind_file_) {
-    Logger::Error("GetRandomObjectBindFile called with no bind file in use.");
-  }
-  // Count up bind rates to pick correct object
-  for (int anchor_index = 0; anchor_index < 2; ++anchor_index) {
-    for (auto obj = objs_->begin(); obj != objs_->end(); ++obj) {
-      name = (*obj)->GetName();
-
-      // Do not count objects that are not in bind_param_map
-      if (bind_param_map_[anchor_index].find(name) == bind_param_map_[anchor_index].end()) continue;
-
-      // obj_amount is area if surface density used, length if linear density used
-      double obj_amount = (bind_param_map_[anchor_index][name].dens_type == +density_type::linear) 
-                          ? (*obj)->GetLength() : (*obj)->GetArea();
-
-      // Do not contribute area/length if object is already occupied and single occupancy is
-      // selected
-      if (bind_param_map_[anchor_index][name].single_occupancy && ((*obj)->GetNAnchored() > 0)) {
-        obj_amount = 0;
-      }
-      bind_rate_count += bind_param_map_[anchor_index][name].k_on_s * 
-                   bind_param_map_[anchor_index][name].bind_site_density * obj_amount;
-      if (bind_rate_count > roll) {
-        Logger::Trace("Binding free crosslink to random object: xl %d -> obj %d",
-                      members_.back().GetOID(), (*obj)->GetOID());
-        return *obj;
+std::pair <Object*, int> CrosslinkSpecies::GetRandomObject() {
+  if (use_bind_file_) {
+    double bind_rate_sum = 0;
+    std::string name = "";
+    // Roll to choose object
+    double roll = bind_rate_*rng_.RandomUniform();
+    // Count up bind rates to pick correct object
+    for (int anchor_index = 0; anchor_index < 2; ++anchor_index) {
+      for (auto obj = objs_->begin(); obj != objs_->end(); ++obj) {
+        name = (*obj)->GetName();
+        auto bind_param_it = bind_param_map_[anchor_index].find(name);
+        // Do not count objects that are not in bind_param_map
+        if (bind_param_it == bind_param_map_[anchor_index].end()) continue;
+        // obj_amount is area if surface density used, length if linear density used
+        double obj_amount = (bind_param_it->second.dens_type == +density_type::linear) 
+                            ? (*obj)->GetLength() : (*obj)->GetArea();
+        // Do not contribute area/length if object is already occupied and single occupancy is
+        // selected
+        if (bind_param_it->second.single_occupancy && ((*obj)->GetNAnchored() > 0)) {
+          obj_amount = 0;
+        }
+        bind_rate_sum += bind_param_it->second.k_on_s * 
+                    bind_param_it->second.bind_site_density * obj_amount;
+        if (bind_rate_sum > roll) {
+          Logger::Trace("Binding free crosslink to random object: xl %d -> obj %d",
+                        members_.back().GetOID(), (*obj)->GetOID());
+          return std::make_pair(*obj, anchor_index);
+        }
       }
     }
-  }
-  Logger::Error("CrosslinkSpecies::GetRandomObjectBindFile should never get here!");
-  return nullptr;
-}
+    Logger::Error("CrosslinkSpecies::GetRandomObject should never get here!");
+    return std::make_pair(nullptr, -1);
+  } else {
+    // 2x factor comes from 2 anchors
+    double roll = 2*rng_.RandomUniform()*(*obj_size_);
+    double vol = 0;
 
-/* Returns a random object with selection probability proportional to object
-   length/area with the shape sh. */
-Object *CrosslinkSpecies::GetRandomObject(shape sh) {
-  double roll = rng_.RandomUniform();
-  switch(sh) { 
-    case shape::rod:
-      roll *= (*obj_length_); 
-      break;
-    case shape::sphere:
-      roll *= (*obj_area_); 
-      break;
-    default:
-      Logger::Error("Binding to object type %s not yet implemented in " 
-                    "CrosslinkSpecies::GetRandomObject", sh._to_string());
-  }
-  double vol = 0;
-
-  // Search through interactors to find an object of shape sh
-  for (auto obj = objs_->begin(); obj != objs_->end(); ++obj) {
-    if ((*obj)->GetShape() == sh) {
-      switch(sh) {
-        case shape::rod:
-          vol += (*obj)->GetLength();
-          break;
-        case shape::sphere:
-          if ((*obj)->GetNAnchored()==0) {
-            vol += (*obj)->GetArea();
-          }
-          break;
-        default:
-          Logger::Error("Binding to object type %s not yet implemented in " 
-                        "CrosslinkSpecies::GetRandomObject", sh._to_string());
-
-      }
-      if (vol > roll) {
-        Logger::Trace("Binding free crosslink to random object: xl %d -> obj %d",
-                      members_.back().GetOID(), (*obj)->GetOID());
-        return *obj;
+    // Search through interactors to find an object of shape sh
+    for (int anchor_index = 0; anchor_index < 2; ++anchor_index) {
+      for (auto obj = objs_->begin(); obj != objs_->end(); ++obj) {
+        switch((*obj)->GetShape()) {
+          case shape::rod:
+            vol += (*obj)->GetLength();
+            break;
+          case shape::sphere:
+            if ((*obj)->GetNAnchored()==0) {
+              vol += (*obj)->GetArea();
+            }
+            break;
+          default:
+            break;
+        }
+        if (vol > roll) {
+          Logger::Trace("Binding free crosslink to random object: xl %d -> obj %d",
+                        members_.back().GetOID(), (*obj)->GetOID());
+          return std::make_pair(*obj, anchor_index);
+        }
       }
     }
+    Logger::Error("CrosslinkSpecies::GetRandomObject should never get here!");
+    return std::make_pair(nullptr, -1);
   }
-  Logger::Error("CrosslinkSpecies::GetRandomObject should never get here!");
-  return nullptr;
-}
-
-/* A crosslink binds to an object from solution */
-void CrosslinkSpecies::BindCrosslink(shape sh) {
-  /* Create crosslink object and initialize. Crosslink will
-   * initially be singly-bound. */
-  AddMember();
-  members_.back().AttachObjRandom(GetRandomObject(sh));
 }
 
 /* A crosslink binds to an object from solution */
 void CrosslinkSpecies::BindCrosslink() {
   AddMember();
-  members_.back().AttachObjRandom(GetRandomObjectBindFile());
+  members_.back().AttachObjRandom(GetRandomObject());
 }
 
 /* Return singly-bound anchors, for finding neighbors to bind to */
@@ -669,7 +633,7 @@ void CrosslinkSpecies::ReadSpecs() {
     Crosslink xlink(rng_.GetSeed());
     xlink.Init(&sparams_);
     xlink.InitInteractionEnvironment(&lut_, tracker_, bound_curr_);
-    xlink.SetObjArea(obj_area_);
+    xlink.SetObjSize(obj_size_);
     xlink.SetBindRate(&bind_rate_);
     xlink.SetBindParamMap(&bind_param_map_);
     xlink.SetSID(GetSID());

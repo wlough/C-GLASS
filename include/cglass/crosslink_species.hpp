@@ -15,8 +15,7 @@ private:
   bool *update_;
   bool midstep_ = true;
   std::string checkpoint_file_;
-  double *obj_length_; // Total length of all the objects in the system
-  double *obj_area_; // Total area of all the objects in the system
+  double *obj_size_; // Total area/length of all the objects in the system
   double xlink_concentration_;
   int begin_with_bound_crosslinks_;
   double bind_site_density_;
@@ -43,21 +42,18 @@ private:
   void InitializeBindParams();
   LUTFiller *MakeLUTFiller();
   void CalculateBindingFree();
-  void BindCrosslink(shape sh);
   void BindCrosslink();
   void UpdateBoundCrosslinks();
   void UpdateBoundCrosslinkForces();
   void UpdateBoundCrosslinkPositions();
   void ApplyCrosslinkTetherForces();
-  Object *GetRandomObject(shape sh);
-  Object *GetRandomObjectBindFile();
+  std::pair<Object*, int> GetRandomObject();
 
 public:
   CrosslinkSpecies(unsigned long seed);
   void Init(std::string spec_name, ParamsParser &parser);
   void LoadBindingSpecies();
-  void InitInteractionEnvironment(std::vector<Object *> *objs, double *obj_len,
-                                  double *obj_area, Tracker *tracker, bool *update,
+  void InitInteractionEnvironment(std::vector<Object *> *objs, double *obj_size, Tracker *tracker, bool *update,
                                   std::map<Sphere *, std::pair<std::vector<double>, 
                                   std::vector<Anchor*> > > *bound_curr);
   void TestKMCStepSize();
