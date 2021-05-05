@@ -30,10 +30,14 @@ void Spindle::InitFilamentParameters(filament_parameters *fparams) {
             length_ + anchor_distance_ + 2 * fparams_->min_bond_length);
   UpdatePeriodic();
   GetBodyFrame();
-  GenerateNucleationSites();
 
-  for (int i_fil = 0; i_fil < n_filaments_; ++i_fil) {
-    InsertFilament(i_fil);
+  // If custom insertion used, generate sites/filaments AFTER arrangement
+  if (sparams_->insertion_type != "custom") {
+    GenerateNucleationSites();
+
+    for (int i_fil = 0; i_fil < n_filaments_; ++i_fil) {
+      InsertFilament(i_fil);
+    }
   }
 }
 
@@ -262,6 +266,10 @@ void Spindle::ZeroDrTot() {
 const double Spindle::GetDrTot() {
   UpdateDrTot();
   return dr_tot_;
+}
+
+const int Spindle::GetNFilaments() {
+  return n_filaments_;
 }
 
 const bool Spindle::CheckInteractorUpdate() {
