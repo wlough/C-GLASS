@@ -22,6 +22,18 @@ void SpindleSpecies::UpdatePositions() {
   midstep_ = !midstep_;
 }
 
+void SpindleSpecies::ArrangeMembers() {
+  Species::ArrangeMembers();
+  // Generate nucleation sites and filaments for each spindle
+  for (auto it = members_.begin(); it != members_.end(); ++it) {
+    it->GenerateNucleationSites();
+
+    for (int i_fil = 0; i_fil < it->GetNFilaments(); ++i_fil) {
+      it->InsertFilament(i_fil);
+    }
+  }
+}
+
 void SpindleSpecies::AddMember() {
   Species::AddMember();
   members_.back().InitFilamentParameters(&fparams_);
