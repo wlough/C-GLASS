@@ -8,6 +8,20 @@
 #include <iostream>
 #include <stdarg.h>
 
+// Avoid deprecated function- 
+// from http://nehe.gamedev.net/article/replacement_for_gluperspective/21002/
+static void perspectiveGL( GLdouble fovY, GLdouble aspect, GLdouble zNear, GLdouble zFar )
+{
+    const GLdouble pi = 3.1415926535897932384626433832795;
+    GLdouble fW, fH;
+
+    //fH = tan( (fovY / 2) / 180 * pi ) * zNear;
+    fH = tan( fovY / 360 * pi ) * zNear;
+    fW = fH * aspect;
+
+    glFrustum( -fW, fW, -fH, fH, zNear, zFar );
+}
+
 static void key_callback2d(GLFWwindow *window, int key, int scancode,
                            int action, int mods) {
   // set the window pointer to the keyboard object
@@ -293,13 +307,13 @@ void Graphics::Init2dWindow() {
   double ymax = unit_cell_[3] / 2.;
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  gluOrtho2D(
+  glOrtho(
       (GLdouble)(xmin - 0.05 * unit_cell_[0]),
       (GLdouble)(xmax + 0.05 * unit_cell_[0]),
       (GLdouble)(ymin - 0.05 * unit_cell_[3]),
       (GLdouble)(ymax +
                  0.05 *
-                     unit_cell_[3])); // deprecated, but annoying to implement
+                     unit_cell_[3]), -1, 1);
   /* JMM attempting to fix Mac resize issues */
   glfwGetFramebufferSize(window_, &windx_, &windy_);
   /* establish initial viewport */
@@ -406,8 +420,8 @@ void Graphics::Init3dWindow() {
   /* set up projection transform */
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  gluPerspective(-60.0, 1.0, 1.5 * unit_cell_[8] / 2.0,
-                 10.0 * 1.5 * unit_cell_[8] / 2.0); // deprecated
+  perspectiveGL(-60.0, 1.0, 1.5 * unit_cell_[8] / 2.0,
+                 10.0 * 1.5 * unit_cell_[8] / 2.0);
 
   /* establish initial viewport */
   glfwGetFramebufferSize(window_, &windx_, &windy_);
