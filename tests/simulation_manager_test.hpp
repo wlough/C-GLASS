@@ -9,19 +9,27 @@
 template <> class UnitTest<SimulationManager> {
 private:
   SimulationManager mgr_;
-  std::string params_ = "{run_name: test,"
-                        " seed: 314159,"
-                        " n_runs: 3,"
-                        " n_random: 2,"
-                        " n_steps: 42,"
-                        " n_dim: [V, 2, 3],"
-                        " delta: [R, 0.1, 0.001],"
-                        " system_radius: 1}";
+  std::string multi_params_ = "{run_name: test,"
+                              " seed: 314159,"
+                              " n_runs: 3,"
+                              " n_random: 2,"
+                              " n_steps: 42,"
+                              " n_dim: [V, 2, 3],"
+                              " delta: [R, 0.1, 0.001],"
+                              " system_radius: 1}";
+  std::string diffusion_params_ = "{run_name: test,"
+                                 " seed: 314159,"
+                                 " n_steps: 10000,"
+                                 " delta: 0.001,"
+                                 " n_dim: 3,"
+                                 " n_periodic: 3,"
+                                 " system_radius: 20,"
+                                 " br_bead: {num: 100}}";
 
 public:
   void TestSimManager() {
     std::string fname = "test_params.yaml";
-    std::ofstream(fname, std::ios::out) << params_;
+    std::ofstream(fname, std::ios::out) << multi_params_;
     run_options run_opts;
     run_opts.param_file = fname;
     SECTION("Simulation manager init and run simulations") {
@@ -55,9 +63,20 @@ public:
     }
     return true;
   }
+  void TestDiffusion() {
+    std::string fname = "test_params.yaml";
+    std::ofstream(fname, std::ios::out) << diffusion_params_;
+    run_options run_opts;
+    run_opts.param_file = fname;
+    SECTION("Test diffusion relations") {
+      REQUIRE(TestInit(run_opts));
+      REQUIRE(TestSim());
+    }
+  }
 };
 
 TEST_CASE("Test simulation manager") {
   UnitTest<SimulationManager> test;
   test.TestSimManager();
+  test.TestDiffusion();
 }
