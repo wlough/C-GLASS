@@ -92,6 +92,8 @@ void CellList::AllocateCells() {
 
 void CellList::Clear() {
   if (_no_init_) return;
+  _n_cells_1d_ = -1;
+  _no_init_ = true;
   ClearCellObjects();
   ClearCellNeighbors();
   DeallocateCells();
