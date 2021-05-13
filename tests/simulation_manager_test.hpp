@@ -19,13 +19,56 @@ private:
                               " system_radius: 1}";
   std::string diffusion_params_ = "{run_name: test,"
                                  " seed: 314159,"
-                                 " n_steps: 10000,"
+                                 " n_steps: 1000,"
                                  " delta: 0.001,"
                                  " n_dim: 3,"
                                  " n_periodic: 3,"
                                  " system_radius: 20,"
-                                 " br_bead: {num: 100}}";
-
+                                 " potential: none,"
+                                 " br_bead: {num: 100,spec_flag: true,n_spec: 500,midstep: false}}";
+  // Helper function to process time header in txt file, returns time
+  double ProcessTimeHeader(std::ifstream& filein) {
+    std::string line;
+    double t = -1;
+    getline(filein, line);
+    t = stod(line.substr(7, line.size()-7));
+    for (int i = 0; i < 2; ++i) getline(filein, line);
+    return t;
+  }
+  // Helper function for determining diffusion from spec file
+  double CalcDiffusionCoef() {
+    std::ifstream fin("test_br_bead_speciesSpec.txt", std::ios::in);
+    std::stringstream sin;
+    std::string line;
+    int nbeads = 100;
+    std::vector<std::vector<double> > r0(nbeads,std::vector<double>(3));
+    double rij;
+    double dr2 = 0; // squared displacement
+    double ti, tf;
+    // Process headers
+    for (int i = 0; i < 2; ++i) getline(fin, line);
+    ti = ProcessTimeHeader(fin);
+    // Get initial positions of beads
+    for (int i = 0; i < nbeads; ++i) {
+      if (!getline(fin, line)) return -1.0;
+      sin = std::stringstream(line);
+      for (int j = 0; j < 3; ++j) {
+        sin >> r0[i][j];
+      }
+    }
+    tf = ProcessTimeHeader(fin);
+    // Calculate msd
+    for (int i = 0; i < nbeads; ++i) {
+      if (!getline(fin, line)) return -1.0;
+      sin = std::stringstream(line);
+      for (int j = 0; j < 3; ++j) {
+        sin >> rij;
+        dr2 += (rij-r0[i][j])*(rij-r0[i][j]);
+      }
+    }
+    // Alpha = 3 for 3D, D should be 1 in sim units
+    return dr2/(3*nbeads*(tf-ti)*2);
+  }
 public:
   void TestSimManager() {
     std::string fname = "test_params.yaml";
@@ -68,9 +111,20 @@ public:
     std::ofstream(fname, std::ios::out) << diffusion_params_;
     run_options run_opts;
     run_opts.param_file = fname;
-    SECTION("Test diffusion relations") {
+    SECTION("Run diffusion test") {
       REQUIRE(TestInit(run_opts));
       REQUIRE(TestSim());
+    }
+    run_opts.convert = true;
+    // Reset to clear cell lists, etc.
+    SECTION("Convert diffusion test results") {
+      REQUIRE(TestInit(run_opts));
+      REQUIRE(TestSim());
+    }
+    SECTION("Analyze diffusion test results") {
+      // Use 3 sigma to test D (should be 1 in sim units)
+      REQUIRE(CalcDiffusionCoef()<1.2);
+      REQUIRE(CalcDiffusionCoef()>0.8);
     }
   }
 };

@@ -92,7 +92,7 @@ void SimulationManager::InitLogger() {
 }
 
 /****************************************
-   ::RunManaager::
+   ::RunManager::
    Main control sequence for SimulationManager
    *************************************/
 void SimulationManager::RunManager() {
