@@ -281,10 +281,10 @@ void Simulation::InitSpecies() {
       continue;
     }
     species_.push_back(species_factory.CreateSpecies(sid, rng_->GetSeed()));
-    if (sid == +species_id::receptor) {
-      species_.back()->SetPC(cortex_);
-    }
     species_.back()->Init(slab->second, parser_);
+    if (sid == +species_id::receptor) {
+      species_.back()->SetPC(cortex_, species_);
+    }
 if (species_.back()->GetNInsert() > 0) {
 #ifdef TRACE
       if (species_.back()->GetNInsert() > 20) {
@@ -348,7 +348,8 @@ void Simulation::InsertSpecies(bool force_overlap, bool processing) {
            failures, since insertion failures are for packing issues */
         }
         // Check if we have an overlap of objects
-        else if (!force_overlap && !(*spec)->CanOverlap() && !processing &&
+        else if (!force_overlap && ((*spec)->GetSID() !=
+            +species_id::receptor) && !(*spec)->CanOverlap() && !processing &&
                  ix_mgr_.CheckOverlap(last_ixors)) {
           (*spec)->PopMember();
           num_failures++;

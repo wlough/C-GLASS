@@ -46,13 +46,19 @@ void Cell::MakePairsCell(Cell &cell, std::vector<Interaction> &pair_list) const 
   const std::vector<Object *> those_objs = cell.GetCellObjects();
   Logger::Trace("%s adjacent to %s:", Report().c_str(), cell.Report().c_str());
   for (int i = 0; i < NObjs(); ++i) {
-    for (int j = 0; j < cell.NObjs(); ++j) {
-      Interaction ix(cell_objs_[i], those_objs[j]);
-      pair_list.push_back(ix);
+    // Receptors do not interact with objects (other than xlinks)
+    if (cell_objs_[i]->GetSID() != +species_id::receptor) {
+      for (int j = 0; j < cell.NObjs(); ++j) {
+        // Again, no receptor interactions
+        if (those_objs[j]->GetSID() != +species_id::receptor) {
+          Interaction ix(cell_objs_[i], those_objs[j]);
+          pair_list.push_back(ix);
 #ifdef TRACE
-      Logger::Trace("Interaction pair: %d -> %d", cell_objs_[i]->GetOID(),
-                    those_objs[j]->GetOID());
+          Logger::Trace("Interaction pair: %d -> %d", cell_objs_[i]->GetOID(),
+                        those_objs[j]->GetOID());
 #endif
+        }
+      }
     }
   }
 }
@@ -62,9 +68,15 @@ void Cell::MakePairsSelf(std::vector<Interaction> &pair_list) const {
     return;
   }
   for (int i = 0; i < NObjs() - 1; ++i) {
-    for (int j = i + 1; j < NObjs(); ++j) {
-      Interaction ix(cell_objs_[i], cell_objs_[j]);
-      pair_list.push_back(ix);
+    // Receptors do not interact with objects (other than xlinks)
+    if (cell_objs_[i]->GetSID() != +species_id::receptor) {
+      for (int j = i + 1; j < NObjs(); ++j) {
+        // Again, no receptor interactions
+        if (cell_objs_[j]->GetSID() != +species_id::receptor) {
+          Interaction ix(cell_objs_[i], cell_objs_[j]);
+          pair_list.push_back(ix);
+        }
+      }
     }
   }
 }
