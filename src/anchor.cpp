@@ -118,6 +118,17 @@ void Anchor::UpdatePosition() {
   // Currently only bound anchors diffuse/walk (no explicit unbound anchors)
   bool diffuse = GetDiffusionConst() > 0 ? true : false;
   bool walker = abs(GetMaxVelocity()) > input_tol ? true : false;
+  double angle_ = 0;
+  angle_ = force_[1]/force_[0];
+  
+  if (angle_ <= 0){
+  angle_ *= -1;
+  }
+	
+  if (angle_ <= 0.5){
+  walker= false;
+  }
+
   if (!bound_ || static_flag_ || !rod_ || (!diffuse && !walker)) {
     return;
   }
@@ -233,12 +244,14 @@ void Anchor::Unbind() {
 void Anchor::Diffuse() {
   // Motion from thermal kicks
   double dr = GetKickAmplitude() * rng_.RandomNormal(1);
-
+  bool walker = abs(GetMaxVelocity()) > input_tol ? true : false;
   // Force dependence diffusion depends on the mobility (D/kBT) and the force
   // applied along the direction of the filament.
-  if (force_dep_vel_flag_) {
-    double force_proj = dot_product(n_dim_, force_, orientation_);
-    dr += GetDiffusionConst() * force_proj * delta_;
+  if (!walker){
+  	if (force_dep_vel_flag_) {
+    	double force_proj = dot_product(n_dim_, force_, orientation_);
+    	dr += GetDiffusionConst() * force_proj * delta_;
+  	}
   }
   mesh_lambda_ += dr;
   // Should this also add to bond lambda?
