@@ -8,17 +8,25 @@ ReceptorSpecies::ReceptorSpecies(unsigned long seed) : Species(seed) {
 void ReceptorSpecies::Init(std::string spec_name, ParamsParser &parser) {
   Species::Init(spec_name, parser);
   concentration_ = sparams_.concentration;
+  component_ = sparams_.component;
 }
 
 /* To generalize, could pass vector of species and search for species
  * name. Would need to develop local random position on species' surface
- * and calculate area for each componenti, and static cast to mesh. */
-void ReceptorSpecies::SetPC(Cortex* cx) {
-  if (sparams_.component.compare("cortex") == 0) {
+ * and calculate area for each component, and static cast to mesh. */
+void ReceptorSpecies::SetPC(Cortex* cx, std::vector<SpeciesBase *> &species) {
+  if (component_.compare("cortex") == 0) {
     pc_ = cx;
   } else {
-    Logger::Error("Receptors on species not yet implemented in Receptor::Set"
-                  "Component");
+    for (auto sp = species.begin(); sp != species.end(); ++sp) {
+      if ((*sp)->GetSpeciesName().compare(component_) == 0) {
+        pc_ = (*sp)->GetPC();
+        pc_species_ = *sp;
+      }
+    }
+    if (!pc_) {
+      Logger::Error("Receptor component name is not a species name.");
+    }
   }
 }
 
@@ -37,13 +45,14 @@ void ReceptorSpecies::Reserve() {
 void ReceptorSpecies::AddMember() {
   Species::AddMember();
   pc_->AddSpherePtr(&(members_.back()));
-  double pos[3];
+  double pos[3] =  {0,0,0};
   double u[3] = {1,0,0};
-  if (sparams_.component.compare("cortex") == 0) {
-   rng_.RandomBoundaryCoordinate(space_, pos);
+  if (component_.compare("cortex") == 0) {
+    rng_.RandomBoundaryCoordinate(space_, pos);
   } else {
-    Logger::Error("Receptors on species not yet implemented in Receptor::Set"
-                  "Component");
+    s_ = pc_species_->GetSpecLength() * (rng_.RandomUniform()-0.5);
+    i_ = rng_.RandomInt(pc_species_->GetNMembers());
+    pc_species_->CalcPCPosition(i_, s_, pos);
   }
   members_.back().InsertAt(pos, u);
   members_.back().SetCompPtr(pc_);

@@ -16,12 +16,20 @@ protected:
   std::vector<T> members_;
   species_parameters<S> sparams_;
   std::vector<Analysis<T, S> *> analysis_;
+  // A pointcover associated with the species members (a mesh that surrounds objects)
+  PointCover* pc_ = nullptr;
   virtual void LoadAnalysis() {
     /* Check parameters for analyses and load them into analysis_ here */
   }
 
 public:
-  Species(unsigned long seed) : SpeciesBase(seed) {}
+  Species(unsigned long seed) : SpeciesBase(seed) {
+    pc_ = new PointCover(seed);
+  }
+  // Free dynamically allocated PointCover
+  ~Species() {
+    delete pc_;
+  }
   // Initialize function for setting it up on the first pass
   virtual void Init(std::string spec_name, ParamsParser &parser) {
     SetSID(species_id::_from_integral(S));
@@ -43,6 +51,12 @@ public:
   virtual const bool GetSpecFlag() const { return sparams_.spec_flag; }
   virtual const std::string GetSpeciesName() const { return sparams_.name; }
   std::string GetInsertionType() const { return sparams_.insertion_type; }
+
+  /* Calculate the position of a PointCover site (i refers to the member index,
+  and s is the length along the member object). pos holds return position. */
+  virtual void CalcPCPosition(int i, double s, double* pos) { 
+    members_[i].CalcPCPosition(s, pos);
+  }
 
   virtual void AddMember();
   virtual void AddMember(T newmem);
@@ -78,6 +92,7 @@ public:
   virtual double const GetVolume();
   virtual double const GetDrMax();
   virtual void ZeroDrTot();
+  virtual PointCover* GetPC();
   virtual void CustomInsert();
   virtual const bool CheckInteractorUpdate();
   virtual void InitAnalysis() {
@@ -130,6 +145,12 @@ template <typename T, unsigned char S> void Species<T, S>::AddMember() {
   members_.back().SetSID(GetSID());
   members_.back().Init(&sparams_);
   n_members_++;
+}
+template <typename T, unsigned char S> PointCover* Species<T, S>::GetPC() {
+  if (!pc_) {
+    Logger::Warning("Species returned nullptr pc_ in GetPointCover.");
+  }
+  return pc_;
 }
 
 template <typename T, unsigned char S> double const Species<T, S>::GetDrMax() {

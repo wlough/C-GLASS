@@ -159,6 +159,7 @@ public:
   virtual void ApplyInteractions();
   virtual void FlagDuplicateInteractions();
   virtual void GetInteractions(std::vector<object_interaction> &ixs);
+  virtual void CalcPCPosition(double s, double* pos);
   virtual void ClearInteractions();
   virtual void Cleanup();
 

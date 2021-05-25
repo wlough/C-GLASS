@@ -278,6 +278,11 @@ int Object::GetCount() { return 1; }
 void Object::GetInteractors(std::vector<Object *> &ix) {
   ix.insert(ix.end(), interactors_.begin(), interactors_.end());
 }
+void Object::CalcPCPosition(double s, double* pos) {
+  for (int j = 0; j < n_dim_; ++j) {
+    pos[j] = position_[j] + orientation_[j]*s;
+  }
+}
 double const *const Object::GetInteractorPosition() { return GetPosition(); }
 double const *const Object::GetInteractorPrevPosition() {
   return GetPrevPosition();
