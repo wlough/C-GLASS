@@ -63,6 +63,7 @@ void ReceptorSpecies::AddMember() {
       s_ = 2 * smax_ * (rng_.RandomUniform()-0.5);
       i_ = rng_.RandomInt(n_members_pc_);
       pc_species_->CalcPCPosition(i_, s_, pos);
+      members_.back().SetLocations(i_, s_);
     }
   } else if (sparams_.insertion_type.compare("grid") == 0) {
     if (component_.compare("cortex") == 0) {
@@ -76,6 +77,7 @@ void ReceptorSpecies::AddMember() {
         s_ = s0_;
       }
       pc_species_->CalcPCPosition(i_, s_, pos);
+      members_.back().SetLocations(i_, s_);
       s_ += spacing_;
     }
   } else {
@@ -83,8 +85,10 @@ void ReceptorSpecies::AddMember() {
   }
   members_.back().InsertAt(pos, u);
   members_.back().SetCompPtr(pc_);
+  members_.back().SetPCSpecies(pc_species_);
 }
 
+// Overload to recognize grid arrangement
 void ReceptorSpecies::ArrangeMembers() {
   if (GetInsertionType().compare("custom") == 0) {
     CustomInsert();
