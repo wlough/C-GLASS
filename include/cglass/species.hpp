@@ -39,6 +39,9 @@ public:
     delete sparams;
     Logger::Debug("Initializing %s %s", GetSID()._to_string(),
                   GetSpeciesName().c_str());
+    // Set pointcover length/diameter to match species
+    pc_->SetLength(sparams_.length);
+    pc_->SetDiameter(sparams_.diameter);
   }
   // Virtual functions
   virtual const double GetSpecDiameter() const { return sparams_.diameter; }
