@@ -18,6 +18,10 @@ private:
 
   PointCover* pc_ = nullptr; // ptr to the PointCover object the receptor is on
   SpeciesBase* pc_species_ = nullptr; // The species that the PointCover corresponds to
+  double smax_; // Maximum position along object (for species-PointCover)
+  double s0_; // Starting position along object (for species-PointCover)
+  double spacing_; // The seperation between receptors on object for grid insertion
+  int n_members_pc_; // Number of members in pc_species_
   double s_; // The position (length) along object of the receptor (for species-PointCover)
   int i_; // The index of the object that the receptor is on (for species-PointCover)
 
@@ -36,6 +40,9 @@ public:
 
   // Create a receptor object and save it as a site on mesh_
   void AddMember();
+
+  // Overwrite custom insert to ignore grid insertion choice
+  void ArrangeMembers();
 };
 
 #endif
