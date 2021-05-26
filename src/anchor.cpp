@@ -238,7 +238,7 @@ void Anchor::Diffuse() {
   // Force dependence diffusion depends on the mobility (D/kBT) and the force
   // applied along the direction of the filament. Force velocity relation for
   // motors is already taken into account for walkers in Walk().
-  if (force_dep_vel_flag_ && walker) {
+  if (force_dep_vel_flag_ && !walker) {
     double force_proj = dot_product(n_dim_, force_, orientation_);
     dr += GetDiffusionConst() * force_proj * delta_;
   }
