@@ -252,7 +252,7 @@ void Anchor::Diffuse() {
 
 void Anchor::UpdateAnchorPositionToRod() {
   if (!rod_) {
-    Logger::Error("Anchor tried to update position relative to nullptr bond");
+    Logger::Error("Anchor tried to update position relative to nullptr rod");
   }
   double const *const rod_position = rod_->GetPosition();
   double const *const rod_orientation = rod_->GetOrientation();
