@@ -61,7 +61,8 @@ void BrBead::UpdatePosition() {
   SetPrevPosition(GetPosition());
   SetPrevOrientation(GetOrientation());
   ApplyForcesTorques();
-  Integrate();
+  if (!sparams_->stationary_flag)
+    Integrate();
   UpdatePeriodic();
 }
 

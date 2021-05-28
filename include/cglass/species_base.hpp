@@ -58,6 +58,7 @@ public:
   virtual int const GetNCheckpoint() const { return params_->n_checkpoint; }
   virtual bool const GetPositFlag() const { return false; }
   virtual bool const GetSpecFlag() const { return false; }
+  virtual bool const IsStationary() const { return false; }
   virtual bool const GetCheckpointFlag() const {
     return params_->checkpoint_flag;
   }

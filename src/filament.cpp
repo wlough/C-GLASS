@@ -408,7 +408,8 @@ double const Filament::GetVolume() {
 void Filament::UpdatePosition(bool midstep) {
   midstep_ = midstep;
   ApplyForcesTorques();
-  Integrate();
+  if (!sparams_->stationary_flag)
+    Integrate();
   UpdateAvgPosition();
   DynamicInstability();
 }

@@ -50,10 +50,11 @@ void Anchor::SetDiffusion() {
 }
 
 void Anchor::UpdateAnchorPositionToMesh() {
-  if (!bound_ || static_flag_ || !rod_)
+  if (!bound_ || static_flag_)
     return;
   if (!mesh_) {
-    Logger::Error("Anchor tried to update position to nullptr mesh");
+    UpdateAnchorPositionToObj();
+    return;
   }
 
   /* Use the mesh to determine the rod lengths. The true rod lengths fluctuate
@@ -72,7 +73,7 @@ void Anchor::UpdateAnchorPositionToMesh() {
     return;
   }
   // Update anchor position with respect to bond
-  UpdateAnchorPositionToRod();
+  UpdateAnchorPositionToObj();
 }
 
 bool Anchor::CalcRodLambda() {
@@ -250,19 +251,26 @@ void Anchor::Diffuse() {
   // Should this also add to bond lambda?
 }
 
-void Anchor::UpdateAnchorPositionToRod() {
-  if (!rod_) {
-    Logger::Error("Anchor tried to update position relative to nullptr rod");
-  }
-  double const *const rod_position = rod_->GetPosition();
-  double const *const rod_orientation = rod_->GetOrientation();
-  for (int i = 0; i < n_dim_; ++i) {
-    orientation_[i] = rod_orientation[i];
-    position_[i] = rod_position[i] -
-                   (0.5 * rod_length_ - bond_lambda_) * rod_orientation[i];
+void Anchor::UpdateAnchorPositionToObj() {
+  if (rod_) {
+    if (rod_->IsFixed()) return;
+    double const *const rod_position = rod_->GetPosition();
+    double const *const rod_orientation = rod_->GetOrientation();
+    for (int i = 0; i < n_dim_; ++i) {
+      orientation_[i] = rod_orientation[i];
+      position_[i] = rod_position[i] -
+                     (0.5 * rod_length_ - bond_lambda_) * rod_orientation[i];
+    }
+  } else if (sphere_) {
+    if (sphere_->IsFixed()) return;
+    /* When attached to sphere, position is just the sphere position */
+    std::copy(sphere_->GetPosition(), sphere_->GetPosition() + n_dim_, position_);
+  } else {
+    Logger::Error("Anchor tried to change position but wasn't bound to sphere_ or rod_.");
   }
   UpdatePeriodic();
 }
+
 /*Creates Vector that has different binding rates for parallel and anti-parallel
  * bonds*/
 void Anchor::CalculatePolarAffinity(std::vector<double> &doubly_binding_rates) {
@@ -369,7 +377,7 @@ void Anchor::AttachObjLambda(Object *o, double lambda) {
   /* Distance anchor is relative to entire mesh length */
   mesh_lambda_ = bond_->GetMeshLambda() + bond_lambda_;
   SetCompID(rod_->GetCompID());
-  UpdateAnchorPositionToRod();
+  UpdateAnchorPositionToObj();
   ZeroDrTot();
   bound_ = true;
 }

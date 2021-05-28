@@ -19,6 +19,7 @@ template <unsigned char S> struct species_parameters {
   bool spec_flag = false;
   int n_posit = 100;
   int n_spec = 100;
+  bool stationary_flag = false;
   virtual ~species_parameters() {}
 };
 
@@ -29,7 +30,6 @@ struct species_parameters<species_id::rigid_filament>
     : public species_base_parameters {
   double max_length = 500;
   double min_length = 5;
-  bool stationary_flag = false;
   bool constrain_motion_flag = false;
   double packing_fraction = -1;
   int n_equil = 0;

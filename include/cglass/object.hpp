@@ -48,6 +48,7 @@ protected:
   bool is_mesh_;
   bool is_comp_ = false;
   bool has_overlap_;
+  bool fixed_ = false;
   int n_anchored_;
   bool interactor_update_;
 
@@ -122,6 +123,7 @@ public:
   const double GetContactNumber();
   const bool IsInteractor();
   const bool IsMesh();
+  const bool IsFixed();
   const int GetNAnchored();
   const bool CheckInteractorUpdate();
   void HasOverlap(bool overlap);
