@@ -50,10 +50,13 @@ void Receptor::SetLocations(int i, double s) {
 
 void Receptor::SetPCSpecies(SpeciesBase* pc_species) {
   pc_species_ = pc_species;
+  if (!pc_species_ || pc_species_->IsStationary()) fixed_ = true;
 }
 
 // Use PointCover object positions to update
 void Receptor::UpdatePosition() {
+  if (sparams_->stationary_flag)
+    return;
   // Check that the PointCover is associated with a species
   if (pc_species_) {
     pc_species_->CalcPCPosition(i_, s_, position_);

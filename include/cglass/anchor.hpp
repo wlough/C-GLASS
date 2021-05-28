@@ -64,7 +64,7 @@ class Anchor : public Object {
   int mesh_n_bonds_;
 
   // Helper functions
-  void UpdateAnchorPositionToRod();
+  void UpdateAnchorPositionToObj();
   void Diffuse();
   void Walk();
   bool CheckMesh();

@@ -174,7 +174,7 @@ void Spindle::UpdatePosition(bool midstep) {
   }
 #endif
   SetPrevPosition(position_);
-  if (!midstep_) {
+  if (!midstep_ && !sparams_->stationary_flag) {
     Integrate();
   }
 }

@@ -165,6 +165,7 @@ double const Object::GetPolarOrder() { return polar_order_; }
 double const Object::GetContactNumber() { return contact_number_; }
 bool const Object::IsInteractor() { return interacting_; }
 bool const Object::IsMesh() { return is_mesh_; }
+bool const Object::IsFixed() { return fixed_; }
 bool const Object::CheckInteractorUpdate() {
   if (interactor_update_) {
     interactor_update_ = false;

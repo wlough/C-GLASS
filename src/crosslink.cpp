@@ -237,8 +237,10 @@ void Crosslink::UpdateAnchorsToMesh() {
 }
 
 void Crosslink::UpdateAnchorPositions() {
-  anchors_[0].UpdatePosition();   
-  anchors_[1].UpdatePosition();
+  if (!sparams_->stationary_flag) {
+    anchors_[0].UpdatePosition();   
+    anchors_[1].UpdatePosition();
+  }
 }
 
 void Crosslink::ApplyTetherForces() {

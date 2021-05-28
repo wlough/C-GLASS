@@ -52,6 +52,7 @@ public:
   virtual const int GetNSpec() const { return sparams_.n_spec; }
   virtual const bool GetPositFlag() const { return sparams_.posit_flag; }
   virtual const bool GetSpecFlag() const { return sparams_.spec_flag; }
+  virtual const bool IsStationary() const { return sparams_.stationary_flag; }
   virtual const std::string GetSpeciesName() const { return sparams_.name; }
   std::string GetInsertionType() const { return sparams_.insertion_type; }
 
