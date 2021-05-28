@@ -353,7 +353,7 @@ std::pair <Object*, int> CrosslinkSpecies::GetRandomObject() {
         }
       }
     }
-    Logger::Error("CrosslinkSpecies::GetRandomObject should never get here!");
+    Logger::Error("Crosslinks tried to bind to more sites than available- lower timestep.");
     return std::make_pair(nullptr, -1);
   } else {
     // 2x factor comes from 2 anchors
@@ -382,7 +382,7 @@ std::pair <Object*, int> CrosslinkSpecies::GetRandomObject() {
         }
       }
     }
-    Logger::Error("CrosslinkSpecies::GetRandomObject should never get here!");
+    Logger::Error("Crosslinks tried to bind to more sites than available- lower timestep.");
     return std::make_pair(nullptr, -1);
   }
 }

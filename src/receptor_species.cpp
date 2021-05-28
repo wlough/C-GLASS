@@ -44,7 +44,7 @@ void ReceptorSpecies::Reserve() {
  * the cell component. */
 void ReceptorSpecies::AddMember() {
   // Initialize pointcover locations/variables
-  if (members_.size() == 0) {
+  if ((pc_species_) && (members_.size() == 0)) {
     smax_ = pc_species_->GetSpecLength() / 2.0;
     n_members_pc_ = pc_species_->GetNMembers();
     spacing_ = 2 * n_members_pc_ * smax_ / sparams_.num;
@@ -57,7 +57,7 @@ void ReceptorSpecies::AddMember() {
   double pos[3] =  {0,0,0};
   double u[3] = {1,0,0};
   if (sparams_.insertion_type.compare("random") == 0) {
-    if (component_.compare("cortex") == 0) {
+    if (!pc_species_) {
       rng_.RandomBoundaryCoordinate(space_, pos);
     } else {
       s_ = 2 * smax_ * (rng_.RandomUniform()-0.5);
@@ -66,7 +66,7 @@ void ReceptorSpecies::AddMember() {
       members_.back().SetLocations(i_, s_);
     }
   } else if (sparams_.insertion_type.compare("grid") == 0) {
-    if (component_.compare("cortex") == 0) {
+    if (!pc_species_) {
       Logger::Error("Grid insertion not set up with cortex receptor component.");
     } else {
       if (s_ > smax_) {
@@ -80,7 +80,7 @@ void ReceptorSpecies::AddMember() {
       members_.back().SetLocations(i_, s_);
       s_ += spacing_;
     }
-  } else {
+  } else if (sparams_.insertion_type.compare("custom") != 0) {
     Logger::Error("Insertion type not recognized in receptor_species.cpp.");
   }
   members_.back().InsertAt(pos, u);
