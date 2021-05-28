@@ -84,10 +84,6 @@ void Crosslink::SinglyKMC() {
 
   /* Calculate probability to bind */
   double kmc_bind_prob = 0;
-  double bind_factor_rod = anchors_[(int)!bound_anchor_].GetOnRate() * bind_site_density_;
-  double bind_factor_sphere = anchors_[(int)!bound_anchor_].GetOnRate() * bind_site_density_;
-
-  /* Fill vector of bind factors with rod factors, then sphere factors */
   std::vector<double> bind_factors(n_neighbors);
   const std::vector<Rod*>& rod_nbr_list = anchors_[bound_anchor_].GetNeighborListMemRods();
   const std::vector<Sphere*>& sphere_nbr_list = anchors_[bound_anchor_].GetNeighborListMemSpheres();
@@ -104,6 +100,10 @@ void Crosslink::SinglyKMC() {
                * bind_param_map_->at((int)!bound_anchor_)[name].bind_site_density;
     }
   } else {
+  double bind_factor_rod = anchors_[(int)!bound_anchor_].GetOnRate() * bind_site_density_;
+  double bind_factor_sphere = anchors_[(int)!bound_anchor_].GetOnRate() * bind_site_density_;
+
+  /* Fill vector of bind factors with rod factors, then sphere factors */
     std::fill(bind_factors.begin(), bind_factors.begin() + n_neighbors_rod, bind_factor_rod);
     std::fill(bind_factors.begin() + n_neighbors_rod, bind_factors.end(), bind_factor_sphere);
   }
