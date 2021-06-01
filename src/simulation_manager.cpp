@@ -104,7 +104,8 @@ void SimulationManager::RunManager() {
     // simulation.
     return;
   } else if (run_opts_.analysis_flag || run_opts_.make_movie ||
-             run_opts_.reduce_flag || run_opts_.convert) {
+             run_opts_.graphics_flag || run_opts_.reduce_flag || 
+             run_opts_.convert) {
     // Process the output files associated with the param file
     ProcessOutputs();
   } else {
