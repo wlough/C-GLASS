@@ -65,6 +65,8 @@ void ReceptorSpecies::AddMember() {
       i_ = rng_.RandomInt(n_members_pc_);
       pc_species_->CalcPCPosition(i_, s_, pos);
       members_.back().SetLocations(i_, s_);
+      members_.back().SetPCObject(pc_species_->GetMember(i_));
+      members_.back().SetPCSpecies(pc_species_);
     }
   } else if (sparams_.insertion_type.compare("grid") == 0) {
     if (!pc_species_) {
@@ -79,6 +81,8 @@ void ReceptorSpecies::AddMember() {
       }
       pc_species_->CalcPCPosition(i_, s_, pos);
       members_.back().SetLocations(i_, s_);
+      members_.back().SetPCObject(pc_species_->GetMember(i_));
+      members_.back().SetPCSpecies(pc_species_);
       s_ += spacing_;
     }
   } else if (sparams_.insertion_type.compare("custom") != 0) {
@@ -86,8 +90,6 @@ void ReceptorSpecies::AddMember() {
   }
   members_.back().InsertAt(pos, u);
   members_.back().SetCompPtr(pc_);
-  members_.back().SetPCObject(pc_species_->GetMember(i_));
-  members_.back().SetPCSpecies(pc_species_);
 }
 
 // Overload to recognize grid arrangement
