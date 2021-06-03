@@ -15,6 +15,7 @@ class Receptor: public Sphere {
 private:
   receptor_parameters *sparams_; // Input parameters unique to receptors
   SpeciesBase* pc_species_ = nullptr; // The species that the PointCover corresponds to
+  Object* pc_object_ = nullptr; // The object that the receptor is on
   double s_; // The position (length) along object of the receptor (for species-PointCover)
   int i_; // The index of the object that the receptor is on (for species-PointCover)
 public:
@@ -34,6 +35,11 @@ public:
 
   // Setters
   void SetPCSpecies(SpeciesBase* pc_species);
+  void SetPCObject(Object* pc_object);
+
+  // Add forces/torques to objects receptors are on
+  void AddForce(const double *const force);
+  void AddTorque(const double *const torque);
 
   // Read/write binaries
   void WriteSpec(std::fstream &ospec);

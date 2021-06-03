@@ -144,19 +144,18 @@ void Anchor::ApplyAnchorForces() {
   if (!bound_ || static_flag_) {
     return;
   }
+  // Spheres don't calculate torque/receptors calculate torque themselves
   if (sphere_) {
-    return; // Forces on spheres not implemented
-  }
-  if (!rod_) {
-    Logger::Error("Anchor attempted to apply forces to nullptr bond");
-  }
-  rod_->AddForce(force_);
-  double dlambda[3] = {0};
-  for (int i = 0; i < n_dim_; ++i) {
-    dlambda[i] = (bond_lambda_ - 0.5 * rod_length_) * orientation_[i];
-  }
-  cross_product(dlambda, force_, torque_, 3);
-  rod_->AddTorque(torque_);
+    if (sphere_->IsFixed()) return; 
+    sphere_->AddForce(force_);
+    sphere_->AddTorque(torque_);
+  } else if (rod_) {
+    double dlambda[3] = {0};
+    for (int i = 0; i < n_dim_; ++i) {
+      dlambda[i] = (bond_lambda_ - 0.5 * rod_length_) * orientation_[i];
+    }
+    cross_product(dlambda, force_, torque_, 3);
+  } else Logger::Error("Anchor attempted to apply forces to nullptr");
 }
 
 void Anchor::Activate() {

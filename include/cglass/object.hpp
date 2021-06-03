@@ -84,10 +84,10 @@ public:
   void SetPrevOrientation(const double *const pu);
   void SetDiameter(double new_diameter);
   void SetLength(double new_length);
-  void AddForce(const double *const f);
+  virtual void AddForce(const double *const f);
   void SubForce(const double *const f);
   void SetForce(const double *const f);
-  void AddTorque(const double *const t);
+  virtual void AddTorque(const double *const t);
   void SubTorque(const double *const t);
   void SetTorque(const double *const t);
   void AddPotential(const double p);
