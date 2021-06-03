@@ -60,6 +60,7 @@ void ReceptorSpecies::AddMember() {
     if (!pc_species_) {
       rng_.RandomBoundaryCoordinate(space_, pos);
     } else {
+      // TO-DO: make more efficient for non-rod objects
       s_ = 2 * smax_ * (rng_.RandomUniform()-0.5);
       i_ = rng_.RandomInt(n_members_pc_);
       pc_species_->CalcPCPosition(i_, s_, pos);
@@ -85,6 +86,7 @@ void ReceptorSpecies::AddMember() {
   }
   members_.back().InsertAt(pos, u);
   members_.back().SetCompPtr(pc_);
+  members_.back().SetPCObject(pc_species_->GetMember(i_));
   members_.back().SetPCSpecies(pc_species_);
 }
 

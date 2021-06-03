@@ -61,7 +61,9 @@ public:
   virtual void CalcPCPosition(int i, double s, double* pos) { 
     members_[i].CalcPCPosition(s, pos);
   }
-
+  virtual Object* GetMember(int i) { 
+    return &members_[i];
+  }
   virtual void AddMember();
   virtual void AddMember(T newmem);
   virtual void PopMember();

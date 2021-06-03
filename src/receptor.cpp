@@ -53,6 +53,10 @@ void Receptor::SetPCSpecies(SpeciesBase* pc_species) {
   if (!pc_species_ || pc_species_->IsStationary()) fixed_ = true;
 }
 
+void Receptor::SetPCObject(Object* pc_object) {
+  pc_object_ = pc_object;
+}
+
 // Use PointCover object positions to update
 void Receptor::UpdatePosition() {
   if (sparams_->stationary_flag)
@@ -65,3 +69,22 @@ void Receptor::UpdatePosition() {
   UpdatePeriodic();
 }
 
+void Receptor::AddForce(const double *const force) {
+  if (pc_object_) {
+    Object::AddForce(force);
+    pc_object_->AddForce(force);
+  }
+}
+
+void Receptor::AddTorque(const double *const torque) {
+  if (pc_object_) {
+    // Correct torque by using the length along object.
+    double r_par[3] = {0, 0, 0};
+    const double *o = pc_object_->GetOrientation();
+    for (int i = 0; i < n_dim_; ++i) {
+      r_par[i] = s_ * o[i];
+    }
+    cross_product(r_par, force_, torque_, 3);
+    pc_object_->AddTorque(torque_);
+  }
+}
