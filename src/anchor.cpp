@@ -155,6 +155,8 @@ void Anchor::ApplyAnchorForces() {
       dlambda[i] = (bond_lambda_ - 0.5 * rod_length_) * orientation_[i];
     }
     cross_product(dlambda, force_, torque_, 3);
+    rod_->AddForce(force_);
+    rod_->AddTorque(torque_);
   } else Logger::Error("Anchor attempted to apply forces to nullptr");
 }
 
