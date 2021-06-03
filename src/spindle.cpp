@@ -323,7 +323,7 @@ void Spindle::ConvertSpec(std::fstream &ispec, std::fstream &otext) {
     ispec.read(reinterpret_cast<char *>(&orientation[i]), sizeof(double));
   }
   ispec.read(reinterpret_cast<char *>(&nfilaments), sizeof(int));
-  otext << diameter << " " << length << position[0] << " " << position[1] << " " 
+  otext << diameter << " " << length << " " << position[0] << " " << position[1] << " " 
         << position[2] << " " << orientation[0] << " " << orientation[1] 
         << " " << orientation[2] << " " << nfilaments << std::endl;
   otext << "theta phi" << std::endl;
