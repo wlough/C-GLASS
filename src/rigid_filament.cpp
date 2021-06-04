@@ -169,10 +169,15 @@ void RigidFilament::AddRandomDisplacement() {
   for (int i = 0; i < n_dim_; ++i)
     position_[i] += mag * orientation_[i];
   // Then the perpendicular component(s)
-  for (int j = 0; j < n_dim_ - 1; ++j) {
-    mag = rng_.RandomNormal(diffusion_perp_);
-    for (int i = 0; i < n_dim_; ++i)
-      position_[i] += mag * body_frame_[n_dim_ * j + i];
+  // XXX 'IF' cludge for when you are using constrained motion and
+  // non-zero_temperature This needs to be done properly because this only kind
+  // of works for parallel and antiparallel filament configurations
+  if (!sparams_->constrain_motion_flag) {
+    for (int j = 0; j < n_dim_ - 1; ++j) {
+      mag = rng_.RandomNormal(diffusion_perp_);
+      for (int i = 0; i < n_dim_; ++i)
+        position_[i] += mag * body_frame_[n_dim_ * j + i];
+    }
   }
   // Handle the random orientation update after updating orientation from
   // interaction torques

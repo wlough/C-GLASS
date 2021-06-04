@@ -40,7 +40,7 @@ void RigidFilamentSpecies::Init(std::string spec_name, ParamsParser &parser) {
 void RigidFilamentSpecies::CustomInsert() {
   Species::CustomInsert();
   if (sparams_.constrain_motion_flag) {
-    if (n_members_ == 2) {
+    if (n_members_ <= 2) {
 
       // Variables to store
       double r_min[3], lambda, mu;

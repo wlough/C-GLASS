@@ -20,13 +20,15 @@ void CrosslinkSpecies::LoadBindingSpecies() {
   try {
     bnode = YAML::LoadFile(sparams_.bind_file);
   } catch (...) {
-    Logger::Error("Failed to load binding species file in crosslink_species.cpp");
+    Logger::Error(
+        "Failed to load binding species file in crosslink_species.cpp");
   }
   if (!bnode[spec_name]) {
-    Logger::Error("Custom insert file for species %s did not contain correct species"
-                  "ID header", spec_name.c_str());
+    Logger::Error(
+        "Custom insert file for species %s did not contain correct species"
+        "ID header",
+        spec_name.c_str());
   }
-  
 }
 void CrosslinkSpecies::AddMember() {
   Species::AddMember();
@@ -112,8 +114,8 @@ void CrosslinkSpecies::TestKMCStepSize() {
   }
 
   if (throw_error) {
-    Logger::Error("The likelyhood of a double KMC event is too high. Fix "
-                  "before continuing.");
+    Logger::Warning("The likelyhood of a double KMC event is high. Should fix "
+                    "before continuing.");
   }
 }
 
