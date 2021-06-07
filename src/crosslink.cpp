@@ -407,13 +407,14 @@ void Crosslink::WriteSpec(std::fstream &ospec) {
   for (int i = 0; i < 3; ++i) {
     ospec.write(reinterpret_cast<char *>(&orientation_[i]), sizeof(double));
   }
+  ospec.write(reinterpret_cast<char *>(&oid_), sizeof(int));
   anchors_[0].WriteSpec(ospec);
   anchors_[1].WriteSpec(ospec);
 }
 
 void Crosslink::WriteSpecTextHeader(std::fstream &otext) {
   otext << "is_doubly diameter length position[0] position[1] position[2] "
-        << "orientation[0] orientation[1] orientation[2]" << std::endl;
+        << "orientation[0] orientation[1] orientation[2] oid_" << std::endl;
 }
 
 void Crosslink::ConvertSpec(std::fstream &ispec, std::fstream &otext) {
@@ -422,6 +423,7 @@ void Crosslink::ConvertSpec(std::fstream &ispec, std::fstream &otext) {
   bool is_doubly;
   double diameter, length;
   double position[3], orientation[3];
+  int oid;
   // Read in all data from spec file ispec
   ispec.read(reinterpret_cast<char *>(&is_doubly), sizeof(bool));
   ispec.read(reinterpret_cast<char *>(&diameter), sizeof(double));
@@ -432,10 +434,11 @@ void Crosslink::ConvertSpec(std::fstream &ispec, std::fstream &otext) {
   for (int i = 0; i < 3; ++i) {
     ispec.read(reinterpret_cast<char *>(&orientation[i]), sizeof(double));
   }
+  ispec.read(reinterpret_cast<char *>(&oid), sizeof(int));
   // Write out data to SpecText file otext
   otext << is_doubly << " " << diameter << " " << length << " " << position[0] << " " 
         << position[1] << " " << position[2] << " " << orientation[0] 
-        << " " << orientation[1] << " " << orientation[2] << std::endl;
+        << " " << orientation[1] << " " << orientation[2] << " " << oid << std::endl;
   // Convert anchor data
   Anchor::WriteSpecTextHeader(otext);
   for (int i = 0; i < 2; ++i) {
@@ -457,6 +460,7 @@ void Crosslink::ReadSpec(std::fstream &ispec) {
   for (int i = 0; i < 3; ++i) {
     ispec.read(reinterpret_cast<char *>(&orientation_[i]), sizeof(double));
   }
+  ispec.read(reinterpret_cast<char *>(&oid_), sizeof(int));
   UpdatePeriodic();
   anchors_[0].ReadSpec(ispec);
   anchors_[1].ReadSpec(ispec);

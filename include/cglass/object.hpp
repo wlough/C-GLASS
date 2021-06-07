@@ -8,7 +8,6 @@
 
 class Object {
 private:
-  int oid_;
   int comp_id_;
   static int _next_oid_;
   static std::mutex _obj_mtx_;
@@ -16,6 +15,7 @@ private:
   Object *comp_ptr_; // If part of a composite
 
 protected:
+  int oid_;
   static system_parameters *params_;
   static SpaceBase *space_;
   static int n_dim_;
