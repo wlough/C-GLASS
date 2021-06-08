@@ -6,7 +6,9 @@
 
 struct bind_params {
   double k_on_s;
+  double k_off_s;
   double k_on_d;
+  double k_off_d;
   density_type dens_type;
   double bind_site_density;
   bool single_occupancy;
@@ -113,7 +115,6 @@ class Anchor : public Object {
   const int GetNNeighborsSphere() const;
   const int GetNNeighborsRod() const;
   const double GetOnRate() const;
-  const double GetOnRateBindFile(std::string &name) const;
   const double GetOffRate() const;
   const double GetMaxVelocity() const;
   const double GetDiffusionConst() const;

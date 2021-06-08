@@ -335,8 +335,7 @@ void Anchor::AttachObjRandom(Object *o) {
       if ((*bind_param_map_)[name].single_occupancy) {
          double obj_amount = ((*bind_param_map_)[name].dens_type == +density_type::linear) 
                            ? o->GetLength() : o->GetArea();
-         *bind_rate_ -= (*bind_param_map_)[name].k_on_s * 
-                        (*bind_param_map_)[name].bind_site_density * obj_amount;
+         *bind_rate_ -= k_on_s_ * (*bind_param_map_)[name].bind_site_density * obj_amount;
       }
     }
   }
@@ -347,6 +346,14 @@ void Anchor::AttachObjLambda(Object *o, double lambda) {
     Logger::Error(
         "Crosslink binding to %s objects not implemented in "
         "AttachObjLambda.", o->GetShape()._to_string());
+  }
+  // Save parameters based on species name
+  if (use_bind_file_) {
+    std::string name = o->GetName();
+    k_on_d_ = (*bind_param_map_)[name].k_on_d;
+    k_on_s_ = (*bind_param_map_)[name].k_on_s;
+    k_off_d_ = (*bind_param_map_)[name].k_off_d;
+    k_off_s_ = (*bind_param_map_)[name].k_off_s;
   }
   rod_ = dynamic_cast<Rod *>(o);
   bond_ = dynamic_cast<Bond *>(o);
@@ -609,30 +616,6 @@ const double Anchor::GetOnRate() const {
     break;
   case +bind_state::singly:
     return k_on_d_;
-    break;
-  case +bind_state::doubly:
-    Logger::Error(
-        "Crosslinker is already doubly bound. No on rate exists because both "
-        "anchors are bound");
-    return 0;
-    break;
-  default:
-    Logger::Error("State of anchor is not a bind_state enum.");
-    return 0;
-  }
-}
-
-const double Anchor::GetOnRateBindFile(std::string &name) const {
-  if (!use_bind_file_) {
-    Logger::Error("Anchor::GetOnRateBindFile called with use_bind_file_=false!");
-    return 0;
-  }
-  switch (state_) {
-  case +bind_state::unbound:
-    return (*bind_param_map_)[name].k_on_s;
-    break;
-  case +bind_state::singly:
-    return (*bind_param_map_)[name].k_on_d;
     break;
   case +bind_state::doubly:
     Logger::Error(
