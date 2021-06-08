@@ -233,10 +233,12 @@ void Anchor::Unbind() {
 void Anchor::Diffuse() {
   // Motion from thermal kicks
   double dr = GetKickAmplitude() * rng_.RandomNormal(1);
+  bool walker = abs(GetMaxVelocity()) > input_tol ? true: false;
 
   // Force dependence diffusion depends on the mobility (D/kBT) and the force
-  // applied along the direction of the filament.
-  if (force_dep_vel_flag_) {
+  // applied along the direction of the filament. Force velocity relation for
+  // motors is already taken into account for walkers in Walk().
+  if (force_dep_vel_flag_ && !walker) {
     double force_proj = dot_product(n_dim_, force_, orientation_);
     dr += GetDiffusionConst() * force_proj * delta_;
   }
