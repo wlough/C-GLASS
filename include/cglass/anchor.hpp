@@ -102,6 +102,7 @@ class Anchor : public Object {
   const std::vector<Sphere*>& GetNeighborListMemSpheres();
   void WriteSpec(std::fstream &ospec);
   void ReadSpec(std::fstream &ispec);
+  void SetRatesFromBindFile(const std::string &name);
   void BindToPosition(double *bind_pos);
   void SetStatic(bool static_flag);
   void SetState(bind_state state);

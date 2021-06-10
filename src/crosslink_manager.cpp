@@ -88,7 +88,7 @@ void CrosslinkManager::Knockout() {
     // already happened in this dt).
     it->first->IncrementNAnchored();
     if ((it->second.first).size()>1) {
-      Logger::Warning("Anchor bound twice in Knockout");
+      Logger::Error("Anchor bound twice in Knockout");
     }
   }
   bound_curr_.clear();

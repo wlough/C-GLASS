@@ -347,14 +347,7 @@ void Anchor::AttachObjLambda(Object *o, double lambda) {
         "Crosslink binding to %s objects not implemented in "
         "AttachObjLambda.", o->GetShape()._to_string());
   }
-  // Save parameters based on species name
-  if (use_bind_file_) {
-    std::string name = o->GetName();
-    k_on_d_ = (*bind_param_map_)[name].k_on_d;
-    k_on_s_ = (*bind_param_map_)[name].k_on_s;
-    k_off_d_ = (*bind_param_map_)[name].k_off_d;
-    k_off_s_ = (*bind_param_map_)[name].k_off_s;
-  }
+  if (use_bind_file_) SetRatesFromBindFile(o->GetName());
   rod_ = dynamic_cast<Rod *>(o);
   bond_ = dynamic_cast<Bond *>(o);
   if (bond_ == nullptr) {
@@ -394,6 +387,7 @@ void Anchor::AttachObjLambda(Object *o, double lambda) {
  * surface area, but binding places crosslinks in center regardless. */
 void Anchor::AttachObjCenter(Object *o) {
   o->IncrementNAnchored();
+  if (use_bind_file_) SetRatesFromBindFile(o->GetName());
   if (o->GetShape() != +shape::sphere) {
     Logger::Error(
         "Crosslink binding to non-sphere objects not implemented in "
@@ -489,6 +483,14 @@ void Anchor::AttachObjMeshCenter(Object *o) {
   mesh_n_bonds_ = -1;
   SetCompID(sphere_->GetCompID());
   ZeroDrTot();
+}
+
+// Save binding parameters based on species name
+void Anchor::SetRatesFromBindFile(const std::string &name) {
+  k_on_d_ = (*bind_param_map_)[name].k_on_d;
+  k_on_s_ = (*bind_param_map_)[name].k_on_s;
+  k_off_d_ = (*bind_param_map_)[name].k_off_d;
+  k_off_s_ = (*bind_param_map_)[name].k_off_s;
 }
 
 void Anchor::BindToPosition(double *bind_pos) {
