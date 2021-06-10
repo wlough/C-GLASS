@@ -59,6 +59,12 @@ void CrosslinkSpecies::LoadBindingSpecies() {
       if (it->second["k_on_d"]) {
         bind_param_map_[anchor_index][param_name].k_on_d = it->second["k_on_d"].as<double>();
       }
+      if (it->second["k_off_s"]) {
+        bind_param_map_[anchor_index][param_name].k_off_s = it->second["k_off_s"].as<double>();
+      }
+      if (it->second["k_off_d"]) {
+        bind_param_map_[anchor_index][param_name].k_off_d = it->second["k_off_d"].as<double>();
+      }
       if (it->second["density_type"]) {
         bind_param_map_[anchor_index][param_name].dens_type = 
                         density_type::_from_string(it->second["density_type"].Scalar().c_str());
