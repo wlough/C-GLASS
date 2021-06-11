@@ -288,6 +288,7 @@ void CrosslinkSpecies::InsertAttachedCrosslinksSpecies() {
   UpdateBoundCrosslinks();
   // Begin with bound crosslinks currently just implemented to start on rods
   for (int i=0; i < begin_with_bound_crosslinks_; ++i) {
+    UpdateBindRate();
     BindCrosslink();
   }
 }
