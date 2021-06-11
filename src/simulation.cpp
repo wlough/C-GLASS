@@ -3,7 +3,7 @@
 /* Initialize simulation parameters and run simulation */
 void Simulation::Run(YAML::Node sim_params) {
   YAML::Emitter out;
-  Logger::Info("Initializing simulation with parameters:\n%s",
+  Logger::Info("Initializing, daniel experiment, simulation with parameters:\n%s",
                (out << sim_params).c_str());
   // Parse simulation parameters
   parser_.Init(sim_params);
