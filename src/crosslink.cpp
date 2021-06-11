@@ -198,7 +198,6 @@ void Crosslink::DoublyKMC() {
   if (static_flag_) {
     head_activate = choose_kmc_double(0, unbind_prob[1], roll);
   } else {
-    // Each head has same probability of unbinding.
     // Probability of unbinding follows a poisson process but assume that only
     // one head can unbind during a time step.
     head_activate = choose_kmc_double(unbind_prob[0], unbind_prob[1], roll);
