@@ -101,7 +101,10 @@ void CrosslinkManager::InsertCrosslinks() {
 }
 
 void CrosslinkManager::InsertAttachedCrosslinks() {
+  // Need to do this for GetRandomObject to work with spheres
+  UpdateObjsSize();
   for (auto it = xlink_species_.begin(); it != xlink_species_.end(); ++it) {
+    (*it)->UpdateBindRate();
     (*it)->InsertAttachedCrosslinksSpecies();
   }
 }
