@@ -403,14 +403,16 @@ void Simulation::InsertSpecies(bool force_overlap, bool processing) {
           // First check that we are respecting boundary conditions
           std::vector<Object *> last_ixors;
           (*spec)->GetLastInteractors(last_ixors);
-          if (params_.boundary != 0 && !processing &&
-              ix_mgr_.CheckBoundaryConditions(last_ixors)) {
+          if (params_.boundary != 0 && !processing && (*spec)->GetSID() !=
+              +species_id::receptor
+              && ix_mgr_.CheckBoundaryConditions(last_ixors)) {
             (*spec)->PopMember();
             // We are not counting boundary condition failures in insertion
             // failures, since insertion failures are for packing issues
           }
           // Check if we have an overlap of objects
           else if (!force_overlap && !(*spec)->CanOverlap() && !processing &&
+                   (*spec)->GetSID() != +species_id::receptor &&
                    ix_mgr_.CheckOverlap(last_ixors)) {
             (*spec)->PopMember();
             num_failures++;
