@@ -168,6 +168,14 @@ void RigidFilament::AddRandomDisplacement() {
   double mag = rng_.RandomNormal(diffusion_par_);
   for (int i = 0; i < n_dim_; ++i)
     position_[i] += mag * orientation_[i];
+
+  // XXX Cludge for when you are using constrained motion and
+  // non-zero_temperature.
+  // This needs to be done properly because this only kind
+  // of works for parallel and antiparallel filament configurations
+  if (sparams_->constrain_motion_flag)
+    return;
+
   // Then the perpendicular component(s)
   for (int j = 0; j < n_dim_ - 1; ++j) {
     mag = rng_.RandomNormal(diffusion_perp_);
@@ -186,6 +194,13 @@ void RigidFilament::AddRandomDisplacement() {
    random forces, and is treated as random displacement vector(s)
    orthogonal to u(t) with std dev sqrt(2*kT*dt/gamma_rot) */
 void RigidFilament::AddRandomReorientation() {
+  // XXX Cludge for when you are using constrained motion and
+  // non-zero_temperature.
+  // This needs to be done properly because this only kind
+  // of works for parallel and antiparallel filament configurations
+  if (sparams_->constrain_motion_flag)
+    return;
+
   // Now handle the random orientation update
   for (int j = 0; j < n_dim_ - 1; ++j) {
     double mag = rng_.RandomNormal(diffusion_rot_);
