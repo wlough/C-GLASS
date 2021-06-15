@@ -93,6 +93,7 @@ class Anchor : public Object {
   void SetMeshLambda(double ml);
   void SetBound();
   void Unbind();
+  void AddBackBindRate();
   int const GetBoundOID();
   void Draw(std::vector<graph_struct *> &graph_array);
   void AddNeighbor(Object *neighbor);
