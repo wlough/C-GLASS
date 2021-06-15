@@ -37,9 +37,12 @@ public:
   void SetPCSpecies(SpeciesBase* pc_species);
   void SetPCObject(Object* pc_object);
 
-  // Add forces/torques to objects receptors are on
+  // Add/Sub forces/torques to objects receptors are on
+  void CalcTorque();
   void AddForce(const double *const force);
   void AddTorque(const double *const torque);
+  void SubForce(const double *const force);
+  void SubTorque(const double *const torque);
 
   // Read/write binaries
   void WriteSpec(std::fstream &ospec);

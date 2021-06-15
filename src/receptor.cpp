@@ -78,13 +78,31 @@ void Receptor::AddForce(const double *const force) {
 
 void Receptor::AddTorque(const double *const torque) {
   if (pc_object_) {
-    // Correct torque by using the length along object.
-    double r_par[3] = {0, 0, 0};
-    const double *o = pc_object_->GetOrientation();
-    for (int i = 0; i < n_dim_; ++i) {
-      r_par[i] = s_ * o[i];
-    }
-    cross_product(r_par, force_, torque_, 3);
-    pc_object_->AddTorque(torque_);
+    CalcTorque();
+    pc_object_->SubTorque(torque_);
   }
+}
+
+void Receptor::SubForce(const double *const force) {
+  if (pc_object_) {
+    Object::SubForce(force);
+    pc_object_->SubForce(force);
+  }
+}
+
+void Receptor::SubTorque(const double *const torque) {
+  if (pc_object_) {
+    CalcTorque();
+    pc_object_->SubTorque(torque_);
+  }
+}
+
+void Receptor::CalcTorque() {
+  // Calculate torque by using the length along object.
+  double r_par[3] = {0, 0, 0};
+  const double *o = pc_object_->GetOrientation();
+  for (int i = 0; i < n_dim_; ++i) {
+    r_par[i] = s_ * o[i];
+  }
+  cross_product(r_par, force_, torque_, 3);
 }
