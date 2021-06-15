@@ -155,8 +155,8 @@ double const Species<T, S>::GetDrMax() {
       max_dr = dr;
     }
   }
-  // if (max_dr > params_->system_radius * params_->system_radius) {
-  if (max_dr > 10000) {
+  if (max_dr > params_->system_radius * params_->system_radius) {
+ // if (max_dr > 10000) {
     Logger::Warning("Oddly large dr (%2.2f) in %s %s", max_dr,
                     GetSID()._to_string(), GetSpeciesName().c_str());
     throw std::runtime_error("Unphysical result");
