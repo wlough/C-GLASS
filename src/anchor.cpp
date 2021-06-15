@@ -5,17 +5,18 @@ Anchor::Anchor(unsigned long seed) : Object(seed) {
 }
 
 void Anchor::Init(crosslink_parameters *sparams, int index) {
+  index_ = index;
   sparams_ = sparams;
   name_ = sparams_->name;
   diameter_ = sparams_->diameter;
-  color_ = sparams_->anchors[index].color;
+  color_ = sparams_->anchors[index_].color;
   draw_ = draw_type::_from_string(sparams_->draw_type.c_str());
   static_flag_ = false; // Must be explicitly set to true by Crosslink
   Unbind();
   step_direction_ =
       (sparams_->step_direction == 0 ? 0 : SIGNOF(sparams_->step_direction));
-  max_velocity_s_ = sparams->anchors[index].velocity_s;
-  max_velocity_d_ = sparams->anchors[index].velocity_d;
+  max_velocity_s_ = sparams->anchors[index_].velocity_s;
+  max_velocity_d_ = sparams->anchors[index_].velocity_d;
   diffusion_s_ = sparams->diffusion_s;
   diffusion_d_ = sparams->diffusion_d;
   k_on_s_ = sparams_->k_on_s;
@@ -27,13 +28,13 @@ void Anchor::Init(crosslink_parameters *sparams, int index) {
   f_stall_ = sparams_->f_stall;
   force_dep_vel_flag_ = sparams_->force_dep_vel_flag;
   polar_affinity_ = sparams_->polar_affinity;
-  use_bind_file_ = sparams_->anchors[index].bind_file.compare("none");
+  use_bind_file_ = sparams_->anchors[index_].bind_file.compare("none");
   assert(polar_affinity_ >= 0 && polar_affinity_ <= 1);
   SetDiffusion();
 }
 
-void Anchor::SetBindParamMap(std::map<std::string, bind_params> &bind_param_map) {
-  bind_param_map_ = &bind_param_map;
+void Anchor::SetBindParamMap(std::vector<std::map<std::string, bind_params> > *bind_param_map) {
+  bind_param_map_ = bind_param_map;
 }
 
 double const Anchor::GetMeshLambda() { return mesh_lambda_; }
@@ -239,23 +240,32 @@ void Anchor::Unbind() {
   std::fill(orientation_, orientation_ + 3, 0.0);
 }
 
+// Get the bind rate just for the object attached to this anchor
+double Anchor::CalcSingleBindRate() {
+  double single_bind_rate = 0.0;
+  Object* o;
+  if (sphere_) o = sphere_;
+  else if (rod_) o = rod_;
+  // Will sometimes be called w/ unbound anchor during initialization/clearing steps
+  else return 0.0;
+  std::string name = o->GetName();
+  if (bind_param_map_->at(index_)[name].single_occupancy) {
+    double obj_amount = (bind_param_map_->at(index_)[name].dens_type == +density_type::linear) 
+                        ? o->GetLength() : o->GetArea();
+    // Sum both anchor rates because during binding and unbinding the bind rate will 
+    // increased for both floating anchors.
+    for (int i = 0; i < 2; i++) {
+      single_bind_rate += bind_param_map_->at(index_)[name].k_on_s 
+                          * bind_param_map_->at(index_)[name].bind_site_density * obj_amount;
+    }
+  }
+  return single_bind_rate;
+}
+
 // Increase the bind rate if an occupied object became unbound
 void Anchor::AddBackBindRate() {
-  if (use_bind_file_) {
-    Object* o;
-    if (sphere_) o = sphere_;
-    else if (rod_) o = rod_;
-    else return;
-    std::string name = o->GetName();
-    if ((*bind_param_map_)[name].single_occupancy) {
-      double obj_amount = ((*bind_param_map_)[name].dens_type == +density_type::linear) 
-                          ? o->GetLength() : o->GetArea();
-      // Add a factor of 2 because the bind rate has been increased for both floating anchors.
-      // Richelle fix by making bind_param_map_ a pointer to the full vector, and saving an anchor index
-      // when initiating anchor
-      *bind_rate_ += 2 * (*bind_param_map_)[name].k_on_s 
-                     * (*bind_param_map_)[name].bind_site_density * obj_amount;
-    }
+  if (use_bind_file_ && bind_rate_) {
+    *bind_rate_ += CalcSingleBindRate();
   } else {
     if (sphere_) *obj_size_ += sphere_->GetArea();
   }
@@ -353,16 +363,8 @@ void Anchor::AttachObjRandom(Object *o) {
                     " Anchor::AttachObjRandom", o->GetType()._to_string());
     }
   }
-  if (use_bind_file_) {
-    std::string name = o->GetName();
-    // Decrease bind rate for the rest of the timestep if single occupancy is used
-    if ((*bind_param_map_)[name].single_occupancy) {
-      double obj_amount = ((*bind_param_map_)[name].dens_type == +density_type::linear) 
-                          ? o->GetLength() : o->GetArea();
-      // Remove a factor of 2 because the bind rate has been decreased for both anchors.
-      *bind_rate_ -= 2 * (*bind_param_map_)[name].k_on_s 
-                     * (*bind_param_map_)[name].bind_site_density * obj_amount;
-    }
+  if (use_bind_file_ && bind_rate_) {
+    *bind_rate_ -= CalcSingleBindRate();
   }
 }
     
@@ -512,10 +514,10 @@ void Anchor::AttachObjMeshCenter(Object *o) {
 
 // Save binding parameters based on species name
 void Anchor::SetRatesFromBindFile(const std::string &name) {
-  k_on_d_ = (*bind_param_map_)[name].k_on_d;
-  k_on_s_ = (*bind_param_map_)[name].k_on_s;
-  k_off_d_ = (*bind_param_map_)[name].k_off_d;
-  k_off_s_ = (*bind_param_map_)[name].k_off_s;
+  k_on_d_ = bind_param_map_->at(index_)[name].k_on_d;
+  k_on_s_ = bind_param_map_->at(index_)[name].k_on_s;
+  k_off_d_ = bind_param_map_->at(index_)[name].k_off_d;
+  k_off_s_ = bind_param_map_->at(index_)[name].k_off_s;
 }
 
 void Anchor::BindToPosition(double *bind_pos) {

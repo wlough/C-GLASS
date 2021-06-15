@@ -519,8 +519,8 @@ void Crosslink::InsertAt(double const *const new_pos, double const *const u) {
 
 void Crosslink::SetBindParamMap(std::vector<std::map<std::string, bind_params> > *bind_param_map) {
   bind_param_map_ = bind_param_map;
-  anchors_[0].SetBindParamMap(bind_param_map_->at(0));
-  anchors_[1].SetBindParamMap(bind_param_map_->at(1));
+  anchors_[0].SetBindParamMap(bind_param_map_);
+  anchors_[1].SetBindParamMap(bind_param_map_);
 }
 
 void Crosslink::SetObjSize(double *obj_size) {
