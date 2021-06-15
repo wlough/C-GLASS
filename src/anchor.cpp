@@ -220,6 +220,7 @@ void Anchor::Unbind() {
     Logger::Error("Static anchor attempted to unbind");
   }
   if (sphere_) sphere_->DecrementNAnchored();
+  AddBackBindRate();
   bound_ = false;
   rod_ = nullptr;
   sphere_ = nullptr;
@@ -236,6 +237,28 @@ void Anchor::Unbind() {
   SetCompID(-1);
   std::fill(position_, position_ + 3, 0.0);
   std::fill(orientation_, orientation_ + 3, 0.0);
+}
+
+// Increase the bind rate if an occupied object became unbound
+void Anchor::AddBackBindRate() {
+  if (use_bind_file_) {
+    Object* o;
+    if (sphere_) o = sphere_;
+    else if (rod_) o = rod_;
+    else Logger::Error("Tried to add bind rate for unbound anchor.");
+    std::string name = o->GetName();
+    if ((*bind_param_map_)[name].single_occupancy) {
+      double obj_amount = ((*bind_param_map_)[name].dens_type == +density_type::linear) 
+                          ? o->GetLength() : o->GetArea();
+      // Add a factor of 2 because the bind rate has been increased for both floating anchors.
+      // Richelle fix by making bind_param_map_ a pointer to the full vector, and saving an anchor index
+      // when initiating anchor
+      *bind_rate_ += 2 * (*bind_param_map_)[name].k_on_s 
+                     * (*bind_param_map_)[name].bind_site_density * obj_amount;
+    }
+  } else {
+    if (sphere_) *obj_size_ += sphere_->GetArea();
+  }
 }
 
 void Anchor::Diffuse() {
@@ -329,14 +352,16 @@ void Anchor::AttachObjRandom(Object *o) {
       Logger::Error("Crosslink binding to %s type objects not yet implemented in" 
                     " Anchor::AttachObjRandom", o->GetType()._to_string());
     }
-    if (use_bind_file_) {
-      std::string name = o->GetName();
-      // Decrease bind rate for the rest of the timestep if single occupancy is used
-      if ((*bind_param_map_)[name].single_occupancy) {
-         double obj_amount = ((*bind_param_map_)[name].dens_type == +density_type::linear) 
-                           ? o->GetLength() : o->GetArea();
-         *bind_rate_ -= k_on_s_ * (*bind_param_map_)[name].bind_site_density * obj_amount;
-      }
+  }
+  if (use_bind_file_) {
+    std::string name = o->GetName();
+    // Decrease bind rate for the rest of the timestep if single occupancy is used
+    if ((*bind_param_map_)[name].single_occupancy) {
+      double obj_amount = ((*bind_param_map_)[name].dens_type == +density_type::linear) 
+                          ? o->GetLength() : o->GetArea();
+      // Remove a factor of 2 because the bind rate has been decreased for both anchors.
+      *bind_rate_ -= 2 * (*bind_param_map_)[name].k_on_s 
+                     * (*bind_param_map_)[name].bind_site_density * obj_amount;
     }
   }
 }

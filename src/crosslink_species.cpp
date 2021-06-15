@@ -351,7 +351,7 @@ std::pair <Object*, int> CrosslinkSpecies::GetRandomObject() {
           obj_amount = 0;
         }
         bind_rate_sum += bind_param_it->second.k_on_s * 
-                    bind_param_it->second.bind_site_density * obj_amount;
+                         bind_param_it->second.bind_site_density * obj_amount;
         if (bind_rate_sum > roll) {
           Logger::Trace("Binding free crosslink to random object: xl %d -> obj %d",
                         members_.back().GetOID(), (*obj)->GetOID());
