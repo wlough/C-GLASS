@@ -665,14 +665,6 @@ species_base_parameters *parse_species_params(std::string sid,
       params.diffusion_s = jt->second.as<double>();
       } else if (param_name.compare("diffusion_d")==0) {
       params.diffusion_d = jt->second.as<double>();
-      } else if (param_name.compare("k_on_s")==0) {
-      params.k_on_s = jt->second.as<double>();
-      } else if (param_name.compare("k_off_s")==0) {
-      params.k_off_s = jt->second.as<double>();
-      } else if (param_name.compare("k_on_d")==0) {
-      params.k_on_d = jt->second.as<double>();
-      } else if (param_name.compare("k_off_d")==0) {
-      params.k_off_d = jt->second.as<double>();
       } else if (param_name.compare("energy_dep_factor")==0) {
       params.energy_dep_factor = jt->second.as<double>();
       } else if (param_name.compare("force_dep_length")==0) {

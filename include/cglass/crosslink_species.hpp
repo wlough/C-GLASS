@@ -21,6 +21,7 @@ private:
   double bind_site_density_;
   bool infinite_reservoir_flag_;
   double k_on_;
+  double k_off_;
   bool static_flag_;
   bool use_bind_file_ = false; // Whether to use a file with species names and parameters associated
   std::vector<std::string> bind_species_;
@@ -34,7 +35,7 @@ private:
   std::vector<std::map<std::string, bind_params> > bind_param_map_;
 
   // A default binding parameter list to initialize bind_param_map to
-  bind_params default_bind_params_;
+  std::vector<bind_params> default_bind_params_;
 
   // Binding factor- k_on_s * bind_site_density * object_amount
   double bind_rate_;
