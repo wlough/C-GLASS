@@ -245,7 +245,7 @@ void Anchor::AddBackBindRate() {
     Object* o;
     if (sphere_) o = sphere_;
     else if (rod_) o = rod_;
-    else Logger::Error("Tried to add bind rate for unbound anchor.");
+    else return;
     std::string name = o->GetName();
     if ((*bind_param_map_)[name].single_occupancy) {
       double obj_amount = ((*bind_param_map_)[name].dens_type == +density_type::linear) 
