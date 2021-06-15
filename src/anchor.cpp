@@ -19,10 +19,10 @@ void Anchor::Init(crosslink_parameters *sparams, int index) {
   max_velocity_d_ = sparams->anchors[index_].velocity_d;
   diffusion_s_ = sparams->diffusion_s;
   diffusion_d_ = sparams->diffusion_d;
-  k_on_s_ = sparams_->k_on_s;
-  k_on_d_ = sparams_->k_on_d;
-  k_off_s_ = sparams_->k_off_s;
-  k_off_d_ = sparams_->k_off_d;
+  k_on_s_ = sparams_->anchors[index_].k_on_s;
+  k_on_d_ = sparams_->anchors[index_].k_on_d;
+  k_off_s_ = sparams_->anchors[index_].k_off_s;
+  k_off_d_ = sparams_->anchors[index_].k_off_d;
   plus_end_pausing_ = sparams_->plus_end_pausing;
   minus_end_pausing_ = sparams_->minus_end_pausing;
   f_stall_ = sparams_->f_stall;

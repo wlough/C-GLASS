@@ -1,11 +1,13 @@
 #include "cglass/crosslink_species.hpp"
 
-CrosslinkSpecies::CrosslinkSpecies(unsigned long seed) : Species(seed), bind_param_map_(2) {
+CrosslinkSpecies::CrosslinkSpecies(unsigned long seed) : Species(seed), bind_param_map_(2),
+                                                         default_bind_params_(2) {
   SetSID(species_id::crosslink);
 }
 void CrosslinkSpecies::Init(std::string spec_name, ParamsParser &parser) {
   Species::Init(spec_name, parser);
   k_on_ = sparams_.anchors[0].k_on_s + sparams_.anchors[1].k_on_s;
+  k_off_ = sparams_.anchors[0].k_off_s + sparams_.anchors[1].k_off_s;
   bind_site_density_ = sparams_.bind_site_density;
   begin_with_bound_crosslinks_ = sparams_.begin_with_bound_crosslinks;
   xlink_concentration_ = sparams_.concentration;
@@ -31,10 +33,15 @@ void CrosslinkSpecies::Init(std::string spec_name, ParamsParser &parser) {
 // Set default params to whatever this crosslink species has listed (if not listed,
 // these will be the default params from the config file).
 void CrosslinkSpecies::InitializeBindParams() {
-  default_bind_params_.k_on_s = sparams_.k_on_s;
-  default_bind_params_.dens_type = density_type::linear;
-  default_bind_params_.bind_site_density = sparams_.bind_site_density;
-  default_bind_params_.single_occupancy = false;
+  for (int i = 0; i < 2; ++i) {
+    default_bind_params_[i].k_on_s = sparams_.anchors[i].k_on_s;
+    default_bind_params_[i].k_on_d = sparams_.anchors[i].k_on_d;
+    default_bind_params_[i].k_off_s = sparams_.anchors[i].k_off_s;
+    default_bind_params_[i].k_off_d = sparams_.anchors[i].k_off_d;
+    default_bind_params_[i].dens_type = density_type::linear;
+    default_bind_params_[i].bind_site_density = sparams_.bind_site_density;
+    default_bind_params_[i].single_occupancy = false;
+  }
 }
 
 void CrosslinkSpecies::LoadBindingSpecies() {
@@ -52,7 +59,7 @@ void CrosslinkSpecies::LoadBindingSpecies() {
         Logger::Error("Duplicate species names found in Crosslink bind file.");
       }
       // Initialize to default
-      bind_param_map_[anchor_index][param_name] = default_bind_params_;
+      bind_param_map_[anchor_index][param_name] = default_bind_params_[anchor_index];
       if (it->second["k_on_s"]) {
         bind_param_map_[anchor_index][param_name].k_on_s = it->second["k_on_s"].as<double>();
       }
@@ -102,7 +109,7 @@ void CrosslinkSpecies::InitInteractionEnvironment(std::vector<Object *> *objs,
   LUTFiller *lut_filler_ptr = MakeLUTFiller();
   lut_ = LookupTable(lut_filler_ptr);
   if (sparams_.use_binding_volume) {
-    lut_.setBindVol(lut_filler_ptr->getBindingVolume()); 
+    lut_.setBindVol(lut_filler_ptr->getBindingVolume());
   }
   /* TODO: Add time testing right here <24-06-20, ARL> */
   TestKMCStepSize();
@@ -120,19 +127,15 @@ void CrosslinkSpecies::TestKMCStepSize() {
   const double prob_thresh = 1e-4;
 
   double probs[4];
-  double k_on_s = sparams_.k_on_s;
-  double k_on_d = sparams_.k_on_d;
-  double k_off_s = sparams_.k_off_s;
-  double k_off_d = sparams_.k_off_d;
 
   // Constant rate factors for (un)binding. Change if bind model changes.
   double u_s_fact =
-      xlink_concentration_ * k_on_s * bind_site_density_; //per length basis
-  double s_u_fact = k_off_s;
-  double s_d_fact = k_on_d * bind_site_density_;
+      xlink_concentration_ * k_on_ * bind_site_density_; //per length basis
+  double s_u_fact = k_off_;
+  double s_d_fact = k_on_ * bind_site_density_;
   if (sparams_.use_binding_volume)
     s_d_fact /= lut_.getBindVolume();
-  double d_s_fact = k_off_d;
+  double d_s_fact = k_off_;
 
   if (sparams_.energy_dep_factor == 0 && sparams_.force_dep_length == 0) {
     kmc_diag.Diagnostic(u_s_fact, s_u_fact, s_d_fact, d_s_fact, probs);
