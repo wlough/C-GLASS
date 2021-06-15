@@ -24,6 +24,7 @@ class Anchor : public Object {
   bool plus_end_pausing_;
   bool minus_end_pausing_;
   crosslink_parameters *sparams_;
+  int index_;
   int step_direction_;
 
   double rod_length_;
@@ -44,7 +45,7 @@ class Anchor : public Object {
   double f_stall_;
   double force_dep_vel_flag_;
   bool use_bind_file_;
-  std::map<std::string, bind_params> *bind_param_map_;
+  std::vector<std::map<std::string, bind_params> > *bind_param_map_ = nullptr;
 
   double input_tol = 1e-8; // Tolerance for comparing inputs to 0
 
@@ -75,7 +76,7 @@ class Anchor : public Object {
  public:
   Anchor(unsigned long seed);
   void Init(crosslink_parameters *sparams, int index);
-  void SetBindParamMap(std::map<std::string, bind_params> &bind_param_map);
+  void SetBindParamMap(std::vector<std::map<std::string, bind_params> >*);
   bool IsBound();
   void UpdatePosition();
   void Activate();
@@ -127,6 +128,7 @@ class Anchor : public Object {
   void SetObjSize(double* obj_size);
   const double* const GetBindRate();
   void SetBindRate(double* bind_rate);
+  double CalcSingleBindRate();
   bool InducesCatastrophe();
   bool AttachedToFilament();
   void InduceCatastrophe();
