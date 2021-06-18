@@ -23,6 +23,7 @@ public:
   void AddObj(Object &obj);
   void PopBack();
   void AssignIndex(const int x, const int y, const int z);
+  bool IsInteractingPair(species_id si, species_id sj) const;
   void MakePairs(std::vector<Interaction> &pair_list) const;
   void AddNeighbor(Cell &c);
   std::string Report() const;

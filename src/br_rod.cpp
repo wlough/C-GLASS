@@ -28,7 +28,7 @@ void BrRod::InsertRod(std::string insertion_type, double buffer) {
     orientation_[0]=-cos(40*M_PI/180);
     orientation_[1]=-sin(40*M_PI/180);
     orientation_[2]=0;
-  } else {
+  } else if (insertion_type.compare("custom") != 0) {
     Logger::Error("BrRod insertion type not recognized!");
   }
 }

@@ -6,6 +6,7 @@ Spindle::Spindle(unsigned long seed) : BrRod(seed) {
 
 void Spindle::SetParameters() {
   color_ = sparams_->color;
+  name_ = sparams_->name;
   draw_ = draw_type::_from_string(sparams_->draw_type.c_str());
   diameter_ = sparams_->diameter;
   length_ = sparams_->length;
@@ -29,10 +30,14 @@ void Spindle::InitFilamentParameters(filament_parameters *fparams) {
             length_ + anchor_distance_ + 2 * fparams_->min_bond_length);
   UpdatePeriodic();
   GetBodyFrame();
-  GenerateNucleationSites();
 
-  for (int i_fil = 0; i_fil < n_filaments_; ++i_fil) {
-    InsertFilament(i_fil);
+  // If custom insertion used, generate sites/filaments AFTER arrangement
+  if (sparams_->insertion_type != "custom") {
+    GenerateNucleationSites();
+
+    for (int i_fil = 0; i_fil < n_filaments_; ++i_fil) {
+      InsertFilament(i_fil);
+    }
   }
 }
 
@@ -169,7 +174,7 @@ void Spindle::UpdatePosition(bool midstep) {
   }
 #endif
   SetPrevPosition(position_);
-  if (!midstep_) {
+  if (!midstep_ && !sparams_->stationary_flag) {
     Integrate();
   }
 }
@@ -263,6 +268,10 @@ const double Spindle::GetDrTot() {
   return dr_tot_;
 }
 
+const int Spindle::GetNFilaments() {
+  return n_filaments_;
+}
+
 const bool Spindle::CheckInteractorUpdate() {
   for (auto it = filaments_.begin(); it != filaments_.end(); ++it) {
     if (it->CheckInteractorUpdate()) {
@@ -314,7 +323,7 @@ void Spindle::ConvertSpec(std::fstream &ispec, std::fstream &otext) {
     ispec.read(reinterpret_cast<char *>(&orientation[i]), sizeof(double));
   }
   ispec.read(reinterpret_cast<char *>(&nfilaments), sizeof(int));
-  otext << diameter << " " << length << position[0] << " " << position[1] << " " 
+  otext << diameter << " " << length << " " << position[0] << " " << position[1] << " " 
         << position[2] << " " << orientation[0] << " " << orientation[1] 
         << " " << orientation[2] << " " << nfilaments << std::endl;
   otext << "theta phi" << std::endl;

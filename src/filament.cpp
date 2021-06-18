@@ -6,6 +6,7 @@ Filament::Filament(unsigned long seed) : Mesh(seed) {
 void Filament::SetParameters() {
   /* Read parameters from filament parameters */
   color_ = sparams_->color;
+  name_ = sparams_->name;
   draw_ = draw_type::_from_string(sparams_->draw_type.c_str());
   length_ = sparams_->length;
   /* Bending_stiffness = persistence_length*kT. Bending_stiffness is used in
@@ -407,7 +408,8 @@ double const Filament::GetVolume() {
 void Filament::UpdatePosition(bool midstep) {
   midstep_ = midstep;
   ApplyForcesTorques();
-  Integrate();
+  if (!sparams_->stationary_flag)
+    Integrate();
   UpdateAvgPosition();
   DynamicInstability();
 }
@@ -1146,6 +1148,10 @@ void Filament::RescaleBonds() {
   CalculateAngles();
 }
 
+void Filament::Depolymerize() {
+  poly_ = poly_state::shrink;
+}
+
 void Filament::UpdatePolyState() {
   double p_g2s = p_g2s_;
   double p_p2s = p_p2s_;
@@ -1443,7 +1449,7 @@ void Filament::WriteSpec(std::fstream &ospec) {
 
 void Filament::ConvertSpec(std::fstream &ispec, std::fstream &otext) {
   double bending_stiffness, curvature;
-  unsigned char poly;
+  poly_state poly;
   if (ispec.eof())
     return;
   Mesh::ConvertSpec(ispec, otext);
@@ -1452,7 +1458,7 @@ void Filament::ConvertSpec(std::fstream &ispec, std::fstream &otext) {
   ispec.read(reinterpret_cast<char *>(&poly), sizeof(unsigned char));
 
   otext << "bending_stiffness curvature poly" << std::endl;
-  otext << bending_stiffness << " " << curvature << " " << poly << std::endl;
+  otext << bending_stiffness << " " << curvature << " " << poly._to_string() << std::endl;
 }
 
 void Filament::ReadSpec(std::fstream &ispec) {

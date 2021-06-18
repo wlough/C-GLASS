@@ -165,6 +165,7 @@ double const Object::GetPolarOrder() { return polar_order_; }
 double const Object::GetContactNumber() { return contact_number_; }
 bool const Object::IsInteractor() { return interacting_; }
 bool const Object::IsMesh() { return is_mesh_; }
+bool const Object::IsFixed() { return fixed_; }
 bool const Object::CheckInteractorUpdate() {
   if (interactor_update_) {
     interactor_update_ = false;
@@ -179,6 +180,7 @@ void Object::SetCompID(int cid) { comp_id_ = cid; }
 void Object::SetCompPtr(Object* comp) { comp_ptr_ = comp; }
 void Object::SetOID(int oid) { oid_ = oid; }
 void Object::ToggleIsMesh() { is_mesh_ = !is_mesh_; }
+std::string& Object::GetName() { return name_; }
 shape const Object::GetShape() { return shape_; }
 obj_type const Object::GetType() { return type_; }
 comp_type const Object::GetCompType() { return comp_type_; }
@@ -276,6 +278,11 @@ void Object::ScalePosition() {
 int Object::GetCount() { return 1; }
 void Object::GetInteractors(std::vector<Object *> &ix) {
   ix.insert(ix.end(), interactors_.begin(), interactors_.end());
+}
+void Object::CalcPCPosition(double s, double* pos) {
+  for (int j = 0; j < n_dim_; ++j) {
+    pos[j] = position_[j] + orientation_[j]*s;
+  }
 }
 double const *const Object::GetInteractorPosition() { return GetPosition(); }
 double const *const Object::GetInteractorPrevPosition() {

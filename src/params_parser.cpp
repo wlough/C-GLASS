@@ -47,6 +47,9 @@ void ParamsParser::ParseSpeciesParameters() {
             labels_.push_back(std::make_pair(it->first.as<std::string>(),
                                              jt->second.as<std::string>()));
           }
+          else if (jt->first.as<std::string>().compare("anchor") == 0) {
+            subspecies_node_[jt->first.as<std::string>()] = jt->second;
+          }
         }
       }
     }

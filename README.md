@@ -244,6 +244,26 @@ n_checkpoint
     how often to output checkpoint files
 ```
 
+### Anchor parameters
+C-GLASS has the capability to independently control crosslinker and motor protein anchor parameters. Anchor parameters are controlled within the Crosslink map in the input Yaml file:
+
+```yaml
+Crosslink:
+  # other crosslink params here
+  Anchors:
+     - velocity_s: 50
+       color: 3.5
+     - color: 4.5
+```
+
+Only two anchors are permitted per crosslinker or motor protein. The anchor parameters obey the following rules when parameters are left blank:
+
+- If no anchors are listed, the anchor parameters will both be set to default.
+- If one anchor is listed, the other anchor will copy its parameters. Any unlisted parameters will be set to default.
+- If two anchors are listed, and one anchor has a parameter that the other doesn't, the one that doesn't have the parameter will copy the parameter from the other.
+
+In the above example, Anchor 1 will have velocity_s=50, velocity_d=0 (default), color=3.5, and Anchor 2 will have velocity_s=50 (copied), velocity_d=0 (default), color=4.5.
+
 ## Advanced usage
 
 ### Running unit tests

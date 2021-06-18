@@ -157,6 +157,7 @@ public:
   void ReadCheckpoint(std::fstream &icheck);
   void ScalePosition();
   double const GetVolume();
+  void Depolymerize();
   // const double GetLength() { return length_; };
 
   // Convert binary data to text. Static to avoid needing to istantiate

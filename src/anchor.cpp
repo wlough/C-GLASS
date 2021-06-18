@@ -4,30 +4,37 @@ Anchor::Anchor(unsigned long seed) : Object(seed) {
   SetSID(species_id::crosslink);
 }
 
-void Anchor::Init(crosslink_parameters *sparams) {
+void Anchor::Init(crosslink_parameters *sparams, int index) {
+  index_ = index;
   sparams_ = sparams;
+  name_ = sparams_->name;
   diameter_ = sparams_->diameter;
-  color_ = sparams_->color;
+  color_ = sparams_->anchors[index_].color;
   draw_ = draw_type::_from_string(sparams_->draw_type.c_str());
   static_flag_ = false; // Must be explicitly set to true by Crosslink
   Unbind();
   step_direction_ =
       (sparams_->step_direction == 0 ? 0 : SIGNOF(sparams_->step_direction));
-  max_velocity_s_ = sparams->velocity_s;
-  max_velocity_d_ = sparams->velocity_d;
+  max_velocity_s_ = sparams->anchors[index_].velocity_s;
+  max_velocity_d_ = sparams->anchors[index_].velocity_d;
   diffusion_s_ = sparams->diffusion_s;
   diffusion_d_ = sparams->diffusion_d;
-  k_on_s_ = sparams_->k_on_s;
-  k_on_d_ = sparams_->k_on_d;
-  k_off_s_ = sparams_->k_off_s;
-  k_off_d_ = sparams_->k_off_d;
+  k_on_s_ = sparams_->anchors[index_].k_on_s;
+  k_on_d_ = sparams_->anchors[index_].k_on_d;
+  k_off_s_ = sparams_->anchors[index_].k_off_s;
+  k_off_d_ = sparams_->anchors[index_].k_off_d;
   plus_end_pausing_ = sparams_->plus_end_pausing;
   minus_end_pausing_ = sparams_->minus_end_pausing;
   f_stall_ = sparams_->f_stall;
   force_dep_vel_flag_ = sparams_->force_dep_vel_flag;
   polar_affinity_ = sparams_->polar_affinity;
+  use_bind_file_ = sparams_->anchors[index_].bind_file.compare("none");
   assert(polar_affinity_ >= 0 && polar_affinity_ <= 1);
   SetDiffusion();
+}
+
+void Anchor::SetBindParamMap(std::vector<std::map<std::string, bind_params> > *bind_param_map) {
+  bind_param_map_ = bind_param_map;
 }
 
 double const Anchor::GetMeshLambda() { return mesh_lambda_; }
@@ -44,10 +51,11 @@ void Anchor::SetDiffusion() {
 }
 
 void Anchor::UpdateAnchorPositionToMesh() {
-  if (!bound_ || static_flag_ || !rod_)
+  if (!bound_ || static_flag_)
     return;
   if (!mesh_) {
-    Logger::Error("Anchor tried to update position to nullptr mesh");
+    UpdateAnchorPositionToObj();
+    return;
   }
 
   /* Use the mesh to determine the rod lengths. The true rod lengths fluctuate
@@ -66,7 +74,7 @@ void Anchor::UpdateAnchorPositionToMesh() {
     return;
   }
   // Update anchor position with respect to bond
-  UpdateAnchorPositionToRod();
+  UpdateAnchorPositionToObj();
 }
 
 bool Anchor::CalcRodLambda() {
@@ -137,19 +145,20 @@ void Anchor::ApplyAnchorForces() {
   if (!bound_ || static_flag_) {
     return;
   }
+  // Spheres don't calculate torque/receptors calculate torque themselves
   if (sphere_) {
-    return; // Forces on spheres not implemented
-  }
-  if (!rod_) {
-    Logger::Error("Anchor attempted to apply forces to nullptr bond");
-  }
-  rod_->AddForce(force_);
-  double dlambda[3] = {0};
-  for (int i = 0; i < n_dim_; ++i) {
-    dlambda[i] = (bond_lambda_ - 0.5 * rod_length_) * orientation_[i];
-  }
-  cross_product(dlambda, force_, torque_, 3);
-  rod_->AddTorque(torque_);
+    if (sphere_->IsFixed()) return; 
+    sphere_->AddForce(force_);
+    sphere_->AddTorque(torque_);
+  } else if (rod_) {
+    double dlambda[3] = {0};
+    for (int i = 0; i < n_dim_; ++i) {
+      dlambda[i] = (bond_lambda_ - 0.5 * rod_length_) * orientation_[i];
+    }
+    cross_product(dlambda, force_, torque_, 3);
+    rod_->AddForce(force_);
+    rod_->AddTorque(torque_);
+  } else Logger::Error("Anchor attempted to apply forces to nullptr");
 }
 
 void Anchor::Activate() {
@@ -212,6 +221,7 @@ void Anchor::Unbind() {
     Logger::Error("Static anchor attempted to unbind");
   }
   if (sphere_) sphere_->DecrementNAnchored();
+  AddBackBindRate();
   bound_ = false;
   rod_ = nullptr;
   sphere_ = nullptr;
@@ -230,6 +240,37 @@ void Anchor::Unbind() {
   std::fill(orientation_, orientation_ + 3, 0.0);
 }
 
+// Get the bind rate just for the object attached to this anchor
+double Anchor::CalcSingleBindRate() {
+  double single_bind_rate = 0.0;
+  Object* o;
+  if (sphere_) o = sphere_;
+  else if (rod_) o = rod_;
+  // Will sometimes be called w/ unbound anchor during initialization/clearing steps
+  else return 0.0;
+  std::string name = o->GetName();
+  if (bind_param_map_->at(index_)[name].single_occupancy) {
+    double obj_amount = (bind_param_map_->at(index_)[name].dens_type == +density_type::linear) 
+                        ? o->GetLength() : o->GetArea();
+    // Sum both anchor rates because during binding and unbinding the bind rate will 
+    // increased for both floating anchors.
+    for (int i = 0; i < 2; i++) {
+      single_bind_rate += bind_param_map_->at(index_)[name].k_on_s 
+                          * bind_param_map_->at(index_)[name].bind_site_density * obj_amount;
+    }
+  }
+  return single_bind_rate;
+}
+
+// Increase the bind rate if an occupied object became unbound
+void Anchor::AddBackBindRate() {
+  if (use_bind_file_ && bind_rate_) {
+    *bind_rate_ += CalcSingleBindRate();
+  } else {
+    if (sphere_) *obj_size_ += sphere_->GetArea();
+  }
+}
+
 void Anchor::Diffuse() {
   // Motion from thermal kicks
   double dr = GetKickAmplitude() * rng_.RandomNormal(1);
@@ -246,19 +287,26 @@ void Anchor::Diffuse() {
   // Should this also add to bond lambda?
 }
 
-void Anchor::UpdateAnchorPositionToRod() {
-  if (!rod_) {
-    Logger::Error("Anchor tried to update position relative to nullptr bond");
-  }
-  double const *const rod_position = rod_->GetPosition();
-  double const *const rod_orientation = rod_->GetOrientation();
-  for (int i = 0; i < n_dim_; ++i) {
-    orientation_[i] = rod_orientation[i];
-    position_[i] = rod_position[i] -
-                   (0.5 * rod_length_ - bond_lambda_) * rod_orientation[i];
+void Anchor::UpdateAnchorPositionToObj() {
+  if (rod_) {
+    if (rod_->IsFixed()) return;
+    double const *const rod_position = rod_->GetPosition();
+    double const *const rod_orientation = rod_->GetOrientation();
+    for (int i = 0; i < n_dim_; ++i) {
+      orientation_[i] = rod_orientation[i];
+      position_[i] = rod_position[i] -
+                     (0.5 * rod_length_ - bond_lambda_) * rod_orientation[i];
+    }
+  } else if (sphere_) {
+    if (sphere_->IsFixed()) return;
+    /* When attached to sphere, position is just the sphere position */
+    std::copy(sphere_->GetPosition(), sphere_->GetPosition() + n_dim_, position_);
+  } else {
+    Logger::Error("Anchor tried to change position but wasn't bound to sphere_ or rod_.");
   }
   UpdatePeriodic();
 }
+
 /*Creates Vector that has different binding rates for parallel and anti-parallel
  * bonds*/
 void Anchor::CalculatePolarAffinity(std::vector<double> &doubly_binding_rates) {
@@ -266,7 +314,7 @@ void Anchor::CalculatePolarAffinity(std::vector<double> &doubly_binding_rates) {
   if (rod_) std::copy(rod_->GetOrientation(), rod_->GetOrientation() + 3, orientation);
   else if (sphere_) std::copy(sphere_->GetOrientation(), sphere_->GetOrientation() + 3, orientation);
   else
-    Logger::Error("Bond and site are nullptr in Anchor::CalculatePolarAffinity"); 
+    Logger::Error("Rod and sphere are nullptr in Anchor::CalculatePolarAffinity"); 
   for (int i = 0; i < doubly_binding_rates.size(); ++i) {
     Object *obj = neighbors_.GetNeighbor(i);
     if (obj->GetShape() == +shape::sphere) continue;
@@ -302,10 +350,13 @@ void Anchor::AttachObjRandom(Object *o) {
       break;
     }
     case shape::sphere: {
-      if (o->GetNAnchored() > 0) {
-        Logger::Error("Xlink tried to bind to already occupied sphere!");
+      // Automatically let spheres have occupancy 1 if no bind file is used.
+      if (!use_bind_file_) {
+        if (o->GetNAnchored() > 0) {
+          Logger::Error("Xlink tried to bind to already occupied sphere!");
+        }
+        *obj_size_ -= o->GetArea();
       }
-      *obj_area_ -= o->GetArea();
       AttachObjCenter(o);
       break;
     }
@@ -313,6 +364,9 @@ void Anchor::AttachObjRandom(Object *o) {
       Logger::Error("Crosslink binding to %s type objects not yet implemented in" 
                     " Anchor::AttachObjRandom", o->GetType()._to_string());
     }
+  }
+  if (use_bind_file_ && bind_rate_) {
+    *bind_rate_ -= CalcSingleBindRate();
   }
 }
     
@@ -322,6 +376,7 @@ void Anchor::AttachObjLambda(Object *o, double lambda) {
         "Crosslink binding to %s objects not implemented in "
         "AttachObjLambda.", o->GetShape()._to_string());
   }
+  if (use_bind_file_) SetRatesFromBindFile(o->GetName());
   rod_ = dynamic_cast<Rod *>(o);
   bond_ = dynamic_cast<Bond *>(o);
   if (bond_ == nullptr) {
@@ -352,7 +407,7 @@ void Anchor::AttachObjLambda(Object *o, double lambda) {
   /* Distance anchor is relative to entire mesh length */
   mesh_lambda_ = bond_->GetMeshLambda() + bond_lambda_;
   SetCompID(rod_->GetCompID());
-  UpdateAnchorPositionToRod();
+  UpdateAnchorPositionToObj();
   ZeroDrTot();
   bound_ = true;
 }
@@ -361,6 +416,7 @@ void Anchor::AttachObjLambda(Object *o, double lambda) {
  * surface area, but binding places crosslinks in center regardless. */
 void Anchor::AttachObjCenter(Object *o) {
   o->IncrementNAnchored();
+  if (use_bind_file_) SetRatesFromBindFile(o->GetName());
   if (o->GetShape() != +shape::sphere) {
     Logger::Error(
         "Crosslink binding to non-sphere objects not implemented in "
@@ -456,6 +512,14 @@ void Anchor::AttachObjMeshCenter(Object *o) {
   mesh_n_bonds_ = -1;
   SetCompID(sphere_->GetCompID());
   ZeroDrTot();
+}
+
+// Save binding parameters based on species name
+void Anchor::SetRatesFromBindFile(const std::string &name) {
+  k_on_d_ = bind_param_map_->at(index_)[name].k_on_d;
+  k_on_s_ = bind_param_map_->at(index_)[name].k_on_s;
+  k_off_d_ = bind_param_map_->at(index_)[name].k_off_d;
+  k_off_s_ = bind_param_map_->at(index_)[name].k_off_s;
 }
 
 void Anchor::BindToPosition(double *bind_pos) {
@@ -674,13 +738,55 @@ const double Anchor::GetKickAmplitude() const {
   }
 }
 
-const double* const Anchor::GetObjArea() {
-  if (!obj_area_) Logger::Warning("Anchor passed nullptr obj_area");
-  return obj_area_;
+const double* const Anchor::GetObjSize() {
+  if (!obj_size_) Logger::Warning("Anchor passed nullptr obj_size");
+  return obj_size_;
 }
 
-void Anchor::SetObjArea(double* obj_area) {
-  if (!obj_area) Logger::Warning("Anchor received nullptr obj_area");
-  obj_area_ = obj_area;
+void Anchor::SetObjSize(double* obj_size) {
+  if (!obj_size) Logger::Error("Anchor received nullptr obj_size");
+  obj_size_ = obj_size;
 }
 
+const double* const Anchor::GetBindRate() {
+  if (!bind_rate_) Logger::Warning("Anchor passed nullptr bind_rate");
+  return bind_rate_;
+}
+
+void Anchor::SetBindRate(double* bind_rate) {
+  if (!bind_rate) Logger::Warning("Anchor received nullptr bind_rate");
+  bind_rate_ = bind_rate;
+}
+
+const double Anchor::GetKonS() const {
+  return k_on_s_;
+}
+
+// Returns true if the anchor is a catastrophe-inducer (it is bound
+// to a receptor that had the induce_catastrophe flag checked)
+bool Anchor::InducesCatastrophe() {
+  if (!sphere_ || !(sphere_->InducesCatastrophe())) return false;
+  return true;
+}
+
+// Returns true if anchor is attached to a RigidFilament or Filament.
+bool Anchor::AttachedToFilament() {
+
+  // Check if attached to bond of a filament
+  if (!rod_ || !bond_ || !mesh_ || (mesh_->GetSID() != +species_id::filament)) {
+    return false;
+  }
+  // Check if attached to last bond of filament
+  Bond *bond = bond_->GetNeighborBond(1);
+  if (bond) return false;
+  else if ((rod_->GetLength() - (mesh_lambda_ - bond_->GetMeshLambda())) > 2*rod_->GetDiameter()) {
+    return false;
+  }
+  return true;
+}
+
+// Depolymerize attached anchor
+void Anchor::InduceCatastrophe() {
+  Filament* fil = dynamic_cast<Filament*>(mesh_);
+  fil->Depolymerize();
+}
