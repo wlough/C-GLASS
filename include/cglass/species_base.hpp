@@ -3,6 +3,7 @@
 
 #include "object.hpp"
 #include "params_parser.hpp"
+#include "point_cover.hpp"
 #include "cortex.hpp"
 
 class SpeciesBase {
@@ -32,7 +33,7 @@ public:
   virtual void UpdatePositions() {}
   virtual void Draw(std::vector<graph_struct *> &graph_array) {}
   virtual void Init(std::string spec_name, ParamsParser &parser) {}
-  virtual void SetPC(Cortex* cx) {}
+  virtual void SetPC(Cortex* cx, std::vector<SpeciesBase *> &species) {}
   virtual void InitMembers() {}
   virtual void ZeroForces() {}
   virtual void GetInteractors(std::vector<Object *> &ix) {}
@@ -57,6 +58,7 @@ public:
   virtual int const GetNCheckpoint() const { return params_->n_checkpoint; }
   virtual bool const GetPositFlag() const { return false; }
   virtual bool const GetSpecFlag() const { return false; }
+  virtual bool const IsStationary() const { return false; }
   virtual bool const GetCheckpointFlag() const {
     return params_->checkpoint_flag;
   }
@@ -96,6 +98,9 @@ public:
   virtual void CleanUp() {}
   virtual void Reserve() {}
   virtual double const GetVolume() { return 0; }
+  virtual PointCover* GetPC() { return nullptr; }
+  virtual Object* GetMember(int i) { return nullptr; }
+  virtual void CalcPCPosition(int, double, double*) {}
   virtual double const GetDrMax() { return 0; }
   virtual void ZeroDrTot() {}
   virtual void CustomInsert() {}

@@ -7,9 +7,11 @@ Receptor::Receptor(unsigned long seed) : Sphere(seed) {
 // Set parameters from sparams struct
 void Receptor::SetParameters() {
   color_ = sparams_->color;
+  name_ = sparams_->name;
   draw_ = draw_type::_from_string(sparams_->draw_type.c_str());
   length_ = sparams_->length;
   diameter_ = sparams_->diameter;
+  induces_catastrophe_ = sparams_->induce_catastrophe;
 }
 
 // Copy parameters struct as a member, set parameters, and add as an interactor
@@ -38,4 +40,69 @@ void Receptor::ConvertSpec(std::fstream &ispec, std::fstream &otext) {
 
 void Receptor::ReadSpec(std::fstream &ispec) {
   ispec.read(reinterpret_cast<char*>(&n_anchored_), sizeof(int));
+}
+
+// Add locations with respect to PointCover species objects
+void Receptor::SetLocations(int i, double s) {
+  i_ = i;
+  s_ = s;
+}
+
+void Receptor::SetPCSpecies(SpeciesBase* pc_species) {
+  pc_species_ = pc_species;
+  if (!pc_species_ || pc_species_->IsStationary()) fixed_ = true;
+}
+
+void Receptor::SetPCObject(Object* pc_object) {
+  pc_object_ = pc_object;
+}
+
+// Use PointCover object positions to update
+void Receptor::UpdatePosition() {
+  if (sparams_->stationary_flag)
+    return;
+  // Check that the PointCover is associated with a species
+  if (pc_species_) {
+    pc_species_->CalcPCPosition(i_, s_, position_);
+  }
+  // Rescale position for periodic BC's
+  UpdatePeriodic();
+}
+
+void Receptor::AddForce(const double *const force) {
+  if (pc_object_) {
+    Object::AddForce(force);
+    pc_object_->AddForce(force);
+  }
+}
+
+void Receptor::AddTorque(const double *const torque) {
+  if (pc_object_) {
+    CalcTorque();
+    pc_object_->SubTorque(torque_);
+  }
+}
+
+void Receptor::SubForce(const double *const force) {
+  if (pc_object_) {
+    Object::SubForce(force);
+    pc_object_->SubForce(force);
+  }
+}
+
+void Receptor::SubTorque(const double *const torque) {
+  if (pc_object_) {
+    CalcTorque();
+    pc_object_->SubTorque(torque_);
+  }
+}
+
+void Receptor::CalcTorque() {
+  // Calculate torque by using the length along object.
+  double r_par[3] = {0, 0, 0};
+  const double *o = pc_object_->GetOrientation();
+  for (int i = 0; i < n_dim_; ++i) {
+    r_par[i] = s_ * o[i];
+  }
+  cross_product(r_par, force_, torque_, 3);
 }

@@ -128,11 +128,11 @@ species:                             # Shared parameters used for all species.
                                      # frequency of n_spec steps.
   n_posit: [100, int]                # Frequency used for generating posit file information.
   n_spec: [100, int]                 # Frequency used for generating spec file information.
+  stationary_flag: [false, bool]     # If true, members will not move regardless of forces on them.
 
 rigid_filament:
   max_length: [500, double]          # maximum filament length. also used for dynamic instability.
   min_length: [5, double]            # minimum filament length. also used for dynamic instability.
-  stationary_flag: [false, bool]     # If true, rigid_filaments will not move regardless of forces on them.
   constrain_motion_flag: [false, bool] # If true, rigid filaments will move in planes such that two filaments
                                        # will never physically overlap if they do not begin overlapping.
                                        # This only works for two filaments. Warning will be thrown otherwise.
@@ -233,7 +233,7 @@ filament:                            # Parameters unique to filament class of ob
                                      # stochastically with poisson frequencies dictated by 
                                      # f_shrink_to_grow, etc. will use a 3-state polymerization 
                                      # model if one of f_pause_to_shrink, etc frequencies are nonzero.
-  force_induced_catastrophe_flag : [false, bool] # induces a force-dependent depolymerization rate for
+  force_induced_catastrophe_flag: [false, bool] # induces a force-dependent depolymerization rate for
                                                  # forces applied to the filament tip.
   optical_trap_flag: [false, bool]   # at initialization, the tail of every filament will be tethered
                                      # to its current position by a spring-like force.
@@ -307,19 +307,11 @@ crosslink:                          # Parameters specific to crosslinks.
                                          # reservoir when going from unbound to
                                          # singly bound.  Only applicable for
                                          # crosslinks in solution.
-  linear_bind_site_density: [1, double] # The linear binding site density along
-                                        # filament that crosslinker ends bind to
-  surface_bind_site_density: [1, double] # The surface binding site density of a site that crosslinker
+  bind_site_density: [1, double] # The binding site density of an object that crosslinker
                                          # ends bind to 
   static_flag: [false, bool]        # Flag for setting one crosslinker head to be fixed in space
   diffusion_s: [0, double]          # Diffusion coefficient for singly bound crosslinks
   diffusion_d: [0, double]          # Diffusion coefficient for doubly bound crosslinks
-  velocity_s: [0, double]           # Bound crosslink head velocities when walkers are singly bound.
-  velocity_d: [0, double]           # Bound crosslink head velocities when walkers are doubly bound.
-  k_on_s: [10, double]              # On-rate for binding crosslinks from solution to bonds.
-  k_off_s: [2, double]              # Off-rate for bound crosslinks to go from bound to solution.
-  k_on_d: [10, double]              # On-rate for singly bound to doubly bound crosslinks.
-  k_off_d: [2, double]              # Off-rate for doubly bound to singly bound crosslinks.
   energy_dep_factor: [0, double]    # Scalar in exponential force-dependent off-rate of doubly-
                                     # bound crosslinks when under a load.
   force_dep_length: [0, double]     # Characteristic length (x_c) used in 
@@ -352,9 +344,17 @@ crosslink:                          # Parameters specific to crosslinks.
                                     # Calculated using k_spring, rest_length. User input ignored.
   lut_grid_num: [256, int]          # Number of grid points used in one dimension of the the lookup table (LUT).
                                     # Total entries go as the square of this number e.g. 256 x 256
-  bind_file: [none, string]      # File of species names (with that crosslink can bind to.
+  anchors:
+    velocity_s: [0, double]           # Bound crosslink head velocities when walkers are singly bound.
+    velocity_d: [0, double]           # Bound crosslink head velocities when walkers are doubly bound.
+    color: [0, double]                # Anchor color
+    bind_file: [none, string]         # File of species crosslink can bind to, and binding rates. If none, bind to
+    k_on_s: [10, double]              # On-rate for binding crosslinks from solution to bonds.
+    k_off_s: [2, double]              # Off-rate for bound crosslinks to go from bound to solution.
+    k_on_d: [10, double]              # On-rate for singly bound to doubly bound crosslinks.
+    k_off_d: [2, double]              # Off-rate for doubly bound to singly bound crosslinks.                                  # all and use given xlink parameters.
 
 receptor:
   component: [cortex, string]       # The mesh object that holds receptor sites
   concentration: [-1, double]       # Number of receptors per unit area (3D) or length (2D) of component
-  binding_analysis: [false, bool]   # Post-process analysis of number of bound receptors.
+  induce_catastrophe: [false, bool] # Induce catastrophe when xlinked to filament

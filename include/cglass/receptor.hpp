@@ -3,6 +3,7 @@
 
 #include "site.hpp"
 #include "cortex.hpp"
+#include "species_base.hpp"
 
 /* receptor.hpp declares the Receptor class. The Receptor class represents
  * biological receptors that can attach to crosslinking and motor proteins. 
@@ -13,6 +14,10 @@
 class Receptor: public Sphere {
 private:
   receptor_parameters *sparams_; // Input parameters unique to receptors
+  SpeciesBase* pc_species_ = nullptr; // The species that the PointCover corresponds to
+  Object* pc_object_ = nullptr; // The object that the receptor is on
+  double s_; // The position (length) along object of the receptor (for species-PointCover)
+  int i_; // The index of the object that the receptor is on (for species-PointCover)
 public:
   Receptor(unsigned long seed); // Constructor with RNG seed input
 
@@ -21,6 +26,23 @@ public:
 
   // Initialize Receptor members with yaml input file parameters
   void SetParameters();
+
+  // Initialize positions along PointCover objects
+  void SetLocations(int i, double s);
+  
+  // Overloaded UpdatePositions to follow PointCover objects.
+  void UpdatePosition();
+
+  // Setters
+  void SetPCSpecies(SpeciesBase* pc_species);
+  void SetPCObject(Object* pc_object);
+
+  // Add/Sub forces/torques to objects receptors are on
+  void CalcTorque();
+  void AddForce(const double *const force);
+  void AddTorque(const double *const torque);
+  void SubForce(const double *const force);
+  void SubTorque(const double *const torque);
 
   // Read/write binaries
   void WriteSpec(std::fstream &ospec);

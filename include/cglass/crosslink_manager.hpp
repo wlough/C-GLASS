@@ -15,8 +15,7 @@ class CrosslinkManager {
  private:
   system_parameters *params_;
   CrosslinkOutputManager output_mgr_;
-  double obj_length_;
-  double obj_area_;
+  double obj_size_;
   double rcutoff_ = 0;  // Cutoff for binding any crosslink and bond
   bool update_;
   std::vector<CrosslinkSpecies *> xlink_species_;
@@ -30,7 +29,7 @@ class CrosslinkManager {
             std::vector<Object *> *objs);
   void GetInteractors(std::vector<Object *> &ixors);
   void UpdateCrosslinks();
-  void UpdateObjsVolume();
+  void UpdateObjsSize();
   bool CheckUpdate();
   void Clear();
   void Draw(std::vector<graph_struct *> &graph_array);

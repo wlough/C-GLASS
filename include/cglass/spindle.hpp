@@ -32,15 +32,15 @@ protected:
   void ApplySpindleForces();
   void ApplyBoundaryForces();
   void InsertSpindle();
-  void GenerateNucleationSites();
   void Integrate();
   void ResetSitePositions();
-  void InsertFilament(int i_fil);
   void SetParameters();
 
 public:
   Spindle(unsigned long seed);
   void Init(spindle_parameters *sparams);
+  void GenerateNucleationSites();
+  void InsertFilament(int i_fil);
   void UpdatePosition() {}
   void UpdatePosition(bool midstep);
   virtual void GetInteractors(std::vector<Object *> &ix);
@@ -51,6 +51,7 @@ public:
   void UpdateDrTot();
   void ZeroDrTot();
   const double GetDrTot();
+  const int GetNFilaments();
   const bool CheckInteractorUpdate();
   void WriteCheckpoint(std::fstream &ocheck);
   void WriteSpec(std::fstream &ospec);

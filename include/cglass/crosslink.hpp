@@ -26,14 +26,16 @@ private:
   double k_align_;
   double rest_length_;
   double rcapture_;
-  double linear_bind_site_density_;
-  double surface_bind_site_density_;
+  double bind_site_density_;
   double tether_force_;
   double e_dep_factor_;
   double fdep_length_;
   double polar_affinity_;
-  std::map<Sphere *, std::pair<std::vector<double>, std::vector<Anchor*> > > *bound_curr_;
-  std::vector<std::string> *bind_species_;
+  bool use_bind_file_;
+  int bound_anchor_ = 0; // Index of anchor that is bound if Singly
+  std::map<Sphere *, std::pair<std::vector<double>, std::vector<Anchor*> > > *bound_curr_ = nullptr;
+  std::vector<std::map<std::string, bind_params> > *bind_param_map_ = nullptr;
+  double *bind_rate_ = nullptr;
   std::vector<Anchor> anchors_;
   void CalculateTetherForces();
   void CalculateBinding();
@@ -42,21 +44,24 @@ private:
   void UpdateAnchorsToMesh();
   void UpdateAnchorPositions();
   void UpdateXlinkState();
-  double *obj_area_ = nullptr;
+  double *obj_size_ = nullptr;
   Tracker *tracker_ = nullptr;
 public:
   Crosslink(unsigned long seed);
   void Init(crosslink_parameters *sparams);
   void InitInteractionEnvironment(LookupTable *lut, Tracker *tracker, 
-                                  std::map<Sphere *, std::pair<std::vector<double>, std::vector<Anchor*> > > *bound_curr);
-  void AttachObjRandom(Object *obj);
+                                  std::map<Sphere *, std::pair<std::vector<double>, 
+                                  std::vector<Anchor*> > > *bound_curr);
+  void SetBindParamMap(std::vector<std::map<std::string, bind_params> > 
+                       *bind_param_map);
+  void AttachObjRandom(std::pair<Object *, int> obj_index);
   void UpdateCrosslinkForces();
   void UpdateCrosslinkPositions();
   void GetAnchors(std::vector<Object *> &ixors);
   void GetInteractors(std::vector<Object *> &ixors);
   void Draw(std::vector<graph_struct *> &graph_array);
   void SetDoubly();
-  void SetSingly();
+  void SetSingly(int bound_anchor);
   void SetUnbound();
   void SetAnchorStates();
   const bool IsDoubly() const;
@@ -74,9 +79,10 @@ public:
   const double GetDrTot();
   void InsertAt(double const *const new_pos, double const *const u);
   const int GetNNeighbors() const;
-  void SetObjArea(double *obj_area);
-  void SetSpheresBoundCurr(double *obj_area);
-  const double* const GetObjArea();
+  void SetObjSize(double *obj_size);
+  void SetBindRate(double *bind_rate);
+  void SetSpheresBoundCurr(double *obj_size);
+  const double* const GetObjSize();
   const double *const GetPosition();
   const double *const GetOrientation();
 

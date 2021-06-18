@@ -8,7 +8,6 @@
 
 class Object {
 private:
-  int oid_;
   int comp_id_;
   static int _next_oid_;
   static std::mutex _obj_mtx_;
@@ -16,10 +15,12 @@ private:
   Object *comp_ptr_; // If part of a composite
 
 protected:
+  int oid_;
   static system_parameters *params_;
   static SpaceBase *space_;
   static int n_dim_;
   static double delta_;
+  std::string name_;
   species_id sid_;
   obj_type type_ = obj_type::generic;
   comp_type comp_type_ = comp_type::generic;
@@ -47,9 +48,9 @@ protected:
   bool is_mesh_;
   bool is_comp_ = false;
   bool has_overlap_;
+  bool fixed_ = false;
   int n_anchored_;
   bool interactor_update_;
-
 
   std::vector<Object *> interactors_;
   std::vector<object_interaction> ixs_;
@@ -83,10 +84,10 @@ public:
   void SetPrevOrientation(const double *const pu);
   void SetDiameter(double new_diameter);
   void SetLength(double new_length);
-  void AddForce(const double *const f);
+  virtual void AddForce(const double *const f);
   void SubForce(const double *const f);
   void SetForce(const double *const f);
-  void AddTorque(const double *const t);
+  virtual void AddTorque(const double *const t);
   void SubTorque(const double *const t);
   void SetTorque(const double *const t);
   void AddPotential(const double p);
@@ -102,6 +103,7 @@ public:
   obj_type const GetType();
   comp_type const GetCompType();
   shape const GetShape();
+  std::string& GetName();
   const int GetOID() const;
   const int GetCompID() const;
   const double *const GetPosition();
@@ -121,6 +123,7 @@ public:
   const double GetContactNumber();
   const bool IsInteractor();
   const bool IsMesh();
+  const bool IsFixed();
   const int GetNAnchored();
   const bool CheckInteractorUpdate();
   void HasOverlap(bool overlap);
@@ -158,6 +161,7 @@ public:
   virtual void ApplyInteractions();
   virtual void FlagDuplicateInteractions();
   virtual void GetInteractions(std::vector<object_interaction> &ixs);
+  virtual void CalcPCPosition(double s, double* pos);
   virtual void ClearInteractions();
   virtual void Cleanup();
 

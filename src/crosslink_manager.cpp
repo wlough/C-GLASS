@@ -4,8 +4,7 @@ void CrosslinkManager::Init(system_parameters *params, SpaceBase *space,
                             Tracker *tracker, std::vector<Object *> *objs) {
   objs_ = objs;
   update_ = false;
-  obj_length_ = 0.0;
-  obj_area_ = 0.0;
+  obj_size_ = 0.0;
   params_ = params;
   space_ = space;
   tracker_ = tracker;
@@ -22,8 +21,7 @@ void CrosslinkManager::InitSpecies(sid_label &slab, ParamsParser &parser,
     delete xlink_species_.back();
     xlink_species_.pop_back();
   } else {
-    xlink_species_.back()->InitInteractionEnvironment(objs_, &obj_length_, 
-                                                      &obj_area_, tracker_,
+    xlink_species_.back()->InitInteractionEnvironment(objs_, &obj_size_, tracker_,
                                                       &update_, &bound_curr_);
     rcutoff_ = xlink_species_.back()->GetRCutoff();
   }
@@ -31,16 +29,15 @@ void CrosslinkManager::InitSpecies(sid_label &slab, ParamsParser &parser,
 
 /* Keep track of volume of objects in the system. Affects the
  * probability of a free crosslink binding to an object. */
-void CrosslinkManager::UpdateObjsVolume() {
-  obj_length_ = 0;
-  obj_area_ = 0;
+void CrosslinkManager::UpdateObjsSize() {
+  obj_size_ = 0;
   for (auto it = objs_->begin(); it != objs_->end(); ++it) {
     switch ((*it)->GetShape()) {
       case shape::rod:
-        obj_length_ += (*it)->GetLength();
+        obj_size_ += (*it)->GetLength();
         break;
       case shape::sphere:
-        if ((*it)->GetNAnchored() == 0) obj_area_ += (*it)->GetArea();
+        if ((*it)->GetNAnchored() == 0) obj_size_ += (*it)->GetArea();
         break;
       default:
         break;
@@ -74,9 +71,10 @@ void CrosslinkManager::GetAnchorInteractors(std::vector<Object *> &ixors) {
 
 void CrosslinkManager::UpdateCrosslinks() {
   update_ = false;
-  UpdateObjsVolume();
+  UpdateObjsSize();
   for (auto it = xlink_species_.begin(); it != xlink_species_.end(); ++it) {
     (*it)->UpdatePositions();
+    (*it)->UpdateBindRate();
   }
   Knockout();
 }
@@ -90,7 +88,7 @@ void CrosslinkManager::Knockout() {
     // already happened in this dt).
     it->first->IncrementNAnchored();
     if ((it->second.first).size()>1) {
-      Logger::Error("Collision");
+      Logger::Error("Anchor bound twice in Knockout");
     }
   }
   bound_curr_.clear();
@@ -103,7 +101,10 @@ void CrosslinkManager::InsertCrosslinks() {
 }
 
 void CrosslinkManager::InsertAttachedCrosslinks() {
+  // Need to do this for GetRandomObject to work with spheres
+  UpdateObjsSize();
   for (auto it = xlink_species_.begin(); it != xlink_species_.end(); ++it) {
+    (*it)->UpdateBindRate();
     (*it)->InsertAttachedCrosslinksSpecies();
   }
 }

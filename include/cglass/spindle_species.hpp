@@ -12,6 +12,7 @@ protected:
 public:
   SpindleSpecies(unsigned long seed);
   void Init(std::string spec_name, ParamsParser &parser);
+  void ArrangeMembers();
   void UpdatePositions();
   void AddMember();
   const double GetSpecLength() const;

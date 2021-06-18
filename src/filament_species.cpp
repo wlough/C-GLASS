@@ -258,6 +258,11 @@ const double FilamentSpecies::GetSpecLength() const {
   }
 }
 
+// Overloaded to catch error for filaments with receptor cover
+void FilamentSpecies::CalcPCPosition(int i, double s, double* pos) {
+   Logger::Error("Receptor PointCovers not set up for flexible filaments.");
+}
+
 void FilamentSpecies::LoadAnalysis() {
   if (sparams_.msd_analysis) {
     FilamentAnalysis *msd = new MSDAnalysis;

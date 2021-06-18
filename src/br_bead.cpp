@@ -6,6 +6,7 @@ BrBead::BrBead(unsigned long seed) : Object(seed) {
 
 void BrBead::Init(br_bead_parameters *sparams) {
   sparams_ = sparams;
+  name_ = sparams_->name;
   color_ = sparams_->color;
   draw_ = draw_type::_from_string(sparams_->draw_type.c_str());
   diameter_ = sparams_->diameter;
@@ -60,7 +61,8 @@ void BrBead::UpdatePosition() {
   SetPrevPosition(GetPosition());
   SetPrevOrientation(GetOrientation());
   ApplyForcesTorques();
-  Integrate();
+  if (!sparams_->stationary_flag)
+    Integrate();
   UpdatePeriodic();
 }
 

@@ -40,6 +40,26 @@ void Cell::PairSingleObject(Object &obj,
   }
 }
 
+// Check if species ID's are a valid interacting pair
+bool Cell::IsInteractingPair(species_id si, species_id sj) const {
+  // If pair are receptors and crosslinks, they are valid; receptor and non-crosslink
+  // are not valid
+  switch (si) {
+    case species_id::receptor:
+      // receptor & crosslinks interact
+      if (sj == +species_id::crosslink) return true; 
+      else return false;
+    // crosslinks interact with everything
+    case species_id::crosslink:
+      return true;
+    default:
+      if (sj == +species_id::receptor) return false;
+      else return true;
+  }
+  return true;
+}
+
+
 void Cell::MakePairsCell(Cell &cell, std::vector<Interaction> &pair_list) const {
   if (cell.NObjs() == 0)
     return;
@@ -47,12 +67,15 @@ void Cell::MakePairsCell(Cell &cell, std::vector<Interaction> &pair_list) const 
   Logger::Trace("%s adjacent to %s:", Report().c_str(), cell.Report().c_str());
   for (int i = 0; i < NObjs(); ++i) {
     for (int j = 0; j < cell.NObjs(); ++j) {
-      Interaction ix(cell_objs_[i], those_objs[j]);
-      pair_list.push_back(ix);
+      // Check that the objects are the right kinds of species to interact
+      if (IsInteractingPair(cell_objs_[i]->GetSID(), those_objs[j]->GetSID())) {
+        Interaction ix(cell_objs_[i], those_objs[j]);
+        pair_list.push_back(ix);
 #ifdef TRACE
-      Logger::Trace("Interaction pair: %d -> %d", cell_objs_[i]->GetOID(),
-                    those_objs[j]->GetOID());
+        Logger::Trace("Interaction pair: %d -> %d", cell_objs_[i]->GetOID(),
+                      those_objs[j]->GetOID());
 #endif
+      }
     }
   }
 }
@@ -63,8 +86,11 @@ void Cell::MakePairsSelf(std::vector<Interaction> &pair_list) const {
   }
   for (int i = 0; i < NObjs() - 1; ++i) {
     for (int j = i + 1; j < NObjs(); ++j) {
-      Interaction ix(cell_objs_[i], cell_objs_[j]);
-      pair_list.push_back(ix);
+      // Check that the objects are the right kinds of species to interact
+      if (IsInteractingPair(cell_objs_[i]->GetSID(), cell_objs_[j]->GetSID())) {
+        Interaction ix(cell_objs_[i], cell_objs_[j]);
+        pair_list.push_back(ix);
+      }
     }
   }
 }

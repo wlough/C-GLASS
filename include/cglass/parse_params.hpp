@@ -205,6 +205,8 @@ void parse_species_base_params(species_base_parameters &params,
         params.n_posit = jt->second.as<int>();
         } else if (param_name.compare("n_spec")==0) {
         params.n_spec = jt->second.as<int>();
+        } else if (param_name.compare("stationary_flag")==0) {
+        params.stationary_flag = jt->second.as<bool>();
         } else {
           Logger::Warning("Species base parameter %s not recognized!", param_name.c_str());
         }
@@ -250,12 +252,12 @@ species_base_parameters *parse_species_params(std::string sid,
       params.n_posit = jt->second.as<int>();
       } else if (param_name.compare("n_spec")==0) {
       params.n_spec = jt->second.as<int>();
+      } else if (param_name.compare("stationary_flag")==0) {
+      params.stationary_flag = jt->second.as<bool>();
       } else if (param_name.compare("max_length")==0) {
       params.max_length = jt->second.as<double>();
       } else if (param_name.compare("min_length")==0) {
       params.min_length = jt->second.as<double>();
-      } else if (param_name.compare("stationary_flag")==0) {
-      params.stationary_flag = jt->second.as<bool>();
       } else if (param_name.compare("constrain_motion_flag")==0) {
       params.constrain_motion_flag = jt->second.as<bool>();
       } else if (param_name.compare("packing_fraction")==0) {
@@ -299,6 +301,8 @@ species_base_parameters *parse_species_params(std::string sid,
       params.n_posit = jt->second.as<int>();
       } else if (param_name.compare("n_spec")==0) {
       params.n_spec = jt->second.as<int>();
+      } else if (param_name.compare("stationary_flag")==0) {
+      params.stationary_flag = jt->second.as<bool>();
       } else if (param_name.compare("packing_fraction")==0) {
       params.packing_fraction = jt->second.as<double>();
       } else if (param_name.compare("persistence_length")==0) {
@@ -480,6 +484,8 @@ species_base_parameters *parse_species_params(std::string sid,
       params.n_posit = jt->second.as<int>();
       } else if (param_name.compare("n_spec")==0) {
       params.n_spec = jt->second.as<int>();
+      } else if (param_name.compare("stationary_flag")==0) {
+      params.stationary_flag = jt->second.as<bool>();
       } else if (param_name.compare("driving_factor")==0) {
       params.driving_factor = jt->second.as<double>();
       } else if (param_name.compare("driving_torque")==0) {
@@ -541,6 +547,8 @@ species_base_parameters *parse_species_params(std::string sid,
       params.n_posit = jt->second.as<int>();
       } else if (param_name.compare("n_spec")==0) {
       params.n_spec = jt->second.as<int>();
+      } else if (param_name.compare("stationary_flag")==0) {
+      params.stationary_flag = jt->second.as<bool>();
       } else if (param_name.compare("diffusion_analysis")==0) {
       params.diffusion_analysis = jt->second.as<bool>();
       } else if (param_name.compare("n_diffusion_samples")==0) {
@@ -584,6 +592,8 @@ species_base_parameters *parse_species_params(std::string sid,
       params.n_posit = jt->second.as<int>();
       } else if (param_name.compare("n_spec")==0) {
       params.n_spec = jt->second.as<int>();
+      } else if (param_name.compare("stationary_flag")==0) {
+      params.stationary_flag = jt->second.as<bool>();
       } else if (param_name.compare("n_filaments_bud")==0) {
       params.n_filaments_bud = jt->second.as<int>();
       } else if (param_name.compare("n_filaments_mother")==0) {
@@ -637,6 +647,8 @@ species_base_parameters *parse_species_params(std::string sid,
       params.n_posit = jt->second.as<int>();
       } else if (param_name.compare("n_spec")==0) {
       params.n_spec = jt->second.as<int>();
+      } else if (param_name.compare("stationary_flag")==0) {
+      params.stationary_flag = jt->second.as<bool>();
       } else if (param_name.compare("concentration")==0) {
       params.concentration = jt->second.as<double>();
       } else if (param_name.compare("begin_with_bound_crosslinks")==0) {
@@ -645,28 +657,14 @@ species_base_parameters *parse_species_params(std::string sid,
       params.use_binding_volume = jt->second.as<bool>();
       } else if (param_name.compare("infinite_reservoir_flag")==0) {
       params.infinite_reservoir_flag = jt->second.as<bool>();
-      } else if (param_name.compare("linear_bind_site_density")==0) {
-      params.linear_bind_site_density = jt->second.as<double>();
-      } else if (param_name.compare("surface_bind_site_density")==0) {
-      params.surface_bind_site_density = jt->second.as<double>();
+      } else if (param_name.compare("bind_site_density")==0) {
+      params.bind_site_density = jt->second.as<double>();
       } else if (param_name.compare("static_flag")==0) {
       params.static_flag = jt->second.as<bool>();
       } else if (param_name.compare("diffusion_s")==0) {
       params.diffusion_s = jt->second.as<double>();
       } else if (param_name.compare("diffusion_d")==0) {
       params.diffusion_d = jt->second.as<double>();
-      } else if (param_name.compare("velocity_s")==0) {
-      params.velocity_s = jt->second.as<double>();
-      } else if (param_name.compare("velocity_d")==0) {
-      params.velocity_d = jt->second.as<double>();
-      } else if (param_name.compare("k_on_s")==0) {
-      params.k_on_s = jt->second.as<double>();
-      } else if (param_name.compare("k_off_s")==0) {
-      params.k_off_s = jt->second.as<double>();
-      } else if (param_name.compare("k_on_d")==0) {
-      params.k_on_d = jt->second.as<double>();
-      } else if (param_name.compare("k_off_d")==0) {
-      params.k_off_d = jt->second.as<double>();
       } else if (param_name.compare("energy_dep_factor")==0) {
       params.energy_dep_factor = jt->second.as<double>();
       } else if (param_name.compare("force_dep_length")==0) {
@@ -701,8 +699,62 @@ species_base_parameters *parse_species_params(std::string sid,
       params.r_capture = jt->second.as<double>();
       } else if (param_name.compare("lut_grid_num")==0) {
       params.lut_grid_num = jt->second.as<int>();
-      } else if (param_name.compare("bind_file")==0) {
-      params.bind_file = jt->second.as<std::string>();
+      } else if (param_name.compare("anchors")==0) {
+        for (size_t i = 0; i < jt->second.size(); ++i) {
+          if (i > 1) {
+            Logger::Error("Only two anchors allowed per crosslink.");
+          }
+          for (auto kt = jt->second[i].begin(); kt != jt->second[i].end(); ++kt) {
+            if (!kt->second.IsScalar())  {
+              continue;
+            }
+            std::string sub_param_name = kt->first.as<std::string>();
+            if (false) {
+            } else if (sub_param_name.compare("velocity_s")==0) {
+              params.anchors[i].velocity_s = kt->second.as<double>();
+              if (jt->second.size() < 2 || !jt->second[(int)!i]["velocity_s"]) {
+                 params.anchors[(int)!i].velocity_s = params.anchors[i].velocity_s;
+              }
+            } else if (sub_param_name.compare("velocity_d")==0) {
+              params.anchors[i].velocity_d = kt->second.as<double>();
+              if (jt->second.size() < 2 || !jt->second[(int)!i]["velocity_d"]) {
+                 params.anchors[(int)!i].velocity_d = params.anchors[i].velocity_d;
+              }
+            } else if (sub_param_name.compare("color")==0) {
+              params.anchors[i].color = kt->second.as<double>();
+              if (jt->second.size() < 2 || !jt->second[(int)!i]["color"]) {
+                 params.anchors[(int)!i].color = params.anchors[i].color;
+              }
+            } else if (sub_param_name.compare("bind_file")==0) {
+              params.anchors[i].bind_file = kt->second.as<std::string>();
+              if (jt->second.size() < 2 || !jt->second[(int)!i]["bind_file"]) {
+                 params.anchors[(int)!i].bind_file = params.anchors[i].bind_file;
+              }
+            } else if (sub_param_name.compare("k_on_s")==0) {
+              params.anchors[i].k_on_s = kt->second.as<double>();
+              if (jt->second.size() < 2 || !jt->second[(int)!i]["k_on_s"]) {
+                 params.anchors[(int)!i].k_on_s = params.anchors[i].k_on_s;
+              }
+            } else if (sub_param_name.compare("k_off_s")==0) {
+              params.anchors[i].k_off_s = kt->second.as<double>();
+              if (jt->second.size() < 2 || !jt->second[(int)!i]["k_off_s"]) {
+                 params.anchors[(int)!i].k_off_s = params.anchors[i].k_off_s;
+              }
+            } else if (sub_param_name.compare("k_on_d")==0) {
+              params.anchors[i].k_on_d = kt->second.as<double>();
+              if (jt->second.size() < 2 || !jt->second[(int)!i]["k_on_d"]) {
+                 params.anchors[(int)!i].k_on_d = params.anchors[i].k_on_d;
+              }
+            } else if (sub_param_name.compare("k_off_d")==0) {
+              params.anchors[i].k_off_d = kt->second.as<double>();
+              if (jt->second.size() < 2 || !jt->second[(int)!i]["k_off_d"]) {
+                 params.anchors[(int)!i].k_off_d = params.anchors[i].k_off_d;
+              }
+            } else {
+              Logger::Warning("Unrecognized parameter '%s'", sub_param_name.c_str());
+            }
+          }
+        }
       } else {
         Logger::Warning("Unrecognized %s parameter: '%s'", sid.c_str(), param_name.c_str());
       }
@@ -740,12 +792,14 @@ species_base_parameters *parse_species_params(std::string sid,
       params.n_posit = jt->second.as<int>();
       } else if (param_name.compare("n_spec")==0) {
       params.n_spec = jt->second.as<int>();
+      } else if (param_name.compare("stationary_flag")==0) {
+      params.stationary_flag = jt->second.as<bool>();
       } else if (param_name.compare("component")==0) {
       params.component = jt->second.as<std::string>();
       } else if (param_name.compare("concentration")==0) {
       params.concentration = jt->second.as<double>();
-      } else if (param_name.compare("binding_analysis")==0) {
-      params.binding_analysis = jt->second.as<bool>();
+      } else if (param_name.compare("induce_catastrophe")==0) {
+      params.induce_catastrophe = jt->second.as<bool>();
       } else {
         Logger::Warning("Unrecognized %s parameter: '%s'", sid.c_str(), param_name.c_str());
       }

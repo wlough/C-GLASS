@@ -5,9 +5,10 @@
 **************************/
 Bond::Bond(unsigned long seed) : Rod(seed) { type_ = obj_type::bond; }
 
-void Bond::Init(Site *s1, Site *s2) {
+void Bond::Init(const std::string &name, Site *s1, Site *s2) {
   s1->AddBond(this, OUTGOING);
   s2->AddBond(this, INCOMING);
+  name_ = name;
   sites_[0] = s1;
   sites_[1] = s2;
   ReInit();

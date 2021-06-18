@@ -1,8 +1,18 @@
 #ifndef _CGLASS_ANCHOR_H_
 #define _CGLASS_ANCHOR_H_
 
-#include "mesh.hpp"
+#include "filament.hpp"
 #include "neighbor_list.hpp"
+
+struct bind_params {
+  double k_on_s;
+  double k_off_s;
+  double k_on_d;
+  double k_off_d;
+  density_type dens_type;
+  double bind_site_density;
+  bool single_occupancy;
+};
 
 /* Class for bound crosslink heads (called anchors). Tracks and updates its
    absolute position in space and relative position to its bound object. */
@@ -14,6 +24,7 @@ class Anchor : public Object {
   bool plus_end_pausing_;
   bool minus_end_pausing_;
   crosslink_parameters *sparams_;
+  int index_;
   int step_direction_;
 
   double rod_length_;
@@ -33,7 +44,9 @@ class Anchor : public Object {
   double polar_affinity_;
   double f_stall_;
   double force_dep_vel_flag_;
-  
+  bool use_bind_file_;
+  std::vector<std::map<std::string, bind_params> > *bind_param_map_ = nullptr;
+
   double input_tol = 1e-8; // Tolerance for comparing inputs to 0
 
   bind_state state_;
@@ -48,11 +61,13 @@ class Anchor : public Object {
   Bond *bond_ = nullptr;
   Mesh *mesh_ = nullptr;
 
-  double *obj_area_ = nullptr;
+  double *obj_size_ = nullptr;
+  double *bind_rate_ = nullptr;
 
   int mesh_n_bonds_;
 
-  void UpdateAnchorPositionToRod();
+  // Helper functions
+  void UpdateAnchorPositionToObj();
   void Diffuse();
   void Walk();
   bool CheckMesh();
@@ -60,7 +75,8 @@ class Anchor : public Object {
 
  public:
   Anchor(unsigned long seed);
-  void Init(crosslink_parameters *sparams);
+  void Init(crosslink_parameters *sparams, int index);
+  void SetBindParamMap(std::vector<std::map<std::string, bind_params> >*);
   bool IsBound();
   void UpdatePosition();
   void Activate();
@@ -78,6 +94,7 @@ class Anchor : public Object {
   void SetMeshLambda(double ml);
   void SetBound();
   void Unbind();
+  void AddBackBindRate();
   int const GetBoundOID();
   void Draw(std::vector<graph_struct *> &graph_array);
   void AddNeighbor(Object *neighbor);
@@ -87,6 +104,7 @@ class Anchor : public Object {
   const std::vector<Sphere*>& GetNeighborListMemSpheres();
   void WriteSpec(std::fstream &ospec);
   void ReadSpec(std::fstream &ispec);
+  void SetRatesFromBindFile(const std::string &name);
   void BindToPosition(double *bind_pos);
   void SetStatic(bool static_flag);
   void SetState(bind_state state);
@@ -104,11 +122,19 @@ class Anchor : public Object {
   const double GetMaxVelocity() const;
   const double GetDiffusionConst() const;
   const double GetKickAmplitude() const;
-  const double* const GetObjArea();
-  void SetObjArea(double* obj_area);
+  const double GetKonS() const;
+  const double GetLinearBindSiteDensity() const;
+  const double* const GetObjSize();
+  void SetObjSize(double* obj_size);
+  const double* const GetBindRate();
+  void SetBindRate(double* bind_rate);
+  double CalcSingleBindRate();
+  bool InducesCatastrophe();
+  bool AttachedToFilament();
+  void InduceCatastrophe();
 
-  // Convert binary data to text. Static to avoid needing to istantiate
-  // species members.
+  // Convert binary data to text. Static to avoid needing to instantiate
+  // species members in conversion mode.
   static void ConvertSpec(std::fstream &ispec, std::fstream &otext);
   static void WriteSpecTextHeader(std::fstream &otext);
 };

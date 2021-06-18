@@ -19,6 +19,7 @@ template <unsigned char S> struct species_parameters {
   bool spec_flag = false;
   int n_posit = 100;
   int n_spec = 100;
+  bool stationary_flag = false;
   virtual ~species_parameters() {}
 };
 
@@ -29,7 +30,6 @@ struct species_parameters<species_id::rigid_filament>
     : public species_base_parameters {
   double max_length = 500;
   double min_length = 5;
-  bool stationary_flag = false;
   bool constrain_motion_flag = false;
   double packing_fraction = -1;
   int n_equil = 0;
@@ -162,17 +162,10 @@ struct species_parameters<species_id::crosslink>
   int begin_with_bound_crosslinks = 0;
   bool use_binding_volume = true;
   bool infinite_reservoir_flag = false;
-  double linear_bind_site_density = 1;
-  double surface_bind_site_density = 1;
+  double bind_site_density = 1;
   bool static_flag = false;
   double diffusion_s = 0;
   double diffusion_d = 0;
-  double velocity_s = 0;
-  double velocity_d = 0;
-  double k_on_s = 10;
-  double k_off_s = 2;
-  double k_on_d = 10;
-  double k_off_d = 2;
   double energy_dep_factor = 0;
   double force_dep_length = 0;
   double polar_affinity = 1;
@@ -190,7 +183,18 @@ struct species_parameters<species_id::crosslink>
   bool plus_end_pausing = false;
   double r_capture = 5;
   int lut_grid_num = 256;
-  std::string bind_file = "none";
+  struct anchor_parameters {
+    double velocity_s = 0;
+    double velocity_d = 0;
+    double color = 0;
+    std::string bind_file = "none";
+    double k_on_s = 10;
+    double k_off_s = 2;
+    double k_on_d = 10;
+    double k_off_d = 2;
+  };
+  anchor_parameters anchor_temp;
+  std::vector<anchor_parameters> anchors = {anchor_temp, anchor_temp};
 };
 typedef species_parameters<species_id::crosslink> crosslink_parameters;
 
@@ -199,7 +203,7 @@ struct species_parameters<species_id::receptor>
     : public species_base_parameters {
   std::string component = "cortex";
   double concentration = -1;
-  bool binding_analysis = false;
+  bool induce_catastrophe = false;
 };
 typedef species_parameters<species_id::receptor> receptor_parameters;
 
