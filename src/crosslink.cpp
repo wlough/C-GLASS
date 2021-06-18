@@ -85,8 +85,8 @@ void Crosslink::SinglyKMC() {
   /* Calculate probability to bind */
   double kmc_bind_prob = 0;
   std::vector<double> bind_factors(n_neighbors);
-  const std::vector<Rod*>& rod_nbr_list = anchors_[bound_anchor_].GetNeighborListMemRods();
-  const std::vector<Sphere*>& sphere_nbr_list = anchors_[bound_anchor_].GetNeighborListMemSpheres();
+  const std::vector<const Rod*>& rod_nbr_list = anchors_[bound_anchor_].GetNeighborListMemRods();
+  const std::vector<const Sphere*>& sphere_nbr_list = anchors_[bound_anchor_].GetNeighborListMemSpheres();
   if (use_bind_file_) {
     for (int i = 0; i < rod_nbr_list.size(); ++i) {
       std::string name = rod_nbr_list[i]->GetName();
