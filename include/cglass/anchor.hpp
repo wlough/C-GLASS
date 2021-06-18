@@ -100,8 +100,8 @@ class Anchor : public Object {
   void AddNeighbor(Object *neighbor);
   void ClearNeighbors();
   const Object *const *GetNeighborListMem();
-  const std::vector<Rod*>& GetNeighborListMemRods();
-  const std::vector<Sphere*>& GetNeighborListMemSpheres();
+  const std::vector<const Rod*>& GetNeighborListMemRods();
+  const std::vector<const Sphere*>& GetNeighborListMemSpheres();
   void WriteSpec(std::fstream &ospec);
   void ReadSpec(std::fstream &ispec);
   void SetRatesFromBindFile(const std::string &name);
