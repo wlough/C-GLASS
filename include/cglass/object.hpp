@@ -103,7 +103,7 @@ public:
   obj_type const GetType();
   comp_type const GetCompType();
   shape const GetShape();
-  const std::string& GetName();
+  const std::string& GetName() const;
   const int GetOID() const;
   const int GetCompID() const;
   const double *const GetPosition();

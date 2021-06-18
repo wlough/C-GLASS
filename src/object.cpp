@@ -180,7 +180,7 @@ void Object::SetCompID(int cid) { comp_id_ = cid; }
 void Object::SetCompPtr(Object* comp) { comp_ptr_ = comp; }
 void Object::SetOID(int oid) { oid_ = oid; }
 void Object::ToggleIsMesh() { is_mesh_ = !is_mesh_; }
-std::string& const Object::GetName() { return name_; }
+const std::string& Object::GetName() const { return name_; }
 shape const Object::GetShape() { return shape_; }
 obj_type const Object::GetType() { return type_; }
 comp_type const Object::GetCompType() { return comp_type_; }
