@@ -161,7 +161,7 @@ void CurvatureClusterAnalysis::InitAnalysis() {
   InitLabels();
 }
 void CurvatureClusterAnalysis::RunAnalysis() {
-  if (params_->i_step < sparams_->n_equil) {
+  if ((params_->i_step) < ((sparams_->n_equil)*(params_->no_midstep?1:2))) {
     return;
   }
   double dr[3] = {0};
