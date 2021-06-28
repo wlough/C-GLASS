@@ -216,8 +216,6 @@ void Simulation::InitSimulation() {
   ix_mgr_.InitInteractions();
   InsertSpecies(params_.load_checkpoint, params_.load_checkpoint);
   InitOutputs();
-  /* With halfstep algorithm, each step only moves the simulation forward
-     by 1/2 delta. Defining step_fact prevents unnecessary if-else statements.*/
   step_fact_ = params_.no_midstep ? 1. : .5;
   inv_step_fact_ = params_.no_midstep ? 1 : 2;
   if (params_.graph_flag) {
@@ -587,6 +585,8 @@ void Simulation::InitProcessing(run_options run_opts) {
      outputs */
   params_.load_checkpoint = 0;
 
+  step_fact_ = params_.no_midstep ? 1. : .5;
+  inv_step_fact_ = params_.no_midstep ? 1 : 2;
   space_.Init(&params_);
   InitObjects();
   cortex_ = new Cortex(rng_->GetSeed());
