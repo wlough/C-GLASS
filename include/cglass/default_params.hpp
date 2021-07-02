@@ -104,7 +104,6 @@
   default_config["br_bead"]["draw_shape"] = "sphere";
   default_config["spherocylinder"]["diffusion_analysis"] = "false";
   default_config["spherocylinder"]["n_diffusion_samples"] = "1";
-  default_config["spherocylinder"]["midstep"] = "false";
   default_config["spindle"]["n_filaments_bud"] = "0";
   default_config["spindle"]["n_filaments_mother"] = "0";
   default_config["spindle"]["alignment_potential"] = "false";
@@ -167,6 +166,7 @@
   default_config["system_radius"] = "100";
   default_config["n_steps"] = "1000000";
   default_config["i_step"] = "0";
+  default_config["on_midstep"] = "false";
   default_config["prev_step"] = "0";
   default_config["delta"] = "0.001";
   default_config["dynamic_timestep"] = "false";

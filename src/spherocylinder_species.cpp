@@ -6,7 +6,6 @@ SpherocylinderSpecies::SpherocylinderSpecies(unsigned long seed)
 }
 void SpherocylinderSpecies::Init(std::string spec_name, ParamsParser &parser) {
   Species::Init(spec_name, parser);
-  midstep_ = sparams_.midstep;
 }
 
 void SpherocylinderSpecies::InitAnalysis() {
@@ -145,7 +144,7 @@ void SpherocylinderSpecies::FinalizeDiffusionAnalysis() {
   diff_file_.precision(16);
   diff_file_.setf(std::ios::fixed);
   diff_file_.setf(std::ios::showpoint);
-  double midterm = (midstep_ ? 0.5 : 1);
+  double midterm = (params_->no_midstep ? 1 : 0.5);
   for (int t = 0; t < time_avg_interval_; ++t) {
     diff_file_ << midterm * (t + 1) * params_->delta * GetNPosit() << " "
                << msd_[t] << " " << msd_err_[t] << " " << vcf_[t] << " "

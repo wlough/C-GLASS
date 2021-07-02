@@ -247,7 +247,7 @@ double const RigidFilament::GetVolume() {
 
 void RigidFilament::UpdatePosition() {
   ApplyForcesTorques();
-  if (!sparams_->stationary_flag)
+  if (!params_->on_midstep && !sparams_->stationary_flag)
     Integrate();
   eq_steps_count_++;
 }

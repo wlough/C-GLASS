@@ -59,7 +59,11 @@ void Receptor::SetPCObject(Object* pc_object) {
 
 // Use PointCover object positions to update
 void Receptor::UpdatePosition() {
-  if (sparams_->stationary_flag)
+  // Update position only on the midstep to save time, since Receptors
+  // currently can't lie on Filaments. If Receptors on Filaments is implemented,
+  // change to update on main step & midstep if attached to Filament (which updates 
+  // on both), and only on main step if attached to anything else.
+  if (params_->on_midstep || sparams_->stationary_flag)
     return;
   // Check that the PointCover is associated with a species
   if (pc_species_) {

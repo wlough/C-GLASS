@@ -25,7 +25,6 @@ class Centrosome : public Object {
  public:
   Centrosome();
   void Init();
-  void UpdatePosition() {}
   void UpdatePosition(bool midstep);
   virtual std::vector<Object *> GetInteractors();
   virtual int GetCount();
