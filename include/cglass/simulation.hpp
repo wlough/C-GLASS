@@ -10,6 +10,8 @@ class Simulation {
  private:
   UNIT_TEST
   int i_step_ = 0;
+  double step_fact_;
+  int inv_step_fact_;
   int log_interval_ = 10;
   int n_steps_;
   int frame_num_ = 0;

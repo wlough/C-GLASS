@@ -34,18 +34,15 @@ void Simulation::RunSimulation() {
    we want these to represent filaments in their fullstep configurations. We
    also update other objects' positions on every even step too (e.g. xlinks). */
   double delta_diff = 0;
-  bool midstep = true;
-  /* With halfstep algorithm, each step only moves the simulation forward
-     by 1/2 delta. Defining step_fact prevents unnecessary if-else statements.*/
-  double step_fact = params_.no_midstep ? 1. : .5;
   time_ = 0;
   params_.i_step = 0;
-  for (i_step_ = 1; params_.i_step < params_.n_steps + 1; ++i_step_) {
-    time_ += step_fact * Object::GetDelta();
+  for (i_step_ = 1; params_.i_step <= (inv_step_fact_*params_.n_steps); ++i_step_) {
+    params_.on_midstep = i_step_ % inv_step_fact_;
+    time_ += step_fact_ * Object::GetDelta();
     params_.i_step = i_step_;
     if (params_.dynamic_timestep) {
       // Calculate nominal timestep
-      params_.i_step = (int)round(time_ / (step_fact * params_.delta));
+      params_.i_step = (int)round(time_ / (step_fact_ * params_.delta));
     }
     // Output progress
     PrintComplete();
@@ -61,21 +58,22 @@ void Simulation::RunSimulation() {
         Logger::Error(
             "Dynamic timestep triggered on the first simulation step");
       }
-      if (midstep && !params_.no_midstep) {
+      // Go back a full step if on midstep (only happens if midstep_=false)
+      if (params_.on_midstep) {
         time_ -= Object::GetDelta();
         i_step_ -= 2;
       } else {
-        time_ -= step_fact * Object::GetDelta();
+        time_ -= step_fact_ * Object::GetDelta();
         i_step_ -= 1;
       }
-      midstep = true;
+      params_.on_midstep = i_step_ % inv_step_fact_;
       Object::SetDelta(0.5 * Object::GetDelta());
       delta_diff = params_.delta - Object::GetDelta();
       if (Object::GetDelta() < 1e-12) {
         Logger::Warning(
             "Dynamic delta has become ridiculously tiny! (%2.14f) Likely an"
-            " interaction error occurred. Triggering an early exit. %d",
-            Object::GetDelta(), i_step_);
+            " interaction error occurred. Triggering an early exit. %f",
+            Object::GetDelta(), step_fact_*i_step_);
         return;
       }
       continue;
@@ -101,8 +99,6 @@ void Simulation::RunSimulation() {
       Logger::Info("Early exit triggered. Ending simulation.");
       return;
     }
-
-    midstep = !midstep;
   }
 }
 
@@ -112,7 +108,7 @@ void Simulation::RunSimulation() {
  * in a single line printed to standard output. */
 void Simulation::PrintComplete() {
   long iteration = params_.i_step * 10;
-  long steps = params_.n_steps;
+  long steps = params_.n_steps * inv_step_fact_;
   if (iteration % steps == 0) {
     Logger::Info("%d%% complete", 10 * iteration / steps);
     if (params_.dynamic_timestep) {
@@ -120,7 +116,7 @@ void Simulation::PrintComplete() {
       Logger::Info("Current timestep: %2.10f", Object::GetDelta());
     }
   }
-  if (i_step_ == log_interval_ + 1) {
+  if (i_step_ == inv_step_fact_*(log_interval_ + 1)) {
     Logger::Info("%d steps completed", log_interval_);
     log_interval_ = (int)floor(2 * log_interval_);
     if (params_.dynamic_timestep) {
@@ -128,7 +124,7 @@ void Simulation::PrintComplete() {
       Logger::Info("Current timestep: %2.10f", Object::GetDelta());
     }
   }
-  Logger::Trace("*****Step %d*****", i_step_);
+  Logger::Trace("*****Step %f*****", i_step_ * step_fact_);
 }
 
 /* Update the positions of all objects in the system using numerical
@@ -158,7 +154,7 @@ void Simulation::ZeroForces() {
 /* Update system pressure, volume and rescale system size if necessary,
  * handling periodic boundaries in a sane way. */
 void Simulation::Statistics() {
-  if (params_.i_step % params_.n_thermo == 0 &&
+  if (params_.i_step % (inv_step_fact_*params_.n_thermo) == 0 &&
       params_.i_step != params_.prev_step && params_.i_step > 0) {
     Logger::Debug("Calculating system pressure and volume");
     /* Calculate system pressure from stress tensor */
@@ -219,6 +215,8 @@ void Simulation::InitSimulation() {
   ix_mgr_.InitInteractions();
   InsertSpecies(params_.load_checkpoint, params_.load_checkpoint);
   InitOutputs();
+  step_fact_ = params_.no_midstep ? 1. : .5;
+  inv_step_fact_ = params_.no_midstep ? 1 : 2;
   if (params_.graph_flag) {
     InitGraphics();
   }
@@ -263,7 +261,7 @@ void Simulation::InitGraphics() {
   if (params_.movie_flag) {
     // Record bmp image of frame into movie_directory
     grabber(graphics_.windx_, graphics_.windy_, params_.movie_directory,
-            (int)params_.i_step / params_.n_graph);
+            (int)params_.i_step / (inv_step_fact_*params_.n_graph));
   }
 #endif
 }
@@ -495,7 +493,7 @@ void Simulation::ClearSpecies() {
 /* Update the OpenGL graphics window */
 void Simulation::Draw(bool single_frame) {
 #ifndef NOGRAPH
-  if (params_.graph_flag && params_.i_step % params_.n_graph == 0 &&
+  if (params_.graph_flag && params_.i_step % (inv_step_fact_*params_.n_graph) == 0 &&
       params_.i_step != params_.prev_step) {
     Logger::Trace("Drawing graphable objects");
     /* Get updated object positions and orientations */
@@ -551,7 +549,7 @@ void Simulation::WriteOutputs() {
   ix_mgr_.WriteOutputs();
   /* If we are analyzing run time and this is the last step, record final time
    * here. */
-  if (params_.time_analysis && params_.i_step == params_.n_steps) {
+  if (params_.time_analysis && params_.i_step == inv_step_fact_*params_.n_steps) {
     double cpu_final_time = cpu_time();
     double cpu_time = cpu_final_time - cpu_init_time_;
     Logger::Info("CPU Time for Initialization: %2.6f", cpu_init_time_);
@@ -586,6 +584,8 @@ void Simulation::InitProcessing(run_options run_opts) {
      outputs */
   params_.load_checkpoint = 0;
 
+  step_fact_ = params_.no_midstep ? 1. : .5;
+  inv_step_fact_ = params_.no_midstep ? 1 : 2;
   space_.Init(&params_);
   InitObjects();
   cortex_ = new Cortex(rng_->GetSeed());
@@ -627,9 +627,9 @@ void Simulation::InitProcessing(run_options run_opts) {
 void Simulation::RunProcessing(run_options run_opts) {
   Logger::Info("Processing outputs for %s", run_name_.c_str());
 
-  for (i_step_ = 0; i_step_ <= params_.n_steps; ++i_step_) {
+  for (i_step_ = 1; i_step_ <= (params_.n_steps*inv_step_fact_); ++i_step_) {
     params_.i_step = i_step_;
-    time_ = params_.i_step * params_.delta;
+    time_ = params_.i_step * params_.delta * step_fact_;
     PrintComplete();
     if (early_exit) {
       break;
@@ -640,14 +640,14 @@ void Simulation::RunProcessing(run_options run_opts) {
       ix_mgr_.Convert();
       continue;
     }
-    if (run_opts.analysis_flag && params_.i_step >= params_.n_steps_equil) {
+    if (run_opts.analysis_flag && params_.i_step >= (inv_step_fact_*params_.n_steps_equil)) {
       bool struct_update = false;
       /* Check if we are running any species analysis to determine whether we
        * run structure analysis */
       for (auto it = species_.begin(); it != species_.end(); ++it) {
         if (((*it)->GetPositFlag() &&
-             params_.i_step % (*it)->GetNPosit() == 0) ||
-            ((*it)->GetSpecFlag() && params_.i_step % (*it)->GetNSpec() == 0)) {
+             params_.i_step % (inv_step_fact_*(*it)->GetNPosit()) == 0) ||
+            ((*it)->GetSpecFlag() && params_.i_step % (inv_step_fact_*(*it)->GetNSpec()) == 0)) {
           struct_update = true;
           break;
         }
@@ -656,9 +656,9 @@ void Simulation::RunProcessing(run_options run_opts) {
         ix_mgr_.InteractionAnalysis();
         for (auto it = species_.begin(); it != species_.end(); ++it) {
           if (((*it)->GetPositFlag() &&
-               params_.i_step % (*it)->GetNPosit() == 0) ||
+               params_.i_step % (inv_step_fact_*(*it)->GetNPosit()) == 0) ||
               ((*it)->GetSpecFlag() &&
-               params_.i_step % (*it)->GetNSpec() == 0)) {
+               params_.i_step % (inv_step_fact_*(*it)->GetNSpec() == 0))) {
             (*it)->RunAnalysis();
           }
         }
@@ -670,9 +670,9 @@ void Simulation::RunProcessing(run_options run_opts) {
   }
   Draw(run_opts.single_frame);
   early_exit = false;
-  Logger::Info("Early exit triggered on step %d. Ending simulation.",
-               params_.i_step);
-  if (run_opts.analysis_flag && i_step_ > params_.n_steps_equil) {
+  Logger::Info("Early exit triggered on step %f. Ending simulation.",
+               params_.i_step*step_fact_);
+  if (run_opts.analysis_flag && i_step_ > (inv_step_fact_*params_.n_steps_equil)) {
     for (auto it = species_.begin(); it != species_.end(); ++it) {
       (*it)->FinalizeAnalysis();
     }

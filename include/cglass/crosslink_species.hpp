@@ -13,7 +13,6 @@ typedef std::vector<Crosslink>::iterator xlink_iterator;
 class CrosslinkSpecies : public Species<Crosslink, species_id::crosslink> {
 private:
   bool *update_;
-  bool midstep_ = true;
   std::string checkpoint_file_;
   double *obj_size_; // Total area/length of all the objects in the system
   double xlink_concentration_;
@@ -62,6 +61,7 @@ public:
   void UpdatePositions();
   void UpdateBindRate();
   void CleanUp();
+  void ClearNeighbors();
   void Draw(std::vector<graph_struct *> &graph_array);
   void BindCrosslinkObj(Object *obj);
   void AddNeighborToAnchor(Object *anchor, Object *neighbor);

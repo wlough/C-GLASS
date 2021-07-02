@@ -7,7 +7,6 @@
 class SpherocylinderSpecies
     : public Species<Spherocylinder, species_id::spherocylinder> {
 protected:
-  bool midstep_;
   double **pos0_, **u0_, *msd_, *msd_err_, *vcf_, *vcf_err_;
   int time_, time_avg_interval_, n_samples_;
   std::fstream diff_file_;
