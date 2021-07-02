@@ -17,9 +17,8 @@ void SpindleSpecies::Init(std::string spec_name, ParamsParser &parser) {
 
 void SpindleSpecies::UpdatePositions() {
   for (auto it = members_.begin(); it != members_.end(); ++it) {
-    it->UpdatePosition(midstep_);
+    it->UpdatePosition();
   }
-  midstep_ = !midstep_;
 }
 
 void SpindleSpecies::ArrangeMembers() {

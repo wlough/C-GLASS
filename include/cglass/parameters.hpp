@@ -137,7 +137,6 @@ struct species_parameters<species_id::spherocylinder>
     : public species_base_parameters {
   bool diffusion_analysis = false;
   int n_diffusion_samples = 1;
-  bool midstep = false;
 };
 typedef species_parameters<species_id::spherocylinder> spherocylinder_parameters;
 
@@ -218,6 +217,7 @@ struct system_parameters {
   double system_radius = 100;
   int n_steps = 1000000;
   int i_step = 0;
+  bool on_midstep = false;
   int prev_step = 0;
   double delta = 0.001;
   bool dynamic_timestep = false;

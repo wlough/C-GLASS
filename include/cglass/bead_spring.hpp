@@ -40,7 +40,6 @@ public:
   // void DiffusionValidationInit();
   virtual void Integrate(bool midstep);
   // virtual void Draw(std::vector<graph_struct*> * graph_array);
-  virtual void UpdatePosition() {}
   virtual void UpdatePosition(bool midstep);
   double const GetLength() { return length_; }
   double const GetDriving() { return driving_factor_; }

@@ -20,6 +20,8 @@ private:
   int n_checkpoint_;
   int n_thermo_;
   int reduce_factor_ = 1;
+  double step_fact_;
+  int inv_step_fact_;
   std::string run_name_;
   system_parameters *params_;
   std::vector<T *> *species_;
@@ -62,6 +64,8 @@ void OutputManagerBase<T>::Init(system_parameters *params,
   n_posit_ = n_spec_ = n_checkpoint_ = ABS((int)params_->n_steps);
   n_thermo_ = params_->n_thermo;
   thermo_flag_ = params_->thermo_flag;
+  step_fact_ = params_->no_midstep ? 1. : .5;
+  inv_step_fact_ = params_->no_midstep ? 1 : 2;
 
   if (run_opts) {
     reduce_flag_ = run_opts->reduce_flag;
@@ -117,18 +121,21 @@ void OutputManagerBase<T>::Init(system_parameters *params,
 }
 
 template <class T> void OutputManagerBase<T>::WriteOutputs() {
-  if (posit_flag_ && (params_->i_step % n_posit_ == 0)) {
+  if (posit_flag_ && (params_->i_step % (inv_step_fact_*n_posit_) == 0)) {
     WritePosits();
   }
-  if (spec_flag_ && params_->i_step != params_->prev_step && (params_->i_step % n_spec_ == 0)) {
+  if (spec_flag_ && params_->i_step != params_->prev_step && 
+     (params_->i_step % (inv_step_fact_*n_spec_) == 0)) {
     Logger::Debug("Writing spec files");
     WriteSpecs();
   }
-  if (checkpoint_flag_ && params_->i_step != params_->prev_step && (params_->i_step % n_checkpoint_ == 0)) {
+  if (checkpoint_flag_ && params_->i_step != params_->prev_step && 
+     (params_->i_step % (inv_step_fact_*n_checkpoint_) == 0)) {
     Logger::Debug("Writing checkpoint files");
     WriteCheckpoints();
   }
-  if (thermo_flag_ && params_->i_step != params_->prev_step && (params_->i_step % n_thermo_ == 0)) {
+  if (thermo_flag_ && params_->i_step != params_->prev_step && 
+     (params_->i_step % (inv_step_fact_*n_thermo_) == 0)) {
     Logger::Debug("Writing thermo file");
     WriteThermo();
   }
@@ -138,7 +145,7 @@ template <class T> void OutputManagerBase<T>::WritePosits() {
   for (auto spec = species_->begin(); spec != species_->end(); ++spec) {
     if ((*spec)->GetPositFlag() &&
         params_->i_step != params_->prev_step &&
-        params_->i_step % (*spec)->GetNPosit() == 0) {
+        params_->i_step % (inv_step_fact_*(*spec)->GetNPosit()) == 0) {
       (*spec)->WritePosits();
     }
   }
@@ -146,7 +153,8 @@ template <class T> void OutputManagerBase<T>::WritePosits() {
 
 template <class T> void OutputManagerBase<T>::WriteSpecs() {
   for (auto spec = species_->begin(); spec != species_->end(); ++spec) {
-    if ((*spec)->GetSpecFlag() && params_->i_step != params_->prev_step && params_->i_step % (*spec)->GetNSpec() == 0) {
+    if ((*spec)->GetSpecFlag() && params_->i_step != params_->prev_step 
+       && params_->i_step % (inv_step_fact_*(*spec)->GetNSpec()) == 0) {
       (*spec)->WriteSpecs();
     }
   }
@@ -156,7 +164,7 @@ template <class T> void OutputManagerBase<T>::WriteCheckpoints() {
   for (auto spec = species_->begin(); spec != species_->end(); ++spec) {
     if ((*spec)->GetCheckpointFlag() &&
         params_->i_step != params_->prev_step &&
-        params_->i_step % (*spec)->GetNCheckpoint() == 0) {
+        params_->i_step % (inv_step_fact_*(*spec)->GetNCheckpoint()) == 0) {
       (*spec)->WriteCheckpoints();
     }
   }
@@ -213,7 +221,7 @@ template <class T> void OutputManagerBase<T>::ReadInputs() {
   for (auto spec = species_->begin(); spec != species_->end(); ++spec) {
     if (posits_only_ && (*spec)->GetPositFlag() &&
         params_->i_step != params_->prev_step &&
-        params_->i_step % (*spec)->GetNPosit() == 0) {
+        params_->i_step % (inv_step_fact_*(*spec)->GetNPosit()) == 0) {
       (*spec)->ReadPosits();
     }
     // In the case that we only want to consider posits, but we only have spec
@@ -221,14 +229,14 @@ template <class T> void OutputManagerBase<T>::ReadInputs() {
     else if (posits_only_ && !(*spec)->GetPositFlag() &&
              (*spec)->GetSpecFlag() &&
              params_->i_step != params_->prev_step &&
-             params_->i_step % (*spec)->GetNSpec() == 0) {
+             params_->i_step % (inv_step_fact_*(*spec)->GetNSpec()) == 0) {
       (*spec)->ReadPositsFromSpecs();
     } else if (!posits_only_ && (*spec)->GetSpecFlag() &&
              params_->i_step != params_->prev_step &&
-               params_->i_step % (*spec)->GetNSpec() == 0) {
+               params_->i_step % (inv_step_fact_*(*spec)->GetNSpec()) == 0) {
       (*spec)->ReadSpecs();
       if (params_->checkpoint_from_spec && params_->i_step %
-          (*spec)->GetNCheckpoint() == 0 &&
+          (inv_step_fact_*(*spec)->GetNCheckpoint()) == 0 &&
           params_->i_step != params_->prev_step) {
         (*spec)->WriteCheckpoints();
       }
@@ -246,16 +254,19 @@ template <class T> void OutputManagerBase<T>::WriteReduce() {
   for (auto spec = species_->begin(); spec != species_->end(); ++spec) {
     if ((*spec)->GetPositFlag() &&
         params_->i_step != params_->prev_step &&
-        params_->i_step % (reduce_factor_ * (*spec)->GetNPosit()) == 0) {
+        params_->i_step % (inv_step_fact_ * reduce_factor_ * 
+        (*spec)->GetNPosit()) == 0) {
       (*spec)->WritePosits();
     }
     if (!posits_only_ && (*spec)->GetSpecFlag() &&
         params_->i_step != params_->prev_step &&
-        params_->i_step % (reduce_factor_ * (*spec)->GetNSpec()) == 0) {
+        params_->i_step % (inv_step_fact_ * reduce_factor_ 
+        * (*spec)->GetNSpec()) == 0) {
       (*spec)->WriteSpecs();
     }
   }
-  if (thermo_flag_ && params_->i_step != params_->prev_step && params_->i_step % (reduce_factor_ * n_thermo_) == 0) {
+  if (thermo_flag_ && params_->i_step != params_->prev_step 
+     && params_->i_step % (inv_step_fact_ * reduce_factor_ * n_thermo_) == 0) {
     WriteThermo();
   }
 }
@@ -280,7 +291,7 @@ template <class T> void OutputManagerBase<T>::WriteTime() {
   fname.append(".time");
   time_file_.open(fname, std::ios::out);
   time_file_ << "i_step n_steps delta\n";
-  time_file_ << params_->i_step << " " << params_->n_steps << " "
+  time_file_ << step_fact_*(params_->i_step) << " " << params_->n_steps << " "
              << params_->delta << "\n";
   time_file_.close();
 }
@@ -291,8 +302,8 @@ template <class T> void OutputManagerBase<T>::Convert() {
   for (auto spec = species_->begin(); spec != species_->end(); ++spec) {
     if ((*spec)->GetSpecFlag() && (*spec)->GetSpecValid() &&
              params_->i_step != params_->prev_step &&
-             params_->i_step % (*spec)->GetNSpec() == 0) {
-      (*spec)->ConvertSpecs(params_->i_step * params_->delta);
+             params_->i_step % (inv_step_fact_*(*spec)->GetNSpec()) == 0) {
+      (*spec)->ConvertSpecs(params_->i_step * params_->delta * step_fact_);
     }
   }
 }

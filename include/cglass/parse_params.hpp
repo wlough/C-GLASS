@@ -32,6 +32,8 @@ system_parameters parse_system_params(YAML::Node &node) {
     params.n_steps = it->second.as<int>();
     } else if (param_name.compare("i_step")==0) {
     params.i_step = it->second.as<int>();
+    } else if (param_name.compare("on_midstep")==0) {
+    params.on_midstep = it->second.as<bool>();
     } else if (param_name.compare("prev_step")==0) {
     params.prev_step = it->second.as<int>();
     } else if (param_name.compare("delta")==0) {
@@ -553,8 +555,6 @@ species_base_parameters *parse_species_params(std::string sid,
       params.diffusion_analysis = jt->second.as<bool>();
       } else if (param_name.compare("n_diffusion_samples")==0) {
       params.n_diffusion_samples = jt->second.as<int>();
-      } else if (param_name.compare("midstep")==0) {
-      params.midstep = jt->second.as<bool>();
       } else {
         Logger::Warning("Unrecognized %s parameter: '%s'", sid.c_str(), param_name.c_str());
       }

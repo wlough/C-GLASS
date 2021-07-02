@@ -30,7 +30,6 @@ private:
                            " seed: 314159,"
                            " n_steps: 100000,"
                            " n_dim: 2,"
-                           " no_midstep: true,"
                            " system_radius: 20,"
                            " rigid_filament: [{name: rig1, num: 1, length: 5, stationary_flag: true,"
                              " insertion_type: custom, insert_file: fil1.yaml},"

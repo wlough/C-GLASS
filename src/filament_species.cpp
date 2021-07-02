@@ -155,6 +155,7 @@ void FilamentSpecies::UpdatePositions() {
     it->UpdatePosition(midstep_);
 #endif
 
+  // Richelle check- shouldn't this be only if using midsteps?
   midstep_ = !midstep_;
   if (sparams_.error_analysis) {
     RunErrorAnalysis();

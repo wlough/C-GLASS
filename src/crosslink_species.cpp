@@ -420,10 +420,7 @@ void CrosslinkSpecies::GetAnchorInteractors(std::vector<Object *> &ixors) {
 void CrosslinkSpecies::UpdatePositions() {
   /* Only do this every other step (assuming flexible filaments with midstep)
    */
-  if (params_->no_midstep) {
-    UpdateBoundCrosslinks();
-    CalculateBindingFree();
-  } else if (params_->i_step % 2 == 0) {
+  if (!params_->on_midstep) {
     /* First update bound crosslinks state and positions */
     UpdateBoundCrosslinks();
     /* Calculate implicit binding of crosslinks from solution */
@@ -433,8 +430,10 @@ void CrosslinkSpecies::UpdatePositions() {
        We do this every half step only, because the fullstep tether forces are
        handled by the crosslink update on the full step */
     ApplyCrosslinkTetherForces();
+    // Add a step to clear neighbors on the midstep- otherwise they only get
+    // cleared on the full step and are double-counted
+    ClearNeighbors();
   }
-  midstep_ = !midstep_;
   // for (auto it=members_.begin(); it!=members_.end(); ++it) {
   // it->SanityCheck();
   //}
@@ -650,6 +649,13 @@ void CrosslinkSpecies::ReadSpecs() {
   }
   for (auto it = members_.begin(); it != members_.end(); ++it) {
     it->ReadSpec(ispec_file_);
+  }
+}
+
+void CrosslinkSpecies::ClearNeighbors() {
+  // Clear all anchor neighborlists.
+  for (auto it = members_.begin(); it != members_.end(); ++it) {
+    it->ClearNeighbors();
   }
 }
 

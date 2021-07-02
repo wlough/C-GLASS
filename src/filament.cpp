@@ -1032,7 +1032,7 @@ void Filament::ApplyInteractionForces() {
     sites_[i + 1].AddForce(pure_torque);
     // The driving factor is a force per unit length,
     // so need to multiply by bond length to get f_dr on bond
-    if (params_->i_step > eq_steps_) {
+    if (params_->i_step > (eq_steps_*(params_->no_midstep?1:2))) {
       double f_dr[3] = {};
       double mag = 0.5 * driving_factor_ * bond_length_;
       if (sparams_->drive_from_bond_center) {
