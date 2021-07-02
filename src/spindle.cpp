@@ -141,8 +141,7 @@ void Spindle::ResetSitePositions() {
   }
 }
 
-void Spindle::UpdatePosition(bool midstep) {
-  midstep_ = midstep;
+void Spindle::UpdatePosition() {
   ApplyForcesTorques();
 #ifdef ENABLE_OPENMP
   int max_threads = omp_get_max_threads();
@@ -163,25 +162,25 @@ void Spindle::UpdatePosition(bool midstep) {
 #pragma omp for
     for (int i = 0; i < max_threads; ++i) {
       for (auto it = chunks[i].first; it != chunks[i].second; ++it) {
-        it->UpdatePosition(midstep);
+        it->UpdatePosition(params_->on_midstep);
       }
     }
   }
 #else
   for (filament_iterator it = filaments_.begin(); it != filaments_.end();
        ++it) {
-    it->UpdatePosition(midstep);
+    it->UpdatePosition(params_->on_midstep);
   }
 #endif
   SetPrevPosition(position_);
-  if (!midstep_ && !sparams_->stationary_flag) {
+  if (!params_->on_midstep && !sparams_->stationary_flag) {
     Integrate();
   }
 }
 
 void Spindle::ApplyForcesTorques() {
   ApplyNucleationSiteForces();
-  if (!midstep_) {
+  if (!params_->on_midstep) {
     ApplySpindleForces();
   }
 }
@@ -244,7 +243,7 @@ void Spindle::Draw(std::vector<graph_struct *> &graph_array) {
 }
 
 void Spindle::UpdateDrTot() {
-  if (midstep_) {
+  if (params_->on_midstep) {
     return;
   }
   Object::UpdateDrTot();

@@ -420,10 +420,7 @@ void CrosslinkSpecies::GetAnchorInteractors(std::vector<Object *> &ixors) {
 void CrosslinkSpecies::UpdatePositions() {
   /* Only do this every other step (assuming flexible filaments with midstep)
    */
-  if (params_->no_midstep) {
-    UpdateBoundCrosslinks();
-    CalculateBindingFree();
-  } else if (params_->i_step % 2 == 0) {
+  if (!params_->on_midstep) {
     /* First update bound crosslinks state and positions */
     UpdateBoundCrosslinks();
     /* Calculate implicit binding of crosslinks from solution */

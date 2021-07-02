@@ -34,10 +34,10 @@ void Simulation::RunSimulation() {
    we want these to represent filaments in their fullstep configurations. We
    also update other objects' positions on every even step too (e.g. xlinks). */
   double delta_diff = 0;
-  bool midstep = true;
   time_ = 0;
   params_.i_step = 0;
   for (i_step_ = 1; params_.i_step <= (inv_step_fact_*params_.n_steps); ++i_step_) {
+    params_.on_midstep = i_step_ % inv_step_fact_;
     time_ += step_fact_ * Object::GetDelta();
     params_.i_step = i_step_;
     if (params_.dynamic_timestep) {
@@ -58,14 +58,15 @@ void Simulation::RunSimulation() {
         Logger::Error(
             "Dynamic timestep triggered on the first simulation step");
       }
-      if (midstep && !params_.no_midstep) {
+      // Go back a full step if on midstep (only happens if midstep_=false)
+      if (params_.on_midstep) {
         time_ -= Object::GetDelta();
         i_step_ -= 2;
       } else {
         time_ -= step_fact_ * Object::GetDelta();
         i_step_ -= 1;
       }
-      midstep = true;
+      params_.on_midstep = i_step_ % inv_step_fact_;
       Object::SetDelta(0.5 * Object::GetDelta());
       delta_diff = params_.delta - Object::GetDelta();
       if (Object::GetDelta() < 1e-12) {
@@ -98,8 +99,6 @@ void Simulation::RunSimulation() {
       Logger::Info("Early exit triggered. Ending simulation.");
       return;
     }
-
-    midstep = !midstep;
   }
 }
 

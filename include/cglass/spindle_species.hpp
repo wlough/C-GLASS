@@ -6,7 +6,6 @@
 
 class SpindleSpecies : public Species<Spindle, species_id::spindle> {
 protected:
-  bool midstep_ = true;
   filament_parameters fparams_;
 
 public:
