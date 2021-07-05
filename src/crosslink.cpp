@@ -165,11 +165,34 @@ void Crosslink::DoublyKMC() {
   double f_dep = fdep_length_;
   if (k_spring_compress_ >= 0 && tether_stretch < 0) {
     e_dep *= 0.5 * k_spring_compress_ * SQR(tether_stretch);
-    f_dep *= k_spring_compress_ * tether_stretch;
+    f_dep *= -k_spring_compress_ * tether_stretch;
   } else {
     e_dep *= 0.5 * k_spring_ * SQR(tether_stretch);
     f_dep *= k_spring_ * tether_stretch;
   }
+  
+
+  if (dot_product(n_dim_, force_, orientation_)<0) {
+	  f_dep=-1;//-1;
+  }
+  else{
+
+	  f_dep=1;
+  }
+  Logger::Warning("O_x %f", anchors_[0].orientation_[0]);
+  Logger::Warning("O_y %f", orientation_[1]);
+  Logger::Warning("O_z %f", orientation_[2]);
+ 
+
+  Logger::Warning("F_x %f", force_[0]);
+  Logger::Warning("F_y %f", force_[1]);
+  Logger::Warning("F_z %f", force_[2]);
+  
+  Logger::Warning("Dot Product %f", dot_product(n_dim_, force_, orientation_));
+  //if (f_dep<0) {
+  //f_dep=0;
+  //}
+
   double unbind_prob = anchors_[0].GetOffRate() * delta_ * exp(e_dep + f_dep);
   tracker_->TrackDS(unbind_prob);
   double roll = rng_.RandomUniform();

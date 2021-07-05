@@ -119,15 +119,15 @@ void Anchor::UpdatePosition() {
   bool diffuse = GetDiffusionConst() > 0 ? true : false;
   bool walker = abs(GetMaxVelocity()) > input_tol ? true : false;
   double angle_ = 0;
-  angle_ = force_[1]/force_[0];
-  
-  if (angle_ <= 0){
-  angle_ *= -1;
-  }
+  //angle_ = force_[1]/force_[0];
+
+  //if (angle_ <= 0){
+  //angle_ *= -1;
+  //}
 	
-  if (angle_ <= 0.5){
-  walker= false;
-  }
+  //if (angle_ <= 0.5){
+  //walker= false;
+  //}
 
   if (!bound_ || static_flag_ || !rod_ || (!diffuse && !walker)) {
     return;
@@ -179,7 +179,14 @@ void Anchor::Walk() {
     // Only consider projected force in direction of stepping
     double const force_proj =
         step_direction_ * dot_product(n_dim_, force_, orientation_);
-    // Linear force-velocity relationship
+    Logger::Warning("Anchor dot %f", dot_product(n_dim_, force_, orientation_));
+ Logger::Warning("F_x %f", force_[0]);
+  Logger::Warning("F_y %f", force_[1]);
+   Logger::Warning("F_z %f", force_[2]);
+  Logger::Warning("O_x %f", orientation_[0]);  
+   Logger::Warning("O_y %f",  orientation_[1]); 
+   Logger::Warning("O_z %f",  orientation_[2]); 
+   // Linear force-velocity relationship
     double fdep = 1. + (force_proj / f_stall_);
     if (fdep > 1) {
       fdep = 1;
@@ -566,6 +573,8 @@ void Anchor::ConvertSpec(std::fstream &ispec, std::fstream &otext) {
         << " " << orientation[2] << " " << mesh_lambda << " " << comp_id << std::endl;
 }
 
+
+
 void Anchor::ReadSpec(std::fstream &ispec) {
   ispec.read(reinterpret_cast<char *>(&bound_), sizeof(bool));
   ispec.read(reinterpret_cast<char *>(&active_), sizeof(bool));
@@ -587,6 +596,8 @@ void Anchor::ReadSpec(std::fstream &ispec) {
 void Anchor::SetStatic(bool static_flag) { static_flag_ = static_flag; }
 void Anchor::SetState(bind_state state) { state_ = state; }
 
+
+
 const double Anchor::GetOnRate() const {
   switch (state_) {
   case +bind_state::unbound:
@@ -605,6 +616,11 @@ const double Anchor::GetOnRate() const {
     Logger::Error("State of anchor is not a bind_state enum.");
     return 0;
   }
+}
+
+
+const double Anchor::GetOrientation() const {
+  return orientation_; 
 }
 
 const double Anchor::GetOffRate() const {

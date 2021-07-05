@@ -3,13 +3,14 @@ seed: 3529045
 thermo_flag: false
 boundary: 0
 n_dim: 2
+no_midstep: true
 n_graph: 100
 run_name: test_run
 delta: 0.0001
 wca_eps: 1
 checkpoint_flag: true
 graph_flag: true
-n_steps: 100000000 #100000000
+n_steps: 20000000 #100000000
 n_runs: 1
 n_thermo: 100
 n_periodic: 0
@@ -40,19 +41,19 @@ crosslink:
     diffusion_s: 5.76
     force_dep_vel_flag: true
     k_spring_compress: 31.55
-    n_spec: 100000
+    n_spec: 10000
     tether_diameter: 0.3
-    begin_with_bound_crosslinks: 10
+    begin_with_bound_crosslinks: 0
     diameter: .1
     rest_length: 2.28
-    concentration: 0.0015
+    concentration: 0.042958
     r_capture: 10
-    k_on_d: 0.0034
-    k_on_s: 0.0017
-    k_off_s: 0.00356
-    k_off_d: 0.00178
+    k_on_d: 0.05
+    k_on_s: 0.05
+    k_off_s: 0.05
+    k_off_d: 0.05
     static_flag: false
-    polar_affinity: 11
+    polar_affinity: 1
     k_spring: 31.55
     tether_draw_type: fixed
     plus_end_pausing: true
@@ -62,48 +63,13 @@ crosslink:
     diffusion_d: .39
     use_binding_volume: false
     infinite_reservoir_flag: true
-    linear_bind_site_density: 3.125
+    linear_bind_site_density: 1
     velocity_s: 0
     velocity_d: 0
     energy_dep_factor: 0
     force_dep_length: 0
     f_stall: 1000
     tether_color: 1.5 
-  - name: kin5
-    draw_type: orientation
-    diffusion_s: 5.76
-    force_dep_vel_flag: true
-    k_spring_compress: 45.576
-    n_spec: 100000
-    tether_diameter: 0.3
-    begin_with_bound_crosslinks: 50
-    diameter: .1
-    rest_length: 3.12
-    concentration: 0.1
-    r_capture: 10
-    k_on_d: 0.092
-    k_on_s: 0.04628
-    k_off_s: 0.092
-    k_off_d: 0.001 #0.04628
-    static_flag: false
-    polar_affinity: 1
-    k_spring: 45.576
-    tether_draw_type: fixed
-    plus_end_pausing: true
-    minus_end_pausing: true
-    step_direction: 1
-    spec_flag: true
-    diffusion_d: 0.005
-    use_binding_volume: false
-    infinite_reservoir_flag: true
-    linear_bind_site_density: 3.125
-    velocity_s: 0
-    velocity_d: 0.133856
-    energy_dep_factor: 0
-    force_dep_length: .2 #0.04114
-    f_stall: 40
-    color: 2
-    tether_color: .5
 n_random: 1
 species:
   name: species

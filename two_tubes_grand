@@ -1,0 +1,87 @@
+movie_flag: false
+seed: 4857205
+thermo_flag: false
+boundary: 0
+n_dim: 2
+n_graph: 100
+run_name: forced_integral_KMC
+delta: 0.0001
+wca_eps: 1
+checkpoint_flag: true
+graph_flag: true
+n_steps: 20000000
+n_runs: 1
+movie_directory: ~/simcore/params/daniel_params/movie
+n_thermo: 100
+n_periodic: 0
+system_radius: 55
+soft_potential_mag: 300
+potential: wca
+interaction_flag: true
+f_cutoff: 100000
+stoch_flag: true
+rigid_filament:
+  insertion_type: custom
+  packing_fraction: -1
+  min_length: 0
+  max_length: 110
+  diameter: 1
+  overlap: false
+  n_equil: 0
+  num: 2
+  draw_type: fixed
+  insert_file: params/daniel_params/insert_files/two_tubes_stiff.yaml
+  color: 3
+  length: 30
+  spec_flag: true
+  n_spec: 1000
+  stationary_flag: true
+crosslink:
+  diffusion_s: 5.76
+  force_dep_vel_flag: true
+  k_spring_compress: -1
+  n_spec: 1000
+  tether_diameter: 0.3
+  k_off_s: 2
+  begin_with_crosslinks: 0
+  diameter: .1
+  k_off_d: 2
+  rest_length: 2.28
+  concentration: .0005
+  draw_type: bw
+  r_capture: 10
+  k_on_d: 10
+  k_on_s: 10
+  static_flag: false
+  polar_affinity: 1
+  k_spring: 31.55
+  tether_draw_type: orientation
+  end_pausing: true
+  step_direction: 0
+  spec_flag: true
+  diffusion_d: .39
+  use_binding_volume: true
+  infinite_reservoir_flag: true
+  bind_site_density: 3.125
+  velocity_s: 0
+  velocity_d: 10
+  energy_dep_factor: 0
+  force_dep_length: 0
+  f_stall: 100
+n_random: 1
+species:
+  name: species
+  overlap: false
+  num: 0
+  diameter: 1
+  insertion_type: random
+  length: 0
+  insert_file: none
+  draw_type: orientation
+  color: 0
+  posit_flag: false
+  spec_flag: false
+  n_posit: 100
+  n_spec: 100
+n_steps_equil: 0
+

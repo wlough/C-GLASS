@@ -45,7 +45,7 @@ if $build; then
         docker build --no-cache -f docker/Dockerfile_experimental -t jeffmm/cglass:experimental docker
     else
         echo "Building docker image"
-        docker build --no-cache -t jeffmm/cglass:latest docker
+        docker build --no-cache -t dasteck/cglass:latest docker
     fi
 elif $experimental; then
     echo "Launching experimental C-GLASS docker container"
@@ -53,5 +53,5 @@ elif $experimental; then
 # Otherwise, just start up the containers
 else
   echo "Launching C-GLASS docker container"
-  docker run --rm -itd -v "${PWD}":/mnt --name "cglass_latest" jeffmm/cglass bash
+  docker run --rm -itd -v "${PWD}":/mnt --name "cglass_latest" dasteck/cglass bash
 fi
