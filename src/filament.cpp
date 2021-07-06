@@ -421,6 +421,7 @@ void Filament::UpdatePosition(bool midstep) {
 void Filament::Integrate() {
   CalculateAngles();
   CalculateTangents();
+  // Richelle fix- should happen every time when no_midstep
   if (midstep_) {
     ConstructUnprojectedRandomForces();
     GeometricallyProjectRandomForces();

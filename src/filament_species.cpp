@@ -248,6 +248,7 @@ void FilamentSpecies::PopMember() {
 
 void FilamentSpecies::ResetPreviousPositions() {
   Species::ResetPreviousPositions();
+  // Make midstep true in ResetPreviousPositions species, remove this
   midstep_ = true;
 }
 
