@@ -12,6 +12,7 @@ class BrRod : public Object {
   double diffusion_perp_ = 0;
   double diffusion_rot_ = 0;
   double body_frame_[6];
+  bool zero_temperature_ = false;
   void InsertRod(std::string insertion_type, double buffer = -1);
   void SetDiffusion();
   void GetBodyFrame();

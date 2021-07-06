@@ -18,6 +18,7 @@ void Spindle::SetParameters() {
   spring_length_ = sparams_->spring_length;
   alignment_potential_ = (sparams_->alignment_potential ? true : false);
   spb_diameter_ = sparams_->spb_diameter;
+  zero_temperature_ = params_->zero_temperature;
   // Force spherocylinder insertion options to match spindle insertion options
   // FIXME
   SetDiffusion();

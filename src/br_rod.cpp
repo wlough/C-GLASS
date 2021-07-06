@@ -90,6 +90,7 @@ void BrRod::Integrate() {
    with std dev sqrt(2*kT*dt/gamma) where gamma is the friction
    coefficient along that direction */
 void BrRod::AddRandomDisplacement() {
+  if (zero_temperature_) return;
   // Get vector(s) orthogonal to orientation
   GetBodyFrame();
   // First handle the parallel component
@@ -113,6 +114,7 @@ void BrRod::AddRandomDisplacement() {
    random forces, and is treated as random displacement vector(s)
    orthogonal to u(t) with std dev sqrt(2*kT*dt/gamma_rot) */
 void BrRod::AddRandomReorientation() {
+  if (zero_temperature_) return;
   // Now handle the random orientation update
   for (int j = 0; j < n_dim_ - 1; ++j) {
     double mag = rng_.RandomNormal(diffusion_rot_);
