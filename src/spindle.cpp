@@ -162,14 +162,16 @@ void Spindle::UpdatePosition() {
 #pragma omp for
     for (int i = 0; i < max_threads; ++i) {
       for (auto it = chunks[i].first; it != chunks[i].second; ++it) {
-        it->UpdatePosition(params_->on_midstep);
+        // filament updates everything on midstep
+        it->UpdatePosition(params_->no_midstep?1:params_->on_midstep);
       }
     }
   }
 #else
   for (filament_iterator it = filaments_.begin(); it != filaments_.end();
        ++it) {
-    it->UpdatePosition(params_->on_midstep);
+    // filament updates everything on midstep
+    it->UpdatePosition(params_->no_midstep?1:params_->on_midstep);
   }
 #endif
   SetPrevPosition(position_);
