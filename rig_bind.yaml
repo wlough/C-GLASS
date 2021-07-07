@@ -1,0 +1,1 @@
+{rig1_receptor: {k_on_s: 5, k_off_s: 0, k_on_d: 0, k_off_d: 0, density_type: surface, bind_site_density: 0.4, single_occupancy: true}, rig2_receptor: {k_on_s: 0, k_off_s: 0, k_on_d: 100, k_off_d: 10, density_type: surface, bind_site_density: 0.4, single_occupancy: true}}

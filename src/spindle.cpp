@@ -164,7 +164,7 @@ void Spindle::UpdatePosition() {
     for (int i = 0; i < max_threads; ++i) {
       for (auto it = chunks[i].first; it != chunks[i].second; ++it) {
         // filament updates everything on midstep
-        it->UpdatePosition(params_->no_midstep?1:params_->on_midstep);
+        it->UpdatePosition();
       }
     }
   }
@@ -172,7 +172,7 @@ void Spindle::UpdatePosition() {
   for (filament_iterator it = filaments_.begin(); it != filaments_.end();
        ++it) {
     // filament updates everything on midstep
-    it->UpdatePosition(params_->no_midstep?1:params_->on_midstep);
+    it->UpdatePosition();
   }
 #endif
   SetPrevPosition(position_);

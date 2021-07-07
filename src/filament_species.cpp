@@ -148,15 +148,12 @@ void FilamentSpecies::UpdatePositions() {
 #pragma omp for
     for (int i = 0; i < max_threads; ++i)
       for (auto it = chunks[i].first; it != chunks[i].second; ++it)
-        it->UpdatePosition(midstep_);
+        it->UpdatePosition();
   }
 #else
   for (filament_iterator it = members_.begin(); it != members_.end(); ++it)
-    it->UpdatePosition(midstep_);
+    it->UpdatePosition();
 #endif
-
-  // Richelle check- shouldn't this be only if using midsteps?
-  midstep_ = !midstep_;
   if (sparams_.error_analysis) {
     RunErrorAnalysis();
   }
@@ -244,12 +241,6 @@ void FilamentSpecies::PopMember() {
     fill_volume_ -= vol;
   }
   Species::PopMember();
-}
-
-void FilamentSpecies::ResetPreviousPositions() {
-  Species::ResetPreviousPositions();
-  // Make midstep true in ResetPreviousPositions species, remove this
-  midstep_ = true;
 }
 
 const double FilamentSpecies::GetSpecLength() const {

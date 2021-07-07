@@ -14,7 +14,7 @@ protected:
   int n_members_ = 0;
   int spec_file_iterator_ = -1;
   bool spec_valid_ = true;
-  static const system_parameters *params_;
+  static system_parameters *params_;
   static const SpaceBase *space_;
   RNG rng_;
   std::fstream oposit_file_;

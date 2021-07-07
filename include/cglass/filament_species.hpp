@@ -34,7 +34,6 @@ class FilamentSpecies : public Species<Filament, species_id::filament> {
   void Init(std::string spec_name, ParamsParser &parser);
   void InitMembers();
   void PopMember();
-  void ResetPreviousPositions();
   void AddMember();
 
   void Reserve();
