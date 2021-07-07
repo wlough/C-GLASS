@@ -54,10 +54,10 @@ void Crosslink::GetAnchors(std::vector<Object *> &ixors) {
   if (IsUnbound())
     return;
   if (!static_flag_) {
-    ixors.push_back(&anchors_[0]);
+    ixors.push_back(&anchors_[bound_anchor_]);
   }
   if (IsDoubly()) {
-    ixors.push_back(&anchors_[1]);
+    ixors.push_back(&anchors_[(int)!bound_anchor_]);
   }
 }
 
