@@ -9,6 +9,7 @@ void Filament::SetParameters() {
   name_ = sparams_->name;
   draw_ = draw_type::_from_string(sparams_->draw_type.c_str());
   length_ = sparams_->length;
+  no_midstep_ = params_->no_midstep;
   /* Bending_stiffness = persistence_length*kT. Bending_stiffness is used in
      equations below for clarity. */
   bending_stiffness_ = sparams_->persistence_length;
@@ -45,7 +46,8 @@ void Filament::SetParameters() {
   driving_factor_ = sparams_->driving_factor;
   friction_ratio_ = sparams_->friction_ratio;
   zero_temperature_ = params_->zero_temperature; // don't include thermal forces
-  eq_steps_ = sparams_->n_equil;
+  // If using midstep, eq_steps_ corresponds to number of full steps.
+  eq_steps_ = sparams_->n_equil * (no_midstep_ ? 1 : 2);
   // Don't bother with equilibriating if this is a reloaded simulation
   if (params_->n_load > 0) {
     eq_steps_ = 0;
@@ -405,8 +407,7 @@ double const Filament::GetVolume() {
   }
 }
 
-void Filament::UpdatePosition(bool midstep) {
-  midstep_ = midstep;
+void Filament::UpdatePosition() {
   ApplyForcesTorques();
   if (!sparams_->stationary_flag)
     Integrate();
@@ -421,8 +422,7 @@ void Filament::UpdatePosition(bool midstep) {
 void Filament::Integrate() {
   CalculateAngles();
   CalculateTangents();
-  // Richelle fix- should happen every time when no_midstep
-  if (midstep_) {
+  if (params_->on_midstep || no_midstep_) {
     ConstructUnprojectedRandomForces();
     GeometricallyProjectRandomForces();
     UpdatePrevPositions();
@@ -847,7 +847,7 @@ void Filament::CalculateTensions() {
 }
 
 void Filament::UpdateSitePositions() {
-  double delta = (midstep_ ? 0.5 * delta_ : delta_);
+  double delta = (params_->on_midstep ? 0.5 * delta_ : delta_ );
   double f_site[3];
   // First get total forces
   // Handle end sites first
@@ -1033,7 +1033,7 @@ void Filament::ApplyInteractionForces() {
     sites_[i + 1].AddForce(pure_torque);
     // The driving factor is a force per unit length,
     // so need to multiply by bond length to get f_dr on bond
-    if (params_->i_step > (eq_steps_*(params_->no_midstep?1:2))) {
+    if (params_->i_step > eq_steps_) {
       double f_dr[3] = {};
       double mag = 0.5 * driving_factor_ * bond_length_;
       if (sparams_->drive_from_bond_center) {
@@ -1066,7 +1066,7 @@ void Filament::ApplyInteractionForces() {
 }
 
 void Filament::DynamicInstability() {
-  if (midstep_ || !dynamic_instability_flag_)
+  if (params_->on_midstep || !dynamic_instability_flag_)
     return;
   UpdatePolyState();
   GrowFilament();

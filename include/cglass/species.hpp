@@ -189,6 +189,8 @@ void Species<T, S>::ResetPreviousPositions() {
   for (auto it = members_.begin(); it != members_.end(); ++it) {
     it->ResetPreviousPosition();
   }
+  // Always reset to a midstep if using midsteps
+  if (!params_->no_midstep) params_->on_midstep = true;
 }
 
 template <typename T, unsigned char S> void Species<T, S>::AddMember(T newmem) {

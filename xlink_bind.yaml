@@ -1,0 +1,19 @@
+spindle:
+  k_on_s: 50
+  k_on_d: 0
+  density_type: linear
+  bind_site_density: 0.3
+  single_occupancy: false
+num1:
+  k_on_s: 0
+  k_on_d: 1000
+  density_type: surface
+  bind_site_density: 0.8
+  single_occupancy: true
+num1_er_d:
+  k_on_s: 0
+  k_on_d: 1000
+  density_type: surface
+  bind_site_density: 0.8
+  single_occupancy: true
+

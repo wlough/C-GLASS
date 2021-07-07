@@ -19,6 +19,7 @@ private:
   bool normalize_switch_ = true;
   bool nematic_driving_ = false;
   bool custom_set_tail_ = false;
+  bool no_midstep_ = false;
   int n_normalize_ = 0;
   int optical_trap_fixed_ = 0;
   int trapped_site_ = 0;
@@ -112,8 +113,7 @@ public:
   virtual void InsertAt(const double *const new_pos, const double *const u);
   virtual void Integrate();
   virtual void Draw(std::vector<graph_struct *> &graph_array);
-  virtual void UpdatePosition(bool midstep);
-  virtual void UpdatePosition() {}
+  virtual void UpdatePosition();
   double const GetLength() { return length_; }
   double const GetDriving() { return driving_factor_; }
   double const GetPersistenceLength() { return bending_stiffness_; }
