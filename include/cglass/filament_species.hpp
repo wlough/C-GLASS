@@ -20,7 +20,6 @@ typedef Analysis<Filament, species_id::filament> FilamentAnalysis;
 
 class FilamentSpecies : public Species<Filament, species_id::filament> {
  protected:
-  bool midstep_ = true;
   // Analysis structures
   double fill_volume_;
   double packing_fraction_;
