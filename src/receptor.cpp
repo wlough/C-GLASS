@@ -83,7 +83,7 @@ void Receptor::AddForce(const double *const force) {
 void Receptor::AddTorque(const double *const torque) {
   if (pc_object_) {
     CalcTorque();
-    pc_object_->SubTorque(torque_);
+    pc_object_->AddTorque(torque_);
   }
 }
 
