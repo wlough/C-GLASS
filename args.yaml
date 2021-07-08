@@ -1,7 +1,0 @@
-run:
-- cglass.exe
-- params.yaml
-analyze:
-- simcore_analysis
-- -s
-- ot_test_params.yaml
