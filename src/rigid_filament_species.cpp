@@ -77,10 +77,13 @@ void RigidFilamentSpecies::CustomInsert() {
       normalize_vector(r_min, n_dim);
       } else {
         Logger::Warning("Only one rigid_filament in species- setting generic constraint.");
-        double u_2[3] = {0, 0, 0};
-        // Cross with a generic vector in the yz plane to get constraint vector.
-        if (fabs(u_1[2])<1e8) u_2[2] = 1;
-        else u_2[1] = 1;
+        double u_2[3] = {0, 1, 0};
+        // Cross with a generic vector in the xy plane to get constraint vector.
+        if (fabs(u_1[1])<1e8) {
+          // Make sure not to cross vector with itself (or length will be 0)
+          u_2[0] = 1;
+          u_2[1] = 0;
+        }
         cross_product(u_1, u_2, r_min, 3);
       }
       Logger::Info("Constraining motion of rigid rods to plane with vector = "
