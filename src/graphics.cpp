@@ -199,6 +199,7 @@ void Graphics::Init(std::vector<graph_struct *> *graph_array, SpaceBase *s,
   n_dim_ = space_->n_dim;
   unit_cell_ = space_->unit_cell;
   auto_graph_ = auto_graph;
+  alpha_ = alpha;
   // ScalePositions();
   if (draw_boundary == 0 || space_->type == +boundary_type::wall) {
     boundary_ = boundary_type::none;
