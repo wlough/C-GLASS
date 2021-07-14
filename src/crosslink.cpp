@@ -183,14 +183,16 @@ void Crosslink::DoublyKMC() {
   double f_dep = fdep_length_;
   if (k_spring_compress_ >= 0 && tether_stretch < 0) {
     e_dep *= 0.5 * k_spring_compress_ * SQR(tether_stretch);
-    f_dep *= k_spring_compress_ * tether_stretch;
   } else {
     e_dep *= 0.5 * k_spring_ * SQR(tether_stretch);
-    f_dep *= k_spring_ * tether_stretch;
   }
+  std::vector<double> unbind_force;
+  for (int i = 0; i < 2; i++) {
+    unbind_force.push_back(anchors_[i].GetParallelForce());
+  } 
   std::vector<double> unbind_prob;
   for (int i = 0; i < 2; i++) {
-    unbind_prob.push_back(anchors_[i].GetOffRate() * delta_ * exp(e_dep + f_dep));
+    unbind_prob.push_back(anchors_[i].GetOffRate() * delta_ * exp(e_dep + unbind_force[i]*f_dep));
   }
   tracker_->TrackDS(unbind_prob[0]); // Richelle modify to track full prob
   double roll = rng_.RandomUniform();

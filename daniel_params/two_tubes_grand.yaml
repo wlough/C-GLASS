@@ -1,0 +1,100 @@
+movie_flag: false
+seed: 932859784
+thermo_flag: false
+boundary: 0
+n_dim: 2
+n_graph: 100
+run_name: testing_off_rate_closer_2nd_seed
+delta: 0.0001
+wca_eps: 1
+checkpoint_flag: true
+graph_flag: true
+n_steps: 100000000 #100000000
+n_runs: 1
+n_thermo: 100
+n_periodic: 0
+system_radius: 55
+soft_potential_mag: 300
+potential: wca
+interaction_flag: true
+f_cutoff: 100000
+rigid_filament:
+  insertion_type: custom
+  packing_fraction: -1
+  min_length: 0
+  max_length: 110
+  diameter: 1
+  overlap: false
+  n_equil: 0
+  num: 2
+  draw_type: fixed
+  insert_file: daniel_params/insert_files/two_tubes_stiff.yaml
+  color: 3
+  length: 30
+  spec_flag: true
+  n_spec: 1000
+  stationary_flag: true
+crosslink:
+  - name: kin5
+    draw_type: orientation
+    diffusion_s: 5.76
+    force_dep_vel_flag: true
+    k_spring_compress: 45.576
+    n_spec: 100
+    tether_diameter: 0.3
+    begin_with_bound_crosslinks: 50
+    diameter: .1
+    rest_length: 3.12
+    concentration: 0.001
+    r_capture: 10
+    static_flag: true
+    polar_affinity: 1
+    k_spring: 45.576
+    tether_draw_type: fixed
+    plus_end_pausing: true
+    minus_end_pausing: true
+    step_direction: 1
+    spec_flag: true
+    diffusion_d: 0 #0.005
+    use_binding_volume: false
+    infinite_reservoir_flag: true
+    bind_site_density: 3.125
+    energy_dep_factor: 0
+    force_dep_length: 0.04114
+    f_stall: 40
+    color: 1
+    tether_color: 0
+    anchors:
+      - name: plus         
+        velocity_s: 0
+        velocity_d: 0 #0.133856
+        k_on_d: 0.0092
+        k_on_s: 0.004628
+        k_off_s: 0.0092
+        k_off_d: 0.03204
+        color: 0
+      - name: minus    
+        velocity_s: 0
+        velocity_d: 0 #0.133856
+        k_on_d: 0.0092
+        k_on_s: 0.004628
+        k_off_s: 0.0092
+        k_off_d: 0.0462
+        color: 0        
+n_random: 1
+species:
+  name: species
+  overlap: false
+  num: 0
+  diameter: 1
+  insertion_type: random
+  length: 0
+  insert_file: none
+  draw_type: orientation
+  color: 0
+  posit_flag: false
+  spec_flag: false
+  n_posit: 100
+  n_spec: 100
+n_steps_equil: 0
+

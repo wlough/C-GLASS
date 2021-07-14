@@ -537,6 +537,11 @@ int const Anchor::GetBoundOID() {
   else return -1;
 }
 
+double const Anchor::GetParallelForce() {
+	double const force_proj = step_direction_ * dot_product(n_dim_, force_, orientation_);
+	return force_proj;
+}
+
 /* Temporary function for setting bound state for singly-bound crosslinks,
    in order to get them to draw while not technically bound to a bond
    ( e.g. rod_ -> null ) */

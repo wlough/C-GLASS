@@ -96,6 +96,7 @@ class Anchor : public Object {
   void Unbind();
   void AddBackBindRate();
   int const GetBoundOID();
+  double const GetParallelForce();
   void Draw(std::vector<graph_struct *> &graph_array);
   void AddNeighbor(Object *neighbor);
   void ClearNeighbors();
