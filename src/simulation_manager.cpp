@@ -588,8 +588,11 @@ void SimulationManager::RunSimulations() {
 //}
 
 void SimulationManager::ProcessOutputs() {
-  // ParseParams(pfiles_[0]);
-  sim_ = new Simulation;
-  sim_->ProcessOutputs(YAML::LoadFile(pfiles_[0]), run_opts_);
-  delete sim_;
+  // Process all outputs, not just the first run/variation
+  for (std::vector<std::string>::iterator it = pfiles_.begin();
+       it != pfiles_.end(); ++it) {
+    sim_ = new Simulation;
+    sim_->ProcessOutputs(YAML::LoadFile(*it), run_opts_);
+    delete sim_;
+  }
 }
