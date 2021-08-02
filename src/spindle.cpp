@@ -48,6 +48,9 @@ void Spindle::Init(spindle_parameters *sparams) {
   filaments_.reserve(n_filaments_);
   nuc_sites_.reserve(n_filaments_);
   fil_sites_.reserve(n_filaments_);
+  if (alignment_potential_) {
+    fil_second_sites_.reserve(n_filaments_);
+  }
 }
 
 // Returns true if successful, false otherwise
@@ -55,7 +58,6 @@ void Spindle::InsertFilament(int i_fil) {
   Filament fil(rng_.GetSeed());
   filaments_.push_back(fil);
   filaments_.back().Init(fparams_);
-  int sign = (i_fil < n_filaments_bud_ ? 1 : -1);
   const double *const u = nuc_sites_[i_fil].GetOrientation();
   const double *const site_pos = nuc_sites_[i_fil].GetPosition();
   double new_pos[3] = {0, 0, 0};
@@ -64,6 +66,9 @@ void Spindle::InsertFilament(int i_fil) {
   }
   filaments_.back().InsertAt(new_pos, u);
   fil_sites_.push_back(filaments_.back().GetSite(0));
+  if (alignment_potential_) {
+    fil_second_sites_.push_back(filaments_.back().GetSite(1));
+  }
 }
 
 int Spindle::GetCount() {
@@ -192,13 +197,50 @@ void Spindle::ApplyNucleationSiteForces() {
   for (int i_fil = 0; i_fil < n_filaments_; ++i_fil) {
     const double *const force = nuc_sites_[i_fil].GetForce();
     const double *const site_pos = nuc_sites_[i_fil].GetPosition();
-    const double *const fil_pos = fil_sites_[i_fil]->GetPosition();
+    const double *const fil_site_pos = fil_sites_[i_fil]->GetPosition();
     double fil_forces[3] = {0, 0, 0};
     for (int i = 0; i < n_dim_; ++i) {
-      fil_forces[i] = -k_spring_ * (site_pos[i] - fil_pos[i]);
+      fil_forces[i] = -k_spring_ * (site_pos[i] - fil_site_pos[i]);
     }
+    // Add forces to end of spindle and fil_sites and second bond point
     fil_sites_[i_fil]->SubForce(fil_forces);
     nuc_sites_[i_fil].AddForce(fil_forces);
+
+    // Add forces from the alignment potential
+    if (alignment_potential_) {
+      int sign = (i_fil >= n_filaments_bud_ ? -1 : 1);
+      const double* const u_fil = filaments_[i_fil].GetOrientation();
+      // Angle between spindle and filament
+      double dot_prod = sign*dot_product(n_dim_, u_fil, orientation_);
+      double theta;
+      // Catch dot product over 1 errors
+      if (fabs(dot_prod) > 1) {
+        // Make sure dot product is below tolerance over 1
+        if (fabs(dot_prod) > (1+1e-8)) {
+          Logger::Error("Dot product between filament and spindle > 1.");
+        } else if (dot_prod > 1) theta = 0; // Set theta=0 if vectors are parallel
+        else theta = M_PI; // Set theta=pi if vectors are antiparallel
+      }
+      else theta = acos(dot_prod);
+      // Force on the second filament site
+      double force_second_site[3] = {0, 0, 0};
+      // Cross product result
+      double xprod[3] = {0, 0, 0};
+      // Force prefactor to avoid computing multiple times. Avoid nan by setting to k when theta=0
+      double prefactor = (fabs(theta)<1e-8 ? k_align_ : k_align_ * theta / sin(theta));
+      // Distance from spindle COM to nucleation site
+      double spindle_extent = (length_+diameter_+spb_diameter_) / 2.0;
+      double fil_length = filaments_[i_fil].GetLength();
+      // See my notes "Filament alignment potential" on the Betterton Google Drive for details on this calculation
+      cross_product(orientation_, u_fil, xprod, 3);
+      for (int i = 0; i < n_dim_; ++i) {
+        force_second_site[i] = (sign*orientation_[i]-u_fil[i]*cos(theta))*prefactor/fil_length;
+        torque_[i] += xprod[i]*sign*prefactor;
+      }
+      // Add forces to first and second sites
+      fil_second_sites_[i_fil]->AddForce(force_second_site);
+      fil_sites_[i_fil]->SubForce(force_second_site);
+    }
   }
 }
 
@@ -383,16 +425,25 @@ void Spindle::ReadSpec(std::fstream &ispec) {
     for (int ifil = 0; ifil < nfilaments; ++ifil) {
       filaments_[ifil].ReadSpec(ispec);
       fil_sites_[ifil] = filaments_[ifil].GetSite(0);
+      // For alignment potential to work, need to propagate vector of second sites on the
+      // filament.
+      if (alignment_potential_) {
+        fil_second_sites_[ifil] = filaments_[ifil].GetSite(1);
+      }
     }
   } else {
     filaments_.clear();
     fil_sites_.clear();
+    fil_second_sites_.clear();
     for (int i = 0; i < nfilaments; ++i) {
       Filament fil(rng_.GetSeed());
       filaments_.push_back(fil);
       filaments_.back().Init(fparams_);
       filaments_.back().ReadSpec(ispec);
       fil_sites_.push_back(filaments_.back().GetSite(0));
+      if (alignment_potential_) {
+        fil_second_sites_.push_back(filaments_.back().GetSite(1));
+      }
     }
   }
 }
