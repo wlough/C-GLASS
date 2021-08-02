@@ -14,6 +14,7 @@ protected:
   std::vector<Filament> filaments_;
   std::vector<Site> nuc_sites_;
   std::vector<Site *> fil_sites_;
+  std::vector<Site *> fil_second_sites_;
   std::vector<double> theta_; // reference coordinates for nucleation site
   std::vector<double> phi_;   // positions in body frame
   bool midstep_;
