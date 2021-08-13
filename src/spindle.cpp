@@ -229,12 +229,14 @@ void Spindle::ApplyNucleationSiteForces() {
       // Force prefactor to avoid computing multiple times. Avoid nan by setting to k when theta=0
       double prefactor = (fabs(theta)<1e-8 ? k_align_ : k_align_ * theta / sin(theta));
       // Distance from spindle COM to nucleation site
-      double spindle_extent = (length_+diameter_+spb_diameter_) / 2.0;
-      double fil_length = filaments_[i_fil].GetLength();
+      double fil_length = filaments_[i_fil].GetBondLength();
       // See my notes "Filament alignment potential" on the Betterton Google Drive for details on this calculation
       cross_product(orientation_, u_fil, xprod, 3);
       for (int i = 0; i < n_dim_; ++i) {
         force_second_site[i] = (sign*orientation_[i]-u_fil[i]*cos(theta))*prefactor/fil_length;
+      }
+      // Always add torque to all three dimensions
+      for (int i = 0; i < 3; ++i) {
         torque_[i] += xprod[i]*sign*prefactor;
       }
       // Add forces to first and second sites
