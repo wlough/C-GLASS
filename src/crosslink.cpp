@@ -75,7 +75,8 @@ void Crosslink::SinglyKMC() {
   int n_neighbors_rod = anchors_[bound_anchor_].GetNNeighborsRod();
   int n_neighbors_sphere = anchors_[bound_anchor_].GetNNeighborsSphere();
   int n_neighbors = n_neighbors_rod + n_neighbors_sphere;
- 
+  
+
   /* Initialize KMC calculation */
   KMC<Rod, Sphere> kmc_bind(anchors_[bound_anchor_].pos, n_neighbors_rod, n_neighbors_sphere, delta_, lut_);
 

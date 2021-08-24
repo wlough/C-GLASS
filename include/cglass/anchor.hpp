@@ -3,6 +3,7 @@
 
 #include "filament.hpp"
 #include "neighbor_list.hpp"
+#include "receptor.hpp"
 
 struct bind_params {
   double k_on_s;
@@ -26,7 +27,6 @@ class Anchor : public Object {
   crosslink_parameters *sparams_;
   int index_;
   int step_direction_;
-
   double rod_length_;
   double bond_lambda_;
   double mesh_length_;
@@ -69,9 +69,15 @@ class Anchor : public Object {
   // Helper functions
   void UpdateAnchorPositionToObj();
   void Diffuse();
+  double Diffuse_Quantized();
+  double Quantized_Directed_Diffusion();
   void Walk();
+  double Walk_Quantized();
   bool CheckMesh();
   bool CalcRodLambda();
+  void Decide_to_step(double Qdif, double Qvel);
+  void step_forward();
+  void step_back();
 
  public:
   Anchor(unsigned long seed);
@@ -132,7 +138,6 @@ class Anchor : public Object {
   bool InducesCatastrophe();
   bool AttachedToFilament();
   void InduceCatastrophe();
-
   // Convert binary data to text. Static to avoid needing to instantiate
   // species members in conversion mode.
   static void ConvertSpec(std::fstream &ispec, std::fstream &otext);

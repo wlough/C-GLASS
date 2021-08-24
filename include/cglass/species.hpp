@@ -595,6 +595,7 @@ void Species<T, S>::CrystalArrangement() {
 }
 
 template <typename T, unsigned char S> void Species<T, S>::CustomInsert() {
+  printf("Custom insert print");
   YAML::Node inode;
   std::string spec_name = GetSID()._to_string();
   try {

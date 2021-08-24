@@ -1,5 +1,5 @@
 #include "cglass/anchor.hpp"
-
+#include <typeinfo>
 Anchor::Anchor(unsigned long seed) : Object(seed) {
   SetSID(species_id::crosslink);
 }
@@ -126,20 +126,103 @@ void Anchor::UpdatePosition() {
   // Currently only bound anchors diffuse/walk (no explicit unbound anchors)
   bool diffuse = GetDiffusionConst() > 0 ? true : false;
   bool walker = abs(GetMaxVelocity()) > input_tol ? true : false;
-  if (!bound_ || static_flag_ || !rod_ || (!diffuse && !walker)) {
+  double Quan_dif=0;
+  double Quan_vel=0;
+  // need to make so sphere_ is specifically receptors on rod instead of any sphere 
+  if (!bound_ || static_flag_ || !(rod_ || sphere_) || (!diffuse && !walker)) {
     return;
   }
   // Diffuse or walk along the mesh, updating mesh_lambda
-  if (diffuse) {
-    Diffuse();
-    if (!CheckMesh())
-      return;
+  if (rod_) {
+	  if (diffuse) {
+	    Diffuse();
+	    if (!CheckMesh())
+	      return;
+	  }
+	  if (walker) {
+	    Walk();
+	    CheckMesh();
+	  }
   }
-  if (walker) {
-    Walk();
-    CheckMesh();
+  if (sphere_) {
+	  if (diffuse) {
+	    Quan_dif=Diffuse_Quantized();
+	    
+	  }
+	  if (walker) {
+	    Quan_vel=Walk_Quantized();
+	  }
+	  if(!walker) {
+	    Quan_vel=Quantized_Directed_Diffusion();
+	  }
+	  Decide_to_step(Quan_dif,Quan_vel);
+
   }
 }
+
+void Anchor::Decide_to_step(double Qdif, double Qvel) {
+	//printf("Choose to step");
+	double roll = rng_.RandomUniform();
+	double vel = Qvel;
+	double step_size=0.32;
+	double chance_forward = 0;
+	double chance_back = 0;
+	double D=Qdif;
+
+	chance_forward=(D/pow(step_size,2) + 0.5*vel/step_size)*delta_;
+	chance_back=(D/pow(step_size,2) - 0.5*vel/step_size)*delta_;
+	//printf("forward=%f, back=%f", chance_forward,chance_back);
+	if (chance_forward>roll) {
+	       step_forward();
+	       //printf("stepped_forward");
+	}
+        if (chance_back>(1-roll)) {
+		step_back();
+		//printf("stepped_back");
+	}		
+
+		
+
+}
+
+
+
+void Anchor::step_forward() {
+Object* next_receptor=nullptr;
+next_receptor = sphere_->GetPlusNeighbor();
+
+
+
+if((next_receptor != NULL) && (next_receptor->GetNAnchored()==0)){
+	Unbind();
+	AttachObjCenter(next_receptor);
+	//UpdateXlinkState();
+}
+//if (next_receptor==NULL){
+//Unbind();
+//}
+}
+
+
+
+
+
+void Anchor::step_back() {
+Object* last_receptor=nullptr;
+last_receptor = sphere_->GetMinusNeighbor();
+
+
+
+if((last_receptor != NULL) && (last_receptor->GetNAnchored()==0)){
+	Unbind();
+	AttachObjCenter(last_receptor);
+}
+//if (last_receptor==NULL){
+//Unbind();
+//}
+}
+
+
 
 void Anchor::ApplyAnchorForces() {
   if (!bound_ || static_flag_) {
@@ -190,6 +273,27 @@ void Anchor::Walk() {
   mesh_lambda_ += dr;
   // Should this also add to bond lambda?
 }
+double Anchor::Walk_Quantized() {
+  //Logger::Warning("tried to walk");
+  double vel = GetMaxVelocity();
+  if (force_dep_vel_flag_) {
+    // Only consider projected force in direction of stepping
+    double const force_proj =
+        step_direction_ * dot_product(n_dim_, force_, orientation_);
+    // Linear force-velocity relationship
+    double fdep = 1. + (force_proj / f_stall_);
+    if (fdep > 1) {
+      fdep = 1;
+    } else if (fdep < 0) {
+      fdep = 0.;
+    }
+    vel *= fdep;
+  }
+  return vel;
+  // Should this also add to bond lambda?
+}
+
+
 
 // Check that the anchor is still located on the filament mesh
 // Returns true if anchor is still on the mesh, false otherwise
@@ -287,6 +391,18 @@ void Anchor::Diffuse() {
   // Should this also add to bond lambda?
 }
 
+double Anchor::Diffuse_Quantized() {
+  return GetDiffusionConst();
+}
+
+double Anchor::Quantized_Directed_Diffusion() {
+    double dif=0;
+    double force_proj = dot_product(n_dim_, force_, orientation_);
+    return dif= GetDiffusionConst() * force_proj;
+}
+  
+
+
 void Anchor::UpdateAnchorPositionToObj() {
   if (rod_) {
     if (rod_->IsFixed()) return;
@@ -301,6 +417,7 @@ void Anchor::UpdateAnchorPositionToObj() {
     if (sphere_->IsFixed()) return;
     /* When attached to sphere, position is just the sphere position */
     std::copy(sphere_->GetPosition(), sphere_->GetPosition() + n_dim_, position_);
+    //printf("x=%s", GetBoundOID()); 
   } else {
     Logger::Error("Anchor tried to change position but wasn't bound to sphere_ or rod_.");
   }
@@ -415,8 +532,12 @@ void Anchor::AttachObjLambda(Object *o, double lambda) {
 /* Attach object in center of site. Site binding likelihood weighted by 
  * surface area, but binding places crosslinks in center regardless. */
 void Anchor::AttachObjCenter(Object *o) {
+   printf("Made It 0"); 
   o->IncrementNAnchored();
+  printf("Made It 1");
+  //printf("type, %s", typeid(o).name());
   if (use_bind_file_) SetRatesFromBindFile(o->GetName());
+  printf("Made It 2");
   if (o->GetShape() != +shape::sphere) {
     Logger::Error(
         "Crosslink binding to non-sphere objects not implemented in "
@@ -436,7 +557,7 @@ void Anchor::AttachObjCenter(Object *o) {
       Logger::Error("Object ptr passed to anchor was not referencing a mesh!");
     }
   }
-
+  printf("Made It 3");
   mesh_lambda_ = -1; // not used for sites
   SetCompID(sphere_->GetCompID());
   std::copy(sphere_->GetPosition(), sphere_->GetPosition() + 3, position_); 

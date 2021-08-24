@@ -367,6 +367,11 @@ void Simulation::InsertSpecies(bool force_overlap, bool processing) {
           break;
         }
       }
+      if ((*spec)->GetSID() == +species_id::receptor){
+	      Logger::Warning("Species IS is receptor %s", (*spec)->GetSID()._to_string());
+	      (*spec)->SetAllNeighbors();
+	      
+      } 
       if (num != inserted && params_.n_dim == 2) {
         // Attempt a lattice-based insertion strategy (only 2d for now)
         Logger::Warning("Attempting lattice-based insertion strategy");

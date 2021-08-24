@@ -358,6 +358,8 @@ std::pair <Object*, int> CrosslinkSpecies::GetRandomObject() {
         if (bind_rate_sum > roll) {
           Logger::Trace("Binding free crosslink to random object: xl %d -> obj %d",
                         members_.back().GetOID(), (*obj)->GetOID());
+	  printf ("Binding free crosslink to random object: xl %d -> obj %d",
+                        members_.back().GetOID(), (*obj)->GetOID());
           return std::make_pair(*obj, anchor_index);
         }
       }
@@ -387,6 +389,9 @@ std::pair <Object*, int> CrosslinkSpecies::GetRandomObject() {
         if (vol > roll) {
           Logger::Trace("Binding free crosslink to random object: xl %d -> obj %d",
                         members_.back().GetOID(), (*obj)->GetOID());
+	  printf ("Binding free crosslink to random object: xl %d -> obj %d",
+                        members_.back().GetOID(), (*obj)->GetOID());
+        
           return std::make_pair(*obj, anchor_index);
         }
       }

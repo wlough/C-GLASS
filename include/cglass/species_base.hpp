@@ -44,6 +44,7 @@ public:
   virtual void SetLastMemberPosition(double const *const pos) {}
   virtual void ResetPreviousPositions() {}
   virtual void PopMember() {}
+  virtual void SetAllNeighbors() {}
   virtual void PopAll() {}
   virtual const double GetSpecDiameter() const { return -1; }
   virtual const double GetSpecLength() const { return -1; }

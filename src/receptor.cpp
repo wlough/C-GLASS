@@ -46,7 +46,14 @@ void Receptor::ReadSpec(std::fstream &ispec) {
 void Receptor::SetLocations(int i, double s) {
   i_ = i;
   s_ = s;
+  printf ("here i_= %i_, s_= %f", i_, s_);
 }
+
+//void Receptor::SetNeighbors(Receptor* prevN, Receptor* nextN) {
+//  prevN_ = prevN;
+//  nextN_ = nextN;
+	
+//}
 
 void Receptor::SetPCSpecies(SpeciesBase* pc_species) {
   pc_species_ = pc_species;
@@ -54,7 +61,7 @@ void Receptor::SetPCSpecies(SpeciesBase* pc_species) {
 }
 
 void Receptor::SetPCObject(Object* pc_object) {
-  pc_object_ = pc_object;
+  pc_object_ = pc_object; 
 }
 
 // Use PointCover object positions to update
@@ -71,6 +78,7 @@ void Receptor::UpdatePosition() {
   }
   // Rescale position for periodic BC's
   UpdatePeriodic();
+  //printf ("here i_= %i_, s_= %s", i_, pc_object_->GetName().c_str());
 }
 
 void Receptor::AddForce(const double *const force) {
@@ -100,7 +108,13 @@ void Receptor::SubTorque(const double *const torque) {
     pc_object_->SubTorque(torque_);
   }
 }
-
+//Receptor* Receptor::GetPlusNeighbor() {
+//    Logger::Warning("nextN_ID %i", nextN_->GetOID());
+//    return nextN_;	
+//}
+//int Receptor::GetMinusNeighbor() {
+//    return 5;	
+//}
 void Receptor::CalcTorque() {
   // Calculate torque by using the length along object.
   double r_par[3] = {0, 0, 0};

@@ -18,6 +18,8 @@ private:
   Object* pc_object_ = nullptr; // The object that the receptor is on
   double s_; // The position (length) along object of the receptor (for species-PointCover)
   int i_; // The index of the object that the receptor is on (for species-PointCover)
+  //Receptor* prevN_ = nullptr;
+  //Receptor* nextN_ = nullptr;
 public:
   Receptor(unsigned long seed); // Constructor with RNG seed input
 
@@ -29,9 +31,12 @@ public:
 
   // Initialize positions along PointCover objects
   void SetLocations(int i, double s);
-  
+  //void SetNeighbors(Receptor* prevN, Receptor* nextN);
   // Overloaded UpdatePositions to follow PointCover objects.
   void UpdatePosition();
+
+  //Receptor* GetPlusNeighbor();
+  int GetMinusNeighbor();
 
   // Setters
   void SetPCSpecies(SpeciesBase* pc_species);

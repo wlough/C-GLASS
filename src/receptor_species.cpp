@@ -9,6 +9,8 @@ void ReceptorSpecies::Init(std::string spec_name, ParamsParser &parser) {
   Species::Init(spec_name, parser);
   concentration_ = sparams_.concentration;
   component_ = sparams_.component;
+  printf ("hi");
+  //printf ("com=, %c", component_);
 }
 
 /* To generalize, could pass vector of species and search for species
@@ -43,6 +45,7 @@ void ReceptorSpecies::Reserve() {
 /* Add receptor as a member of Receptor species and as a site on
  * the cell component. */
 void ReceptorSpecies::AddMember() {
+  printf ("hi");
   // Initialize pointcover locations/variables
   if ((pc_species_) && (members_.size() == 0)) {
     smax_ = pc_species_->GetSpecLength() / 2.0;
@@ -91,6 +94,33 @@ void ReceptorSpecies::AddMember() {
   members_.back().InsertAt(pos, u);
   members_.back().SetCompPtr(pc_);
 }
+
+int ReceptorSpecies::GetNeighbors(int receptorID, int plus_or_minus) {
+    int size=members_.size();
+    return size;
+}
+
+void ReceptorSpecies::SetAllNeighbors() {
+	Logger::Warning("Number of receptors is %i", members_.size());
+	int i=0;
+	while(i != members_.size()) {
+	if (i==0) {
+	members_[i].SetNeighbors(nullptr, &members_[i+1]);
+	}
+	else if (i==members_.size()-1) {
+	members_[i].SetNeighbors(&members_[i-1],nullptr);
+
+	}
+	else {
+	members_[i].SetNeighbors(&members_[i-1], &members_[i+1]);
+	}
+	Logger::Warning("NeighborIDs are %i",members_[i].GetOID() );
+	i+=1;
+	}
+		
+
+}
+
 
 // Overload to recognize grid arrangement
 void ReceptorSpecies::ArrangeMembers() {

@@ -43,6 +43,8 @@ public:
 
   // Overwrite custom insert to ignore grid insertion choice
   void ArrangeMembers();
+  void SetAllNeighbors();
+  int GetNeighbors(int receptorID, int plus_or_minus);
 };
 
 #endif

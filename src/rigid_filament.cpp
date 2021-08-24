@@ -303,6 +303,7 @@ void RigidFilament::ApplyForcesTorques() {
 }
 
 void RigidFilament::ApplyInteractionForces() {
+  printf ("hi");
   double pure_torque[3] = {0, 0, 0};
   double site_force[3] = {0, 0, 0};
   double linv = 1.0 / bond_length_;

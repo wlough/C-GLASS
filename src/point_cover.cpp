@@ -8,4 +8,5 @@ void PointCover::AddSpherePtr(Sphere* s) {
   sphere_ptrs_.push_back(s);
   sphere_ptrs_.back()->SetColor(color_, draw_);
   sphere_ptrs_.back()->SetCompID(GetCompID());
+  printf ("hi");
 }
