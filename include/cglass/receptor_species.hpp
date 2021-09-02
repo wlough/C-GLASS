@@ -45,6 +45,7 @@ public:
   void ArrangeMembers();
   void SetAllNeighbors();
   int GetNeighbors(int receptorID, int plus_or_minus);
+  std::vector<Object *> GetReceptors();
 };
 
 #endif

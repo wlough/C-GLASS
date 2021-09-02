@@ -1,5 +1,6 @@
 #include "cglass/crosslink.hpp"
 #include <iostream>
+#include "interaction_manager.cpp"
 
 Crosslink::Crosslink(unsigned long seed) : Object(seed) {
   SetSID(species_id::crosslink);
@@ -162,7 +163,14 @@ void Crosslink::SinglyKMC() {
       Logger::Trace("Crosslink %d became doubly bound to obj %d", GetOID(),
                   bind_obj->GetOID());
     } else {
+      bool crossing=true;
       Sphere *bind_obj = anchors_[bound_anchor_].GetSphereNeighbor(i_bind - n_neighbors_rod);
+      //crossing=InteractionManager::CheckForCross(0,0,0,0);
+      //if ( crossing=false) {
+      //Logger::Warning("not crossing");    
+//	return;
+ //     }
+      Logger::Warning("x value of site is %f, and other %f, %f,%f", (bind_obj->GetPosition())[0],(GetPosition())[0]);
       (*bound_curr_)[bind_obj].first.push_back(kmc_bind.getProb(i_bind));
       (*bound_curr_)[bind_obj].second.push_back(&anchors_[(int)!bound_anchor_]);
       anchors_[(int)!bound_anchor_].AttachObjCenter(bind_obj);
@@ -212,6 +220,16 @@ void Crosslink::DoublyKMC() {
   }
 }
 
+void Crosslink::UnbindCrossing() {
+    int head_activate=1;
+    tracker_->UnbindDS();
+    Logger::Trace("Doubly-bound crosslink %d came unbound from %d", GetOID(),
+                  anchors_[head_activate].GetBoundOID());
+    anchors_[head_activate].Unbind();
+    SetSingly((int)!head_activate);
+ 
+}
+
 void Crosslink::CalculateBinding() {
   if (IsSingly()) {
     SinglyKMC();
@@ -241,6 +259,21 @@ void Crosslink::UpdateAnchorPositions() {
     anchors_[0].UpdatePosition();   
     anchors_[1].UpdatePosition();
   }
+}
+double Crosslink::GetOneX() {
+if (anchors_[0].GetSphereY()>anchors_[1].GetSphereY()){	
+	return anchors_[0].GetSphereLoc();
+} else {
+return anchors_[1].GetSphereLoc();
+}
+}
+
+double Crosslink::GetTwoX() {
+if (anchors_[0].GetSphereY()>anchors_[1].GetSphereY()){	
+	return anchors_[1].GetSphereLoc();
+} else {
+return anchors_[0].GetSphereLoc();
+}
 }
 
 void Crosslink::ApplyTetherForces() {
@@ -340,6 +373,17 @@ void Crosslink::AttachObjRandom(std::pair<Object*, int> obj_index) {
   } else {
     Logger::Error("Crosslink binding to %s shaped objects not yet implemented.", obj_index.first->GetShape()._to_string());
   }
+}
+
+void Crosslink::DoublyCenter(Object* sphereO_, Object* sphereT_) {
+	anchors_[0].AttachObjCenter(sphereO_);
+	SetCompID(sphereO_->GetCompID());
+	anchors_[1].AttachObjCenter(sphereT_);
+	SetCompID(sphereT_->GetCompID());
+
+
+
+
 }
 
 void Crosslink::Draw(std::vector<graph_struct *> &graph_array) {

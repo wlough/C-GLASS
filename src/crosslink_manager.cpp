@@ -47,6 +47,10 @@ void CrosslinkManager::UpdateObjsSize() {
 
 /* Whether to reinsert anchors into the interactors list */
 bool CrosslinkManager::CheckUpdate() {
+  //for (auto it = xlink_species_.begin(); it != xlink_species_.end(); ++it) {
+  
+  //  (*it)->CheckForCross();
+  //}
   if (update_) {
     update_ = false;
     return true;
@@ -75,9 +79,24 @@ void CrosslinkManager::UpdateCrosslinks() {
   for (auto it = xlink_species_.begin(); it != xlink_species_.end(); ++it) {
     (*it)->UpdatePositions();
     (*it)->UpdateBindRate();
+  
+    
   }
   Knockout();
 }
+
+//void CrosslinkManager::CheckForCross() {
+//	int size=0;
+//for (auto it = xlink_species_.begin(); it != xlink_species_.end(); ++it) {
+//	size=((*it)->GetSize());
+//	Logger::Warning("size= %i", size);
+//	for (auto i = 0; i != size; ++i) {i
+//		if (*it)->GetSize()
+//		Logger::Warning("i=%i", i);
+//	}
+//}
+  
+//}
 
 // Loop over all spheres bound in the last dt. If multiple xlinks want to bind
 // to a site, roll based on their relative probabilities, and unbind all of the
@@ -100,12 +119,12 @@ void CrosslinkManager::InsertCrosslinks() {
   }
 }
 
-void CrosslinkManager::InsertAttachedCrosslinks() {
+void CrosslinkManager::InsertAttachedCrosslinks(std::vector<Object *> vO_, std::vector<Object *> vT_) {
   // Need to do this for GetRandomObject to work with spheres
   UpdateObjsSize();
   for (auto it = xlink_species_.begin(); it != xlink_species_.end(); ++it) {
     (*it)->UpdateBindRate();
-    (*it)->InsertAttachedCrosslinksSpecies();
+    (*it)->InsertAttachedCrosslinksSpecies(vO_, vT_);
   }
 }
 

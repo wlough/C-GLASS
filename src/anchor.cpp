@@ -40,6 +40,8 @@ void Anchor::SetBindParamMap(std::vector<std::map<std::string, bind_params> > *b
 double const Anchor::GetMeshLambda() { return mesh_lambda_; }
 
 double const Anchor::GetBondLambda() { return bond_lambda_; }
+double Anchor::GetSphereLoc() {return (sphere_->GetPosition())[0];}
+double Anchor::GetSphereY(){return (sphere_->GetPosition())[1];}
 
 void Anchor::SetRodLambda(double l) { bond_lambda_ = l; }
 void Anchor::SetMeshLambda(double ml) { mesh_lambda_ = ml; }
@@ -532,12 +534,8 @@ void Anchor::AttachObjLambda(Object *o, double lambda) {
 /* Attach object in center of site. Site binding likelihood weighted by 
  * surface area, but binding places crosslinks in center regardless. */
 void Anchor::AttachObjCenter(Object *o) {
-   printf("Made It 0"); 
   o->IncrementNAnchored();
-  printf("Made It 1");
-  //printf("type, %s", typeid(o).name());
   if (use_bind_file_) SetRatesFromBindFile(o->GetName());
-  printf("Made It 2");
   if (o->GetShape() != +shape::sphere) {
     Logger::Error(
         "Crosslink binding to non-sphere objects not implemented in "
@@ -557,7 +555,6 @@ void Anchor::AttachObjCenter(Object *o) {
       Logger::Error("Object ptr passed to anchor was not referencing a mesh!");
     }
   }
-  printf("Made It 3");
   mesh_lambda_ = -1; // not used for sites
   SetCompID(sphere_->GetCompID());
   std::copy(sphere_->GetPosition(), sphere_->GetPosition() + 3, position_); 

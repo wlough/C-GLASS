@@ -276,7 +276,7 @@ void CrosslinkSpecies::InsertCrosslinks() {
 }
 
 //Adds in Crosslinkers for begin_with_bound_crosslinks flag
-void CrosslinkSpecies::InsertAttachedCrosslinksSpecies() {
+void CrosslinkSpecies::InsertAttachedCrosslinksSpecies(std::vector<Object *> v_O, std::vector<Object *> v_T) {
   if (begin_with_bound_crosslinks_<=0) {
     return;
   }
@@ -291,7 +291,10 @@ void CrosslinkSpecies::InsertAttachedCrosslinksSpecies() {
   UpdateBoundCrosslinks();
   // Begin with bound crosslinks currently just implemented to start on rods
   for (int i=0; i < begin_with_bound_crosslinks_; ++i) {
-    BindCrosslink();
+    Logger::Warning("Made Before %i", v_T[i]->GetOID());  
+    BindDoubly(v_O[i], v_T[i]);
+    Logger::Warning("Made After");
+    //BindCrosslink();
   }
 }
 
@@ -398,13 +401,19 @@ std::pair <Object*, int> CrosslinkSpecies::GetRandomObject() {
     }
     Logger::Error("Crosslinks tried to bind to more sites than available- lower timestep.");
     return std::make_pair(nullptr, -1);
-  }
-}
+	  }
+	}
 
 /* A crosslink binds to an object from solution */
 void CrosslinkSpecies::BindCrosslink() {
-  AddMember();
+  AddMember(); 
   members_.back().AttachObjRandom(GetRandomObject());
+} 
+
+void CrosslinkSpecies::BindDoubly(Object* sphereO, Object* sphereT) {
+	Logger::Warning("Made In");
+ AddMember();
+ members_.back().DoublyCenter(sphereO, sphereT);
 }
 
 /* Return singly-bound anchors, for finding neighbors to bind to */
@@ -425,7 +434,9 @@ void CrosslinkSpecies::GetAnchorInteractors(std::vector<Object *> &ixors) {
 void CrosslinkSpecies::UpdatePositions() {
   /* Only do this every other step (assuming flexible filaments with midstep)
    */
+
   if (!params_->on_midstep) {
+    //CheckForCross();
     /* First update bound crosslinks state and positions */
     UpdateBoundCrosslinks();
     /* Calculate implicit binding of crosslinks from solution */
@@ -564,6 +575,7 @@ void CrosslinkSpecies::UpdateBoundCrosslinkPositions() {
         if (sparams_.static_flag && init_state && xlink->GetNNeighbors() == 0) {
           continue;
         }
+
         xlink->UpdateCrosslinkPositions();
         /* Xlink is no longer bound, return to solution */
         if (xlink->IsUnbound()) {
@@ -675,5 +687,28 @@ const int CrosslinkSpecies::GetDoublyBoundCrosslinkNumber() const {
 
 const double CrosslinkSpecies::GetConcentration() const {
   return sparams_.concentration;
+}
+
+//bool CrosslinkSpecies::GetDoubly(int i) {return members_[i].IsDoubly();}
+//
+void CrosslinkSpecies::CheckForCross() {
+	for (auto i = members_.begin(); i != members_.end(); ++i) {
+		for (auto j = members_.begin(); j != members_.end(); ++j) { 
+		if ((i!=j) && (i->IsDoubly() == true) && (j->IsDoubly()== true)){ 
+			int IOne=i->GetOneX();
+			int ITwo=i->GetTwoX();
+			int JOne=j->GetOneX();
+			int JTwo=j->GetTwoX();
+			if ((IOne>JOne && ITwo<JTwo) || (IOne<JOne && ITwo>JTwo)){
+			j->UnbindCrossing();
+			Logger::Warning("Crossing Unbind");
+			}
+
+			
+		}
+
+		}
+	}
+
 }
 const double CrosslinkSpecies::GetRCutoff() const { return lut_.getLUCutoff(); }

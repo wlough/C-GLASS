@@ -367,9 +367,18 @@ void Simulation::InsertSpecies(bool force_overlap, bool processing) {
           break;
         }
       }
+      //std::vector<Object *> receptor_listO;
+      //std::vector<Object *> receptor_listT;
       if ((*spec)->GetSID() == +species_id::receptor){
-	      Logger::Warning("Species IS is receptor %s", (*spec)->GetSID()._to_string());
+	      Logger::Warning("Tube Count is %i", tube_count);
 	      (*spec)->SetAllNeighbors();
+	      if (tube_count==0) {
+	      receptor_listO=(*spec)->GetReceptors();
+	      tube_count=1;
+	      }
+	      if (tube_count==1) {
+	      receptor_listT=(*spec)->GetReceptors();
+	      }
 	      
       } 
       if (num != inserted && params_.n_dim == 2) {
@@ -465,7 +474,9 @@ void Simulation::InsertSpecies(bool force_overlap, bool processing) {
   // if (!processing) {
   ix_mgr_.CheckUpdateObjects(); // Forces update as well
   //}  
-  ix_mgr_.InsertAttachedCrosslinks();
+
+
+  ix_mgr_.InsertAttachedCrosslinks(receptor_listO, receptor_listT);
 }
 
 /* Tear down data structures, e.g. cell lists, and close graphics window if

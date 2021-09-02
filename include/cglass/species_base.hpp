@@ -45,6 +45,8 @@ public:
   virtual void ResetPreviousPositions() {}
   virtual void PopMember() {}
   virtual void SetAllNeighbors() {}
+  std::vector<Object *> v;
+  virtual std::vector<Object *> GetReceptors() {return v;}  
   virtual void PopAll() {}
   virtual const double GetSpecDiameter() const { return -1; }
   virtual const double GetSpecLength() const { return -1; }

@@ -1,7 +1,6 @@
 #ifndef _CGLASS_CROSSLINK_H_
 #define _CGLASS_CROSSLINK_H_
 
-//#include "species.hpp"
 #include "anchor.hpp"
 #include "minimum_distance.hpp"
 #include "tracker.hpp"
@@ -39,7 +38,6 @@ private:
   std::vector<Anchor> anchors_;
   void CalculateTetherForces();
   void CalculateBinding();
-  void SinglyKMC();
   void DoublyKMC();
   void UpdateAnchorsToMesh();
   void UpdateAnchorPositions();
@@ -47,6 +45,9 @@ private:
   double *obj_size_ = nullptr;
   Tracker *tracker_ = nullptr;
 public:
+  double GetOneX();
+  double GetTwoX();
+  void UnbindCrossing();
   Crosslink(unsigned long seed);
   void Init(crosslink_parameters *sparams);
   void InitInteractionEnvironment(LookupTable *lut, Tracker *tracker, 
@@ -55,6 +56,8 @@ public:
   void SetBindParamMap(std::vector<std::map<std::string, bind_params> > 
                        *bind_param_map);
   void AttachObjRandom(std::pair<Object *, int> obj_index);
+  void DoublyCenter(Object* sphereO_, Object* sphereT_);
+
   void UpdateCrosslinkForces();
   void UpdateCrosslinkPositions();
   void GetAnchors(std::vector<Object *> &ixors);
@@ -85,7 +88,7 @@ public:
   const double* const GetObjSize();
   const double *const GetPosition();
   const double *const GetOrientation();
-
+  void SinglyKMC();
   // Convert binary data to text. Static to avoid needing to istantiate
   // species members.
   static void ConvertSpec(std::fstream &ispec, std::fstream &otext);

@@ -800,13 +800,16 @@ void InteractionManager::LoadCrosslinksFromCheckpoints(
 
 void InteractionManager::InsertCrosslinks() { xlink_.InsertCrosslinks(); }
 
-void InteractionManager::InsertAttachedCrosslinks() {
+void InteractionManager::InsertAttachedCrosslinks(std::vector<Object *> vO, std::vector<Object *> vT)	{
   if (processing_ && !run_interaction_analysis_) {
     return;
   }
-  xlink_.InsertAttachedCrosslinks();
+  xlink_.InsertAttachedCrosslinks(vO, vT);
   ForceUpdate();
 }
+//bool InteractionManager::CheckForCross(int Onex_, int Oney_, int Twox_, int Twoy_) {
+// return false;
+//}	
 
 bool InteractionManager::CheckDynamicTimestep() {
   if (decrease_dynamic_timestep_) {

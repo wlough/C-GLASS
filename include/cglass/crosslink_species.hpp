@@ -4,6 +4,7 @@
 #include "crosslink.hpp"
 #include "species.hpp"
 #include <KMC/kmc.hpp>
+#include "receptor_species.hpp"
 
 typedef std::vector<std::pair<std::vector<Crosslink>::iterator,
                               std::vector<Crosslink>::iterator>>
@@ -43,6 +44,7 @@ private:
   LUTFiller *MakeLUTFiller();
   void CalculateBindingFree();
   void BindCrosslink();
+  void BindDoubly(Object* sphereO, Object* sphereT);
   void UpdateBoundCrosslinks();
   void UpdateBoundCrosslinkForces();
   void UpdateBoundCrosslinkPositions();
@@ -60,13 +62,16 @@ public:
   void GetInteractors(std::vector<Object *> &ixors);
   void UpdatePositions();
   void UpdateBindRate();
+  void CheckForCross();
+  void IsCrossing();
   void CleanUp();
+  int GetSize();
   void ClearNeighbors();
   void Draw(std::vector<graph_struct *> &graph_array);
   void BindCrosslinkObj(Object *obj);
   void AddNeighborToAnchor(Object *anchor, Object *neighbor);
   void AddMember();
-  void InsertAttachedCrosslinksSpecies();
+  void InsertAttachedCrosslinksSpecies(std::vector<Object *> V_O, std::vector<Object *> V_T);
   void GetAnchorInteractors(std::vector<Object *> &ixors);
   void ReadSpecs();
   void InsertCrosslinks();

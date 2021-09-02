@@ -10,6 +10,7 @@ class Simulation {
  private:
   UNIT_TEST
   int i_step_ = 0;
+  int tube_count = 0;
   double step_fact_;
   int inv_step_fact_;
   int log_interval_ = 10;
@@ -20,6 +21,8 @@ class Simulation {
   std::string run_name_;
   std::vector<std::string> posit_files_;
 
+  std::vector<Object *> receptor_listO;
+  std::vector<Object *> receptor_listT;
   OutputManager output_mgr_;
   system_parameters params_;
   RNG *rng_;

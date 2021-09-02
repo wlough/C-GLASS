@@ -114,7 +114,8 @@ class Anchor : public Object {
   void BindToPosition(double *bind_pos);
   void SetStatic(bool static_flag);
   void SetState(bind_state state);
-
+  double GetSphereLoc();
+  double GetSphereY();
   double const GetMeshLambda();
   double const GetBondLambda();
   Object *GetNeighbor(int i_neighbor);

@@ -1,11 +1,11 @@
-run_name: test
+run_name: test_sep_params
 seed: 314159
 n_periodic: 0
-n_steps: 1000000000
+n_steps: 15000000 
 n_dim: 2
 delta: 0.0001
 graph_flag: true
-movie_flag: true
+movie_flag: false
 movie_directory: movie_fold
 n_graph: 20
 system_radius: 20
@@ -20,11 +20,13 @@ rigid_filament:
     num: 1
     insertion_type: custom
     insert_file: fil1.yaml
-    length: 16
+    length: 4.16
     stationary_flag: false
     constrain_motion_flag: false
     packing_fraction: -1
     n_equil: 0
+    spec_flag: true
+    n_spec: 1000
   - name: rig2
     insertion_type: custom
     insert_file: fil2.yaml
@@ -33,42 +35,44 @@ rigid_filament:
     max_length: 500
     min_length: 5
     num: 1
-    length: 16
+    length: 4.16
     stationary_flag: false
     constrain_motion_flag: false
     packing_fraction: -1
     n_equil: 0
+    spec_flag: true
+    n_spec: 1000
 crosslink:
   anchors:
     - &1
-      velocity_s: 0.133856
-      velocity_d: 0.133856
+      velocity_s: 0 #0.133856
+      velocity_d: 0 #0.133856
       bind_file: rig_bind.yaml
-      color: 3
-      diameter: 0.32
+      color: 2
+      diameter: 0.1
+      tether_diameter: 0.1
   concentration: 1
-  begin_with_bound_crosslinks: 1
-  k_spring: 30
-  rest_length: 3
+  begin_with_bound_crosslinks: 0 #13
+  k_spring: 6800.81988 
+  rest_length: 2.28
   draw_type: fixed
   tether_draw_type: fixed
   plus_end_pausing: true
   minus_end_pausing: true
   diffusion_s: 1
-  diffusion_d: 1
-  spec_flag: true
+  diffusion_d: 0.093272
+  spec_flag: false
   tether_diameter: 0.32
-  diameter: 0.32
 
 
 receptor:
   - name: rig1_receptor
     component: rig1
     insertion_type: grid
-    num: 50
+    num: 13
     diameter: 0.32
   - name: rig2_receptor
     component: rig2
     insertion_type: grid
-    num: 50
+    num: 13
     diameter: 0.32

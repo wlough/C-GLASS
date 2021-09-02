@@ -121,6 +121,17 @@ void ReceptorSpecies::SetAllNeighbors() {
 
 }
 
+std::vector<Object *> ReceptorSpecies::GetReceptors() {
+	Logger::Warning("GettingNeighbors");
+	std::vector<Object *> receptor_list;
+	int i=0;
+	while (i != members_.size()) {
+ 	receptor_list.push_back(&members_[i]);
+	Logger::Warning("Added %i", members_[i].GetOID());
+	i+=1;
+	}
+	return receptor_list;
+}
 
 // Overload to recognize grid arrangement
 void ReceptorSpecies::ArrangeMembers() {

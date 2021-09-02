@@ -25,6 +25,7 @@ class CrosslinkManager {
   Tracker *tracker_ = nullptr;
 
  public:
+  void CheckForCross();
   void Init(system_parameters *params, SpaceBase *space, Tracker *tracker,
             std::vector<Object *> *objs);
   void GetInteractors(std::vector<Object *> &ixors);
@@ -48,7 +49,7 @@ class CrosslinkManager {
   void ReadInputs();
   void Convert();
   void InsertCrosslinks();
-  void InsertAttachedCrosslinks();
+  void InsertAttachedCrosslinks(std::vector<Object *> vO_, std::vector<Object *> vT_);
   const double GetRCutoff() const {
     Logger::Trace("Crosslink rcutoff is %2.2f", rcutoff_);
     return rcutoff_;

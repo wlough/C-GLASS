@@ -97,13 +97,14 @@ class InteractionManager {
                    run_options *run_opts = nullptr);
   void ReadInputs();
   void Convert();
+  bool CheckForCross(int Onex, int Oney, int Twox, int Twoy);
   void ResetCellList();
   void InitCrosslinkSpecies(sid_label &slab, ParamsParser &parser,
                             unsigned long seed);
   void LoadCrosslinksFromCheckpoints(std::string run_name,
                                      std::string checkpoint_run_name);
   void InsertCrosslinks();
-  void InsertAttachedCrosslinks();
+  void InsertAttachedCrosslinks(std::vector<Object *> r_listO, std::vector<Object *> r_listT);
   void SetInteractionAnalysis(bool set) { run_interaction_analysis_ = set; }
 };
 

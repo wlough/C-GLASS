@@ -1,7 +1,7 @@
-run_name: test
+run_name: test_sep_params
 seed: 314159
 n_periodic: 0
-n_steps: 1000000000
+n_steps: 15000000
 n_dim: 2
 delta: 0.0001
 graph_flag: true
@@ -26,6 +26,7 @@ rigid_filament:
     packing_fraction: -1
     n_equil: 0
     spec_flag: true
+    n_spec: 1000
   - name: rig2
     insertion_type: custom
     insert_file: fil2.yaml
@@ -40,6 +41,7 @@ rigid_filament:
     packing_fraction: -1
     n_equil: 0
     spec_flag: true
+    n_spec: 1000
 crosslink:
   anchors:
     - &1
@@ -55,15 +57,15 @@ crosslink:
       k_off_d: 2
     - *1
   concentration: 1
-  begin_with_bound_crosslinks: 5
-  k_spring: 30
-  rest_length: 3
+  begin_with_bound_crosslinks: 0
+  k_spring: 6800.81988
+  rest_length: 2.28
   draw_type: fixed
   tether_draw_type: fixed
   plus_end_pausing: true
   minus_end_pausing: true
   diffusion_s: 1
-  diffusion_d: 1
+  diffusion_d: 0.093272
   spec_flag: false
   tether_diameter: 0.32
   use_binding_volume: true
