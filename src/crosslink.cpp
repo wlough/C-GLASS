@@ -123,6 +123,7 @@ void Crosslink::SinglyKMC() {
     tracker_->TrackSD(kmc_bind_prob);
   } // Find out whether we bind, unbind, or neither.
   int head_activate = choose_kmc_double(unbind_prob, kmc_bind_prob, roll);
+  //Logger::Warning("Bind Props are, unbind= %f, bind= %f", unbind_prob*10000, kmc_bind_prob*10000);
   // Change status of activated head
   if (head_activate == 0) {
     // Unbind bound head
@@ -141,7 +142,6 @@ void Crosslink::SinglyKMC() {
     /* Find out which rod we are binding to */
     int i_bind = kmc_bind.whichObjBindSD(bind_lambda, roll);
     if (i_bind < 0) {
-      printf("i_bind = %d\nbind_lambda = %2.2f\n", i_bind, bind_lambda);
       Logger::Error("kmc_bind.whichRodBindSD in Crosslink::SinglyKMC"
                     " returned an invalid result!");
     }
@@ -170,7 +170,7 @@ void Crosslink::SinglyKMC() {
       //Logger::Warning("not crossing");    
 //	return;
  //     }
-      Logger::Warning("x value of site is %f, and other %f, %f,%f", (bind_obj->GetPosition())[0],(GetPosition())[0]);
+      //Logger::Warning("x value of site is %f, and other %f, %f,%f", (bind_obj->GetPosition())[0],(GetPosition())[0]);
       (*bound_curr_)[bind_obj].first.push_back(kmc_bind.getProb(i_bind));
       (*bound_curr_)[bind_obj].second.push_back(&anchors_[(int)!bound_anchor_]);
       anchors_[(int)!bound_anchor_].AttachObjCenter(bind_obj);

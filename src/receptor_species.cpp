@@ -104,6 +104,7 @@ void ReceptorSpecies::SetAllNeighbors() {
 	Logger::Warning("Number of receptors is %i", members_.size());
 	int i=0;
 	while(i != members_.size()) {
+        members_[i].SetRodOri(members_[i].GetPCOrientation());
 	if (i==0) {
 	members_[i].SetNeighbors(nullptr, &members_[i+1]);
 	}

@@ -63,6 +63,11 @@ void Receptor::SetPCSpecies(SpeciesBase* pc_species) {
 void Receptor::SetPCObject(Object* pc_object) {
   pc_object_ = pc_object; 
 }
+const double Receptor::GetPCOrientation() {
+  const double *ori = pc_object_->GetOrientation();
+  Logger::Warning("or is %f", ori[0]);
+  return ori[0];
+}
 
 // Use PointCover object positions to update
 void Receptor::UpdatePosition() {
@@ -78,6 +83,7 @@ void Receptor::UpdatePosition() {
   }
   // Rescale position for periodic BC's
   UpdatePeriodic();
+  //GetPCOrientation();
   //printf ("here i_= %i_, s_= %s", i_, pc_object_->GetName().c_str());
 }
 

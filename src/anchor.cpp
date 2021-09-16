@@ -135,6 +135,7 @@ void Anchor::UpdatePosition() {
     return;
   }
   // Diffuse or walk along the mesh, updating mesh_lambda
+  
   if (rod_) {
 	  if (diffuse) {
 	    Diffuse();
@@ -142,6 +143,7 @@ void Anchor::UpdatePosition() {
 	      return;
 	  }
 	  if (walker) {
+	    Logger::Warning("Am walker");
 	    Walk();
 	    CheckMesh();
 	  }
@@ -259,6 +261,7 @@ void Anchor::Deactivate() {
 void Anchor::Walk() {
   double vel = GetMaxVelocity();
   if (force_dep_vel_flag_) {
+    Logger::Warning("Am Force dep");
     // Only consider projected force in direction of stepping
     double const force_proj =
         step_direction_ * dot_product(n_dim_, force_, orientation_);
@@ -270,6 +273,8 @@ void Anchor::Walk() {
       fdep = 0.;
     }
     vel *= fdep;
+    Logger::Warning("velocity is %f, %f", step_direction_,dot_product(n_dim_, force_, orientation_));
+
   }
   double dr = step_direction_ * vel * delta_;
   mesh_lambda_ += dr;
@@ -280,6 +285,7 @@ double Anchor::Walk_Quantized() {
   double vel = GetMaxVelocity();
   if (force_dep_vel_flag_) {
     // Only consider projected force in direction of stepping
+    orientation_[0]=-sphere_->GetRodOri();
     double const force_proj =
         step_direction_ * dot_product(n_dim_, force_, orientation_);
     // Linear force-velocity relationship
@@ -290,8 +296,13 @@ double Anchor::Walk_Quantized() {
       fdep = 0.;
     }
     vel *= fdep;
+  
+  //Logger::Warning("velocity is %f, %f,%f,%f,%f,%f,%f", vel, force_proj, force_[0],force_[1],orientation_[0], orientation_[1], fdep);
+  //Logger::Warning("velocity is %f,%f,%f", vel);
   }
+
   return vel;
+  
   // Should this also add to bond lambda?
 }
 

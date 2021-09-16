@@ -12,8 +12,14 @@ return sphere_receptor_;
 void Sphere::SetNeighbors(Object* prevN, Object* nextN) {
   prevN_ = prevN;
   nextN_ = nextN;
-
 }
+const double Sphere::GetRodOri(){
+return rod_ori;
+}
+void Sphere::SetRodOri(const double ori){
+      rod_ori=ori;
+}
+
 Object* Sphere::GetPlusNeighbor() {
 	    //Logger::Warning("nextN_ID %i", nextN_->GetOID());
 	        return nextN_;

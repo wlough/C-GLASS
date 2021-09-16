@@ -1,0 +1,73 @@
+run_name: testing_cnum_discreat
+seed: 845702
+n_periodic: 0
+n_steps: 10000000 
+n_dim: 2
+delta: 0.0001
+graph_flag: true
+movie_flag: false
+movie_directory: movie_fold
+n_graph: 20
+system_radius: 20
+n_runs: 1
+n_random: 1
+rigid_filament:
+  - name: rig1
+    draw_type: fixed
+    color: 1
+    max_length: 500
+    min_length: 5
+    num: 1
+    insertion_type: custom
+    insert_file: fil1.yaml
+    length: 41.6
+    stationary_flag: true
+    constrain_motion_flag: false
+    packing_fraction: -1
+    n_equil: 0
+    spec_flag: true
+    n_spec: 100
+  - name: rig2
+    insertion_type: custom
+    insert_file: fil2.yaml
+    draw_type: fixed
+    color: 0.5
+    max_length: 500
+    min_length: 5
+    num: 1
+    length: 41.6
+    stationary_flag: true
+    constrain_motion_flag: false
+    packing_fraction: -1
+    n_equil: 0
+    spec_flag: true
+    n_spec: 100
+crosslink:
+  - name: ase1
+    anchors:
+      - &1
+        velocity_s: 0 #0.133856
+        velocity_d: 0 #0.133856
+        color: 2
+        diameter: 0.1
+        tether_diameter: 0.1
+        k_on_s: 1
+        k_on_d: 1
+        k_off_s: 0.00356
+        k_off_d: 0.00178
+    concentration: 1
+    bind_site_density: 3.125
+    begin_with_bound_crosslinks: 0
+    k_spring: 68.82
+    rest_length: 2.28
+    draw_type: fixed
+    tether_draw_type: fixed
+    plus_end_pausing: true
+    minus_end_pausing: true
+    diffusion_s: 1
+    diffusion_d: 3.73
+    spec_flag: false
+    tether_diameter: 0.32
+    force_dep_vel_flag: true
+    f_stall: 40
+

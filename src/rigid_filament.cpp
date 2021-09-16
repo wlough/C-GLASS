@@ -296,13 +296,17 @@ void RigidFilament::UpdateSitePositions() {
 void RigidFilament::ApplyForcesTorques() {
   const double *force = bonds_.back().GetForce();
   const double *torque = bonds_.back().GetTorque();
-  for (int i = 0; i < 3; ++i) {
+  //for (int i = 0; i < 3; ++i) {
     //force_[i] += force[i];
-    torque_[i] =0;
+    torque_[0] =0;
+    torque_[1]=0;
+    torque_[2]=0;
+
     force_[0]=0;
-    force_[1]=force[1];
+    force_[1]+=force[1];
     force_[2]=0;
-  }
+    //Logger::Warning("Forces on Rod is %i, %f",i, force_[i]);
+  //}
 }
 
 void RigidFilament::ApplyInteractionForces() {

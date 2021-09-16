@@ -291,8 +291,9 @@ void CrosslinkSpecies::InsertAttachedCrosslinksSpecies(std::vector<Object *> v_O
   UpdateBoundCrosslinks();
   // Begin with bound crosslinks currently just implemented to start on rods
   for (int i=0; i < begin_with_bound_crosslinks_; ++i) {
-    Logger::Warning("Made Before %i", v_T[i]->GetOID());  
-    BindDoubly(v_O[i], v_T[i]);
+    //Logger::Warning("Made Before %i", v_T[i]->GetOID());  
+    //BindDoubly(v_O[i], v_T[i]);
+    BindCrosslink();
     Logger::Warning("Made After");
     //BindCrosslink();
   }
@@ -361,8 +362,6 @@ std::pair <Object*, int> CrosslinkSpecies::GetRandomObject() {
         if (bind_rate_sum > roll) {
           Logger::Trace("Binding free crosslink to random object: xl %d -> obj %d",
                         members_.back().GetOID(), (*obj)->GetOID());
-	  printf ("Binding free crosslink to random object: xl %d -> obj %d",
-                        members_.back().GetOID(), (*obj)->GetOID());
           return std::make_pair(*obj, anchor_index);
         }
       }
@@ -391,8 +390,6 @@ std::pair <Object*, int> CrosslinkSpecies::GetRandomObject() {
         }
         if (vol > roll) {
           Logger::Trace("Binding free crosslink to random object: xl %d -> obj %d",
-                        members_.back().GetOID(), (*obj)->GetOID());
-	  printf ("Binding free crosslink to random object: xl %d -> obj %d",
                         members_.back().GetOID(), (*obj)->GetOID());
         
           return std::make_pair(*obj, anchor_index);
@@ -592,8 +589,21 @@ void CrosslinkSpecies::UpdateBoundCrosslinkPositions() {
     }
   }
 #else
-  for (xlink_iterator xlink = members_.begin(); xlink != members_.end();
-       ++xlink) {
+  std::vector<int> int_array;
+  for (int i =0; i< members_.size(); ++i){
+	int_array.push_back(i);
+  }
+  std::random_shuffle (int_array.begin(), int_array.end());
+  //for (int i=0; i<members_.size(); ++i){
+//	  printf("%d", int_array[i]);
+//  }
+ // printf("\n");
+
+  //for (xlink_iterator xlink = members_.begin(); xlink != members_.end();
+  //     ++xlink) {
+    //crosslink* xlink;
+    for (auto it=int_array.begin(); it != int_array.end(); ++it) {
+       	    Crosslink* xlink=&members_[*it];
     bool init_state = xlink->IsSingly();
     if (sparams_.static_flag && init_state && xlink->GetNNeighbors() == 0) {
       continue;

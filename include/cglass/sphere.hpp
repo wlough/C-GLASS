@@ -11,11 +11,14 @@ class Sphere : public Object {
       Object* sphere_receptor_ =nullptr;
       Object* prevN_ = nullptr;
       Object* nextN_ = nullptr;
+      double rod_ori = 0;
     public:
       Sphere(unsigned long seed);
       bool InducesCatastrophe() { return induces_catastrophe_; }
       void SetSphereReceptor(Object* sphere_receptor);
       void SetNeighbors(Object* prevN, Object* nextN);
+      const double GetRodOri();
+      void SetRodOri(const double ori); 
       Object* GetPlusNeighbor();
       Object* GetMinusNeighbor();
       Object* GetSphereReceptor();

@@ -1,11 +1,11 @@
-run_name: 4_links_smaller_time_step
-seed: [V, 451341,6565745,3490125715,454534514, 7692023,34623463,776567,9845676234,234623623,763356]
+run_name: Var_Kin5_Quan2
+seed: 57456
 n_periodic: 0
-n_steps: 10000000 
+n_steps: 20000000 
 n_dim: 2
-delta: 0.00001
+delta: 0.0001
 graph_flag: false
-movie_flag: true
+movie_flag: false
 movie_directory: movie_fold
 n_graph: 20
 system_radius: 20
@@ -20,7 +20,7 @@ rigid_filament:
     num: 1
     insertion_type: custom
     insert_file: fil1.yaml
-    length: 4.16
+    length: 16
     stationary_flag: false
     constrain_motion_flag: false
     packing_fraction: -1
@@ -35,7 +35,7 @@ rigid_filament:
     max_length: 500
     min_length: 5
     num: 1
-    length: 4.16
+    length: 16
     stationary_flag: false
     constrain_motion_flag: false
     packing_fraction: -1
@@ -45,34 +45,37 @@ rigid_filament:
 crosslink:
   anchors:
     - &1
-      velocity_s: 0 #0.133856
-      velocity_d: 0 #0.133856
-      bind_file: no_bind2.yaml
+      velocity_s: 14.24
+      velocity_d: -13.3856
+      bind_file: rig_bind.yaml
       color: 2
       diameter: 0.1
       tether_diameter: 0.1
-  concentration: 1
-  begin_with_bound_crosslinks: 4 #[V, 1, 2, 3, 4, 5, 6, 7, 8, 9 ,10, 11, 12, 13]
-  k_spring: 68.82 
-  rest_length: 2.28
+  concentration: [V, 0.25, 0.3] 
+  f_stall: 40
+  begin_with_bound_crosslinks: 15
+  k_spring: 45.576
+  rest_length: 3.12
   draw_type: fixed
   tether_draw_type: fixed
   plus_end_pausing: true
   minus_end_pausing: true
-  diffusion_s: 1
-  diffusion_d: 3.73
-  spec_flag: false
+  diffusion_s: 5.76
+  diffusion_d: 0.005
+  spec_flag: true
+  n_spec: 10000
   tether_diameter: 0.32
+  step_direction: 1
 
 
 receptor:
   - name: rig1_receptor
     component: rig1
     insertion_type: grid
-    num: 13
+    num: 50
     diameter: 0.32
   - name: rig2_receptor
     component: rig2
     insertion_type: grid
-    num: 13
+    num: 50
     diameter: 0.32

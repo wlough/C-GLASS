@@ -1,10 +1,10 @@
-run_name: test_sep_params
-seed: 314159
+run_name: 4_links_smaller_time_step_v008
+seed: 1288274024
 n_periodic: 0
-n_steps: 15000000
+n_steps: 10000000
 n_dim: 2
-delta: 0.0001
-graph_flag: false
+delta: 0.00001
+graph_flag: true
 movie_flag: false
 movie_directory: movie_fold
 n_graph: 20
@@ -20,7 +20,7 @@ rigid_filament:
     num: 1
     insertion_type: custom
     insert_file: fil1.yaml
-    length: 4.16
+    length: 41.6
     stationary_flag: false
     constrain_motion_flag: false
     packing_fraction: -1
@@ -35,7 +35,7 @@ rigid_filament:
     max_length: 500
     min_length: 5
     num: 1
-    length: 4.16
+    length: 41.6
     stationary_flag: false
     constrain_motion_flag: false
     packing_fraction: -1
@@ -45,8 +45,8 @@ rigid_filament:
 crosslink:
   anchors:
     - &1
-      velocity_s: 0
-      velocity_d: 0
+      velocity_s: 13.3856
+      velocity_d: -13.3856
       bind_file: rig_bind.yaml
       color: 2
       diameter: 0.1
@@ -57,7 +57,8 @@ crosslink:
       k_off_d: 2
     - *1
   concentration: 1
-  begin_with_bound_crosslinks: 7
+  f_stall: 40
+  begin_with_bound_crosslinks: 0
   k_spring: 68.82
   rest_length: 2.28
   draw_type: fixed
@@ -68,6 +69,7 @@ crosslink:
   diffusion_d: 3.73
   spec_flag: false
   tether_diameter: 0.32
+  step_direction: 1
   use_binding_volume: true
   infinite_reservoir_flag: false
   bind_site_density: 1
@@ -76,10 +78,8 @@ crosslink:
   force_dep_length: 0
   polar_affinity: 1
   k_spring_compress: -1.
-  f_stall: 100
   force_dep_vel_flag: true
   k_align: 0
-  step_direction: 0
   tether_color: 3.1416
   r_capture: 5
   lut_grid_num: 256
@@ -87,14 +87,14 @@ receptor:
   - name: rig1_receptor
     component: rig1
     insertion_type: grid
-    num: 13
+    num: 130
     diameter: 0.32
     concentration: &2 -1
     induce_catastrophe: &3 false
   - name: rig2_receptor
     component: rig2
     insertion_type: grid
-    num: 13
+    num: 130
     diameter: 0.32
     concentration: *2
     induce_catastrophe: *3

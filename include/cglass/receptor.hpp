@@ -25,7 +25,7 @@ public:
 
   // Save yaml input file parameters locally
   void Init(receptor_parameters *sparams);
-
+  double const GetPCOrientation();
   // Initialize Receptor members with yaml input file parameters
   void SetParameters();
 
