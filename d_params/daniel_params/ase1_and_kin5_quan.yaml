@@ -1,11 +1,11 @@
-run_name: Var_Kin5_Quan2
+run_name: Var_Kin5_Quan2_5
 seed: 57456
 n_periodic: 0
-n_steps: 20000000 
+n_steps: 100000000 
 n_dim: 2
-delta: 0.0001
-graph_flag: false
-movie_flag: false
+delta: 0.00002
+graph_flag: true
+movie_flag: true
 movie_directory: movie_fold
 n_graph: 20
 system_radius: 20
@@ -51,7 +51,7 @@ crosslink:
       color: 2
       diameter: 0.1
       tether_diameter: 0.1
-  concentration: [V, 0.25, 0.3] 
+  concentration: [V, 0.5] 
   f_stall: 40
   begin_with_bound_crosslinks: 15
   k_spring: 45.576
