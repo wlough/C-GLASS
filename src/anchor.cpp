@@ -41,7 +41,10 @@ double const Anchor::GetMeshLambda() { return mesh_lambda_; }
 
 double const Anchor::GetBondLambda() { return bond_lambda_; }
 
+double const *const Anchor::GetSphereLoc() { return sphere_->GetPosition(); }
+
 void Anchor::SetRodLambda(double l) { bond_lambda_ = l; }
+
 void Anchor::SetMeshLambda(double ml) { mesh_lambda_ = ml; }
 
 void Anchor::SetDiffusion() {
@@ -126,18 +129,78 @@ void Anchor::UpdatePosition() {
   // Currently only bound anchors diffuse/walk (no explicit unbound anchors)
   bool diffuse = GetDiffusionConst() > 0 ? true : false;
   bool walker = abs(GetMaxVelocity()) > input_tol ? true : false;
-  if (!bound_ || static_flag_ || !rod_ || (!diffuse && !walker)) {
+  if (!bound_ || static_flag_ || !(rod_ || sphere_) || (!diffuse && !walker)) {
     return;
   }
   // Diffuse or walk along the mesh, updating mesh_lambda
-  if (diffuse) {
-    Diffuse();
-    if (!CheckMesh())
-      return;
+  if (rod_) {
+    if (diffuse) {
+      Diffuse();
+      if (!CheckMesh())
+        return;
+    }  
+    if (walker) {
+      Walk();
+      CheckMesh();
+    }
   }
-  if (walker) {
-    Walk();
-    CheckMesh();
+  //Add to if statement to make sure sphere is on rod
+  if (sphere_) {
+    //Probability of Discreate diffusion and velocity for walking between receptors on rods
+    double d_dif = 0;
+    double d_vel = 0;
+    if (diffuse) {
+       d_dif=Diffuse_Discreate();
+    }
+    if (walker) {
+       d_vel=Walk_Discreate();
+    }
+    if (!walker) {
+       d_vel=Discreate_Directed_Diffusion();
+    }
+    Decide_to_step(d_dif,d_vel);
+  }
+}
+
+void Anchor::Decide_to_step(double d_dif, double d_vel) {
+  double roll = rng_.RandomUniform();
+  //Change So Anchors get receptor spacing
+  double step_size = 0.32;
+  double chance_forward = 0;
+  double chance_back = 0;
+
+  chance_forward = (D/pow(step_size,2) + 0.5*vel/step_size)*delta_;
+  chance_back = (D/pow(step_size,2) - 0.5*vel/step_size)*delta_; 
+  if ((chance_forward+chance_back)>1){
+    Logger::Error("Anchors have greater than 100 percent chance 
+		   of stepping, time step too high");
+  }    
+  if (chance_forward>roll) {
+    step_forward();
+  }
+  if (chance_back>(1-roll)) {
+    step_back();
+  }
+  
+}
+
+void Anchor::Step_Forward() {
+  Object* next_receptor=nullptr;
+  next_receptor = sphere_->GetPlusNeighbor();
+  //use single occupancy here
+  if((next_receptor != NULL) && (next_receptor->GetNAnchored()==0)){
+    Undind();
+    AttachObjCenter(next_receptor);
+  }
+}
+
+void Anchor::Step_Back() {
+  Object* last_receptor=nullptr;
+  next_receptor = sphere_->GetMinusNeighbor();
+  //use single occupancy here
+  if((last_receptor != NULL) && (last_receptor->GetNAnchored()==0)){
+    Undind();
+    AttachObjCenter(last_receptor);
   }
 }
 
@@ -191,7 +254,36 @@ void Anchor::Walk() {
   // Should this also add to bond lambda?
 }
 
-// Check that the anchor is still located on the filament mesh
+double Anchor::Walk_Discreate() {
+  double vel = GetMaxVelocity();
+  if (force_dep_vel_flag_) {
+    // Only consider projected force in direction of stepping
+    rod_orientation = -sphere->GetRodOrientation();
+    double const force_proj =
+      step_direction_ * dot_product(n_dim_, force_, orientation_);
+    // Linear force-velocity relationship
+    double fdep = 1. + (force_proj / f_stall_);
+    if (fdep > 1) {
+      fdep = 1;
+    } else if (fdep <0) {
+      fdep = 0;
+    }
+    vel *= fdep;
+  }
+  return vel;
+}  
+
+double Anchor::Diffuse_Discreate() {
+  return GetDiffusionConst();
+}
+
+//Here velocity due to the directed motion that comes from force on non-walkers is computted 
+//Directed Diffusion not thourghly tested
+double Anchor::Discreate_Directed_Diffusion() {
+  double force_proj = dot_product(n_dim_, force_, orientation_);
+  return GetDiffusionConst() * force_proj;
+}
+   // Check that the anchor is still located on the filament mesh
 // Returns true if anchor is still on the mesh, false otherwise
 bool Anchor::CheckMesh() {
   // Check if we moved off the mesh tail

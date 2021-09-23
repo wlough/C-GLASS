@@ -341,6 +341,13 @@ void Crosslink::AttachObjRandom(std::pair<Object*, int> obj_index) {
   }
 }
 
+void Crosslink::InsertDoubleBound(Object* sphereO_, Object* sphereT_) {
+  anchors_[0].AttachObjCenter(sphereO_);
+  SetCompID(sphereO_->GetCompID());
+  anchors_[1].AttachObjCenter(sphereT_);
+  SetCompID(sphereT_->GetCompID());
+}
+
 void Crosslink::Draw(std::vector<graph_struct *> &graph_array) {
   /* Draw anchors */
   anchors_[0].Draw(graph_array);

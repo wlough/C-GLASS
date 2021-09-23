@@ -69,9 +69,15 @@ class Anchor : public Object {
   // Helper functions
   void UpdateAnchorPositionToObj();
   void Diffuse();
+  double Diffuse_Discreat();
+  double Discreat_Directed_Diffusion();
   void Walk();
+  double Walk_Discreate();
   bool CheckMesh();
   bool CalcRodLambda();
+  void Decide_to_step(double D_dif, double D_vel); 
+  void step_forward();
+  void step_back();
 
  public:
   Anchor(unsigned long seed);
@@ -108,7 +114,7 @@ class Anchor : public Object {
   void BindToPosition(double *bind_pos);
   void SetStatic(bool static_flag);
   void SetState(bind_state state);
-
+  double const *const GetSphereLoc();
   double const GetMeshLambda();
   double const GetBondLambda();
   Object *GetNeighbor(int i_neighbor);

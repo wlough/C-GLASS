@@ -367,6 +367,9 @@ void Simulation::InsertSpecies(bool force_overlap, bool processing) {
           break;
         }
       }
+      if ((*spec)->GetSID() == +species_id::receptor){
+        std::vector<Object *> receptor_listO;
+
       if (num != inserted && params_.n_dim == 2) {
         // Attempt a lattice-based insertion strategy (only 2d for now)
         Logger::Warning("Attempting lattice-based insertion strategy");
