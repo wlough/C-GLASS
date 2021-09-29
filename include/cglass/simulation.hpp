@@ -19,7 +19,8 @@ class Simulation {
   double cpu_init_time_;
   std::string run_name_;
   std::vector<std::string> posit_files_;
-
+	std::vector<Object *> receptor_listO;
+	std::vector<Object *> receptor_listT;
   OutputManager output_mgr_;
   system_parameters params_;
   RNG *rng_;

@@ -367,8 +367,26 @@ void Simulation::InsertSpecies(bool force_overlap, bool processing) {
           break;
         }
       }
+      //Add if double bind flag
       if ((*spec)->GetSID() == +species_id::receptor){
-        std::vector<Object *> receptor_listO;
+				int tube_count=0;
+				(*spec)->SetAllNeighbors();
+				if (tube_count==0) {
+					receptor_listO=(*spec)->GetReceptors();
+					tube_count=1;
+				}
+				if (tube_count==1) {
+					receptor_listT=(*spec)->GetReceptors();
+					tube_count=2;
+				}
+				if (tube_count==2) {
+					Logger::Error("Beginning with double bound crosslinkers only set up for two microtubules");
+				}
+//Add if state for if statemnt for if double bind is on but receptors are off
+			}
+
+
+
 
       if (num != inserted && params_.n_dim == 2) {
         // Attempt a lattice-based insertion strategy (only 2d for now)
@@ -463,7 +481,8 @@ void Simulation::InsertSpecies(bool force_overlap, bool processing) {
   // if (!processing) {
   ix_mgr_.CheckUpdateObjects(); // Forces update as well
   //}  
-  ix_mgr_.InsertAttachedCrosslinks();
+	//Set Up to have distiction between double bound and single bound
+  ix_mgr_.InsertAttachedCrosslinks(receptor_list0, receptor_listT);
 }
 
 /* Tear down data structures, e.g. cell lists, and close graphics window if

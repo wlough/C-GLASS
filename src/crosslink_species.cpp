@@ -276,7 +276,7 @@ void CrosslinkSpecies::InsertCrosslinks() {
 }
 
 //Adds in Crosslinkers for begin_with_bound_crosslinks flag
-void CrosslinkSpecies::InsertAttachedCrosslinksSpecies() {
+void CrosslinkSpecies::InsertAttachedCrosslinksSpecies(std::vector<Object *> v_O, std::vector<Object *> v_T) {
   if (begin_with_bound_crosslinks_<=0) {
     return;
   }
@@ -293,6 +293,10 @@ void CrosslinkSpecies::InsertAttachedCrosslinksSpecies() {
   for (int i=0; i < begin_with_bound_crosslinks_; ++i) {
     BindCrosslink();
   }
+}
+void CrosslinkSpecies::BindDoubly(Object* sphereO, Object* sphereT) {
+	AddMember();
+	members_.back().DoublyCenter(sphereO, sphereT);
 }
 
 // Calculate and bind crosslinkers from solution implicitly
