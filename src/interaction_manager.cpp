@@ -807,9 +807,9 @@ void InteractionManager::InsertAttachedCrosslinks(std::vector<Object *> vO, std:
   xlink_.InsertAttachedCrosslinks(vO, vT);
   ForceUpdate();
 }
-//bool InteractionManager::CheckForCross(int Onex_, int Oney_, int Twox_, int Twoy_) {
-// return false;
-//}	
+bool InteractionManager::CheckForCross(int Onex_, int Oney_, int Twox_, int Twoy_) {
+return true;
+}	
 
 bool InteractionManager::CheckDynamicTimestep() {
   if (decrease_dynamic_timestep_) {

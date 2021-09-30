@@ -609,6 +609,27 @@ void CrosslinkSpecies::UpdateBoundCrosslinkPositions() {
       continue;
     }
     xlink->UpdateCrosslinkPositions();
+    if (xlink->ReturnCheckForCross()==true){
+      should_unbind=false;
+      int count=0;
+				for (auto m=members_.begin(); m != members_.end(); ++m){
+				//Logger::Warning("xlink_bound, %i", members_.size());
+        if (m->IsDoubly()==true && xlink->IsDoubly()==true && m->GetOID()!=xlink->GetOID()){
+				if ((xlink->GetOneX()>m->GetOneX() &&  xlink->GetTwoX()<m->GetTwoX())||(xlink->GetOneX()<m->GetOneX() &&  xlink->GetTwoX()>m->GetTwoX())){
+        
+       if (should_unbind==false){
+        count=1;
+
+				should_unbind=true;
+        //These two function can be moved together:w
+        xlink->UnbindCrossing();
+        xlink->SetCheckForCross();
+        }
+				}
+        }
+			}
+		  xlink->SetCheckForCross();
+    }
     /* Xlink is no longer bound, return to solution */
     if (xlink->IsUnbound()) {
       if (sparams_.static_flag) {

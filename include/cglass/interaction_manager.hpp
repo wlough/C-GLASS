@@ -97,7 +97,7 @@ class InteractionManager {
                    run_options *run_opts = nullptr);
   void ReadInputs();
   void Convert();
-  bool CheckForCross(int Onex, int Oney, int Twox, int Twoy);
+  bool CheckForCross(int Onex_, int Oney_, int Twox_, int Twoy_);
   void ResetCellList();
   void InitCrosslinkSpecies(sid_label &slab, ParamsParser &parser,
                             unsigned long seed);

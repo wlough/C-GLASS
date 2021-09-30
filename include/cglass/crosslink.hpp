@@ -6,6 +6,7 @@
 #include "tracker.hpp"
 #include <KMC/kmc.hpp>
 #include <KMC/kmc_choose.hpp>
+//#include "interaction_manager.hpp"
 
 // enum xstate { unbound, singly, doubly };
 
@@ -42,11 +43,16 @@ private:
   void UpdateAnchorsToMesh();
   void UpdateAnchorPositions();
   void UpdateXlinkState();
+  int last_bound;
   double *obj_size_ = nullptr;
   Tracker *tracker_ = nullptr;
 public:
   double GetOneX();
   double GetTwoX();
+  int GetLastBound();
+  bool check_for_cross=false;
+  bool ReturnCheckForCross();
+  void SetCheckForCross();
   void UnbindCrossing();
   Crosslink(unsigned long seed);
   void Init(crosslink_parameters *sparams);

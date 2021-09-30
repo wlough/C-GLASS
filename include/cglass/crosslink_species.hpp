@@ -63,6 +63,7 @@ public:
   void UpdatePositions();
   void UpdateBindRate();
   void CheckForCross();
+  bool should_unbind=false;
   void IsCrossing();
   void CleanUp();
   int GetSize();

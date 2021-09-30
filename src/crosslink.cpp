@@ -163,7 +163,6 @@ void Crosslink::SinglyKMC() {
       Logger::Trace("Crosslink %d became doubly bound to obj %d", GetOID(),
                   bind_obj->GetOID());
     } else {
-      bool crossing=true;
       Sphere *bind_obj = anchors_[bound_anchor_].GetSphereNeighbor(i_bind - n_neighbors_rod);
       //crossing=InteractionManager::CheckForCross(0,0,0,0);
       //if ( crossing=false) {
@@ -178,8 +177,19 @@ void Crosslink::SinglyKMC() {
       SetDoubly();
       Logger::Trace("Crosslink %d became doubly bound to obj %d", GetOID(),
                   bind_obj->GetOID());
+      check_for_cross=true;
+      last_bound=(int)!bound_anchor_;
     }
   }
+}
+bool Crosslink::ReturnCheckForCross(){
+return check_for_cross;
+}
+void Crosslink::SetCheckForCross(){
+check_for_cross=false;
+}
+int Crosslink::GetLastBound(){
+return last_bound;
 }
 
 /* Perform kinetic monte carlo step of protein with 2 heads of protein
@@ -221,12 +231,17 @@ void Crosslink::DoublyKMC() {
 }
 
 void Crosslink::UnbindCrossing() {
-    int head_activate=1;
+    int head_activate=last_bound;
+    
     tracker_->UnbindDS();
     Logger::Trace("Doubly-bound crosslink %d came unbound from %d", GetOID(),
                   anchors_[head_activate].GetBoundOID());
+    Logger::Warning("Made Before Unbind");
+    anchors_[head_activate].Increment(); 
     anchors_[head_activate].Unbind();
+    Logger::Warning("Made After Unbind");
     SetSingly((int)!head_activate);
+    
  
 }
 
@@ -286,7 +301,7 @@ void Crosslink::ApplyTetherForces() {
 void Crosslink::UpdateCrosslinkForces() {
   /* Update anchor positions in space to calculate tether forces */
   UpdateAnchorsToMesh();
-  /* Check if an anchor became unbound due to diffusion, etc */
+  /* Check if an anch/r became unbound due to diffusion, etc */
   UpdateXlinkState();
   /* If we are doubly-bound, calculate and apply tether forces */
   CalculateTetherForces();

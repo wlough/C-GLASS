@@ -659,6 +659,7 @@ void Anchor::BindToPosition(double *bind_pos) {
 }
 
 bool Anchor::IsBound() { return bound_; }
+void Anchor::Increment(){sphere_->IncrementNAnchored();}
 
 int const Anchor::GetBoundOID() {
   if (sphere_) return sphere_->GetOID();

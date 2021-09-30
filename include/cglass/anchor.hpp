@@ -84,6 +84,7 @@ class Anchor : public Object {
   void Init(crosslink_parameters *sparams, int index);
   void SetBindParamMap(std::vector<std::map<std::string, bind_params> >*);
   bool IsBound();
+  void Increment();
   void UpdatePosition();
   void Activate();
   void Deactivate();

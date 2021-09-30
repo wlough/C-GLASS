@@ -1,11 +1,11 @@
 run_name: Var_Kin5_Quan2_5
-seed: 57456
+seed: 708121065
 n_periodic: 0
 n_steps: 100000000
 n_dim: 2
 delta: 0.00002
 graph_flag: true
-movie_flag: true
+movie_flag: false
 movie_directory: movie_fold
 n_graph: 20
 system_radius: 20
