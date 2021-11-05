@@ -164,6 +164,10 @@ public:
   virtual void CalcPCPosition(double s, double* pos);
   virtual void ClearInteractions();
   virtual void Cleanup();
+  virtual void IncrementNEndXlinks() {}
+  virtual void DecrementNEndXlinks() {}
+  virtual void SubNPartners(double n_sub) {}
+  virtual void AddNPartners(double n_add) {}
 
   // I/O functions
   virtual void Report();

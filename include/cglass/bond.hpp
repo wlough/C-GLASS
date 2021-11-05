@@ -39,6 +39,10 @@ class Bond : public Rod {
   directed_bond GetNeighborDirectedBond(int i);
   virtual bool HasNeighbor(int other_oid);
   void SetMeshPtr(Object *obj_ptr);
+  void IncrementNEndXlinks();
+  void DecrementNEndXlinks();
+  void SubNPartners(double n_sub);
+  void AddNPartners(double n_add);
   Object *GetMeshPtr() { return mesh_ptr_; }
   Object *GetCompPtr() { return mesh_ptr_; }
   void SetMeshLambda(double lambda) { mesh_lambda_ = lambda; }

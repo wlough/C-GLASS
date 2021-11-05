@@ -34,8 +34,11 @@ void CrosslinkSpecies::Init(std::string spec_name, ParamsParser &parser) {
 // these will be the default params from the config file).
 void CrosslinkSpecies::InitializeBindParams() {
   for (int i = 0; i < 2; ++i) {
+    default_bind_params_[i].use_partner = sparams_.anchors[i].use_partner;
     default_bind_params_[i].k_on_s = sparams_.anchors[i].k_on_s;
+    default_bind_params_[i].partner_on_s = sparams_.anchors[i].partner_on_s;
     default_bind_params_[i].k_on_d = sparams_.anchors[i].k_on_d;
+    default_bind_params_[i].partner_on_d = sparams_.anchors[i].partner_on_d;
     default_bind_params_[i].k_off_s = sparams_.anchors[i].k_off_s;
     default_bind_params_[i].k_off_d = sparams_.anchors[i].k_off_d;
     default_bind_params_[i].dens_type = density_type::linear;
@@ -60,7 +63,9 @@ void CrosslinkSpecies::LoadBindingSpecies() {
       }
       // Initialize to default
       bind_param_map_[anchor_index][param_name] = default_bind_params_[anchor_index];
-      if (it->second["k_on_s"]) {
+      if (it->second["use_partner"]) {
+        bind_param_map_[anchor_index][param_name].use_partner = it->second["use_partner"].as<bool>();
+      }if (it->second["k_on_s"]) {
         bind_param_map_[anchor_index][param_name].k_on_s = it->second["k_on_s"].as<double>();
       }
       if (it->second["k_on_d"]) {
@@ -71,6 +76,12 @@ void CrosslinkSpecies::LoadBindingSpecies() {
       }
       if (it->second["k_off_d"]) {
         bind_param_map_[anchor_index][param_name].k_off_d = it->second["k_off_d"].as<double>();
+      }
+      if (it->second["partner_on_s"]) {
+        bind_param_map_[anchor_index][param_name].partner_on_s = it->second["partner_on_s"].as<double>();
+      }
+      if (it->second["partner_on_d"]) {
+        bind_param_map_[anchor_index][param_name].partner_on_d = it->second["partner_on_d"].as<double>();
       }
       if (it->second["density_type"]) {
         bind_param_map_[anchor_index][param_name].dens_type = 

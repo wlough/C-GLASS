@@ -449,6 +449,12 @@ species_base_parameters *parse_species_params(std::string sid,
       params.custom_set_tail = jt->second.as<bool>();
       } else if (param_name.compare("reference_frame_flag")==0) {
       params.reference_frame_flag = jt->second.as<bool>();
+      } else if (param_name.compare("partner_destab_A")==0) {
+      params.partner_destab_A = jt->second.as<double>();
+      } else if (param_name.compare("partner_destab_B")==0) {
+      params.partner_destab_B = jt->second.as<double>();
+      } else if (param_name.compare("partner_destab_k")==0) {
+      params.partner_destab_k = jt->second.as<double>();
       } else {
         Logger::Warning("Unrecognized %s parameter: '%s'", sid.c_str(), param_name.c_str());
       }
@@ -730,10 +736,20 @@ species_base_parameters *parse_species_params(std::string sid,
               if (jt->second.size() < 2 || !jt->second[(int)!i]["bind_file"]) {
                  params.anchors[(int)!i].bind_file = params.anchors[i].bind_file;
               }
+            } else if (sub_param_name.compare("use_partner")==0) {
+              params.anchors[i].use_partner = kt->second.as<bool>();
+              if (jt->second.size() < 2 || !jt->second[(int)!i]["use_partner"]) {
+                 params.anchors[(int)!i].use_partner = params.anchors[i].use_partner;
+              }
             } else if (sub_param_name.compare("k_on_s")==0) {
               params.anchors[i].k_on_s = kt->second.as<double>();
               if (jt->second.size() < 2 || !jt->second[(int)!i]["k_on_s"]) {
                  params.anchors[(int)!i].k_on_s = params.anchors[i].k_on_s;
+              }
+            } else if (sub_param_name.compare("partner_on_s")==0) {
+              params.anchors[i].partner_on_s = kt->second.as<double>();
+              if (jt->second.size() < 2 || !jt->second[(int)!i]["partner_on_s"]) {
+                 params.anchors[(int)!i].partner_on_s = params.anchors[i].partner_on_s;
               }
             } else if (sub_param_name.compare("k_off_s")==0) {
               params.anchors[i].k_off_s = kt->second.as<double>();
@@ -744,6 +760,11 @@ species_base_parameters *parse_species_params(std::string sid,
               params.anchors[i].k_on_d = kt->second.as<double>();
               if (jt->second.size() < 2 || !jt->second[(int)!i]["k_on_d"]) {
                  params.anchors[(int)!i].k_on_d = params.anchors[i].k_on_d;
+              }
+            } else if (sub_param_name.compare("partner_on_d")==0) {
+              params.anchors[i].partner_on_d = kt->second.as<double>();
+              if (jt->second.size() < 2 || !jt->second[(int)!i]["partner_on_d"]) {
+                 params.anchors[(int)!i].partner_on_d = params.anchors[i].partner_on_d;
               }
             } else if (sub_param_name.compare("k_off_d")==0) {
               params.anchors[i].k_off_d = kt->second.as<double>();

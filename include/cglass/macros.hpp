@@ -13,5 +13,8 @@
 #endif
 #define SIGN(a, b) ((b) >= 0.0 ? fabs(a) : -fabs(a))
 #define SIGNOF(x) ((x) >= 0.0 ? 1 : -1)
+#ifndef TOL
+#define TOL 1e-12
+#endif
 
 #endif  //_MACROS_H_

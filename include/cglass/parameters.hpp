@@ -111,6 +111,9 @@ struct species_parameters<species_id::filament>
   double v_depoly = 0.793;
   bool custom_set_tail = false;
   bool reference_frame_flag = false;
+  double partner_destab_A = 0;
+  double partner_destab_B = 0;
+  double partner_destab_k = 1;
 };
 typedef species_parameters<species_id::filament> filament_parameters;
 
@@ -187,9 +190,12 @@ struct species_parameters<species_id::crosslink>
     double velocity_d = 0;
     double color = 0;
     std::string bind_file = "none";
+    bool use_partner = false;
     double k_on_s = 10;
+    double partner_on_s = 0;
     double k_off_s = 2;
     double k_on_d = 10;
+    double partner_on_d = 0;
     double k_off_d = 2;
   };
   anchor_parameters anchor_temp;
