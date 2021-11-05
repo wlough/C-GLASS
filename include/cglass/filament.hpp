@@ -30,6 +30,8 @@ private:
                                // 2 if left flock
   int cluster_ = 0;
   int prev_cluster_ = 0;
+  int n_end_xlinks_ = 0; // number of xlinks at filament plus-end
+  double n_end_partners_ = 0; // number of partner proteins (ex dynactin) at plus-end
   double min_length_ = 0;
   double max_length_ = 1000;
   double max_bond_length_ = 4;
@@ -78,6 +80,9 @@ private:
   std::vector<double> h_mat_upper_;   // n_sites-2
   std::vector<double> h_mat_lower_;   // n_sites-2
   std::vector<double> cos_thetas_;
+  double partner_destab_A_ = 0;
+  double partner_destab_k_ = 1;
+  double partner_destab_B_ = 0;
   poly_state poly_;
   void UpdateSiteBondPositions();
   void SetDiffusion();
@@ -158,6 +163,10 @@ public:
   void ScalePosition();
   double const GetVolume();
   void Depolymerize();
+  void IncrementNEndXlinks();
+  void DecrementNEndXlinks();
+  void SubNPartners(double n_sub);
+  void AddNPartners(double n_add);
   // const double GetLength() { return length_; };
 
   // Convert binary data to text. Static to avoid needing to istantiate

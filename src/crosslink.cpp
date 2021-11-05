@@ -126,6 +126,9 @@ void Crosslink::SinglyKMC() {
     // Unbind bound head
     // Track unbinding
     tracker_->UnbindSU();
+    if (anchors_[bound_anchor_].AttachedToFilamentPlusEnd()) {
+      anchors_[bound_anchor_].SubtractFilEndProteins(true);
+    }
     anchors_[bound_anchor_].Unbind();
     SetUnbound();
     Logger::Trace("Crosslink %d came unbound", GetOID());
@@ -157,6 +160,10 @@ void Crosslink::SinglyKMC() {
         bind_lambda = 0;
       }
       anchors_[(int)!bound_anchor_].AttachObjLambda(bind_obj, bind_lambda);
+      if (anchors_[bound_anchor_].AttachedToFilamentPlusEnd()) {
+        anchors_[bound_anchor_].SubtractFilEndProteins(false);
+        anchors_[bound_anchor_].SetReachedPlusEnd(false);
+      }
       SetDoubly();
       Logger::Trace("Crosslink %d became doubly bound to obj %d", GetOID(),
                   bind_obj->GetOID());
@@ -166,6 +173,10 @@ void Crosslink::SinglyKMC() {
       (*bound_curr_)[bind_obj].second.push_back(&anchors_[(int)!bound_anchor_]);
       anchors_[(int)!bound_anchor_].AttachObjCenter(bind_obj);
       bind_obj->DecrementNAnchored(); // For knockout loop- allow collisions
+      if (anchors_[bound_anchor_].AttachedToFilamentPlusEnd()) {
+        anchors_[bound_anchor_].SubtractFilEndProteins(false);
+        anchors_[bound_anchor_].SetReachedPlusEnd(false);
+      }
       SetDoubly();
       Logger::Trace("Crosslink %d became doubly bound to obj %d", GetOID(),
                   bind_obj->GetOID());
@@ -317,9 +328,9 @@ void Crosslink::CalculateTetherForces() {
 
   // If one anchor induces catastrophe and the other is attached to a filament, depolymerize
   // attached filament.
-  if (anchors_[0].InducesCatastrophe() && anchors_[1].AttachedToFilament()) {
+  if (anchors_[0].InducesCatastrophe() && anchors_[1].AttachedToFilamentPlusEnd()) {
     anchors_[1].InduceCatastrophe();
-  } else if (anchors_[1].InducesCatastrophe() && anchors_[0].AttachedToFilament()) {
+  } else if (anchors_[1].InducesCatastrophe() && anchors_[0].AttachedToFilamentPlusEnd()) {
     anchors_[0].InduceCatastrophe();
   }
   

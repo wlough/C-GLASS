@@ -19,8 +19,11 @@ void Anchor::Init(crosslink_parameters *sparams, int index) {
   max_velocity_d_ = sparams->anchors[index_].velocity_d;
   diffusion_s_ = sparams->diffusion_s;
   diffusion_d_ = sparams->diffusion_d;
+  use_partner_ = sparams_->anchors[index_].use_partner;
   k_on_s_ = sparams_->anchors[index_].k_on_s;
+  partner_on_s_ = sparams_->anchors[index_].partner_on_s;
   k_on_d_ = sparams_->anchors[index_].k_on_d;
+  partner_on_d_ = sparams_->anchors[index_].partner_on_d;
   k_off_s_ = sparams_->anchors[index_].k_off_s;
   k_off_d_ = sparams_->anchors[index_].k_off_d;
   plus_end_pausing_ = sparams_->plus_end_pausing;
@@ -48,6 +51,10 @@ void Anchor::SetDiffusion() {
   // Solve them now so you do not have to keep taking sqrts
   kick_amp_s_ = sqrt(2. * diffusion_s_ * delta_);
   kick_amp_d_ = sqrt(2. * diffusion_d_ * delta_);
+}
+
+void Anchor::SetReachedPlusEnd(bool plus_end) {
+  reached_plus_end_ = plus_end;
 }
 
 void Anchor::UpdateAnchorPositionToMesh() {
@@ -106,6 +113,10 @@ bool Anchor::CalcRodLambda() {
       rod_length_ = rod_->GetLength();
     } else if (plus_end_pausing_) {
       bond_lambda_ = rod_length_;
+      if (!reached_plus_end_) {
+        AddFilEndProteins();
+        reached_plus_end_ = true;
+      }
     } else {
       Unbind();
       return false;
@@ -233,6 +244,7 @@ void Anchor::Unbind() {
   bond_lambda_ = -1;
   mesh_lambda_ = -1;
   active_ = false;
+  reached_plus_end_ = false;
   ClearNeighbors();
   ZeroForce();
   SetCompID(-1);
@@ -769,8 +781,8 @@ bool Anchor::InducesCatastrophe() {
   return true;
 }
 
-// Returns true if anchor is attached to a RigidFilament or Filament.
-bool Anchor::AttachedToFilament() {
+// Returns true if anchor is attached to a RigidFilament or Filament plus-end.
+bool Anchor::AttachedToFilamentPlusEnd() {
 
   // Check if attached to bond of a filament
   if (!rod_ || !bond_ || !mesh_ || (mesh_->GetSID() != +species_id::filament)) {
@@ -779,10 +791,44 @@ bool Anchor::AttachedToFilament() {
   // Check if attached to last bond of filament
   Bond *bond = bond_->GetNeighborBond(1);
   if (bond) return false;
-  else if ((rod_->GetLength() - (mesh_lambda_ - bond_->GetMeshLambda())) > 2*rod_->GetDiameter()) {
+  else if ((rod_->GetLength() - (mesh_lambda_ - bond_->GetMeshLambda())) > TOL) {
     return false;
   }
   return true;
+}
+
+/* Decrement xlink and neighbor end count if anchor dettached from singly bound filament end */
+void Anchor::SubtractFilEndProteins(bool singly) {
+  if (use_bind_file_) {
+    if (bind_param_map_->at(index_)[bond_->GetName()].use_partner) {
+      bond_->DecrementNEndXlinks();
+      if (singly) {
+        bond_->SubNPartners(bind_param_map_->at(index_)[bond_->GetName()].partner_on_s);
+      } else {
+        bond_->SubNPartners(bind_param_map_->at(index_)[bond_->GetName()].partner_on_d);
+      }
+    }
+  } else {
+    if (use_partner_) {
+      bond_->DecrementNEndXlinks();
+      bond_->SubNPartners(partner_on_s_);
+    }
+  }
+}
+
+/* Decrement xlink and neighbor end count if anchor dettached from doubly bound filament end */
+void Anchor::AddFilEndProteins() {
+  if (use_bind_file_) {
+    if (bind_param_map_->at(index_)[bond_->GetName()].use_partner) {
+      bond_->IncrementNEndXlinks();
+      bond_->AddNPartners(bind_param_map_->at(index_)[bond_->GetName()].partner_on_s);
+    }
+  } else {
+    if (use_partner_) {
+      bond_->IncrementNEndXlinks();
+      bond_->AddNPartners(partner_on_s_);
+    }
+  }
 }
 
 // Depolymerize attached anchor

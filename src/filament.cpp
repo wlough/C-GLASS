@@ -58,6 +58,9 @@ void Filament::SetParameters() {
   cilia_trap_flag_ = sparams_->cilia_trap_flag;
   fic_factor_ = sparams_->fic_factor;
   tip_force_ = 0.0;
+  partner_destab_A_ = sparams_->partner_destab_A;
+  partner_destab_k_ = sparams_->partner_destab_k;
+  partner_destab_B_ = sparams_->partner_destab_B;
   /* Intrinsic curvature is given in the format of d_theta/d_s where s is the
      arc length, then the angle between each bond must be d_theta/d_s *
      bond_length_. The additional factor of 1/2 is due to the fact that
@@ -1162,6 +1165,7 @@ void Filament::UpdatePolyState() {
   // load
   if (force_induced_catastrophe_flag_ && tip_force_ > 0) {
     double p_factor = exp(fic_factor_ * tip_force_);
+    p_factor *= partner_destab_A_*exp(-n_end_xlinks_/n_end_partners_*partner_destab_k_)+partner_destab_B_;
     p_g2s = (p_g2s + p_g2p_) * p_factor;
     p_p2s = p_p2s * p_factor;
   }
@@ -1605,4 +1609,24 @@ void Filament::RotateToReferenceFrame() {
 
   /* Finally, update bond positions for visualization */
   UpdateBondPositions();
+}
+
+/* Increment crosslink at filament end count */
+void Filament::IncrementNEndXlinks() {
+  n_end_xlinks_++;
+}
+
+/* Decrement crosslink at filament end count */
+void Filament::DecrementNEndXlinks() {
+  n_end_xlinks_--;
+}
+
+/* Decrease partner protein at filament end amount */
+void Filament::SubNPartners(double n_sub) {
+  n_end_partners_ -= n_sub;
+}
+
+/* Increase partner protein at filament end amount */
+void Filament::AddNPartners(double n_add) {
+  n_end_partners_ += n_add;
 }

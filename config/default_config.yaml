@@ -259,7 +259,9 @@ filament:                            # Parameters unique to filament class of ob
                                     # are the locations of the tails instead of the centers 
   reference_frame_flag: [false, bool] # rotate filament into filament reference frame for bending
                                       # analysis and visualization
-
+  partner_destab_A: [0, double]   # Destabilization factor for equation freq=Aexp(-k*ratio)+B
+  partner_destab_B: [0, double]    # Destabilization factor for equation freq=Aexp(-k*ratio)+B
+  partner_destab_k: [1, double]    # Destabilization factor for equation freq=Aexp(-k*ratio)+B
 br_bead:
   driving_factor: [0, double]
   driving_torque: [0, double]
@@ -344,14 +346,18 @@ crosslink:                          # Parameters specific to crosslinks.
                                     # Calculated using k_spring, rest_length. User input ignored.
   lut_grid_num: [256, int]          # Number of grid points used in one dimension of the the lookup table (LUT).
                                     # Total entries go as the square of this number e.g. 256 x 256
+
   anchors:
     velocity_s: [0, double]           # Bound crosslink head velocities when walkers are singly bound.
     velocity_d: [0, double]           # Bound crosslink head velocities when walkers are doubly bound.
     color: [0, double]                # Anchor color
     bind_file: [none, string]         # File of species crosslink can bind to, and binding rates. If none, bind to
+    use_partner: [false, bool]        # Load/unload partner protein- determines dynamic instability
     k_on_s: [10, double]              # On-rate for binding crosslinks from solution to bonds.
+    partner_on_s: [0, double]             # On-rate for partner protein (ex. dynactin).
     k_off_s: [2, double]              # Off-rate for bound crosslinks to go from bound to solution.
     k_on_d: [10, double]              # On-rate for singly bound to doubly bound crosslinks.
+    partner_on_d: [0, double]             # Double on-rate for partner protein (ex. dynactin).
     k_off_d: [2, double]              # Off-rate for doubly bound to singly bound crosslinks.                                  # all and use given xlink parameters.
 
 receptor:

@@ -5,9 +5,12 @@
 #include "neighbor_list.hpp"
 
 struct bind_params {
+  bool use_partner;
   double k_on_s;
+  double partner_on_s;
   double k_off_s;
   double k_on_d;
+  double partner_on_d;
   double k_off_d;
   density_type dens_type;
   double bind_site_density;
@@ -37,14 +40,18 @@ class Anchor : public Object {
   double diffusion_d_;
   double kick_amp_s_;
   double kick_amp_d_;
+  bool use_partner_;
   double k_on_s_;
+  double partner_on_s_;
   double k_on_d_;
+  double partner_on_d_;
   double k_off_s_;
   double k_off_d_;
   double polar_affinity_;
   double f_stall_;
   double force_dep_vel_flag_;
   bool use_bind_file_;
+  bool reached_plus_end_ = false;
   std::vector<std::map<std::string, bind_params> > *bind_param_map_ = nullptr;
 
   double input_tol = 1e-8; // Tolerance for comparing inputs to 0
@@ -128,9 +135,12 @@ class Anchor : public Object {
   void SetObjSize(double* obj_size);
   const double* const GetBindRate();
   void SetBindRate(double* bind_rate);
+  void SetReachedPlusEnd(bool plus_end);
   double CalcSingleBindRate();
   bool InducesCatastrophe();
-  bool AttachedToFilament();
+  bool AttachedToFilamentPlusEnd();
+  void SubtractFilEndProteins(bool singly);
+  void AddFilEndProteins();
   void InduceCatastrophe();
 
   // Convert binary data to text. Static to avoid needing to instantiate
