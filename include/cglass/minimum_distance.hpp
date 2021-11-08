@@ -42,23 +42,21 @@ public:
                     const double *r_2, const double *s_2, const double *u_2,
                     double *r_min, double *r_min_mag2, double *lambda,
                     double *mu);
-  void PointSphereBC(double const *const r, double *dr, double *dr_mag2,
+  void PointSphereBC(double const *const r, double *dr, double *dr_mag2, bool &outside, 
                      double buffer);
-  void SpheroSphereBC(double const *const r, double const *const u,
-                      double const length, double *r_contact, double *dr,
-                      double *dr_mag2, double buffer);
-  void PointBuddingBC(double const *const r, double *dr, double *dr_mag2,
+  void SpheroSphereBC(double const *const r, double const *const u, double const length,
+                      double *dr, double *dr_mag2, bool& outside, double *r_contact, 
                       double buffer);
-  void SpheroBuddingBC(double const *const r, double const *const u,
-                       double const length, double *dr, double *dr_mag2,
-                       double *r_contact, double buffer);
-
-  void PointWallBC(double const *const r, double const *const s, double *dr,
-                   double *dr_mag2, double buffer);
+  void PointBuddingBC(double const *const r, double *dr, double *dr_mag2, bool& outside,
+                      double buffer);
+  void SpheroBuddingBC(double const *const r, double const *const u, double const length, 
+                      double *dr, double *dr_mag2, bool& outside, double *r_contact, double buffer);
+  void PointWallBC(double const *const r, double const *const s, double *dr, double *dr_mag2, 
+                   bool& outside, double buffer);
   void SpheroWallBC(double const *const r, double const *const s,
                     double const *const u, double const length,
-                    double *r_contact, double *dr, double *dr_mag2,
-                    double buffer);
+                    double *dr, double *dr_mag2, bool& outside,
+                    double *r_contact, double buffer);
 
   MinimumDistance() {}
   static void Init(SpaceBase *space, double boundary_cutoff_sq);

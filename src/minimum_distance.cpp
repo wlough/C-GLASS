@@ -658,14 +658,17 @@ void MinimumDistance::CarrierLines(const double *r_1, const double *s_1,
 }
 
 void MinimumDistance::PointSphereBC(double const *const r, double *dr,
-                                    double *dr_mag2, double buffer) {
+                                    double *dr_mag2, bool &outside, double buffer) {
   double r_mag = 0;
   for (int i = 0; i < n_dim_; ++i) {
     r_mag += r[i] * r[i];
   }
   r_mag = sqrt(r_mag);
+  double dl = space_->radius / r_mag - 1;
+  // We are outside the cell if dl<0
+  outside = (dl<0);
   for (int i = 0; i < n_dim_; ++i) {
-    dr[i] = (space_->radius / r_mag - 1) * r[i];
+    dr[i] = dl * r[i];
   }
   *dr_mag2 = 0;
   for (int i = 0; i < n_dim_; ++i) {
@@ -674,7 +677,7 @@ void MinimumDistance::PointSphereBC(double const *const r, double *dr,
 }
 void MinimumDistance::SpheroWallBC(double const *const r, double const *const s,
                                    double const *const u, double const length,
-                                   double *dr, double *dr_mag2,
+                                   double *dr, double *dr_mag2, bool& outside,
                                    double *r_contact, double buffer) {
   /* For a spherocylinder with spherical BCs, the minimum distance will
      always be at one of the endpoints */
@@ -712,11 +715,14 @@ void MinimumDistance::SpheroWallBC(double const *const r, double const *const s,
   }
   sign = (s[0] > 0 ? 1 : -1);
   dr[0] -= sign * ABS(r_min[0] - r[0]);
+  // We are outside the cell if we are to the left of wall.
+  outside = (dr[0]<0);
   *dr_mag2 = dr[0] * dr[0];
 }
 
 void MinimumDistance::PointWallBC(double const *const r, double const *const s,
-                                  double *dr, double *dr_mag2, double buffer) {
+                                  double *dr, double *dr_mag2, bool& outside, 
+                                  double buffer) {
   /* Check which site is closest to the boundary. If the sphero is on the right
      side of the box, check if the orientation is toward or away from the box,
      and vice versa */
@@ -732,6 +738,9 @@ void MinimumDistance::PointWallBC(double const *const r, double const *const s,
   } else {
     dr[0] = -r[0];
   }
+
+  // We are outside the cell if we are to the left of wall.
+  outside = (dr[0]<0);
   *dr_mag2 = 0.0;
   for (int i = 0; i < n_dim_; ++i) {
     *dr_mag2 += SQR(dr[i]);
@@ -740,7 +749,7 @@ void MinimumDistance::PointWallBC(double const *const r, double const *const s,
 
 void MinimumDistance::SpheroSphereBC(double const *const r,
                                      double const *const u, double const length,
-                                     double *dr, double *dr_mag2,
+                                     double *dr, double *dr_mag2, bool& outside,
                                      double *r_contact, double buffer) {
   /* For a spherocylinder with spherical BCs, the minimum distance will
      always be at one of the endpoints */
@@ -761,9 +770,11 @@ void MinimumDistance::SpheroSphereBC(double const *const r,
     r_mag += r_min[i] * r_min[i];
   }
   r_mag = sqrt(r_mag);
-
+  double dl = space_->radius / r_mag - 1;
+  // We are outside the cell if dl<0
+  outside = (dl<0);
   for (int i = 0; i < n_dim_; ++i) {
-    dr[i] = (space_->radius / r_mag - 1) * r_min[i];
+    dr[i] = dl * r_min[i];
   }
   *dr_mag2 = 0;
   for (int i = 0; i < n_dim_; ++i) {
@@ -772,7 +783,7 @@ void MinimumDistance::SpheroSphereBC(double const *const r,
 }
 
 void MinimumDistance::PointBuddingBC(double const *const r, double *dr,
-                                     double *dr_mag2, double buffer) {
+                                     double *dr_mag2, bool& outside, double buffer) {
   // First see which cell (mother or daughter) we are primarily located in
   bool in_mother = (r[n_dim_ - 1] < space_->bud_neck_height);
   /* There are two regions in which the cusp of the bud neck is always the
@@ -809,6 +820,8 @@ void MinimumDistance::PointBuddingBC(double const *const r, double *dr,
   }
   /* Now in_cone_region definitely means what it says it means */
   if (in_cone_region) {
+    // If we are in cone region, we must be inside of cell
+    outside = true;
     /* Minimum distance is to the cusp of the bud neck, a little algebra shows
        that in cylindrical coords: dr = { rho ( bud_neck_radius / |rho| - 1) ,
        bud_neck_height - z } */
@@ -830,11 +843,14 @@ void MinimumDistance::PointBuddingBC(double const *const r, double *dr,
     r_mag = sqrt(r_mag + SQR(r[n_dim_ - 1] - z0));
     double r_cell = (in_mother ? space_->radius : space_->bud_radius);
     *dr_mag2 = 0;
+    double dl = r_cell / r_mag - 1;
+    // We are outside the cell if dl<0
+    outside = (dl<0);
     for (int i = 0; i < n_dim_ - 1; ++i) {
-      dr[i] = (r_cell / r_mag - 1) * r[i];
+      dr[i] = dl * r[i];
       *dr_mag2 += SQR(dr[i]);
     }
-    dr[n_dim_ - 1] = (r_cell / r_mag - 1) * (r[n_dim_ - 1] - z0);
+    dr[n_dim_ - 1] = dl * (r[n_dim_ - 1] - z0);
     *dr_mag2 += SQR(dr[n_dim_ - 1]);
   }
 }
@@ -842,8 +858,8 @@ void MinimumDistance::PointBuddingBC(double const *const r, double *dr,
 void MinimumDistance::SpheroBuddingBC(double const *const r,
                                       double const *const u,
                                       double const length, double *dr,
-                                      double *dr_mag2, double *r_contact,
-                                      double buffer) {
+                                      double *dr_mag2, bool& outside, 
+                                      double *r_contact, double buffer) {
   /* For spherocylinders, there are two distinct cases we want to consider:
      whether both end sites are above or below the bud neck in the same cell,
      or if they are in different cells. I determine this by determining if
@@ -868,13 +884,13 @@ void MinimumDistance::SpheroBuddingBC(double const *const r,
       r_contact[i] = sign * 0.5 * length * u[i];
       r_min[i] = r[i] + r_contact[i];
     }
-    PointBuddingBC(r_min, dr, dr_mag2, buffer);
+    PointBuddingBC(r_min, dr, dr_mag2, outside, buffer);
   } else {
     // For now just use the centerpoint of the sphero... fix this later FIXME
     for (int i = 0; i < n_dim_; ++i) {
       r_contact[i] = 0.0;
     }
-    PointBuddingBC(r, dr, dr_mag2, buffer);
+    PointBuddingBC(r, dr, dr_mag2, outside, buffer);
   }
 }
 
@@ -893,29 +909,30 @@ bool MinimumDistance::CheckBoundaryInteraction(Interaction &ix) {
   std::fill(ix.contact1, ix.contact1 + 3, 0.0);
   ix.buffer_mag = 0.5 * d1;
   ix.buffer_mag2 = ix.buffer_mag * ix.buffer_mag;
+  bool outside = false;
   if (space_->type == +boundary_type::sphere) {
     if (l1 == 0) {
-      PointSphereBC(r1, ix.dr, &(ix.dr_mag2), ix.buffer_mag);
+      PointSphereBC(r1, ix.dr, &(ix.dr_mag2), outside, ix.buffer_mag);
     } else {
-      SpheroSphereBC(r1, u1, l1, ix.dr, &(ix.dr_mag2), ix.contact1,
+      SpheroSphereBC(r1, u1, l1, ix.dr, &(ix.dr_mag2), outside, ix.contact1,
                      ix.buffer_mag);
     }
   } else if (space_->type == +boundary_type::budding) {
     if (l1 == 0) {
-      PointBuddingBC(r1, ix.dr, &(ix.dr_mag2), ix.buffer_mag);
+      PointBuddingBC(r1, ix.dr, &(ix.dr_mag2), outside, ix.buffer_mag);
     } else {
-      SpheroBuddingBC(r1, u1, l1, ix.dr, &(ix.dr_mag2), ix.contact1,
+      SpheroBuddingBC(r1, u1, l1, ix.dr, &(ix.dr_mag2), outside, ix.contact1,
                       ix.buffer_mag);
     }
   } else if (space_->type == +boundary_type::wall) {
     if (l1 == 0) {
-      PointWallBC(r1, s1, ix.dr, &(ix.dr_mag2), ix.buffer_mag);
+      PointWallBC(r1, s1, ix.dr, &(ix.dr_mag2), outside, ix.buffer_mag);
     } else {
-      SpheroWallBC(r1, s1, u1, l1, ix.dr, &(ix.dr_mag2), ix.contact1,
+      SpheroWallBC(r1, s1, u1, l1, ix.dr, &(ix.dr_mag2), outside, ix.contact1,
                    ix.buffer_mag);
     }
   }
-  if (ix.dr_mag2 < boundary_cut2_) {
+  if ((ix.dr_mag2 < boundary_cut2_) || outside == true) {
     return true;
   }
   return false;
