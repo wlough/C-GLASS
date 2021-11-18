@@ -133,9 +133,11 @@ void Simulation::Integrate() {
   Logger::Trace("Updating object positions");
   for (auto it = species_.begin(); it != species_.end(); ++it) {
     (*it)->UpdatePositions();
-  }
+    //if ((*it)->GetSID() == +species_id::receptor){
+    //(*it)->PrintOccupancy();
+  //}
 }
-
+}
 /* Calculate interaction forces between all objects if necessary. */
 void Simulation::Interact() {
   Logger::Trace("Calculating object interactions");

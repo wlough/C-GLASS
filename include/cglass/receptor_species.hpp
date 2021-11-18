@@ -40,7 +40,7 @@ public:
 
   // Create a receptor object and save it as a site on mesh_
   void AddMember();
-
+  void PrintOccupancy();
   // Overwrite custom insert to ignore grid insertion choice
   void ArrangeMembers();
   void SetAllNeighbors();

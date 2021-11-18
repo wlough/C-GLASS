@@ -12,8 +12,8 @@ template <typename T, unsigned char S> class Species : public SpeciesBase {
 private:
   // Check if input spec file is valid/not at eof
   bool CheckISpec();
+
 protected:
-  std::vector<T> members_;
   species_parameters<S> sparams_;
   std::vector<Analysis<T, S> *> analysis_;
   // A pointcover associated with the species members (a mesh that surrounds objects)
@@ -30,6 +30,7 @@ public:
   ~Species() {
     delete pc_;
   }
+  std::vector<T> members_;
   // Initialize function for setting it up on the first pass
   virtual void Init(std::string spec_name, ParamsParser &parser) {
     SetSID(species_id::_from_integral(S));

@@ -100,11 +100,13 @@ void Crosslink::SinglyKMC() {
       bind_factors[rod_nbr_list.size() + i] =
                bind_param_map_->at((int)!bound_anchor_)[name].k_on_d
                * bind_param_map_->at((int)!bound_anchor_)[name].bind_site_density;
+      //Logger::Warning("The sphere bind factor is %f", bind_factors[rod_nbr_list.size()+i]);
+
     }
   } else {
   double bind_factor_rod = anchors_[(int)!bound_anchor_].GetOnRate() * bind_site_density_;
   double bind_factor_sphere = anchors_[(int)!bound_anchor_].GetOnRate() * bind_site_density_;
-
+  //Logger::Warning("The sphere bind factor is %f", bind_factor_sphere);
   /* Fill vector of bind factors with rod factors, then sphere factors */
     std::fill(bind_factors.begin(), bind_factors.begin() + n_neighbors_rod, bind_factor_rod);
     std::fill(bind_factors.begin() + n_neighbors_rod, bind_factors.end(), bind_factor_sphere);
@@ -121,6 +123,8 @@ void Crosslink::SinglyKMC() {
                               anchors_[bound_anchor_].GetBoundOID(), bind_factors); 
     kmc_bind_prob = kmc_bind.getTotProb();
     tracker_->TrackSD(kmc_bind_prob);
+    //Logger::Warning("Total prop is %f", kmc_bind_prob);
+
   } // Find out whether we bind, unbind, or neither.
   int head_activate = choose_kmc_double(unbind_prob, kmc_bind_prob, roll);
   //Logger::Warning("Bind Props are, unbind= %f, bind= %f", unbind_prob*10000, kmc_bind_prob*10000);
@@ -173,7 +177,7 @@ void Crosslink::SinglyKMC() {
       (*bound_curr_)[bind_obj].first.push_back(kmc_bind.getProb(i_bind));
       (*bound_curr_)[bind_obj].second.push_back(&anchors_[(int)!bound_anchor_]);
       anchors_[(int)!bound_anchor_].AttachObjCenter(bind_obj);
-      bind_obj->DecrementNAnchored(); // For knockout loop- allow collisions
+      //bind_obj->DecrementNAnchored(); // For knockout loop- allow collisions
       SetDoubly();
       Logger::Trace("Crosslink %d became doubly bound to obj %d", GetOID(),
                   bind_obj->GetOID());
@@ -222,24 +226,29 @@ void Crosslink::DoublyKMC() {
     head_activate = choose_kmc_double(unbind_prob[0], unbind_prob[1], roll);
   }
   if (head_activate > -1) {
+    //anchors_[0].SphereO();
+    //anchors_[1].SphereO();
     tracker_->UnbindDS();
     Logger::Trace("Doubly-bound crosslink %d came unbound from %d", GetOID(),
                   anchors_[head_activate].GetBoundOID());
     anchors_[head_activate].Unbind();
     SetSingly((int)!head_activate);
+    //anchors_[0].SphereO();
+    //anchors_[1].SphereO();
   }
 }
 
 void Crosslink::UnbindCrossing() {
     int head_activate=last_bound;
-    
+    ClearNeighbors();
+    UpdateXlinkState();
     tracker_->UnbindDS();
     Logger::Trace("Doubly-bound crosslink %d came unbound from %d", GetOID(),
                   anchors_[head_activate].GetBoundOID());
-    Logger::Warning("Made Before Unbind");
-    anchors_[head_activate].Increment(); 
+    //Logger::Warning("Made Before Unbind");
+    //anchors_[head_activate].Increment(); 
     anchors_[head_activate].Unbind();
-    Logger::Warning("Made After Unbind");
+    //Logger::Warning("Made After Unbind");
     SetSingly((int)!head_activate);
     
  
@@ -270,9 +279,16 @@ void Crosslink::UpdateAnchorsToMesh() {
 }
 
 void Crosslink::UpdateAnchorPositions() {
+  double roll = rng_.RandomUniform();
   if (!sparams_->stationary_flag) {
+  if (roll<0.5){
     anchors_[0].UpdatePosition();   
     anchors_[1].UpdatePosition();
+  }
+  if (roll>0.5){
+     anchors_[1].UpdatePosition();
+     anchors_[0].UpdatePosition();
+  }
   }
 }
 double Crosslink::GetOneX() {

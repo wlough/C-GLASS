@@ -13,6 +13,7 @@
   default_config["species"]["n_posit"] = "100";
   default_config["species"]["n_spec"] = "100";
   default_config["species"]["stationary_flag"] = "false";
+  default_config["species"]["stationary_until"] = "0";
   default_config["rigid_filament"]["max_length"] = "500";
   default_config["rigid_filament"]["min_length"] = "5";
   default_config["rigid_filament"]["constrain_motion_flag"] = "false";

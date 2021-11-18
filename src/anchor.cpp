@@ -172,10 +172,10 @@ void Anchor::Decide_to_step(double Qdif, double Qvel) {
 	double chance_forward = 0;
 	double chance_back = 0;
 	double D=Qdif;
-
+  //Is this defined correctly for crosslinkers?
 	chance_forward=(D/pow(step_size,2) + 0.5*vel/step_size)*delta_;
 	chance_back=(D/pow(step_size,2) - 0.5*vel/step_size)*delta_;
-	//printf("forward=%f, back=%f", chance_forward,chance_back);
+	//Logger::Warning("forward=%f, back=%f", chance_forward,chance_back);
 	if (chance_forward>roll) {
 	       step_forward();
 	       //printf("stepped_forward");
@@ -183,8 +183,11 @@ void Anchor::Decide_to_step(double Qdif, double Qvel) {
         if (chance_back>(1-roll)) {
 		step_back();
 		//printf("stepped_back");
-	}		
-
+	}
+  if (chance_forward>.001 || chance_back>.001) {
+  //Logger::Warning("forward=%f, back=%f,vel=%f, Dif=%f", chance_forward,chance_back, vel,D);
+    		
+}
 		
 
 }
@@ -410,6 +413,7 @@ double Anchor::Diffuse_Quantized() {
 
 double Anchor::Quantized_Directed_Diffusion() {
     double dif=0;
+    orientation_[0]=sphere_->GetRodOri();
     double force_proj = dot_product(n_dim_, force_, orientation_);
     return dif= GetDiffusionConst() * force_proj;
 }
@@ -920,3 +924,9 @@ void Anchor::InduceCatastrophe() {
   Filament* fil = dynamic_cast<Filament*>(mesh_);
   fil->Depolymerize();
 }
+//void Anchor::SphereO(){
+//if (!sphereTwo){
+//Sphere sphereTwo=sphere_;
+//}
+//Logger::Warning("Sphere Occupancy before Unbind, %d", sphere_->GetNAnchored());
+//}

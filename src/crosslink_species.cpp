@@ -135,6 +135,7 @@ void CrosslinkSpecies::TestKMCStepSize() {
   double s_d_fact = k_on_ * bind_site_density_;
   if (sparams_.use_binding_volume)
     s_d_fact /= lut_.getBindVolume();
+    //Logger::Warning("bind volume is %f", lut_.getBindVolume());
   double d_s_fact = k_off_;
 
   if (sparams_.energy_dep_factor == 0 && sparams_.force_dep_length == 0) {
@@ -185,7 +186,7 @@ LUTFiller *CrosslinkSpecies::MakeLUTFiller() {
     Logger::Warning("!!!Asymmetric springs are being used. This has not been "
                     "fully tested. Use at your own risk!");
     LUTFillerAsym *lut_filler_ptr = new LUTFillerAsym(grid_num, grid_num);
-    lut_filler_ptr->Init(sparams_.k_spring_compress, sparams_.k_spring,
+    lut_filler_ptr->Init(sparams_.k_spring_compress*.5, sparams_.k_spring*.5,
                          sparams_.energy_dep_factor, sparams_.force_dep_length,
                          sparams_.rest_length, 1);
     return lut_filler_ptr;
@@ -292,8 +293,8 @@ void CrosslinkSpecies::InsertAttachedCrosslinksSpecies(std::vector<Object *> v_O
   // Begin with bound crosslinks currently just implemented to start on rods
   for (int i=0; i < begin_with_bound_crosslinks_; ++i) {
     //Logger::Warning("Made Before %i", v_T[i]->GetOID());  
-    //BindDoubly(v_O[i], v_T[i]);
-    BindCrosslink();
+    BindDoubly(v_O[i], v_T[i]);
+    //BindCrosslink();
     Logger::Warning("Made After");
     //BindCrosslink();
   }
@@ -315,6 +316,7 @@ void CrosslinkSpecies::CalculateBindingFree() {
   }
   if (use_bind_file_) {
     int num_to_bind = rng_.RandomPoisson(free_concentration * params_->delta * bind_rate_);
+    //Logger::Warning("factor is %f", free_concentration * params_->delta * bind_rate_*1000000);
     for (int i = 0; i < num_to_bind; ++i) {
       BindCrosslink();
     }
@@ -359,6 +361,7 @@ std::pair <Object*, int> CrosslinkSpecies::GetRandomObject() {
         }
         bind_rate_sum += bind_param_it->second.k_on_s * 
                          bind_param_it->second.bind_site_density * obj_amount;
+        //Logger::Warning("Bind rate sum is %f", bind_rate_sum);
         if (bind_rate_sum > roll) {
           Logger::Trace("Binding free crosslink to random object: xl %d -> obj %d",
                         members_.back().GetOID(), (*obj)->GetOID());
@@ -609,27 +612,28 @@ void CrosslinkSpecies::UpdateBoundCrosslinkPositions() {
       continue;
     }
     xlink->UpdateCrosslinkPositions();
-    if (xlink->ReturnCheckForCross()==true){
-      should_unbind=false;
-      int count=0;
-				for (auto m=members_.begin(); m != members_.end(); ++m){
-				//Logger::Warning("xlink_bound, %i", members_.size());
-        if (m->IsDoubly()==true && xlink->IsDoubly()==true && m->GetOID()!=xlink->GetOID()){
-				if ((xlink->GetOneX()>m->GetOneX() &&  xlink->GetTwoX()<m->GetTwoX())||(xlink->GetOneX()<m->GetOneX() &&  xlink->GetTwoX()>m->GetTwoX())){
+    
+    //if (xlink->ReturnCheckForCross()==true){
+    //  should_unbind=false;
+    //  int count=0;
+		//		for (auto m=members_.begin(); m != members_.end(); ++m){
+		//		//Logger::Warning("xlink_bound, %i", members_.size());
+    //    if (m->IsDoubly()==true && xlink->IsDoubly()==true && m->GetOID()!=xlink->GetOID()){
+		//		if ((xlink->GetOneX()>m->GetOneX() &&  xlink->GetTwoX()<m->GetTwoX())||(xlink->GetOneX()<m->GetOneX() &&  xlink->GetTwoX()>m->GetTwoX())){
         
-       if (should_unbind==false){
-        count=1;
+    //   if (should_unbind==false){
+    //    count=1;
 
-				should_unbind=true;
+		//		should_unbind=true;
         //These two function can be moved together:w
-        xlink->UnbindCrossing();
-        xlink->SetCheckForCross();
-        }
-				}
-        }
-			}
-		  xlink->SetCheckForCross();
-    }
+    //    xlink->UnbindCrossing();
+    //    xlink->SetCheckForCross();
+    //    }
+		//		}
+    //    }
+		//	}
+		//  xlink->SetCheckForCross();
+    //}
     /* Xlink is no longer bound, return to solution */
     if (xlink->IsUnbound()) {
       if (sparams_.static_flag) {

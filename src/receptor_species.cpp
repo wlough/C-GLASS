@@ -119,8 +119,15 @@ void ReceptorSpecies::SetAllNeighbors() {
 	i+=1;
 	}
 		
+}
+void ReceptorSpecies::PrintOccupancy() {
+	for (auto it = members_.begin(); it != members_.end(); ++it){
+  printf("%d",it->GetNAnchored());
+}
+printf("\n");
 
 }
+
 
 std::vector<Object *> ReceptorSpecies::GetReceptors() {
 	Logger::Warning("GettingNeighbors");

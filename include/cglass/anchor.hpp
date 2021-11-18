@@ -88,6 +88,7 @@ class Anchor : public Object {
   void UpdatePosition();
   void Activate();
   void Deactivate();
+  void SphereO();
   void ApplyAnchorForces();
   void UpdateAnchorPositionToMesh();
   void SetDiffusion();

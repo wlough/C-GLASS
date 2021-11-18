@@ -209,6 +209,8 @@ void parse_species_base_params(species_base_parameters &params,
         params.n_spec = jt->second.as<int>();
         } else if (param_name.compare("stationary_flag")==0) {
         params.stationary_flag = jt->second.as<bool>();
+        } else if (param_name.compare("stationary_until")==0) {
+        params.stationary_until = jt->second.as<int>();
         } else {
           Logger::Warning("Species base parameter %s not recognized!", param_name.c_str());
         }
@@ -256,6 +258,8 @@ species_base_parameters *parse_species_params(std::string sid,
       params.n_spec = jt->second.as<int>();
       } else if (param_name.compare("stationary_flag")==0) {
       params.stationary_flag = jt->second.as<bool>();
+      } else if (param_name.compare("stationary_until")==0) {
+      params.stationary_until = jt->second.as<int>();
       } else if (param_name.compare("max_length")==0) {
       params.max_length = jt->second.as<double>();
       } else if (param_name.compare("min_length")==0) {
@@ -305,6 +309,8 @@ species_base_parameters *parse_species_params(std::string sid,
       params.n_spec = jt->second.as<int>();
       } else if (param_name.compare("stationary_flag")==0) {
       params.stationary_flag = jt->second.as<bool>();
+      } else if (param_name.compare("stationary_until")==0) {
+      params.stationary_until = jt->second.as<int>();
       } else if (param_name.compare("packing_fraction")==0) {
       params.packing_fraction = jt->second.as<double>();
       } else if (param_name.compare("persistence_length")==0) {
@@ -488,6 +494,8 @@ species_base_parameters *parse_species_params(std::string sid,
       params.n_spec = jt->second.as<int>();
       } else if (param_name.compare("stationary_flag")==0) {
       params.stationary_flag = jt->second.as<bool>();
+      } else if (param_name.compare("stationary_until")==0) {
+      params.stationary_until = jt->second.as<int>();
       } else if (param_name.compare("driving_factor")==0) {
       params.driving_factor = jt->second.as<double>();
       } else if (param_name.compare("driving_torque")==0) {
@@ -551,6 +559,8 @@ species_base_parameters *parse_species_params(std::string sid,
       params.n_spec = jt->second.as<int>();
       } else if (param_name.compare("stationary_flag")==0) {
       params.stationary_flag = jt->second.as<bool>();
+      } else if (param_name.compare("stationary_until")==0) {
+      params.stationary_until = jt->second.as<int>();
       } else if (param_name.compare("diffusion_analysis")==0) {
       params.diffusion_analysis = jt->second.as<bool>();
       } else if (param_name.compare("n_diffusion_samples")==0) {
@@ -594,6 +604,8 @@ species_base_parameters *parse_species_params(std::string sid,
       params.n_spec = jt->second.as<int>();
       } else if (param_name.compare("stationary_flag")==0) {
       params.stationary_flag = jt->second.as<bool>();
+      } else if (param_name.compare("stationary_until")==0) {
+      params.stationary_until = jt->second.as<int>();
       } else if (param_name.compare("n_filaments_bud")==0) {
       params.n_filaments_bud = jt->second.as<int>();
       } else if (param_name.compare("n_filaments_mother")==0) {
@@ -649,6 +661,8 @@ species_base_parameters *parse_species_params(std::string sid,
       params.n_spec = jt->second.as<int>();
       } else if (param_name.compare("stationary_flag")==0) {
       params.stationary_flag = jt->second.as<bool>();
+      } else if (param_name.compare("stationary_until")==0) {
+      params.stationary_until = jt->second.as<int>();
       } else if (param_name.compare("concentration")==0) {
       params.concentration = jt->second.as<double>();
       } else if (param_name.compare("begin_with_bound_crosslinks")==0) {
@@ -794,6 +808,8 @@ species_base_parameters *parse_species_params(std::string sid,
       params.n_spec = jt->second.as<int>();
       } else if (param_name.compare("stationary_flag")==0) {
       params.stationary_flag = jt->second.as<bool>();
+      } else if (param_name.compare("stationary_until")==0) {
+      params.stationary_until = jt->second.as<int>();
       } else if (param_name.compare("component")==0) {
       params.component = jt->second.as<std::string>();
       } else if (param_name.compare("concentration")==0) {

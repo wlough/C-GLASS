@@ -130,6 +130,7 @@ species:                             # Shared parameters used for all species.
   n_posit: [100, int]                # Frequency used for generating posit file information.
   n_spec: [100, int]                 # Frequency used for generating spec file information.
   stationary_flag: [false, bool]     # If true, members will not move regardless of forces on them.
+  stationary_until: [0, int]
 
 rigid_filament:
   max_length: [500, double]          # maximum filament length. also used for dynamic instability.

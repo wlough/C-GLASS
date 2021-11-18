@@ -45,6 +45,7 @@ public:
   virtual void ResetPreviousPositions() {}
   virtual void PopMember() {}
   virtual void SetAllNeighbors() {}
+  virtual void PrintOccupancy() {}
   std::vector<Object *> v;
   virtual std::vector<Object *> GetReceptors() {return v;}  
   virtual void PopAll() {}

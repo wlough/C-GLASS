@@ -78,23 +78,54 @@ void CrosslinkManager::UpdateCrosslinks() {
   UpdateObjsSize();
   for (auto it = xlink_species_.begin(); it != xlink_species_.end(); ++it) {
     (*it)->UpdatePositions();
-    (*it)->UpdateBindRate(); 
+    (*it)->UpdateBindRate();
+    
+		//for (auto mem = (*it)->members_.begin(); mem != (*it)->members_.end(); ++mem) {
+    //if (mem->IsDoubly()==true){
+		//Logger::Warning("Crosslinker X is %f", mem->GetOneX());
+    //}
+//Logger::Warning("Made it");
+
+		//}
+    Knockout(); 
   }
-  Knockout();
+  //Knockout();
+  CheckForCross();
 }
 
-//void CrosslinkManager::CheckForCross() {
-//	int size=0;
-//for (auto it = xlink_species_.begin(); it != xlink_species_.end(); ++it) {
-//	size=((*it)->GetSize());
-//	Logger::Warning("size= %i", size);
-//	for (auto i = 0; i != size; ++i) {i
-//		if (*it)->GetSize()
-//		Logger::Warning("i=%i", i);
-//	}
-//}
+void CrosslinkManager::CheckForCross() {
+  bool Crossing=false;
+	int size=0;
+for (auto it = xlink_species_.begin(); it != xlink_species_.end(); ++it) {
+	for (auto mem = (*it)->members_.begin(); mem != (*it)->members_.end(); ++mem){
+  Crossing=false;
+  if (mem->IsDoubly() && mem->ReturnCheckForCross()==true){ 
   
-//}
+    for (auto itTwo = xlink_species_.begin(); itTwo != xlink_species_.end(); ++itTwo) {
+      if(Crossing==true){
+      break;
+      }
+	    for (auto memTwo = (*itTwo)->members_.begin(); memTwo != (*itTwo)->members_.end(); ++memTwo){
+        if(mem-> IsDoubly() && memTwo->IsDoubly() && mem->GetOID()!=memTwo->GetOID()){
+          //Logger::Warning("Made Before");
+          if( (memTwo->GetOneX()>mem->GetOneX() && memTwo->GetTwoX()<mem->GetTwoX()) || (memTwo->GetOneX()<mem->GetOneX() && memTwo->GetTwoX()>mem->GetTwoX()) ){
+          //Logger::Warning("Made After");  
+						bool Crossing=true;
+						mem->UnbindCrossing();
+            Logger::Trace("Crosslink didn't bind because of cross");
+						break;
+          }
+        }
+        
+      
+			}
+    }
+   mem->SetCheckForCross();
+	 }	
+	}
+}
+  
+}
 
 // Loop over all spheres bound in the last dt. If multiple xlinks want to bind
 // to a site, roll based on their relative probabilities, and unbind all of the
@@ -103,7 +134,7 @@ void CrosslinkManager::Knockout() {
   for (auto it = bound_curr_.begin(); it != bound_curr_.end(); ++it) {
     // Add an anchor now that loop over xlinks is complete (collisions have
     // already happened in this dt).
-    it->first->IncrementNAnchored();
+    //it->first->IncrementNAnchored();
     if ((it->second.first).size()>1) {
       Logger::Error("Anchor bound twice in Knockout");
     }

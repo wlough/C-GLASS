@@ -20,6 +20,7 @@ template <unsigned char S> struct species_parameters {
   int n_posit = 100;
   int n_spec = 100;
   bool stationary_flag = false;
+  int stationary_until = 0;
   virtual ~species_parameters() {}
 };
 

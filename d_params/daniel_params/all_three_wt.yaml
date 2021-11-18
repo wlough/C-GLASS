@@ -1,13 +1,13 @@
-run_name: kinesin5
-seed: 2362346
+run_name: all_three_less_klp9
+seed: 870970
 n_periodic: 0
 n_steps: 5000000 
 n_dim: 2
-delta: 0.00001
+delta: 0.0001
 graph_flag: true
-movie_flag: true
+movie_flag: false
 movie_directory: movie_fold
-n_graph: 1000
+n_graph: 100
 system_radius: 20
 n_runs: 1
 n_random: 1
@@ -15,7 +15,7 @@ rigid_filament:
   - name: rig1
     draw_type: fixed
     color: .8
-    max_length: 500
+    max_length: 5000
     min_length: 5
     num: 1
     insertion_type: custom
@@ -27,94 +27,97 @@ rigid_filament:
     n_equil: 0
     spec_flag: true
     n_spec: 1000
+    stationary_until: 100000
   - name: rig2
     insertion_type: custom
     insert_file: fil2.yaml
     draw_type: fixed
     color: .3
-    max_length: 500
+    max_length: 5000
     min_length: 5
     num: 1
     length: 32
     stationary_flag: false
+    stationary_until: 100000
     constrain_motion_flag: false
     packing_fraction: -1
     n_equil: 0
     spec_flag: true
     n_spec: 1000
 crosslink:
-- name:  minus_walker
+- name: Klp9
   anchors:
     - name: head
-      velocity_s: 14.24
-      velocity_d: -13.3856
-      bind_file: rig_bind.yaml
+      velocity_s: 0.0299
+      velocity_d: 0.029904
+      bind_file: KLP9_bind.yaml
       color: 3
-      diameter: 0.1
+      diameter: 0.32
     #- name: tail
     #  velocity_s: 0
     #  velocity_d: 0
     #  bind_file: rig_bind.yaml
     #  color: 1
-    #  diameter: 0.1
+    #  diameiter: 0.1
     #  tether_diameter: 0.1
-  concentration: 3
+  concentration: 0.0094 #[V, 0.0047, 0.0024] #0.2
   diameter: .32 
-  f_stall: 40
+  f_stall: 30.384
   begin_with_bound_crosslinks: 0
-  k_spring: 45.576
-  rest_length: 3.12
+  use_binding_volume: false
+  k_spring: 152
+  rest_length: 1.8
   draw_type: fixed
   tether_draw_type: fixed
   tether_color: 3.5 
   plus_end_pausing: true
   minus_end_pausing: true
-  diffusion_s: 5.76
-  diffusion_d: 0.005
+  diffusion_s: 0.057
+  diffusion_d: 0.0097
   spec_flag: true
   n_spec: 10000
   tether_diameter: 0.15
   step_direction: 1
   infinite_reservoir_flag: true
-- name: plus_walker
+- name: Klp2
   anchors:
     - name: head
-      velocity_s: -14.24
-      velocity_d: 13.3856
+      velocity_s: -.131
+      velocity_d: -.131
       bind_file: rig_bind.yaml
       color: 1.4
       diameter: 0.1
     - name: tail
       velocity_s: 0
       velocity_d: 0
-      bind_file: rig_bind.yaml
+      bind_file: K14_bind.yaml
       color: 2.5
       diameter: 0.1
-      tether_diameter: 0.1
-  concentration: 0
+      tether_diametVer: 0.1
+  concentration:  0.2 #[V, 0, 0.2] #1
   diameter: .32
-  f_stall: -40
+  f_stall: -18.231
   begin_with_bound_crosslinks: 0
-  k_spring: 45.576
+  k_spring: 152
   rest_length: 3.12
   draw_type: fixed
   tether_draw_type: fixed
   plus_end_pausing: true
   minus_end_pausing: true
-  diffusion_s: 5.76
-  diffusion_d: 0.005
+  diffusion_s: 0.17
+  diffusion_d: 0.00085
   spec_flag: true
-  n_spec: 10000
+  n_spec: 1000
   tether_diameter: 0.15
   tether_color: 2
   step_direction: 1
   infinite_reservoir_flag: true
-- name: crosslinker
+- name: Ase1
   anchors:
     - name: head
       velocity_s: 0
       velocity_d: 0
-      bind_file: rig_bind.yaml
+      bind_file: ase1_bind.yaml
       color: 5
       diameter: 0.1
    # - name: tail
@@ -124,18 +127,19 @@ crosslink:
    #   color: 1
    #   diameter: 0.1
    #   tether_diameter: 0.1
-  concentration: 0
+  concentration: .0094
   diameter: .32
-  f_stall: -40
   begin_with_bound_crosslinks: 0
-  k_spring: 31.55
+  k_spring: 31.4
+  k_spring_compress: 31.4
   rest_length: 2.28
   draw_type: fixed
   tether_draw_type: fixed
   plus_end_pausing: true
   minus_end_pausing: true
-  diffusion_s: 5.76
-  diffusion_d: 0.39
+  diffusion_s: 7.4
+  diffusion_d: 3.7
+  use_binding_volume: false
   spec_flag: true
   n_spec: 10000
   tether_diameter: 0.15
@@ -147,15 +151,14 @@ crosslink:
 
 
 
-
 receptor:
   - name: rig1_receptor
     component: rig1
     insertion_type: grid
-    num: 100
+    num: 100 #100
     diameter: 0.32
   - name: rig2_receptor
     component: rig2
     insertion_type: grid
-    num: 100
+    num: 100 #100
     diameter: 0.32
