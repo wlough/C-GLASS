@@ -62,7 +62,9 @@ void Spindle::InsertFilament(int i_fil) {
   const double *const site_pos = nuc_sites_[i_fil].GetPosition();
   double new_pos[3] = {0, 0, 0};
   for (int i = 0; i < n_dim_; ++i) {
-    new_pos[i] = site_pos[i] + fparams_->min_bond_length * u[i];
+    // Inserting sets filament's center of mass, so use the nucleation site
+    // plus half the filament's initial length*orientation (fil's start out straight)
+    new_pos[i] = site_pos[i] + 0.5 * fparams_->length * u[i];
   }
   filaments_.back().InsertAt(new_pos, u);
   fil_sites_.push_back(filaments_.back().GetSite(0));
