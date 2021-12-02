@@ -128,6 +128,7 @@ void Crosslink::SinglyKMC() {
     tracker_->UnbindSU();
     if (anchors_[bound_anchor_].AttachedToFilamentPlusEnd()) {
       anchors_[bound_anchor_].SubtractFilEndProteins(true);
+      anchors_[bound_anchor_].SetReachedPlusEnd(false);
     }
     anchors_[bound_anchor_].Unbind();
     SetUnbound();
@@ -146,6 +147,10 @@ void Crosslink::SinglyKMC() {
       Logger::Error("kmc_bind.whichRodBindSD in Crosslink::SinglyKMC"
                     " returned an invalid result!");
     }
+    if (anchors_[bound_anchor_].AttachedToFilamentPlusEnd()) {
+      anchors_[bound_anchor_].SubtractFilEndProteins(false);
+      anchors_[bound_anchor_].SetReachedPlusEnd(false);
+    }
     if (i_bind < n_neighbors_rod) {
       Rod *bind_obj = anchors_[bound_anchor_].GetRodNeighbor(i_bind);
       double obj_length = bind_obj->GetLength();
@@ -160,10 +165,6 @@ void Crosslink::SinglyKMC() {
         bind_lambda = 0;
       }
       anchors_[(int)!bound_anchor_].AttachObjLambda(bind_obj, bind_lambda);
-      if (anchors_[bound_anchor_].AttachedToFilamentPlusEnd()) {
-        anchors_[bound_anchor_].SubtractFilEndProteins(false);
-        anchors_[bound_anchor_].SetReachedPlusEnd(false);
-      }
       SetDoubly();
       Logger::Trace("Crosslink %d became doubly bound to obj %d", GetOID(),
                   bind_obj->GetOID());
@@ -173,10 +174,6 @@ void Crosslink::SinglyKMC() {
       (*bound_curr_)[bind_obj].second.push_back(&anchors_[(int)!bound_anchor_]);
       anchors_[(int)!bound_anchor_].AttachObjCenter(bind_obj);
       bind_obj->DecrementNAnchored(); // For knockout loop- allow collisions
-      if (anchors_[bound_anchor_].AttachedToFilamentPlusEnd()) {
-        anchors_[bound_anchor_].SubtractFilEndProteins(false);
-        anchors_[bound_anchor_].SetReachedPlusEnd(false);
-      }
       SetDoubly();
       Logger::Trace("Crosslink %d became doubly bound to obj %d", GetOID(),
                   bind_obj->GetOID());
