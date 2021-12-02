@@ -1157,15 +1157,24 @@ void Filament::Depolymerize() {
 }
 
 void Filament::UpdatePolyState() {
-  double p_g2s = p_g2s_;
-  double p_p2s = p_p2s_;
+  double partner_fact = 1;
+  // Handle all cases of 0 partner value- could be infinite negative exponent or 1 in the exponent
+  if (n_end_partners_ == 0) {
+    // Leave partner factor at 1 if ratio is 0:0
+    if (n_end_xlinks_ > 0) {
+      partner_fact = partner_destab_B_;
+    }
+  } else {
+    partner_fact = partner_destab_A_*exp(-n_end_xlinks_/n_end_partners_*partner_destab_k_)+partner_destab_B_;
+  }
+  double p_g2s = p_g2s_*partner_fact;
+  double p_p2s = p_p2s_*partner_fact;
   double roll = rng_.RandomUniform();
   double p_norm;
   // Modify catastrophe probabilities if the end of the filament is under a
   // load
   if (force_induced_catastrophe_flag_ && tip_force_ > 0) {
     double p_factor = exp(fic_factor_ * tip_force_);
-    p_factor *= partner_destab_A_*exp(-n_end_xlinks_/n_end_partners_*partner_destab_k_)+partner_destab_B_;
     p_g2s = (p_g2s + p_g2p_) * p_factor;
     p_p2s = p_p2s * p_factor;
   }

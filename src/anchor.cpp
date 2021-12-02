@@ -791,7 +791,7 @@ bool Anchor::AttachedToFilamentPlusEnd() {
   // Check if attached to last bond of filament
   Bond *bond = bond_->GetNeighborBond(1);
   if (bond) return false;
-  else if ((rod_->GetLength() - (mesh_lambda_ - bond_->GetMeshLambda())) > TOL) {
+  else if (!reached_plus_end_) {
     return false;
   }
   return true;
