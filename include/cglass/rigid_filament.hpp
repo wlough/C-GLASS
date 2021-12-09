@@ -21,6 +21,7 @@ private:
                                  // by this unit vector.
 
   bool zero_temperature_ = false;
+  bool constrain_to_move_in_y_ = false;
   int n_step_ = 0;
   int eq_steps_ = 0;
   int eq_steps_count_ = 0;
@@ -33,6 +34,7 @@ private:
   void UpdateSitePositions();
 
   void ApplyForcesTorques();
+  void ApplyForcesTorquesYOnly();
   void ApplyInteractionForces();
 
   void SetParameters();
@@ -49,6 +51,7 @@ protected:
   void InsertRigidFilament(std::string insertion_type, double buffer = -1);
   void GetBodyFrame();
   void AddRandomDisplacement();
+  void AddRandomYDisplacement();
   void AddRandomReorientation();
 
 public:
