@@ -293,8 +293,8 @@ void CrosslinkSpecies::InsertAttachedCrosslinksSpecies(std::vector<Object *> v_O
   // Begin with bound crosslinks currently just implemented to start on rods
   for (int i=0; i < begin_with_bound_crosslinks_; ++i) {
     //Logger::Warning("Made Before %i", v_T[i]->GetOID());  
-    BindDoubly(v_O[i], v_T[i]);
-    //BindCrosslink();
+    //BindDoubly(v_O[i], v_T[i]);
+    BindCrosslink();
     Logger::Warning("Made After");
     //BindCrosslink();
   }

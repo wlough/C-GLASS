@@ -60,7 +60,7 @@ crosslink:
     #  color: 1
     #  diameiter: 0.1
     #  tether_diameter: 0.1
-  concentration: 0.0094 #[V, 0.0047, 0.0024] #0.2
+  concentration: 0 #0.0094 #[V, 0.0047, 0.0024] #0.2
   diameter: .32 
   f_stall: 30.384
   begin_with_bound_crosslinks: 0
@@ -94,7 +94,7 @@ crosslink:
       color: 2.5
       diameter: 0.1
       tether_diametVer: 0.1
-  concentration:  0.2 #[V, 0, 0.2] #1
+  concentration:  0 #0.2 #[V, 0, 0.2] #1
   diameter: .32
   f_stall: -18.231
   begin_with_bound_crosslinks: 0
@@ -127,7 +127,7 @@ crosslink:
    #   color: 1
    #   diameter: 0.1
    #   tether_diameter: 0.1
-  concentration: .0094
+  concentration: .5 #.0094
   diameter: .32
   begin_with_bound_crosslinks: 0
   k_spring: 31.4

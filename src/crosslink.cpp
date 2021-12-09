@@ -123,7 +123,7 @@ void Crosslink::SinglyKMC() {
                               anchors_[bound_anchor_].GetBoundOID(), bind_factors); 
     kmc_bind_prob = kmc_bind.getTotProb();
     tracker_->TrackSD(kmc_bind_prob);
-    //Logger::Warning("Total prop is %f", kmc_bind_prob);
+    //Logger::Warning("Total prop is %f", kmc_bind_prob*100);
 
   } // Find out whether we bind, unbind, or neither.
   int head_activate = choose_kmc_double(unbind_prob, kmc_bind_prob, roll);
