@@ -16,6 +16,7 @@
   default_config["rigid_filament"]["max_length"] = "500";
   default_config["rigid_filament"]["min_length"] = "5";
   default_config["rigid_filament"]["constrain_motion_flag"] = "false";
+  default_config["rigid_filament"]["constrain_to_move_in_y"] = "false";
   default_config["rigid_filament"]["packing_fraction"] = "-1";
   default_config["rigid_filament"]["n_equil"] = "0";
   default_config["filament"]["packing_fraction"] = "-1";
