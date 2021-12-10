@@ -266,7 +266,7 @@ void RigidFilament::UpdatePosition() {
   else {
     ApplyForcesTorquesYOnly();
   }
-  if (!params_->on_midstep && !sparams_->stationary_flag)
+  if (!params_->on_midstep && !sparams_->stationary_flag && (sparams_->stationary_until)<eq_steps_count_)
     Integrate();
   eq_steps_count_++;
 }
