@@ -412,7 +412,7 @@ double const Filament::GetVolume() {
 
 void Filament::UpdatePosition() {
   ApplyForcesTorques();
-  if (!sparams_->stationary_flag)
+  if (!sparams_->stationary_flag  && (sparams_->stationary_until)<eq_steps_)
     Integrate();
   UpdateAvgPosition();
   DynamicInstability();

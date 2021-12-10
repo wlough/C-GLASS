@@ -20,6 +20,7 @@ template <unsigned char S> struct species_parameters {
   int n_posit = 100;
   int n_spec = 100;
   bool stationary_flag = false;
+  int stationary_until = -1;
   virtual ~species_parameters() {}
 };
 
@@ -31,6 +32,7 @@ struct species_parameters<species_id::rigid_filament>
   double max_length = 500;
   double min_length = 5;
   bool constrain_motion_flag = false;
+  bool constrain_to_move_in_y = false;
   double packing_fraction = -1;
   int n_equil = 0;
 };
@@ -75,6 +77,7 @@ struct species_parameters<species_id::filament>
   bool spiral_init_flag = false;
   bool spiral_analysis = false;
   double spiral_number_fail_condition = 0;
+  int stationary_until = -1;
   bool orientation_corr_analysis = false;
   int orientation_corr_n_steps = 1000;
   bool crossing_analysis = false;
