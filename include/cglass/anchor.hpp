@@ -136,9 +136,10 @@ class Anchor : public Object {
   const double* const GetBindRate();
   void SetBindRate(double* bind_rate);
   void SetReachedPlusEnd(bool plus_end);
+  bool GetReachedPlusEnd();
   double CalcSingleBindRate();
   bool InducesCatastrophe();
-  bool AttachedToFilamentPlusEnd();
+  bool AttachedToFilamentLastBond();
   void SubtractFilEndProteins(bool singly);
   void AddFilEndProteins();
   void InduceCatastrophe();

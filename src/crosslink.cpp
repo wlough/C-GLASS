@@ -126,7 +126,7 @@ void Crosslink::SinglyKMC() {
     // Unbind bound head
     // Track unbinding
     tracker_->UnbindSU();
-    if (anchors_[bound_anchor_].AttachedToFilamentPlusEnd()) {
+    if (anchors_[bound_anchor_].GetReachedPlusEnd()) {
       anchors_[bound_anchor_].SubtractFilEndProteins(true);
       anchors_[bound_anchor_].SetReachedPlusEnd(false);
     }
@@ -147,7 +147,7 @@ void Crosslink::SinglyKMC() {
       Logger::Error("kmc_bind.whichRodBindSD in Crosslink::SinglyKMC"
                     " returned an invalid result!");
     }
-    if (anchors_[bound_anchor_].AttachedToFilamentPlusEnd()) {
+    if (anchors_[bound_anchor_].GetReachedPlusEnd()) {
       anchors_[bound_anchor_].SubtractFilEndProteins(false);
       anchors_[bound_anchor_].SetReachedPlusEnd(false);
     }
@@ -325,9 +325,9 @@ void Crosslink::CalculateTetherForces() {
 
   // If one anchor induces catastrophe and the other is attached to a filament, depolymerize
   // attached filament.
-  if (anchors_[0].InducesCatastrophe() && anchors_[1].AttachedToFilamentPlusEnd()) {
+  if (anchors_[0].InducesCatastrophe() && anchors_[1].AttachedToFilamentLastBond()) {
     anchors_[1].InduceCatastrophe();
-  } else if (anchors_[1].InducesCatastrophe() && anchors_[0].AttachedToFilamentPlusEnd()) {
+  } else if (anchors_[1].InducesCatastrophe() && anchors_[0].AttachedToFilamentLastBond()) {
     anchors_[0].InduceCatastrophe();
   }
   
