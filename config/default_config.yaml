@@ -130,6 +130,8 @@ species:                             # Shared parameters used for all species.
   n_posit: [100, int]                # Frequency used for generating posit file information.
   n_spec: [100, int]                 # Frequency used for generating spec file information.
   stationary_flag: [false, bool]     # If true, members will not move regardless of forces on them.
+  stationary_until: [-1, int]        # Species wont move until specified time step, overwritten by
+                                     # stationary flag, currently only implemented for rigid/flexable filaments 
 
 rigid_filament:
   max_length: [500, double]          # maximum filament length. also used for dynamic instability.
@@ -137,6 +139,9 @@ rigid_filament:
   constrain_motion_flag: [false, bool] # If true, rigid filaments will move in planes such that two filaments
                                        # will never physically overlap if they do not begin overlapping.
                                        # This only works for two filaments. Warning will be thrown otherwise.
+  constrain_to_move_in_y: [false, bool] # Filaments won't rotate and will only move in the y direction 
+					#(note: it seems the constrain_motion_flag is supposed to due this,
+					#but it's not working)
   packing_fraction: [-1, double]    # if num > 0, and packing fraction > 0, filaments are inserted
   #                                  # until the ratio filament to system volumes match this value.
   n_equil: [0, int]                 # internal filament parameter used for shuffling.
@@ -195,7 +200,6 @@ filament:                            # Parameters unique to filament class of ob
   spiral_analysis: [false, bool]  # runs analysis on spiral filaments in analysis mode
   spiral_number_fail_condition: [0, double] # when spiral_init_flag is on, terminates simulation 
                                             # when spiral number of a filament is < value.
-
   orientation_corr_analysis: [false, bool] # post-process analysis of orientation correlation function.
   orientation_corr_n_steps: [1000, int] # number of steps to measure orientation correlation, defines
                                         # interval over which to average.
