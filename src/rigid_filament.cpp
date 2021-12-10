@@ -151,7 +151,7 @@ void RigidFilament::Integrate() {
   }
   //With constrain_to_move_in_y on filaments don't roate and only diffuse in
   //the y direction
-	if (!zero_temperature_ && constrain_to_move_in_y_) {
+  if (!zero_temperature_ && constrain_to_move_in_y_) {
      //Add the random displacement dr(t)
      AddRandomYDisplacement();
   }
@@ -187,7 +187,7 @@ void RigidFilament::AddRandomDisplacement() {
 //With constrain_to_move_in_y on filaments only diffuse in the y 
 //direction and don't rotate
 void RigidFilament::AddRandomYDisplacement() {
-	double mag = rng_.RandomNormal(diffusion_par_);
+  double mag = rng_.RandomNormal(diffusion_par_);
   mag = rng_.RandomNormal(diffusion_perp_);
   position_[1] += mag;
 }
@@ -260,12 +260,12 @@ double const RigidFilament::GetVolume() {
 }
 
 void RigidFilament::UpdatePosition() {
-	if (!constrain_to_move_in_y_){
-		ApplyForcesTorques();
-	}
-	else{
-		ApplyForcesTorquesYOnly();
-	}
+  if (!constrain_to_move_in_y_){
+    ApplyForcesTorques();
+  }
+  else {
+    ApplyForcesTorquesYOnly();
+  }
   if (!params_->on_midstep && !sparams_->stationary_flag)
     Integrate();
   eq_steps_count_++;
@@ -325,11 +325,11 @@ void RigidFilament::ApplyForcesTorquesYOnly() {
   const double *force = bonds_.back().GetForce();
   for (int i = 0; i < 3; ++i) {
     if (i==1){
-			force_[i] += force[1];
+      force_[i] += force[1];
     }
-		else{
+    else {
       force_[i]=0;
-		}
+    }
     torque_[i] = 0;
   }
 }
