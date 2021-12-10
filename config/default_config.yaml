@@ -200,7 +200,6 @@ filament:                            # Parameters unique to filament class of ob
   spiral_analysis: [false, bool]  # runs analysis on spiral filaments in analysis mode
   spiral_number_fail_condition: [0, double] # when spiral_init_flag is on, terminates simulation 
                                             # when spiral number of a filament is < value.
-  stationary_until: [-1, int]     # Filiments w 
   orientation_corr_analysis: [false, bool] # post-process analysis of orientation correlation function.
   orientation_corr_n_steps: [1000, int] # number of steps to measure orientation correlation, defines
                                         # interval over which to average.
