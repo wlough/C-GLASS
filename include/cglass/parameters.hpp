@@ -31,6 +31,7 @@ struct species_parameters<species_id::rigid_filament>
   double max_length = 500;
   double min_length = 5;
   bool constrain_motion_flag = false;
+  bool constrain_to_move_in_y = false;
   double packing_fraction = -1;
   int n_equil = 0;
 };

@@ -137,6 +137,9 @@ rigid_filament:
   constrain_motion_flag: [false, bool] # If true, rigid filaments will move in planes such that two filaments
                                        # will never physically overlap if they do not begin overlapping.
                                        # This only works for two filaments. Warning will be thrown otherwise.
+  constrain_to_move_in_y: [false, bool] # Filaments won't rotate and will only move in the y direction 
+					#(note: it seems the constrain_motion_flag is supposed to due this,
+					#but it's not working)
   packing_fraction: [-1, double]    # if num > 0, and packing fraction > 0, filaments are inserted
   #                                  # until the ratio filament to system volumes match this value.
   n_equil: [0, int]                 # internal filament parameter used for shuffling.
