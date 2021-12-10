@@ -15,6 +15,7 @@ void RigidFilament::SetParameters() {
   max_length_ = sparams_->max_length;
   min_length_ = sparams_->min_length;
   zero_temperature_ = params_->zero_temperature; // include thermal forces
+  constrain_to_move_in_y_ = sparams_->constrain_to_move_in_y;
   eq_steps_count_ = 0;
 
   /* Refine parameters */
@@ -142,14 +143,18 @@ void RigidFilament::Integrate() {
     orientation_[i] += du[i] * delta_ / gamma_rot_;
   }
   normalize_vector(orientation_, n_dim_);
-  if (!zero_temperature_) {
+  if (!zero_temperature_ && !constrain_to_move_in_y_) {
     // Add the random displacement dr(t)
     AddRandomDisplacement();
     // Update the orientation due to torques and random rotation
     AddRandomReorientation();
   }
-  // double f_mag = sqrt(dot_product(n_dim_, force_, force_));
-  // printf("f_mag = %f\n", f_mag);
+  //With constrain_to_move_in_y on filaments don't roate and only diffuse in
+  //the y direction
+  if (!zero_temperature_ && constrain_to_move_in_y_) {
+     //Add the random displacement dr(t)
+     AddRandomYDisplacement();
+  }
 
   UpdatePeriodic();
   UpdateSitePositions();
@@ -174,8 +179,17 @@ void RigidFilament::AddRandomDisplacement() {
     for (int i = 0; i < n_dim_; ++i)
       position_[i] += mag * body_frame_[n_dim_ * j + i];
   }
+  
   // Handle the random orientation update after updating orientation from
   // interaction torques
+}
+
+//With constrain_to_move_in_y on filaments only diffuse in the y 
+//direction and don't rotate
+void RigidFilament::AddRandomYDisplacement() {
+  double mag = rng_.RandomNormal(diffusion_par_);
+  mag = rng_.RandomNormal(diffusion_perp_);
+  position_[1] += mag;
 }
 
 /* The orientation update is also from Yu-Guo Tao,
@@ -246,7 +260,12 @@ double const RigidFilament::GetVolume() {
 }
 
 void RigidFilament::UpdatePosition() {
-  ApplyForcesTorques();
+  if (!constrain_to_move_in_y_){
+    ApplyForcesTorques();
+  }
+  else {
+    ApplyForcesTorquesYOnly();
+  }
   if (!params_->on_midstep && !sparams_->stationary_flag)
     Integrate();
   eq_steps_count_++;
@@ -299,6 +318,19 @@ void RigidFilament::ApplyForcesTorques() {
   for (int i = 0; i < 3; ++i) {
     force_[i] += force[i];
     torque_[i] += torque[i];
+  }
+}
+//With constrain_to_move_in_y flag on, filaments don't rotate and only move in the y direction
+void RigidFilament::ApplyForcesTorquesYOnly() {
+  const double *force = bonds_.back().GetForce();
+  for (int i = 0; i < 3; ++i) {
+    if (i==1){
+      force_[i] += force[1];
+    }
+    else {
+      force_[i]=0;
+    }
+    torque_[i] = 0;
   }
 }
 
