@@ -781,8 +781,8 @@ bool Anchor::InducesCatastrophe() {
   return true;
 }
 
-// Returns true if anchor is attached to a RigidFilament or Filament plus-end.
-bool Anchor::AttachedToFilamentPlusEnd() {
+// Returns true if anchor is attached to a RigidFilament or Filament last bond.
+bool Anchor::AttachedToFilamentLastBond() {
 
   // Check if attached to bond of a filament
   if (!rod_ || !bond_ || !mesh_ || (mesh_->GetSID() != +species_id::filament)) {
@@ -791,10 +791,12 @@ bool Anchor::AttachedToFilamentPlusEnd() {
   // Check if attached to last bond of filament
   Bond *bond = bond_->GetNeighborBond(1);
   if (bond) return false;
-  else if (!reached_plus_end_) {
-    return false;
-  }
   return true;
+}
+
+// Returns true if anchor is attached to a RigidFilament or Filament last bond.
+bool Anchor::GetReachedPlusEnd() {
+  return reached_plus_end_;
 }
 
 /* Decrement xlink and neighbor end count if anchor dettached from singly bound filament end */
