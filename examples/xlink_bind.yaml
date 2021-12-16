@@ -1,0 +1,25 @@
+spindle:
+  k_on_s: 30
+  k_on_d: 500
+  k_off_s: 1
+  k_off_d: 1
+  use_partner: false
+  partner_on_s: 0.5
+  partner_on_d: 1
+  density_type: linear
+  bind_site_density: 1.0
+  single_occupancy: false
+num1:
+  k_on_s: 0
+  k_on_d: 500
+  k_off_d: 1
+  density_type: surface
+  bind_site_density: 0.5
+  single_occupancy: true
+num1_apex:
+  k_on_s: 0
+  k_on_d: 500
+  k_off_d: 1
+  density_type: surface
+  bind_site_density: 0.5
+  single_occupancy: true
