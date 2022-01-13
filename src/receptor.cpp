@@ -22,12 +22,6 @@ void Receptor::Init(receptor_parameters *sparams) {
   interactors_.push_back(this); // Receptor can interact with other objects
 }
 
-// Get orientaton of the point cover that the receptor is on
-const double *const Receptor::GetPCOrientation() {
-  const double *const pc_orientation_ = pc_object_->GetOrientation();
-  return pc_orientation_;
-}
-
 // i/o functions- Write/read species file and convert to text
 void Receptor::WriteSpec(std::fstream &ospec) {
   ospec.write(reinterpret_cast<char*>(&n_anchored_), sizeof(int));
@@ -61,8 +55,6 @@ void Receptor::SetPCSpecies(SpeciesBase* pc_species) {
 
 void Receptor::SetPCObject(Object* pc_object) {
   pc_object_ = pc_object;
-  //SetPCObjectForSphere(pc_object_);
-  //Logger::Warning("PC object set to %i", pc_object_->GetOID()); 
 }
 
 Object* Receptor::GetPCObject() {return pc_object_;}

@@ -178,7 +178,6 @@ int const Object::GetNAnchored() { return n_anchored_; }
 int const Object::GetCompID() const { return comp_id_; }
 void Object::SetCompID(int cid) { comp_id_ = cid; }
 void Object::SetCompPtr(Object* comp) { comp_ptr_ = comp; }
-//Object* Object::GetCompPtr() Object* {return comp_ptr_;}
 void Object::SetOID(int oid) { oid_ = oid; }
 void Object::ToggleIsMesh() { is_mesh_ = !is_mesh_; }
 const std::string& Object::GetName() const { return name_; }
