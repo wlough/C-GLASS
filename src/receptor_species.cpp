@@ -20,6 +20,8 @@ void ReceptorSpecies::SetPC(Cortex* cx, std::vector<SpeciesBase *> &species) {
   } else {
     for (auto sp = species.begin(); sp != species.end(); ++sp) {
       if ((*sp)->GetSpeciesName().compare(component_) == 0) {
+        std::cout << "Follow this command: " << (*sp)->GetSpeciesName();
+        std::cout <<"\n";
         pc_ = (*sp)->GetPC();
         pc_species_ = *sp;
       }
@@ -66,6 +68,8 @@ void ReceptorSpecies::AddMember() {
       pc_species_->CalcPCPosition(i_, s_, pos);
       members_.back().SetLocations(i_, s_);
       members_.back().SetPCObject(pc_species_->GetMember(i_));
+      //PC object seperatly for sphere class
+      members_.back().SetPCObjectForSphere(pc_species_->GetMember(i_));
       members_.back().SetPCSpecies(pc_species_);
     }
   } else if (sparams_.insertion_type.compare("grid") == 0) {
@@ -82,6 +86,8 @@ void ReceptorSpecies::AddMember() {
       pc_species_->CalcPCPosition(i_, s_, pos);
       members_.back().SetLocations(i_, s_);
       members_.back().SetPCObject(pc_species_->GetMember(i_));
+      members_.back().SetPCObjectForSphere(pc_species_->GetMember(i_));
+      Logger::Warning("PC_species set, i_ is %i", i_);
       members_.back().SetPCSpecies(pc_species_);
       s_ += spacing_;
     }
@@ -98,5 +104,32 @@ void ReceptorSpecies::ArrangeMembers() {
     CustomInsert();
   } else if (GetInsertionType().compare("grid") != 0) {
     Logger::Error("Arrangement not recognized in receptor_species.cpp.");
+  }
+}
+
+//Each receptor has it's neighbors set, this way diffusing/walking
+//motors know which receptor to move to
+void ReceptorSpecies::SetAllNeighbors() {
+  int i=0;
+  //const double *const vec = ((*pc_species_).members_[0])->GetOrientation();
+  //std::cout << "Still laive " << vec[1];
+  //std::cout <<"\n";
+  //Cycle through each receptor
+  while(i != members_.size()) {
+		//If receptor is first receptor on filament it only has one neighbor 
+    //set other neighbor to null pointer
+    if (i==0) {
+      members_[i].SetNeighbors(nullptr, &members_[i+1]);
+    }
+		//If receptor is last receptor on filament it only has one neighbor 
+    //set other neighbor to null pointer
+    else if (i==members_.size()-1) {
+      members_[i].SetNeighbors(&members_[i-1],nullptr);
+    }
+    //Set both neighors if not on end
+    else {
+      members_[i].SetNeighbors(&members_[i-1], &members_[i+1]);
+    }
+    i+=1;
   }
 }

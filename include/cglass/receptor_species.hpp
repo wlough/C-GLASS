@@ -43,6 +43,10 @@ public:
 
   // Overwrite custom insert to ignore grid insertion choice
   void ArrangeMembers();
+
+  //Each receptor has it's neighbors set, this way diffusing/walking 
+  //motors know which receptor to move to
+  void SetAllNeighbors();
 };
 
 #endif
