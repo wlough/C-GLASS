@@ -99,7 +99,6 @@ void RigidFilament::InsertRigidFilament(std::string insertion_type,
    sqrt(2*kT*dt/gamma_(par/perp)) along par/perp unit vectors
    relative to rod. */
 void RigidFilament::Integrate() {
-  //Logger::Warning("THe rod ID is %i", GetOID());
   // Explicit calculation of Xi.F_s
   double fric_mat[9] = {}; // Friction matrix for filament
   double mob_mat[9] = {};  // Mobility matrix for filament

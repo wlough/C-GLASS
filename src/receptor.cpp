@@ -115,7 +115,6 @@ void Receptor::CalcTorque() {
   // Calculate torque by using the length along object.
   double r_par[3] = {0, 0, 0};
   const double *o = pc_object_->GetOrientation();
-  std::cout << "orientation is" << "a  " << o[0] << "b  " << o[1] <<"ID is"<< pc_object_ ->GetOID() << "\n";
   for (int i = 0; i < n_dim_; ++i) {
     r_par[i] = s_ * o[i];
   }

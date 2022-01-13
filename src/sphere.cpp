@@ -21,6 +21,16 @@ Object* Sphere::GetPCObjectForSphere() {
   return pc_object_;
 }
 
+//Set the spacing between sites
+void Sphere::SetStepSize(double step_size) {
+  step_size_ = step_size;
+} 
+
+//Get the spacing between sites 
+double Sphere::GetStepSize(){
+  return step_size_;
+}
+
 //Get the plus neighbor of current receptor
 Object* Sphere::GetPlusNeighbor() {
  return next_r_;

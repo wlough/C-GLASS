@@ -70,7 +70,7 @@ class Anchor : public Object {
 
   double *obj_size_ = nullptr;
   double *bind_rate_ = nullptr;
-  
+
   int mesh_n_bonds_;
 
   // Helper functions

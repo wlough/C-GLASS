@@ -140,31 +140,30 @@ void Anchor::UpdatePosition() {
   if (!bound_ || static_flag_ || !(rod_ || sphere_) || (!diffuse && !walker)) {
     return;
   }
-
   // Diffuse or walk along the mesh, updating mesh_lambda
   // If anchors are walking directy along a rod
   if (rod_) {
-		if (diffuse) {
-			Diffuse();
-			if (!CheckMesh())
-				return;
-		}
-		if (walker) {
-			Walk();
-			CheckMesh();
-		}
+    if (diffuse) {
+      Diffuse();
+     if (!CheckMesh())
+       return;
+    }
+    if (walker) {
+      Walk();
+      CheckMesh();
+    }
   }
   //If anchors are hopping between receptors
   if (sphere_) {
     double discrete_diffusion_ = 0;
     double discrete_velocity_ = 0;
-		if (diffuse) {
-			discrete_diffusion_ = DiscreteDiffuse();
-		}
-		if (walker) {
-			discrete_velocity_ = DiscreteWalk();
+    if (diffuse) {
+      discrete_diffusion_ = DiscreteDiffuse();
+    }
+    if (walker) {
+      discrete_velocity_ = DiscreteWalk();
       DecideToStepMotor(discrete_diffusion_, discrete_velocity_);
-		}
+    }
     //if (!walker) {
     //  DecideToStepCrosslink(discrete_diffusion_);
     //}  
@@ -174,12 +173,13 @@ void Anchor::UpdatePosition() {
 void Anchor::DecideToStepMotor(double discrete_diffusion_, double discrete_velocity_) {
   double roll = rng_.RandomUniform();
   double vel = discrete_velocity_;
-  double step_size = 0.32;//put in step size 
+  double step_size_ = sphere_ -> GetStepSize();
+  Logger::Warning("Step size is %f", step_size_);
   double chance_forward = 0;
   double chance_back = 0;
   double D = discrete_diffusion_;
-  chance_forward = (D/pow(step_size,2) + 0.5*vel/step_size)*delta_;
-  chance_back = (D/pow(step_size,2) - 0.5*vel/step_size)*delta_;
+  chance_forward = (D/pow(step_size_,2) + 0.5*vel/step_size_)*delta_;
+  chance_back = (D/pow(step_size_,2) - 0.5*vel/step_size_)*delta_;
   if (chance_forward>roll) {
     StepForward();
   }
