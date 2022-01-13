@@ -137,18 +137,78 @@ void Anchor::UpdatePosition() {
   // Currently only bound anchors diffuse/walk (no explicit unbound anchors)
   bool diffuse = GetDiffusionConst() > 0 ? true : false;
   bool walker = abs(GetMaxVelocity()) > input_tol ? true : false;
-  if (!bound_ || static_flag_ || !rod_ || (!diffuse && !walker)) {
+  if (!bound_ || static_flag_ || !(rod_ || sphere_) || (!diffuse && !walker)) {
     return;
   }
   // Diffuse or walk along the mesh, updating mesh_lambda
-  if (diffuse) {
-    Diffuse();
-    if (!CheckMesh())
-      return;
+  // If anchors are walking directy along a rod
+  if (rod_) {
+    if (diffuse) {
+      Diffuse();
+     if (!CheckMesh())
+       return;
+    }
+    if (walker) {
+      Walk();
+      CheckMesh();
+    }
   }
-  if (walker) {
-    Walk();
-    CheckMesh();
+  //If anchors are hopping between receptors
+  if (sphere_) {
+    double discrete_diffusion_ = 0;
+    double discrete_velocity_ = 0;
+    if (diffuse) {
+      discrete_diffusion_ = DiscreteDiffuse();
+    }
+    if (walker) {
+      discrete_velocity_ = DiscreteWalk();
+      DecideToStepMotor(discrete_diffusion_, discrete_velocity_);
+    }
+    //if (!walker) {
+    //  DecideToStepCrosslink(discrete_diffusion_);
+    //}  
+  }
+}
+
+void Anchor::DecideToStepMotor(double discrete_diffusion_, double discrete_velocity_) {
+  double roll = rng_.RandomUniform();
+  double vel = discrete_velocity_;
+  double step_size_ = sphere_ -> GetStepSize();
+  double chance_forward = 0;
+  double chance_back = 0;
+  double D = discrete_diffusion_;
+  chance_forward = (D/pow(step_size_,2) + 0.5*vel/step_size_)*delta_;
+  chance_back = (D/pow(step_size_,2) - 0.5*vel/step_size_)*delta_;
+  if (chance_forward>roll) {
+    StepForward();
+  }
+  if (chance_back>(1-roll)) {
+    StepBack();
+  }
+  if ( (chance_back+chance_forward) > 1) {
+    Logger::Error("Chance of anchor hopping sites greater than one, time step far too large");
+  }
+}
+
+void Anchor::StepBack() {
+  Object* last_receptor_ = nullptr;
+  last_receptor_ = sphere_->GetMinusNeighbor();
+  //If receptor is trying to move to an open receptor move
+  //If null that means the receptor is on edge of filament already
+  if((last_receptor_ != NULL) && (last_receptor_ -> GetNAnchored() == 0)){
+    Unbind();
+    AttachObjCenter(last_receptor_);
+  }
+}
+
+void Anchor::StepForward() {
+  Object* next_receptor_ = nullptr;
+  next_receptor_ = sphere_->GetPlusNeighbor();
+  //If receptor is trying to move to an open receptor move
+  //If null that means the receptor is on edge of tube already
+  if((next_receptor_ != NULL) && (next_receptor_ -> GetNAnchored() == 0)){
+    Unbind();
+    AttachObjCenter(next_receptor_);
   }
 }
 
@@ -202,6 +262,24 @@ void Anchor::Walk() {
   // Should this also add to bond lambda?
 }
 
+double Anchor::DiscreteWalk() {
+  double vel = GetMaxVelocity();
+   if (force_dep_vel_flag_) {
+    //Want oriontation of filament sphere is on, not orientation of sphere
+    double const *const rod_orientation_ = (sphere_ ->GetPCObjectForSphere()) -> GetOrientation();
+    double const force_proj =
+      step_direction_ * dot_product(n_dim_, force_, rod_orientation_);
+    double fdep = 1. + (force_proj / f_stall_);
+    if (fdep >1) {
+      fdep = 1;
+    } else if (fdep<0) {
+      fdep = 0.;
+    }
+    vel *= fdep;
+  }
+  return vel;
+}
+    
 // Check that the anchor is still located on the filament mesh
 // Returns true if anchor is still on the mesh, false otherwise
 bool Anchor::CheckMesh() {
@@ -298,6 +376,10 @@ void Anchor::Diffuse() {
   mesh_lambda_ += dr;
   // Should this also add to bond lambda?
 }
+
+double Anchor::DiscreteDiffuse() {
+  return GetDiffusionConst();
+} 
 
 void Anchor::UpdateAnchorPositionToObj() {
   if (rod_) {

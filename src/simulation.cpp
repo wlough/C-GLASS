@@ -367,6 +367,12 @@ void Simulation::InsertSpecies(bool force_overlap, bool processing) {
           break;
         }
       }
+      //Set neighbors for receptors so anchors know where to step to
+      //Currently might throw error is receptors aren't on filament, need to fix
+      if ((*spec)->GetSID() == +species_id::receptor){
+        (*spec)->SetAllNeighbors();
+      }
+        
       if (num != inserted && params_.n_dim == 2) {
         // Attempt a lattice-based insertion strategy (only 2d for now)
         Logger::Warning("Attempting lattice-based insertion strategy");

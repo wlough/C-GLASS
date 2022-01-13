@@ -77,8 +77,14 @@ class Anchor : public Object {
   void UpdateAnchorPositionToObj();
   void Diffuse();
   void Walk();
+  double DiscreteDiffuse();
+  double DiscreteWalk();
   bool CheckMesh();
   bool CalcRodLambda();
+  void DecideToStepMotor(double dis_dif, double dis_vel);
+  void DecideToStepCrosslink(double dis_dif);
+  void StepBack();
+  void StepForward();
 
  public:
   Anchor(unsigned long seed);
