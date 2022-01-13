@@ -57,6 +57,8 @@ void Receptor::SetPCObject(Object* pc_object) {
   pc_object_ = pc_object;
 }
 
+Object* Receptor::GetPCObject() {return pc_object_;}
+
 // Use PointCover object positions to update
 void Receptor::UpdatePosition() {
   // Update position only on the midstep to save time, since Receptors
