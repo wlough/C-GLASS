@@ -130,6 +130,7 @@ public:
   void SetOID(int oid);
   void SetCompID(int cid);
   void SetCompPtr(Object* comp);
+  //Object* GetCompPtr();
 
   // Virtual functions
   virtual void Init(species_base_parameters *sparams) {}
@@ -168,6 +169,8 @@ public:
   virtual void DecrementNEndXlinks() {}
   virtual void SubNPartners(double n_sub) {}
   virtual void AddNPartners(double n_add) {}
+  //virtual Object* GetPCObjectForSphere();
+  //virtual void SetPCObjectForSphere(Object* pc_object_);
 
   // I/O functions
   virtual void Report();

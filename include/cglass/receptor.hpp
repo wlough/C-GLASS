@@ -29,9 +29,15 @@ public:
 
   // Initialize positions along PointCover objects
   void SetLocations(int i, double s);
+
+  // Get orientaton of the point cover that the receptor is on
+  const double *const GetPCOrientation();  
   
   // Overloaded UpdatePositions to follow PointCover objects.
   void UpdatePosition();
+
+  //Get the object receptor is attatched to
+  Object* GetPCObject();
 
   // Setters
   void SetPCSpecies(SpeciesBase* pc_species);
