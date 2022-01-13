@@ -186,8 +186,7 @@ void Anchor::DecideToStepMotor(double discrete_diffusion_, double discrete_veloc
     StepBack();
   }
   if ( (chance_back+chance_forward) > 1) {
-    Logger::Error("Chance of anchor hopping sites 
-      greater than one, time step far too large");
+    Logger::Error("Chance of anchor hopping sites greater than one, time step far too large");
   }
 }
 
