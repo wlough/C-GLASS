@@ -8,16 +8,19 @@
 class Sphere : public Object {
     protected:
       bool induces_catastrophe_ = false; // Whether the object induces catastrophe upon double binding
+    private:  
       Object* prev_r_ = nullptr; // The previous receptor (in - direction) on the filament 
       Object* next_r_ = nullptr; // The next receptor (in + direction) on the filament
       Object* pc_object_ = nullptr; // point cover object sphere is on
+      double step_size_ = 0;
     public:
       Sphere(unsigned long seed);
       bool InducesCatastrophe() { return induces_catastrophe_; }
       void SetNeighbors(Object* prevN, Object* nextN); //Set neighboring receptors on filament
       void SetPCObjectForSphere(Object* pc_object);
+      void SetStepSize(double step_size);
+      double GetStepSize();
       Object* GetPCObjectForSphere();
-      //Object* SetPCObject();
       Object* GetPlusNeighbor();
       Object* GetMinusNeighbor();
 };
