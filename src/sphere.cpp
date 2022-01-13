@@ -13,7 +13,6 @@ void Sphere::SetNeighbors(Object* prev_r, Object* next_r) {
 //Set point cover object sphere is on
 void Sphere::SetPCObjectForSphere(Object* pc_object) {
   pc_object_ = pc_object;
-  Logger::Warning("pc_object for sphere set to %i", pc_object_->GetOID());
 }
 
 //Get orientation of point cover object

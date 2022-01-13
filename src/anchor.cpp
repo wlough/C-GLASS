@@ -174,7 +174,6 @@ void Anchor::DecideToStepMotor(double discrete_diffusion_, double discrete_veloc
   double roll = rng_.RandomUniform();
   double vel = discrete_velocity_;
   double step_size_ = sphere_ -> GetStepSize();
-  Logger::Warning("Step size is %f", step_size_);
   double chance_forward = 0;
   double chance_back = 0;
   double D = discrete_diffusion_;
@@ -186,7 +185,10 @@ void Anchor::DecideToStepMotor(double discrete_diffusion_, double discrete_veloc
   if (chance_back>(1-roll)) {
     StepBack();
   }
-  //Put in warning in case time stamp is too low
+  if ( (chance_back+chance_forward) > 1) {
+    Logger::Error("Chance of anchor hopping sites 
+      greater than one, time step far too large");
+  }
 }
 
 void Anchor::StepBack() {
@@ -263,11 +265,9 @@ void Anchor::Walk() {
 
 double Anchor::DiscreteWalk() {
   double vel = GetMaxVelocity();
-  int pc_id = (sphere_ ->GetPCObjectForSphere()) -> GetOID();
-  Logger::Warning("the point cover ID is %i", pc_id);
-  if (force_dep_vel_flag_) {
+   if (force_dep_vel_flag_) {
+    //Want oriontation of filament sphere is on, not orientation of sphere
     double const *const rod_orientation_ = (sphere_ ->GetPCObjectForSphere()) -> GetOrientation();
-    Logger::Warning("Made Before %f, %f, %f, %f", rod_orientation_[0], rod_orientation_[1], force_[0], force_[1]);
     double const force_proj =
       step_direction_ * dot_product(n_dim_, force_, rod_orientation_);
     double fdep = 1. + (force_proj / f_stall_);
