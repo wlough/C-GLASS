@@ -5,7 +5,7 @@ Sphere::Sphere(unsigned long seed) : Object(seed) {
 }
 
 //Set the neighboring receptors
-void Sphere::SetNeighbors(Object* prev_r, Object* next_r) {
+void Sphere::SetNeighbors(Sphere* prev_r, Sphere* next_r) {
   prev_r_ = prev_r;
   next_r_ = next_r;
 }
@@ -31,11 +31,11 @@ double Sphere::GetStepSize(){
 }
 
 //Get the plus neighbor of current receptor
-Object* Sphere::GetPlusNeighbor() {
- return next_r_;
+Sphere* Sphere::GetPlusNeighbor() {
+  return next_r_;
 }
 
 //Get the minus neighbor of current receptor
-Object* Sphere::GetMinusNeighbor() {
- return prev_r_;
+Sphere* Sphere::GetMinusNeighbor() {
+  return prev_r_;
 }
