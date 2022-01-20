@@ -323,6 +323,70 @@ void Crosslink::CalculateTetherForces() {
   anchors_[0].AddForce(force_);
   anchors_[1].SubForce(force_);
 
+  //If anchors are double bound and hopping between receptors then we need to calculate 
+  //the energy to the neighboring sites to determine hopping rates
+  if ((anchors_[0].IsBoundToSphere() == true) && (anchors_[1].IsBoundToSphere() == true)) {
+    Sphere* sphere_zero_ = anchors_[0].GetBoundPointer();
+    Sphere* sphere_one_ = anchors_[1].GetBoundPointer();
+
+    //receptor in plus direction of anchor zero
+    Sphere* zero_plus_n_ = sphere_zero_ -> GetPlusNeighbor();
+    Sphere* one_plus_n_ = sphere_one_ -> GetPlusNeighbor();
+    Sphere* zero_minus_n_ = sphere_zero_ -> GetMinusNeighbor();
+    Sphere* one_minus_n_ = sphere_one_ -> GetMinusNeighbor();
+    //If anchor is at plus end of microtubule it won't have a plus neighbor
+    if (one_plus_n_ == nullptr) {
+      anchors_[0].SetDisToOtherPlus(-1);
+    }
+    else {
+      //Get length between anchor zero and plus neighbor of anchor one
+      Interaction ix_zp(sphere_zero_, one_plus_n_);
+      MinimumDistance mindist_zp;
+      mindist_zp.ObjectObject(ix_zp);
+      double length_zp_ = sqrt(ix_zp.dr_mag2);
+      anchors_[0].SetDisToOtherPlus(length_zp_);  
+    }
+
+    //If anchor is at minus end of microtubule it won't have a plus neighbor
+    if (one_minus_n_ == nullptr) {
+      anchors_[0].SetDisToOtherMinus(-1);
+    }
+    else { 
+    //Get length between anchor zero and minus neighbor of anchor one
+      Interaction ix_zm(sphere_zero_, one_minus_n_);
+      MinimumDistance mindist_zm;
+      mindist_zm.ObjectObject(ix_zm);
+      double length_zm_ = sqrt(ix.dr_mag2);
+      anchors_[0].SetDisToOtherMinus(length_zm_);
+    }
+
+    //If anchor is at plus end of microtubule it won't have a plus neighbor
+    if (zero_plus_n_ == nullptr) {
+      anchors_[1].SetDisToOtherPlus(-1);
+    }
+    else { 
+    //Get length between anchor one and plus neighbor of anchor zero
+      Interaction ix_op(sphere_one_, zero_plus_n_);
+      MinimumDistance mindist_op;
+      mindist_op.ObjectObject(ix_op);
+      double length_op_ = sqrt(ix.dr_mag2);
+      anchors_[1].SetDisToOtherMinus(length_op_);
+    }
+ 
+    //If anchor is at plus end of microtubule it won't have a plus neighbor
+    if (zero_minus_n_ == nullptr) {
+      anchors_[1].SetDisToOtherMinus(-1);
+    }
+    else { 
+      //Get length between anchor one and minus neighbor of anchor zero
+      Interaction ix_om(sphere_one_, zero_minus_n_);
+      MinimumDistance mindist_om;
+      mindist_om.ObjectObject(ix_om);
+      double length_om_ = sqrt(ix.dr_mag2); 
+      anchors_[1].SetDisToOtherMinus(-1);
+    }
+  }
+
   // If one anchor induces catastrophe and the other is attached to a filament, depolymerize
   // attached filament.
   if (anchors_[0].InducesCatastrophe() && anchors_[1].AttachedToFilamentLastBond()) {

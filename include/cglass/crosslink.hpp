@@ -46,6 +46,7 @@ private:
   void UpdateXlinkState();
   double *obj_size_ = nullptr;
   Tracker *tracker_ = nullptr;
+
 public:
   Crosslink(unsigned long seed);
   void Init(crosslink_parameters *sparams);
