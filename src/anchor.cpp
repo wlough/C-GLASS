@@ -164,34 +164,115 @@ void Anchor::UpdatePosition() {
       discrete_velocity_ = DiscreteWalk();
       DecideToStepMotor(discrete_diffusion_, discrete_velocity_);
     }
-    //if (!walker) {
-    //  DecideToStepCrosslink(discrete_diffusion_);
-    //}  
+    if (!walker) {
+      DecideToStepCrosslink(discrete_diffusion_);
+    }  
   }
 }
 
 void Anchor::DecideToStepMotor(double discrete_diffusion_, double discrete_velocity_) {
   double roll = rng_.RandomUniform();
-  double vel = discrete_velocity_;
+  double vel_ = discrete_velocity_;
   double step_size_ = sphere_ -> GetStepSize();
-  double chance_forward = 0;
-  double chance_back = 0;
+  double chance_forward_ = 0;
+  double chance_back_ = 0;
   double D = discrete_diffusion_;
-  chance_forward = (D/pow(step_size_,2) + 0.5*vel/step_size_)*delta_;
-  chance_back = (D/pow(step_size_,2) - 0.5*vel/step_size_)*delta_;
-  if (chance_forward>roll) {
+  //See  equation 7.30 and 7.31 from "Molecular motors: thermodynamics and
+  //the random walk" (Thomas et al. 2001). Equation rearranged to solve for
+  //k+ and k-
+  chance_forward_ = (D/pow(step_size_,2) + 0.5*vel_/step_size_)*delta_;
+  chance_back_ = (D/pow(step_size_,2) - 0.5*vel_/step_size_)*delta_;
+
+  if (chance_forward_>roll) {
     StepForward();
   }
-  if (chance_back>(1-roll)) {
+  if (chance_back_>(1-roll)) {
     StepBack();
   }
-  if ( (chance_back+chance_forward) > 1) {
+  if ( (chance_back_+chance_forward_) > 1) {
     Logger::Error("Chance of anchor hopping sites greater than one, time step far too large");
   }
 }
 
+void Anchor::DecideToStepCrosslink(double discrete_diffusion_) {
+  double roll = rng_.RandomUniform();  
+  double D = discrete_diffusion_;
+  double chance_forward_ = 0;
+  double chance_back_ = 0;
+  double k = sparams_ -> k_spring;
+  double r_l = sparams_ -> rest_length;
+  //Calculate the current energy
+  double energy = 0.5 * k * pow((length_ - r_l), 2);   
+  double step_size_ = sphere_ -> GetStepSize();
+  double plus_diffusion = 0;
+  double minus_diffusion = 0;
+ 
+  //Calculating the chance the crosslinker will diffuse toward plus end
+  //If distance has been set to -1 this means the anchor is already at
+  //the plus end of the microtubule and can't diffuse towards the plus end
+  if (distance_to_plus_ = -1) {
+    chance_forward_ = 0;
+  }
+  else {
+    //Calculate the energy change between current length and length at plus
+    double energy_to_plus = 0.5 * k * pow((distance_to_plus_ - r_l), 2); 
+    double e_change_to_p = energy_to_plus - energy;
+    //Calculate Boltz factor assuming lambda = 1/2
+    double boltz_factor_p = 0.5 * exp(-e_change_to_p);
+    //modify diffusion rate using Boltzmann factor
+    plus_diffusion = boltz_factor_p * D;
+  } 
+
+  //Calculate the chance the crosslinker will diffuse toward minus end
+  //If at minus end chance to duffuse further is zero
+  if (distance_to_minus_ = -1) {
+    chance_back_ = 0;
+  }
+  else {
+    //Calculate the energy change between current length and length at plus
+    double energy_to_minus = 0.5 * k * pow((distance_to_minus_ - r_l), 2); 
+    double e_change_to_m = energy_to_minus - energy;
+    //Calculate Boltz factor assuming lambda = 1/2
+    double boltz_factor_m = 0.5 * exp(-e_change_to_m);
+    //modify diffusion rate using Boltzmann factor
+    minus_diffusion = boltz_factor_m * D;
+  } 
+
+
+  //See  equation 7.30 and 7.31 from "Molecular motors: thermodynamics and
+  //the random walk" (Thomas et al. 2001). Equation rearranged to solve for
+  //k+ and k-
+  chance_forward_ = (plus_diffusion/pow(step_size_,2))*delta_;
+  chance_back_ = (minus_diffusion/pow(step_size_,2))*delta_;
+
+  if (chance_forward_>roll) {
+    StepForward();
+  }
+  if (chance_back_>(1-roll)) {
+    StepBack();
+  }
+  if ( (chance_back_+chance_forward_) > 1) {
+    Logger::Error("Chance of anchor hopping sites greater than one, time step far too large");
+  }
+  return;
+
+}
+
+//Set the distance to the plus neighbor of the other head of
+//the crosslinker
+void Anchor::SetDisToOtherPlus(double distance) {
+  distance_to_plus_ = distance;
+}
+
+
+//Set the distance to the plus neighbor of the other head of
+//the crosslinker
+void Anchor::SetDisToOtherMinus(double distance) {
+  distance_to_minus_ = distance;
+}
+
 void Anchor::StepBack() {
-  Object* last_receptor_ = nullptr;
+  Sphere* last_receptor_ = nullptr;
   last_receptor_ = sphere_->GetMinusNeighbor();
   //If receptor is trying to move to an open receptor move
   //If null that means the receptor is on edge of filament already
@@ -202,7 +283,7 @@ void Anchor::StepBack() {
 }
 
 void Anchor::StepForward() {
-  Object* next_receptor_ = nullptr;
+  Sphere* next_receptor_ = nullptr;
   next_receptor_ = sphere_->GetPlusNeighbor();
   //If receptor is trying to move to an open receptor move
   //If null that means the receptor is on edge of tube already
@@ -623,8 +704,27 @@ void Anchor::BindToPosition(double *bind_pos) {
   UpdatePeriodic();
 }
 
-bool Anchor::IsBound() { return bound_; }
+Sphere* Anchor::GetBoundPointer() {
+  if (sphere_) {
+    return sphere_;
+  }
+  else {
+    Logger::Error("GetBoundPointer only set up for spheres/receptors");
+    return nullptr;
+  }
+}
 
+bool Anchor::IsBound() { return bound_; }
+ 
+bool Anchor::IsBoundToSphere() {
+  if (sphere_) {
+    return true;
+  }
+  else {
+    return false;
+  } 
+}
+ 
 int const Anchor::GetBoundOID() {
   if (sphere_) return sphere_->GetOID();
   else if (rod_) return rod_->GetOID();

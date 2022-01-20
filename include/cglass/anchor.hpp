@@ -45,6 +45,8 @@ class Anchor : public Object {
   double partner_on_s_;
   double k_on_d_;
   double partner_on_d_;
+  double distance_to_plus_;
+  double distance_to_minus_;
   double k_off_s_;
   double k_off_d_;
   double polar_affinity_;
@@ -87,10 +89,13 @@ class Anchor : public Object {
   void StepForward();
 
  public:
+  void SetDisToOtherPlus(double distance_);
+  void SetDisToOtherMinus(double distance_);
   Anchor(unsigned long seed);
   void Init(crosslink_parameters *sparams, int index);
   void SetBindParamMap(std::vector<std::map<std::string, bind_params> >*);
   bool IsBound();
+  bool IsBoundToSphere();
   void UpdatePosition();
   void Activate();
   void Deactivate();
@@ -108,6 +113,7 @@ class Anchor : public Object {
   void SetBound();
   void Unbind();
   void AddBackBindRate();
+  Sphere* GetBoundPointer();
   int const GetBoundOID();
   void Draw(std::vector<graph_struct *> &graph_array);
   void AddNeighbor(Object *neighbor);
