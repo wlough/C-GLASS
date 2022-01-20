@@ -218,7 +218,7 @@ void Anchor::DecideToStepCrosslink(double discrete_diffusion_) {
     double energy_to_plus = 0.5 * k * pow((distance_to_plus_ - r_l), 2); 
     double e_change_to_p = energy_to_plus - energy;
     //Calculate Boltz factor assuming lambda = 1/2
-    double boltz_factor_p = 0.5 * exp(-e_change_to_p);
+    double boltz_factor_p = exp(-0.5 * e_change_to_p);
     //modify diffusion rate using Boltzmann factor
     plus_diffusion = boltz_factor_p * D;
   } 
@@ -233,18 +233,16 @@ void Anchor::DecideToStepCrosslink(double discrete_diffusion_) {
     double energy_to_minus = 0.5 * k * pow((distance_to_minus_ - r_l), 2); 
     double e_change_to_m = energy_to_minus - energy;
     //Calculate Boltz factor assuming lambda = 1/2
-    double boltz_factor_m = 0.5 * exp(-e_change_to_m);
+    double boltz_factor_m = exp(-0.5 * e_change_to_m);
     //modify diffusion rate using Boltzmann factor
     minus_diffusion = boltz_factor_m * D;
   } 
-
 
   //See  equation 7.30 and 7.31 from "Molecular motors: thermodynamics and
   //the random walk" (Thomas et al. 2001). Equation rearranged to solve for
   //k+ and k-
   chance_forward_ = (plus_diffusion/pow(step_size_,2))*delta_;
   chance_back_ = (minus_diffusion/pow(step_size_,2))*delta_;
-
   if (chance_forward_>roll) {
     StepForward();
   }
@@ -254,8 +252,6 @@ void Anchor::DecideToStepCrosslink(double discrete_diffusion_) {
   if ( (chance_back_+chance_forward_) > 1) {
     Logger::Error("Chance of anchor hopping sites greater than one, time step far too large");
   }
-  return;
-
 }
 
 //Set the distance to the plus neighbor of the other head of
@@ -263,7 +259,6 @@ void Anchor::DecideToStepCrosslink(double discrete_diffusion_) {
 void Anchor::SetDisToOtherPlus(double distance) {
   distance_to_plus_ = distance;
 }
-
 
 //Set the distance to the plus neighbor of the other head of
 //the crosslinker

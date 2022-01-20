@@ -387,7 +387,6 @@ void Crosslink::CalculateTetherForces() {
     }
   }
 
-
   // If one anchor induces catastrophe and the other is attached to a filament, depolymerize
   // attached filament.
   if (anchors_[0].InducesCatastrophe() && anchors_[1].AttachedToFilamentPlusEnd()) {
