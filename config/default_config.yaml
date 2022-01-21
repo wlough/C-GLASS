@@ -315,6 +315,7 @@ crosslink:                          # Parameters specific to crosslinks.
                                          # crosslinks in solution.
   bind_site_density: [1, double] # The binding site density of an object that crosslinker
                                          # ends bind to 
+  cant_cross: [false, bool]         # If set to true crosslinkers binding the same two filaments cant cross 
   static_flag: [false, bool]        # Flag for setting one crosslinker head to be fixed in space
   diffusion_s: [0, double]          # Diffusion coefficient for singly bound crosslinks
   diffusion_d: [0, double]          # Diffusion coefficient for doubly bound crosslinks

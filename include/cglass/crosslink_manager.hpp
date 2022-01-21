@@ -31,6 +31,7 @@ class CrosslinkManager {
   void UpdateCrosslinks();
   void UpdateObjsSize();
   bool CheckUpdate();
+  void CheckForCross();
   void Clear();
   void Draw(std::vector<graph_struct *> &graph_array);
   void AddNeighborToAnchor(Object *anchor, Object *neighbor);
