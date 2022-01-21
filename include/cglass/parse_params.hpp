@@ -385,8 +385,6 @@ species_base_parameters *parse_species_params(std::string sid,
       params.spiral_analysis = jt->second.as<bool>();
       } else if (param_name.compare("spiral_number_fail_condition")==0) {
       params.spiral_number_fail_condition = jt->second.as<double>();
-      } else if (param_name.compare("stationary_until")==0) {
-      params.stationary_until = jt->second.as<int>();
       } else if (param_name.compare("orientation_corr_analysis")==0) {
       params.orientation_corr_analysis = jt->second.as<bool>();
       } else if (param_name.compare("orientation_corr_n_steps")==0) {
@@ -683,6 +681,8 @@ species_base_parameters *parse_species_params(std::string sid,
       params.infinite_reservoir_flag = jt->second.as<bool>();
       } else if (param_name.compare("bind_site_density")==0) {
       params.bind_site_density = jt->second.as<double>();
+      } else if (param_name.compare("cant_cross")==0) {
+      params.cant_cross = jt->second.as<bool>();
       } else if (param_name.compare("static_flag")==0) {
       params.static_flag = jt->second.as<bool>();
       } else if (param_name.compare("diffusion_s")==0) {

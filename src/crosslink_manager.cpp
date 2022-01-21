@@ -77,6 +77,37 @@ void CrosslinkManager::UpdateCrosslinks() {
     (*it)->UpdateBindRate();
   }
   Knockout();
+  CheckForCross();
+}
+
+//Check if any crosslinkers are crossing
+void CrosslinkManager::CheckForCross() {
+  bool crossing = false;
+  //Sorry this is a mess to look at, this is going over over crosslink in every species 
+  //and comparing it to every other crosslink in every species to see if the crosslinks
+  //are crossing
+  for (auto it = xlink_species_.begin(); it != xlink_species_.end(); ++it) {
+    for (auto mem = (*it)->members_.begin(); mem != (*it)->members_.end(); ++mem){
+      crossing = false;
+      if (mem->IsDoubly() && mem->ReturnCheckForCross()==true){
+        for (auto itTwo = xlink_species_.begin(); itTwo != xlink_species_.end(); ++itTwo) {
+          for (auto memTwo = (*itTwo)->members_.begin(); memTwo != (*itTwo)->members_.end(); ++memTwo){
+            //If 
+
+            if(mem-> IsDoubly() && memTwo->IsDoubly() && mem->GetOID()!=memTwo->GetOID()){
+              double const *const linkOne_pos = memOne -> GetPosition();
+              double const *const linkTwo_pos = memTwo -> GetPosition(); 
+              if( (memTwo->GetOneX()>mem->GetOneX() && memTwo->GetTwoX()<mem->GetTwoX()) 
+                     || (memTwo->GetOneX()<mem->GetOneX() && memTwo->GetTwoX()>mem->GetTwoX()) ){
+                bool crossing = true;
+                mem -> UnbindCrossing();
+              }
+            }
+          }    
+        }
+      }
+    }
+  }
 }
 
 // Loop over all spheres bound in the last dt. If multiple xlinks want to bind

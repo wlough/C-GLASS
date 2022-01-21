@@ -77,7 +77,6 @@ struct species_parameters<species_id::filament>
   bool spiral_init_flag = false;
   bool spiral_analysis = false;
   double spiral_number_fail_condition = 0;
-  int stationary_until = -1;
   bool orientation_corr_analysis = false;
   int orientation_corr_n_steps = 1000;
   bool crossing_analysis = false;
@@ -168,6 +167,7 @@ struct species_parameters<species_id::crosslink>
   bool use_binding_volume = true;
   bool infinite_reservoir_flag = false;
   double bind_site_density = 1;
+  bool cant_cross = false;
   bool static_flag = false;
   double diffusion_s = 0;
   double diffusion_d = 0;

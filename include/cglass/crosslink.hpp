@@ -33,6 +33,8 @@ private:
   double polar_affinity_;
   bool use_bind_file_;
   int bound_anchor_ = 0; // Index of anchor that is bound if Singly
+  int last_bound_ = 0;
+  bool check_for_cross = false;
   std::map<Sphere *, std::pair<std::vector<double>, std::vector<Anchor*> > > *bound_curr_ = nullptr;
   std::vector<std::map<std::string, bind_params> > *bind_param_map_ = nullptr;
   double *bind_rate_ = nullptr;
@@ -59,6 +61,10 @@ public:
   void UpdateCrosslinkForces();
   void UpdateCrosslinkPositions();
   void GetAnchors(std::vector<Object *> &ixors);
+  int GetLastBound();
+  bool ReturnCheckForCross();
+  void SetCheckForCross();
+  void UnbindCrossing();
   void GetInteractors(std::vector<Object *> &ixors);
   void Draw(std::vector<graph_struct *> &graph_array);
   void SetDoubly();

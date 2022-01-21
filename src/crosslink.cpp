@@ -177,9 +177,40 @@ void Crosslink::SinglyKMC() {
       SetDoubly();
       Logger::Trace("Crosslink %d became doubly bound to obj %d", GetOID(),
                   bind_obj->GetOID());
+      if (sparams_ -> cant_cross == true) {
+        check_for_cross = true;
+        last_bound_ = (int)!bound_anchor_;
+      }
     }
   }
 }
+
+//If a crosslinker was bound during this step it is flaged to check to see if 
+//it is crossing another crosslinker
+bool Crosslink::ReturnCheckForCross() {
+  return check_for_cross;
+}
+
+//After a crosslinker is checked if its crossing set check_for_cross back to false
+void Crosslink::SetCheckForCross() {
+  check_for_cross = false;
+}
+
+//Get the most recently bound anchor
+int Crosslink::GetLastBound() {
+  return last_bound_;
+}
+
+void Crosslink::UnbindCrossing() {
+  Logger::Trace("Crosslinker %f came unbound because it was crossing another crosslinker", GetOID());
+  int head_activate = last_bound_;
+  ClearNeighbors();
+  UpdateXlinkState();
+  tracker_ -> UnbindDS();
+  anchors_[head_activate].Unbind();
+  SetSingly((int)!head_activate);
+}
+  
 
 /* Perform kinetic monte carlo step of protein with 2 heads of protein
  * object attached. */
