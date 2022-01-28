@@ -132,6 +132,8 @@ class Anchor : public Object {
   double const GetBondLambda();
   Object *GetNeighbor(int i_neighbor);
   Sphere *GetSphereNeighbor(int i_neighbor);
+  double GetRecS();
+  int GetPCID();
   Rod *GetRodNeighbor(int i_neighbor);
   const int GetNNeighbors() const;
   const int GetNNeighborsSphere() const;

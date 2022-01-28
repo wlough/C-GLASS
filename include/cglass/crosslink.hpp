@@ -48,10 +48,13 @@ private:
   void UpdateXlinkState();
   double *obj_size_ = nullptr;
   Tracker *tracker_ = nullptr;
+  int i_ = 0;
+  bool* global_check_for_cross_ = nullptr;
 
 public:
   Crosslink(unsigned long seed);
   void Init(crosslink_parameters *sparams);
+  void SetGlobalCheckForCross(bool* check);
   void InitInteractionEnvironment(LookupTable *lut, Tracker *tracker, 
                                   std::map<Sphere *, std::pair<std::vector<double>, 
                                   std::vector<Anchor*> > > *bound_curr);
@@ -61,6 +64,8 @@ public:
   void UpdateCrosslinkForces();
   void UpdateCrosslinkPositions();
   void GetAnchors(std::vector<Object *> &ixors);
+  std::vector<double> GetAnchorS();
+  std::vector<int> GetReceptorIDs();
   int GetLastBound();
   bool ReturnCheckForCross();
   void SetCheckForCross();

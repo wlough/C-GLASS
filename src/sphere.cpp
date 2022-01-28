@@ -20,6 +20,14 @@ Object* Sphere::GetPCObjectForSphere() {
   return pc_object_;
 }
 
+void Sphere::SetSphereS(double s) {
+  s_ = s;
+}
+
+double Sphere::GetSphereS() {
+  return s_;
+}
+
 //Set the spacing between sites
 void Sphere::SetStepSize(double step_size) {
   step_size_ = step_size;

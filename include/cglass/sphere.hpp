@@ -12,6 +12,7 @@ class Sphere : public Object {
       Sphere* prev_r_ = nullptr; // The previous receptor (in - direction) on the filament 
       Sphere* next_r_ = nullptr; // The next receptor (in + direction) on the filament
       Object* pc_object_ = nullptr; // point cover object sphere is on
+      double s_ = 0; //how far the sphere is along a filament
       double step_size_ = 0;
     public:
       Sphere(unsigned long seed);
@@ -20,6 +21,8 @@ class Sphere : public Object {
       void SetPCObjectForSphere(Object* pc_object);
       void SetStepSize(double step_size);
       double GetStepSize();
+      void SetSphereS(double s_);
+      double GetSphereS();
       Object* GetPCObjectForSphere();
       Sphere* GetPlusNeighbor();
       Sphere* GetMinusNeighbor();
