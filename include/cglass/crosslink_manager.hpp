@@ -4,6 +4,9 @@
 #include "output_manager.hpp"
 #include "species_factory.hpp"
 
+
+
+
 class CrosslinkOutputManager : public OutputManagerBase<CrosslinkSpecies> {
   /* Do not write thermo - base output manager will handle that */
   void WriteThermo() {}
@@ -23,9 +26,10 @@ class CrosslinkManager {
   std::map<Sphere *, std::pair<std::vector<double>, std::vector<Anchor*> > > bound_curr_;
   SpaceBase *space_;
   Tracker *tracker_ = nullptr;
+  bool global_check_for_cross = false;
 
  public:
-  void Init(system_parameters *params, SpaceBase *space, Tracker *tracker,
+ void Init(system_parameters *params, SpaceBase *space, Tracker *tracker,
             std::vector<Object *> *objs);
   void GetInteractors(std::vector<Object *> &ixors);
   void UpdateCrosslinks();

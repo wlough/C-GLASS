@@ -411,6 +411,7 @@ std::pair <Object*, int> CrosslinkSpecies::GetRandomObject() {
 void CrosslinkSpecies::BindCrosslink() {
   AddMember();
   members_.back().AttachObjRandom(GetRandomObject());
+  members_.back().SetGlobalCheckForCross(global_check_for_cross_);
 }
 
 /* Return singly-bound anchors, for finding neighbors to bind to */
@@ -426,6 +427,10 @@ void CrosslinkSpecies::GetAnchorInteractors(std::vector<Object *> &ixors) {
   for (auto xlink = members_.begin(); xlink != members_.end(); ++xlink) {
     xlink->GetAnchors(ixors);
   }
+}
+
+Crosslink* CrosslinkSpecies::GetCrosslink(int i) {
+  return &members_[i];
 }
 
 void CrosslinkSpecies::UpdatePositions() {
@@ -682,4 +687,10 @@ const int CrosslinkSpecies::GetDoublyBoundCrosslinkNumber() const {
 const double CrosslinkSpecies::GetConcentration() const {
   return sparams_.concentration;
 }
+
+void CrosslinkSpecies::SetCheckForCrossPointer(bool* global_check_for_cross) {
+  global_check_for_cross_ = global_check_for_cross;
+  Logger::Warning("global set");
+}
+
 const double CrosslinkSpecies::GetRCutoff() const { return lut_.getLUCutoff(); }

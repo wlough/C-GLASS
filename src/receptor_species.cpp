@@ -85,9 +85,11 @@ void ReceptorSpecies::AddMember() {
       members_.back().SetLocations(i_, s_);
       members_.back().SetPCObject(pc_species_->GetMember(i_));
       members_.back().SetPCObjectForSphere(pc_species_->GetMember(i_));
+      members_.back().SetSphereS(s_);
       members_.back().SetStepSize(spacing_);
       members_.back().SetPCSpecies(pc_species_);
       s_ += spacing_;
+      Logger::Warning("Setting i=%i and s=%f", i_, s_);
     }
   } else if (sparams_.insertion_type.compare("custom") != 0) {
     Logger::Error("Insertion type not recognized in receptor_species.cpp.");

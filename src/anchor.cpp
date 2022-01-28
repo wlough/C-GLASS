@@ -726,6 +726,15 @@ int const Anchor::GetBoundOID() {
   else return -1;
 }
 
+int Anchor::GetPCID() {
+  if (sphere_) {
+    return (sphere_ ->GetPCObjectForSphere()) -> GetOID();
+  } else {
+    Logger::Error("Try to get PC ID for a non-receptor");
+    return 0; 
+  }
+}
+
 /* Temporary function for setting bound state for singly-bound crosslinks,
    in order to get them to draw while not technically bound to a bond
    ( e.g. rod_ -> null ) */
@@ -753,6 +762,23 @@ Object *Anchor::GetNeighbor(int i_neighbor) {
 
 Sphere *Anchor::GetSphereNeighbor(int i_neighbor) {
   return neighbors_.GetSphereNeighbor(i_neighbor);
+}
+
+double Anchor::GetRecS() {
+  if (sphere_) {
+    
+    double const *const rod_orientation_ = (sphere_ ->GetPCObjectForSphere()) -> GetOrientation();
+    if (rod_orientation_[0]>0) {
+      return sphere_ -> GetSphereS();
+    }
+    else {
+      double s = sphere_-> GetSphereS();
+      return -s;
+    }
+  } else {
+    Logger::Error("Anchor is not attatched to Sphere");
+  return 0;
+  }
 }
 
 Rod *Anchor::GetRodNeighbor(int i_neighbor) {

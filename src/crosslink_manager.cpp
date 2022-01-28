@@ -77,30 +77,56 @@ void CrosslinkManager::UpdateCrosslinks() {
     (*it)->UpdateBindRate();
   }
   Knockout();
-  CheckForCross();
+  if (global_check_for_cross == true) {
+    CheckForCross();
+    global_check_for_cross = false;
+  }
 }
 
 //Check if any crosslinkers are crossing
 void CrosslinkManager::CheckForCross() {
-  bool crossing = false;
+  Logger::Warning("Checking for Crossing");
   //Sorry this is a mess to look at, this is going over over crosslink in every species 
   //and comparing it to every other crosslink in every species to see if the crosslinks
   //are crossing
-  for (auto it = xlink_species_.begin(); it != xlink_species_.end(); ++it) {
-    for (auto mem = (*it)->members_.begin(); mem != (*it)->members_.end(); ++mem){
-      crossing = false;
-      if (mem->IsDoubly() && mem->ReturnCheckForCross()==true){
-        for (auto itTwo = xlink_species_.begin(); itTwo != xlink_species_.end(); ++itTwo) {
-          for (auto memTwo = (*itTwo)->members_.begin(); memTwo != (*itTwo)->members_.end(); ++memTwo){
-            //If 
-
-            if(mem-> IsDoubly() && memTwo->IsDoubly() && mem->GetOID()!=memTwo->GetOID()){
-              double const *const linkOne_pos = memOne -> GetPosition();
-              double const *const linkTwo_pos = memTwo -> GetPosition(); 
-              if( (memTwo->GetOneX()>mem->GetOneX() && memTwo->GetTwoX()<mem->GetTwoX()) 
-                     || (memTwo->GetOneX()<mem->GetOneX() && memTwo->GetTwoX()>mem->GetTwoX()) ){
-                bool crossing = true;
-                mem -> UnbindCrossing();
+  for (auto spec_one = xlink_species_.begin(); spec_one != xlink_species_.end(); ++spec_one) {
+  int member_num_ = (*spec_one) -> GetNMembers(); 
+    for (int i = 0; i <= (member_num_-1); i++) {
+      Crosslink* link_one = (*spec_one) -> GetCrosslink(i);
+      // Check is we need 
+      if (link_one -> IsDoubly() && link_one -> ReturnCheckForCross() == true){
+        //if (link_one -> IsDoubly() =! true) {
+        //  Logger::Warning("Checking if a singly bound crosslinker is crossing");
+        //}
+        for (auto spec_two = xlink_species_.begin(); spec_two != xlink_species_.end(); ++spec_two) {
+          int member_num_two_ = (*spec_two) -> GetNMembers();  
+          for (int j = 0; j <= (member_num_two_-1); j++) {
+            Crosslink* link_two = (*spec_two) -> GetCrosslink(j);
+              //If link two is double bound and the crosslinkers aren't the same crosslinker
+              if(link_two -> IsDoubly() && link_one -> GetOID() != link_two -> GetOID()){
+                //Get how far the crosslinker anchors are along the filament
+                std::vector<double> link_one_s = link_one -> GetAnchorS();
+                std::vector<double> link_two_s = link_two -> GetAnchorS();
+                std::vector<int> rec_ids_one = link_one -> GetReceptorIDs();
+                std::vector<int> rec_ids_two = link_two -> GetReceptorIDs();
+                if(rec_ids_one[0] != rec_ids_two[0]){
+                  Logger::Warning("Before Swapped, %i, %i, %i, %i,", rec_ids_one[0], rec_ids_one[1], rec_ids_two[0], rec_ids_two[1]);
+ 
+                  std::swap(link_two_s[0], link_two_s[1]);
+                  std::swap(rec_ids_two[0], rec_ids_two[1]);
+                  Logger::Warning("Swapped, %i, %i, %i, %i,", rec_ids_one[0], rec_ids_one[1], rec_ids_two[0], rec_ids_two[1]);
+                } 
+              if( (link_one_s[0] > link_two_s[0] && link_one_s[1] < link_two_s[1]) 
+                     || (link_one_s[0] < link_two_s[0] && link_one_s[1] > link_two_s[1])) { 
+              Logger::Warning("Crosslinkers are crossing, %f, %f, %f, %f", link_one_s[0], link_one_s[1], link_two_s[0], link_two_s[1]);
+                link_one -> UnbindCrossing();
+                break;
+              } else {
+                link_one -> SetCheckForCross();
+              } 
+              //  bool crossing = true;
+              //  mem -> UnbindCrossing();
+              //}
               }
             }
           }    
@@ -108,7 +134,8 @@ void CrosslinkManager::CheckForCross() {
       }
     }
   }
-}
+
+
 
 // Loop over all spheres bound in the last dt. If multiple xlinks want to bind
 // to a site, roll based on their relative probabilities, and unbind all of the
@@ -128,7 +155,8 @@ void CrosslinkManager::Knockout() {
 void CrosslinkManager::InsertCrosslinks() {
   for (auto it = xlink_species_.begin(); it != xlink_species_.end(); ++it) {
     (*it)->InsertCrosslinks();
-  }
+    (*it)->SetCheckForCrossPointer(&global_check_for_cross);
+  } 
 }
 
 void CrosslinkManager::InsertAttachedCrosslinks() {
