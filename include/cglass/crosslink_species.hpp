@@ -77,7 +77,6 @@ public:
   const int GetDoublyBoundCrosslinkNumber() const;
   const double GetConcentration() const;
   const double GetRCutoff() const;
-  const double *const ReturnMembers(); 
 };
 
 #endif

@@ -730,7 +730,7 @@ int Anchor::GetPCID() {
   if (sphere_) {
     return (sphere_ ->GetPCObjectForSphere()) -> GetOID();
   } else {
-    Logger::Error("Try to get PC ID for a non-receptor");
+    Logger::Error("Tried to get PC ID for a non-receptor");
     return 0; 
   }
 }
@@ -765,8 +765,7 @@ Sphere *Anchor::GetSphereNeighbor(int i_neighbor) {
 }
 
 double Anchor::GetRecS() {
-  if (sphere_) {
-    
+  if (sphere_) {    
     double const *const rod_orientation_ = (sphere_ ->GetPCObjectForSphere()) -> GetOrientation();
     if (rod_orientation_[0]>0) {
       return sphere_ -> GetSphereS();
