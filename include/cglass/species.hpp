@@ -64,9 +64,6 @@ public:
   virtual Object* GetMember(int i) { 
     return &members_[i];
   }
-  virtual int GetMemberNum() {
-    return sizeof(members_)/sizeof(members_[0]);
-  }
   virtual void AddMember();
   virtual void AddMember(T newmem);
   virtual void PopMember();

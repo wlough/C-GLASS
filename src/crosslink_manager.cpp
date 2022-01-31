@@ -77,6 +77,7 @@ void CrosslinkManager::UpdateCrosslinks() {
     (*it)->UpdateBindRate();
   }
   Knockout();
+  //Use global check for cross so we don't need to check individual crosslinkers every time step
   if (global_check_for_cross == true) {
     CheckForCross();
     global_check_for_cross = false;
@@ -85,55 +86,56 @@ void CrosslinkManager::UpdateCrosslinks() {
 
 //Check if any crosslinkers are crossing
 void CrosslinkManager::CheckForCross() {
-  Logger::Warning("Checking for Crossing");
+  Logger::Trace("Checking if crosslinkers are crossing");
   //Sorry this is a mess to look at, this is going over over crosslink in every species 
   //and comparing it to every other crosslink in every species to see if the crosslinks
   //are crossing
+  bool same_microtubles;
   for (auto spec_one = xlink_species_.begin(); spec_one != xlink_species_.end(); ++spec_one) {
   int member_num_ = (*spec_one) -> GetNMembers(); 
     for (int i = 0; i <= (member_num_-1); i++) {
       Crosslink* link_one = (*spec_one) -> GetCrosslink(i);
-      // Check is we need 
-      if (link_one -> IsDoubly() && link_one -> ReturnCheckForCross() == true){
-        //if (link_one -> IsDoubly() =! true) {
-        //  Logger::Warning("Checking if a singly bound crosslinker is crossing");
-        //}
+      // Check is we need to check for crossing for this crosslinker 
+      if (link_one -> IsDoubly() && link_one -> ReturnCheckForCross() == true) {
         for (auto spec_two = xlink_species_.begin(); spec_two != xlink_species_.end(); ++spec_two) {
           int member_num_two_ = (*spec_two) -> GetNMembers();  
           for (int j = 0; j <= (member_num_two_-1); j++) {
             Crosslink* link_two = (*spec_two) -> GetCrosslink(j);
               //If link two is double bound and the crosslinkers aren't the same crosslinker
-              if(link_two -> IsDoubly() && link_one -> GetOID() != link_two -> GetOID()){
-                //Get how far the crosslinker anchors are along the filament
-                std::vector<double> link_one_s = link_one -> GetAnchorS();
-                std::vector<double> link_two_s = link_two -> GetAnchorS();
-                std::vector<int> rec_ids_one = link_one -> GetReceptorIDs();
-                std::vector<int> rec_ids_two = link_two -> GetReceptorIDs();
-                if(rec_ids_one[0] != rec_ids_two[0]){
-                  Logger::Warning("Before Swapped, %i, %i, %i, %i,", rec_ids_one[0], rec_ids_one[1], rec_ids_two[0], rec_ids_two[1]);
- 
-                  std::swap(link_two_s[0], link_two_s[1]);
-                  std::swap(rec_ids_two[0], rec_ids_two[1]);
-                  Logger::Warning("Swapped, %i, %i, %i, %i,", rec_ids_one[0], rec_ids_one[1], rec_ids_two[0], rec_ids_two[1]);
-                } 
-              if( (link_one_s[0] > link_two_s[0] && link_one_s[1] < link_two_s[1]) 
-                     || (link_one_s[0] < link_two_s[0] && link_one_s[1] > link_two_s[1])) { 
-              Logger::Warning("Crosslinkers are crossing, %f, %f, %f, %f", link_one_s[0], link_one_s[1], link_two_s[0], link_two_s[1]);
+            if(link_two -> IsDoubly() && link_one -> GetOID() != link_two -> GetOID()) {
+              //Get how far the crosslinker anchors are along the filament
+              std::vector<double> link_one_s = link_one -> GetAnchorS();
+              std::vector<double> link_two_s = link_two -> GetAnchorS();
+              std::vector<int> rec_ids_one = link_one -> GetReceptorIDs();
+              std::vector<int> rec_ids_two = link_two -> GetReceptorIDs();
+              //If same index deosn't refer to sites on the same filament switch indexs so we are comparing same microtubule
+              if (rec_ids_one[0] != rec_ids_two[0]) {
+                std::swap(link_two_s[0], link_two_s[1]);
+                std::swap(rec_ids_two[0], rec_ids_two[1]);
+              } 
+              //If the sites are still on different filaments then crosslinkers aren't binding the same microtubule 
+              if (rec_ids_one[0] == rec_ids_two[0]) {
+                same_microtubules = true;
+              }
+              else {
+              same_microtubules = false;
+              }
+
+              if (same_microtubules && ((link_one_s[0] > link_two_s[0] && link_one_s[1] < link_two_s[1]) 
+                     || (link_one_s[0] < link_two_s[0] && link_one_s[1] > link_two_s[1]))) { 
+                Logger::Trace("Crosslinkers are crossing, %f, %f, %f, %f", link_one_s[0], link_one_s[1], link_two_s[0], link_two_s[1]);
                 link_one -> UnbindCrossing();
                 break;
               } else {
                 link_one -> SetCheckForCross();
               } 
-              //  bool crossing = true;
-              //  mem -> UnbindCrossing();
-              //}
-              }
             }
-          }    
-        }
+          }
+        }    
       }
     }
   }
+}
 
 
 

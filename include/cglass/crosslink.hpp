@@ -48,8 +48,7 @@ private:
   void UpdateXlinkState();
   double *obj_size_ = nullptr;
   Tracker *tracker_ = nullptr;
-  int i_ = 0;
-  bool* global_check_for_cross_ = nullptr;
+ bool* global_check_for_cross_ = nullptr;
 
 public:
   Crosslink(unsigned long seed);
