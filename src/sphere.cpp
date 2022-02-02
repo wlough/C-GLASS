@@ -20,6 +20,16 @@ Object* Sphere::GetPCObjectForSphere() {
   return pc_object_;
 }
 
+//Set how long the sphere is along the filament
+void Sphere::SetSphereS(double s) {
+  s_ = s;
+}
+
+//Get how far the sphere is along the filament
+double Sphere::GetSphereS() {
+  return s_;
+}
+
 //Set the spacing between sites
 void Sphere::SetStepSize(double step_size) {
   step_size_ = step_size;

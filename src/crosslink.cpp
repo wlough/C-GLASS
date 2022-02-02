@@ -177,9 +177,54 @@ void Crosslink::SinglyKMC() {
       SetDoubly();
       Logger::Trace("Crosslink %d became doubly bound to obj %d", GetOID(),
                   bind_obj->GetOID());
+      //If crosslinkers can't cross check if newly bound crosslinker is crossing
+      if (sparams_ -> cant_cross == true) {
+        check_for_cross = true;
+        last_bound_ = (int)!bound_anchor_;
+        if (*global_check_for_cross_ == true) {
+          Logger::Error("Two crosslinks bound during same time step");
+        } else {
+          *global_check_for_cross_ = true;
+        }
+      }
     }
   }
 }
+
+//If a crosslinker was bound during this step it is flaged to check to see if 
+//it is crossing another crosslinker
+bool Crosslink::ReturnCheckForCross() {
+  return check_for_cross;
+}
+
+//After a crosslinker is checked if its crossing set check_for_cross back to false
+void Crosslink::SetCheckForCross() {
+  check_for_cross = false;
+  *global_check_for_cross_ = false;
+}
+
+void Crosslink::SetGlobalCheckForCross(bool* global_check_for_cross){
+  global_check_for_cross_ = global_check_for_cross;
+}
+
+//Get index of most recently bound anchor (if crosslinker unbinds do to crosslinking 
+//most recently bound anchor needs to unbind)
+int Crosslink::GetLastBound() {
+  return last_bound_;
+}
+
+//Unbind anchor if unbinding is due to crosslinkers crossing
+void Crosslink::UnbindCrossing() {
+  Logger::Trace("Crosslinker %f came unbound because it was crossing another crosslinker", GetOID());
+  int head_activate = last_bound_;
+  ClearNeighbors();
+  UpdateXlinkState();
+  tracker_ -> UnbindDS();
+  anchors_[head_activate].Unbind();
+  SetSingly((int)!head_activate);
+  SetCheckForCross();
+}
+  
 
 /* Perform kinetic monte carlo step of protein with 2 heads of protein
  * object attached. */
@@ -216,6 +261,7 @@ void Crosslink::DoublyKMC() {
                   anchors_[head_activate].GetBoundOID());
     anchors_[head_activate].Unbind();
     SetSingly((int)!head_activate);
+    SetCheckForCross();
   }
 }
 
@@ -235,6 +281,22 @@ void Crosslink::GetInteractors(std::vector<Object *> &ixors) {
     ixors.push_back(&anchors_[bound_anchor_]);
   }
 }
+
+//Get how far anchors are along the filaments
+std::vector<double> Crosslink::GetAnchorS() {
+  std::vector<double> s_values_;
+  s_values_.push_back(anchors_[0].GetRecS());
+  s_values_.push_back(anchors_[1].GetRecS());
+  return s_values_;
+}
+
+//Get the IDs of the filaments that the receptors the anchors are connected to are connected to
+std::vector<int> Crosslink::GetReceptorPCIDs() {
+  std::vector<int> rec_ids_;
+  rec_ids_.push_back(anchors_[0].GetPCID());  
+  rec_ids_.push_back(anchors_[1].GetPCID()); 
+  return rec_ids_;
+} 
 
 void Crosslink::ClearNeighbors() { anchors_[bound_anchor_].ClearNeighbors(); }
 

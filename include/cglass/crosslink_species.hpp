@@ -48,6 +48,7 @@ private:
   void UpdateBoundCrosslinkPositions();
   void ApplyCrosslinkTetherForces();
   std::pair<Object*, int> GetRandomObject();
+  bool* global_check_for_cross_;
 
 public:
   CrosslinkSpecies(unsigned long seed);
@@ -57,6 +58,7 @@ public:
                                   std::map<Sphere *, std::pair<std::vector<double>, 
                                   std::vector<Anchor*> > > *bound_curr);
   void TestKMCStepSize();
+  void SetGlobalCheckForCrossPointer(bool* check);
   void GetInteractors(std::vector<Object *> &ixors);
   void UpdatePositions();
   void UpdateBindRate();
@@ -70,6 +72,7 @@ public:
   void GetAnchorInteractors(std::vector<Object *> &ixors);
   void ReadSpecs();
   void InsertCrosslinks();
+  Crosslink* GetCrosslink(int i); 
   const int GetDoublyBoundCrosslinkNumber() const;
   const double GetConcentration() const;
   const double GetRCutoff() const;

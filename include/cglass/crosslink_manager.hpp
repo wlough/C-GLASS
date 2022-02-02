@@ -23,6 +23,8 @@ class CrosslinkManager {
   std::map<Sphere *, std::pair<std::vector<double>, std::vector<Anchor*> > > bound_curr_;
   SpaceBase *space_;
   Tracker *tracker_ = nullptr;
+  bool global_check_for_cross = false;
+  bool same_microtubules = true;
 
  public:
   void Init(system_parameters *params, SpaceBase *space, Tracker *tracker,
@@ -31,6 +33,7 @@ class CrosslinkManager {
   void UpdateCrosslinks();
   void UpdateObjsSize();
   bool CheckUpdate();
+  void CheckForCross();
   void Clear();
   void Draw(std::vector<graph_struct *> &graph_array);
   void AddNeighborToAnchor(Object *anchor, Object *neighbor);

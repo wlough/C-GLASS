@@ -77,6 +77,65 @@ void CrosslinkManager::UpdateCrosslinks() {
     (*it)->UpdateBindRate();
   }
   Knockout();
+  //Use global check for cross so we don't need to check individual crosslinkers every time step
+  if (global_check_for_cross == true) {
+    CheckForCross();
+    global_check_for_cross = false;
+  }
+}
+
+//Check if any crosslinkers are crossing
+void CrosslinkManager::CheckForCross() {
+  Logger::Trace("Checking if crosslinkers are crossing");
+  //Sorry this is a mess to look at, this is going over over crosslink in every species 
+  //and comparing it to every other crosslink in every species to see if the crosslinks
+  //are crossing
+  for (auto spec_one = xlink_species_.begin(); spec_one != xlink_species_.end(); ++spec_one) {
+  int member_num_ = (*spec_one) -> GetNMembers(); 
+    for (int i = 0; i <= (member_num_-1); i++) {
+      Crosslink* link_one = (*spec_one) -> GetCrosslink(i);
+      // Check is we need to check for crossing for this crosslinker 
+      if (link_one -> IsDoubly() && link_one -> ReturnCheckForCross() == true) {
+        for (auto spec_two = xlink_species_.begin(); spec_two != xlink_species_.end(); ++spec_two) {
+          int member_num_two_ = (*spec_two) -> GetNMembers();  
+          for (int j = 0; j <= (member_num_two_-1); j++) {
+            Crosslink* link_two = (*spec_two) -> GetCrosslink(j);
+            //If link two is double bound and the crosslinkers aren't the same crosslinker
+            if(link_two -> IsDoubly() && link_one -> GetOID() != link_two -> GetOID()) {
+              //Get how far the crosslinker anchors are along the filament
+              std::vector<double> link_one_s = link_one -> GetAnchorS();
+              std::vector<double> link_two_s = link_two -> GetAnchorS();
+              //Get the IDs of the PCs crosslink one is attatched to
+              std::vector<int> rec_ids_one = link_one -> GetReceptorPCIDs();
+              //Get the IDs of the PCs crosslink two is attatched to
+              std::vector<int> rec_ids_two = link_two -> GetReceptorPCIDs();
+              //If same index doesn't refer to sites on the same filament switch indexs so 
+              //so the same index refers to anchors on the same microtubule
+              if (rec_ids_one[0] != rec_ids_two[0]) {
+                std::swap(link_two_s[0], link_two_s[1]);
+                std::swap(rec_ids_two[0], rec_ids_two[1]);
+              } 
+              //If the sites are still on different filaments then crosslinkers aren't binding the same microtubules
+              if (rec_ids_one[0] == rec_ids_two[0]) {
+                same_microtubules = true;
+              }
+              else {
+                same_microtubules = false;
+              }
+              //If crosslinkers are crossing and connected same microtubules, then unbind most rect crosslinker
+              if (same_microtubules && ((link_one_s[0] > link_two_s[0] && link_one_s[1] < link_two_s[1]) 
+                     || (link_one_s[0] < link_two_s[0] && link_one_s[1] > link_two_s[1]))) { 
+                link_one -> UnbindCrossing();
+                break;
+              } else {
+                link_one -> SetCheckForCross();
+              } 
+            }
+          }
+        }    
+      }
+    }
+  }
 }
 
 // Loop over all spheres bound in the last dt. If multiple xlinks want to bind
@@ -97,7 +156,8 @@ void CrosslinkManager::Knockout() {
 void CrosslinkManager::InsertCrosslinks() {
   for (auto it = xlink_species_.begin(); it != xlink_species_.end(); ++it) {
     (*it)->InsertCrosslinks();
-  }
+    (*it)->SetGlobalCheckForCrossPointer(&global_check_for_cross);
+  } 
 }
 
 void CrosslinkManager::InsertAttachedCrosslinks() {
