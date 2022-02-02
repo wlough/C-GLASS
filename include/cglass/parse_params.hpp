@@ -385,6 +385,8 @@ species_base_parameters *parse_species_params(std::string sid,
       params.spiral_analysis = jt->second.as<bool>();
       } else if (param_name.compare("spiral_number_fail_condition")==0) {
       params.spiral_number_fail_condition = jt->second.as<double>();
+      } else if (param_name.compare("stationary_until")==0) {
+      params.stationary_until = jt->second.as<int>();
       } else if (param_name.compare("orientation_corr_analysis")==0) {
       params.orientation_corr_analysis = jt->second.as<bool>();
       } else if (param_name.compare("orientation_corr_n_steps")==0) {

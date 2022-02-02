@@ -77,6 +77,7 @@ struct species_parameters<species_id::filament>
   bool spiral_init_flag = false;
   bool spiral_analysis = false;
   double spiral_number_fail_condition = 0;
+  int stationary_until = -1;
   bool orientation_corr_analysis = false;
   int orientation_corr_n_steps = 1000;
   bool crossing_analysis = false;
