@@ -688,9 +688,9 @@ const double CrosslinkSpecies::GetConcentration() const {
   return sparams_.concentration;
 }
 
-void CrosslinkSpecies::SetCheckForCrossPointer(bool* global_check_for_cross) {
+//Set pointer to global check for cross flag so individual crosslinks can change it
+void CrosslinkSpecies::SetGlobalCheckForCrossPointer(bool* global_check_for_cross) {
   global_check_for_cross_ = global_check_for_cross;
-  Logger::Warning("global set");
 }
 
 const double CrosslinkSpecies::GetRCutoff() const { return lut_.getLUCutoff(); }

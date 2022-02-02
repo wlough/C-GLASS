@@ -64,7 +64,7 @@ public:
   void UpdateCrosslinkPositions();
   void GetAnchors(std::vector<Object *> &ixors);
   std::vector<double> GetAnchorS();
-  std::vector<int> GetReceptorIDs();
+  std::vector<int> GetReceptorPCIDs();
   int GetLastBound();
   bool ReturnCheckForCross();
   void SetCheckForCross();

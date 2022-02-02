@@ -89,7 +89,6 @@ void ReceptorSpecies::AddMember() {
       members_.back().SetStepSize(spacing_);
       members_.back().SetPCSpecies(pc_species_);
       s_ += spacing_;
-      Logger::Warning("Setting i=%i and s=%f", i_, s_);
     }
   } else if (sparams_.insertion_type.compare("custom") != 0) {
     Logger::Error("Insertion type not recognized in receptor_species.cpp.");

@@ -24,6 +24,7 @@ class CrosslinkManager {
   SpaceBase *space_;
   Tracker *tracker_ = nullptr;
   bool global_check_for_cross = false;
+  bool same_microtubules = true;
 
  public:
   void Init(system_parameters *params, SpaceBase *space, Tracker *tracker,

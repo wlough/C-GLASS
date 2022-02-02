@@ -56,6 +56,7 @@
   default_config["filament"]["spiral_init_flag"] = "false";
   default_config["filament"]["spiral_analysis"] = "false";
   default_config["filament"]["spiral_number_fail_condition"] = "0";
+  default_config["filament"]["stationary_until"] = "-1";
   default_config["filament"]["orientation_corr_analysis"] = "false";
   default_config["filament"]["orientation_corr_n_steps"] = "1000";
   default_config["filament"]["crossing_analysis"] = "false";

@@ -4,7 +4,6 @@
 #include "crosslink.hpp"
 #include "species.hpp"
 #include <KMC/kmc.hpp>
-#include "receptor_species.hpp"
 
 typedef std::vector<std::pair<std::vector<Crosslink>::iterator,
                               std::vector<Crosslink>::iterator>>
@@ -59,7 +58,7 @@ public:
                                   std::map<Sphere *, std::pair<std::vector<double>, 
                                   std::vector<Anchor*> > > *bound_curr);
   void TestKMCStepSize();
-  void SetCheckForCrossPointer(bool* check);
+  void SetGlobalCheckForCrossPointer(bool* check);
   void GetInteractors(std::vector<Object *> &ixors);
   void UpdatePositions();
   void UpdateBindRate();
