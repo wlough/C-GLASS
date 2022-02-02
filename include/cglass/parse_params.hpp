@@ -683,6 +683,8 @@ species_base_parameters *parse_species_params(std::string sid,
       params.infinite_reservoir_flag = jt->second.as<bool>();
       } else if (param_name.compare("bind_site_density")==0) {
       params.bind_site_density = jt->second.as<double>();
+      } else if (param_name.compare("cant_cross")==0) {
+      params.cant_cross = jt->second.as<bool>();
       } else if (param_name.compare("static_flag")==0) {
       params.static_flag = jt->second.as<bool>();
       } else if (param_name.compare("diffusion_s")==0) {

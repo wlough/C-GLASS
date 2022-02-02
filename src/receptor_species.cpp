@@ -85,6 +85,7 @@ void ReceptorSpecies::AddMember() {
       members_.back().SetLocations(i_, s_);
       members_.back().SetPCObject(pc_species_->GetMember(i_));
       members_.back().SetPCObjectForSphere(pc_species_->GetMember(i_));
+      members_.back().SetSphereS(s_);
       members_.back().SetStepSize(spacing_);
       members_.back().SetPCSpecies(pc_species_);
       s_ += spacing_;

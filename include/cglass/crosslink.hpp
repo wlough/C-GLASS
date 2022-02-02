@@ -33,6 +33,8 @@ private:
   double polar_affinity_;
   bool use_bind_file_;
   int bound_anchor_ = 0; // Index of anchor that is bound if Singly
+  int last_bound_ = 0;
+  bool check_for_cross = false;
   std::map<Sphere *, std::pair<std::vector<double>, std::vector<Anchor*> > > *bound_curr_ = nullptr;
   std::vector<std::map<std::string, bind_params> > *bind_param_map_ = nullptr;
   double *bind_rate_ = nullptr;
@@ -46,10 +48,12 @@ private:
   void UpdateXlinkState();
   double *obj_size_ = nullptr;
   Tracker *tracker_ = nullptr;
+ bool* global_check_for_cross_ = nullptr;
 
 public:
   Crosslink(unsigned long seed);
   void Init(crosslink_parameters *sparams);
+  void SetGlobalCheckForCross(bool* check);
   void InitInteractionEnvironment(LookupTable *lut, Tracker *tracker, 
                                   std::map<Sphere *, std::pair<std::vector<double>, 
                                   std::vector<Anchor*> > > *bound_curr);
@@ -59,6 +63,12 @@ public:
   void UpdateCrosslinkForces();
   void UpdateCrosslinkPositions();
   void GetAnchors(std::vector<Object *> &ixors);
+  std::vector<double> GetAnchorS();
+  std::vector<int> GetReceptorPCIDs();
+  int GetLastBound();
+  bool ReturnCheckForCross();
+  void SetCheckForCross();
+  void UnbindCrossing();
   void GetInteractors(std::vector<Object *> &ixors);
   void Draw(std::vector<graph_struct *> &graph_array);
   void SetDoubly();
