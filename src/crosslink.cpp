@@ -478,7 +478,6 @@ void Crosslink::AttachObjRandom(std::pair<Object*, int> obj_index) {
 //Attatch crosslinker connected to two receptors, only used when crosslinkers
 //start doubly bound
 void Crosslink::DoublyCenter(Object* receptor_one, Object* receptor_two) {
-  Logger::Warning("Receptor IDs are %i, %i", receptor_one ->GetOID(), receptor_two->GetOID());
   anchors_[0].AttachObjCenter(receptor_one);
   SetCompID(receptor_one->GetCompID());
   anchors_[1].AttachObjCenter(receptor_two);
