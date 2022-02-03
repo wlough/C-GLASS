@@ -129,3 +129,13 @@ void ReceptorSpecies::SetAllNeighbors() {
     i+=1;
   }
 }
+
+std::vector<Object *> ReceptorSpecies::GetReceptors() {
+  std::vector<Object *> receptor_list_;
+  int i=0;
+  while (i != members_.size()) {
+    receptor_list_.push_back(&members_[i]);
+    i+=1;
+  }
+  return receptor_list_;
+}
