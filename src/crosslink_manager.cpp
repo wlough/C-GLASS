@@ -160,12 +160,12 @@ void CrosslinkManager::InsertCrosslinks() {
   } 
 }
 
-void CrosslinkManager::InsertAttachedCrosslinks() {
+void CrosslinkManager::InsertAttachedCrosslinks(std::vector<std::vector<Object *>> receptor_list) {
   // Need to do this for GetRandomObject to work with spheres
   UpdateObjsSize();
   for (auto it = xlink_species_.begin(); it != xlink_species_.end(); ++it) {
     (*it)->UpdateBindRate();
-    (*it)->InsertAttachedCrosslinksSpecies();
+    (*it)->InsertAttachedCrosslinksSpecies(receptor_list);
   }
 }
 

@@ -48,6 +48,8 @@ public:
   virtual void PopAll() {}
   virtual const double GetSpecDiameter() const { return -1; }
   virtual const double GetSpecLength() const { return -1; }
+  std::vector<Object *> receptors;
+  virtual std::vector<Object *> GetReceptors() {return receptors;}
   virtual void ArrangeMembers() {}
   virtual const bool CanOverlap() const { return -1; }
   species_id const GetSID() const { return sid_; }

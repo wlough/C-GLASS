@@ -96,7 +96,7 @@ public:
   const double* const GetObjSize();
   const double *const GetPosition();
   const double *const GetOrientation();
-
+  void DoublyCenter(Object* receptor_one, Object* receptor_two);
   // Convert binary data to text. Static to avoid needing to istantiate
   // species members.
   static void ConvertSpec(std::fstream &ispec, std::fstream &otext);

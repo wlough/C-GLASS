@@ -368,11 +368,20 @@ void Simulation::InsertSpecies(bool force_overlap, bool processing) {
         }
       }
       //Set neighbors for receptors so anchors know where to step to
-      //Currently might throw error is receptors aren't on filament, need to fix
+      //Currently might throw error is receptors aren't on filament, need to check
       if ((*spec)->GetSID() == +species_id::receptor){
         (*spec)->SetAllNeighbors();
+        //Get receptors so they can be passed to InserAttatchedCrosslinks  
+        //Only set up for 2 filaments
+        if (tube_count == 0) {
+          receptor_list_.push_back((*spec)->GetReceptors());
+          tube_count = 1;
+        }
+        else {
+          receptor_list_.push_back((*spec)->GetReceptors()); 
+        }  
       }
-        
+
       if (num != inserted && params_.n_dim == 2) {
         // Attempt a lattice-based insertion strategy (only 2d for now)
         Logger::Warning("Attempting lattice-based insertion strategy");
@@ -466,7 +475,7 @@ void Simulation::InsertSpecies(bool force_overlap, bool processing) {
   // if (!processing) {
   ix_mgr_.CheckUpdateObjects(); // Forces update as well
   //}  
-  ix_mgr_.InsertAttachedCrosslinks();
+  ix_mgr_.InsertAttachedCrosslinks(receptor_list_);
 }
 
 /* Tear down data structures, e.g. cell lists, and close graphics window if
