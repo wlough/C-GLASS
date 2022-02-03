@@ -56,7 +56,6 @@
   default_config["filament"]["spiral_init_flag"] = "false";
   default_config["filament"]["spiral_analysis"] = "false";
   default_config["filament"]["spiral_number_fail_condition"] = "0";
-  default_config["filament"]["stationary_until"] = "-1";
   default_config["filament"]["orientation_corr_analysis"] = "false";
   default_config["filament"]["orientation_corr_n_steps"] = "1000";
   default_config["filament"]["crossing_analysis"] = "false";
@@ -142,6 +141,7 @@
   default_config["crosslink"]["anchors"][1]["k_off_d"] = "2";
   default_config["crosslink"]["concentration"] = "0";
   default_config["crosslink"]["begin_with_bound_crosslinks"] = "0";
+  default_config["crosslink"]["begin_double_bound"] = "true";
   default_config["crosslink"]["use_binding_volume"] = "true";
   default_config["crosslink"]["infinite_reservoir_flag"] = "false";
   default_config["crosslink"]["bind_site_density"] = "1";

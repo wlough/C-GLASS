@@ -305,6 +305,8 @@ crosslink:                          # Parameters specific to crosslinks.
                                     # boundaries.
   begin_with_bound_crosslinks: [0, int]   # if greater than 0 the simultion begins with the specified number
                                     # of crosslinkers singly attached to microtubules
+  begin_double_bound: [true, bool]  # Crosslinks from begin with_with_bound_crosslinks start double 
+                                    # bound. Only programmed for two parallel filaments. 
   use_binding_volume: [true, bool]  # Calculate concentration of unbound head of 
                                     # singly bound protein by finding a binding 
                                     # volume in which it is statistically likely

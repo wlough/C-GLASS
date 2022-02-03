@@ -103,7 +103,7 @@ class InteractionManager {
   void LoadCrosslinksFromCheckpoints(std::string run_name,
                                      std::string checkpoint_run_name);
   void InsertCrosslinks();
-  void InsertAttachedCrosslinks();
+  void InsertAttachedCrosslinks(std::vector<std::vector<Object *>> receptor_list);
   void SetInteractionAnalysis(bool set) { run_interaction_analysis_ = set; }
 };
 

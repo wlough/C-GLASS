@@ -800,11 +800,11 @@ void InteractionManager::LoadCrosslinksFromCheckpoints(
 
 void InteractionManager::InsertCrosslinks() { xlink_.InsertCrosslinks(); }
 
-void InteractionManager::InsertAttachedCrosslinks() {
+void InteractionManager::InsertAttachedCrosslinks(std::vector<std::vector<Object *>> receptor_list) {
   if (processing_ && !run_interaction_analysis_) {
     return;
   }
-  xlink_.InsertAttachedCrosslinks();
+  xlink_.InsertAttachedCrosslinks(receptor_list);
   ForceUpdate();
 }
 
