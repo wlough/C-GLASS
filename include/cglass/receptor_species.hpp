@@ -47,6 +47,9 @@ public:
   //Each receptor has it's neighbors set, this way diffusing/walking 
   //motors know which receptor to move to
   void SetAllNeighbors();
+  
+  //Get a vector with pointers to each receptor
+  std::vector<Object *> GetReceptors();
 };
 
 #endif

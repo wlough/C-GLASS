@@ -43,6 +43,7 @@ private:
   LUTFiller *MakeLUTFiller();
   void CalculateBindingFree();
   void BindCrosslink();
+  void BindDoubly(Object* receptor_one, Object* receptor_two);
   void UpdateBoundCrosslinks();
   void UpdateBoundCrosslinkForces();
   void UpdateBoundCrosslinkPositions();
@@ -68,7 +69,7 @@ public:
   void BindCrosslinkObj(Object *obj);
   void AddNeighborToAnchor(Object *anchor, Object *neighbor);
   void AddMember();
-  void InsertAttachedCrosslinksSpecies();
+  void InsertAttachedCrosslinksSpecies(std::vector<std::vector<Object *>> receptor_list);
   void GetAnchorInteractors(std::vector<Object *> &ixors);
   void ReadSpecs();
   void InsertCrosslinks();

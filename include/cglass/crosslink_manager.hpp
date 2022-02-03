@@ -51,7 +51,7 @@ class CrosslinkManager {
   void ReadInputs();
   void Convert();
   void InsertCrosslinks();
-  void InsertAttachedCrosslinks();
+  void InsertAttachedCrosslinks(std::vector<std::vector<Object *>> receptor_list);
   const double GetRCutoff() const {
     Logger::Trace("Crosslink rcutoff is %2.2f", rcutoff_);
     return rcutoff_;

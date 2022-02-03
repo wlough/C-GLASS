@@ -287,7 +287,7 @@ void CrosslinkSpecies::InsertCrosslinks() {
 }
 
 //Adds in Crosslinkers for begin_with_bound_crosslinks flag
-void CrosslinkSpecies::InsertAttachedCrosslinksSpecies() {
+void CrosslinkSpecies::InsertAttachedCrosslinksSpecies(std::vector<std::vector<Object *>> receptor_list) {
   if (begin_with_bound_crosslinks_<=0) {
     return;
   }
@@ -300,10 +300,18 @@ void CrosslinkSpecies::InsertAttachedCrosslinksSpecies() {
   xlink.SetSID(GetSID());
   members_.resize(begin_with_bound_crosslinks_, xlink);
   UpdateBoundCrosslinks();
-  // Begin with bound crosslinks currently just implemented to start on rods
-  for (int i=0; i < begin_with_bound_crosslinks_; ++i) {
-    BindCrosslink();
+  //If crosslinkers are starting singly bound
+  if (sparams_.begin_double_bound == false) {
+    for (int i=0; i < begin_with_bound_crosslinks_; ++i) {
+      BindCrosslink();
+    }
   }
+  //If crosslinkers are starting doubly bound 
+  else {
+    for (int i=0; i < begin_with_bound_crosslinks_; ++i) {
+      BindDoubly(receptor_list[0][i], receptor_list[1][i]);
+    }
+  }   
 }
 
 // Calculate and bind crosslinkers from solution implicitly
@@ -412,6 +420,12 @@ void CrosslinkSpecies::BindCrosslink() {
   AddMember();
   members_.back().AttachObjRandom(GetRandomObject());
   members_.back().SetGlobalCheckForCross(global_check_for_cross_);
+}
+
+//Insert crosslink attatched to two receptors
+void CrosslinkSpecies::BindDoubly(Object* receptor_one, Object* receptor_two) {
+  AddMember();
+  members_.back().DoublyCenter(receptor_one, receptor_two);
 }
 
 /* Return singly-bound anchors, for finding neighbors to bind to */

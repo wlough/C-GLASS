@@ -475,6 +475,15 @@ void Crosslink::AttachObjRandom(std::pair<Object*, int> obj_index) {
   }
 }
 
+//Attatch crosslinker connected to two receptors, only used when crosslinkers
+//start doubly bound
+void Crosslink::DoublyCenter(Object* receptor_one, Object* receptor_two) {
+  anchors_[0].AttachObjCenter(receptor_one);
+  SetCompID(receptor_one->GetCompID());
+  anchors_[1].AttachObjCenter(receptor_two);
+  SetCompID(receptor_two->GetCompID());
+}
+
 void Crosslink::Draw(std::vector<graph_struct *> &graph_array) {
   /* Draw anchors */
   anchors_[0].Draw(graph_array);
