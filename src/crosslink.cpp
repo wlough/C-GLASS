@@ -256,14 +256,12 @@ void Crosslink::DoublyKMC() {
     head_activate = choose_kmc_double(unbind_prob[0], unbind_prob[1], roll);
   }
   if (head_activate > -1) {
-    Logger::Warning("Made it here 1");
     tracker_->UnbindDS();
     Logger::Trace("Doubly-bound crosslink %d came unbound from %d", GetOID(),
                   anchors_[head_activate].GetBoundOID());
     anchors_[head_activate].Unbind();
     SetSingly((int)!head_activate);
     SetCheckForCross();
-    Logger::Warning("Made it here 2");
   }
 }
 
