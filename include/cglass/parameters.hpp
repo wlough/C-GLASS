@@ -293,6 +293,7 @@ struct system_parameters {
   int n_checkpoint = 10000;
   bool knockout_xlink = false;
   bool no_midstep = false;
+  bool single_occupancy = true;
 };
 
 #endif // _CGLASS_PARAMETERS_H_
