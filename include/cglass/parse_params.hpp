@@ -164,6 +164,8 @@ system_parameters parse_system_params(YAML::Node &node) {
     params.knockout_xlink = it->second.as<bool>();
     } else if (param_name.compare("no_midstep")==0) {
     params.no_midstep = it->second.as<bool>();
+    } else if (param_name.compare("single_occupancy")==0) {
+    params.single_occupancy = it->second.as<bool>();
     } else {
       Logger::Warning("Unrecognized parameter '%s'", param_name.c_str());
     }

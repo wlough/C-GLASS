@@ -245,3 +245,4 @@
   default_config["n_checkpoint"] = "10000";
   default_config["knockout_xlink"] = "false";
   default_config["no_midstep"] = "false";
+  default_config["single_occupancy"] = "true";
