@@ -47,6 +47,7 @@ class Anchor : public Object {
   double partner_on_d_;
   double distance_to_plus_;
   double distance_to_minus_;
+  double cl_length_;
   double k_off_s_;
   double k_off_d_;
   double polar_affinity_;
@@ -89,8 +90,9 @@ class Anchor : public Object {
   void StepForward();
 
  public:
-  void SetDisToOtherPlus(double distance_);
-  void SetDisToOtherMinus(double distance_);
+  void SetLengthAtPlus(double distance_);
+  void SetLengthAtMinus(double distance_);
+  void SetCrosslinkLength(double cl_length);
   Anchor(unsigned long seed);
   void Init(crosslink_parameters *sparams, int index);
   void SetBindParamMap(std::vector<std::map<std::string, bind_params> >*);
@@ -141,6 +143,7 @@ class Anchor : public Object {
   const double GetOnRate() const;
   const double GetOffRate() const;
   const double GetMaxVelocity() const;
+  bool IsWalker();
   const double GetDiffusionConst() const;
   const double GetKickAmplitude() const;
   const double GetKonS() const;

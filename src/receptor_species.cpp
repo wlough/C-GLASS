@@ -109,6 +109,13 @@ void ReceptorSpecies::ArrangeMembers() {
 //Each receptor has it's neighbors set, this way diffusing/walking
 //motors know which receptor to move to
 void ReceptorSpecies::SetAllNeighbors() {
+
+  //Special case where filament has one receptor
+  if (members_.size() == 1) {
+    members_[0].SetNeighbors(nullptr, nullptr);
+    return;
+  }
+
   int i=0;
   //Cycle through each receptor
   while(i != members_.size()) {
