@@ -111,10 +111,10 @@ void ReceptorSpecies::ArrangeMembers() {
 void ReceptorSpecies::SetAllNeighbors() {
 
   //Special case where filament has one receptor
-  //if (members_.size() == 1) {
-  //  members_[0].SetNeighbors(nullptr, nullptr);
-  //  return;
-  //}
+  if (members_.size() == 1) {
+    members_[0].SetNeighbors(nullptr, nullptr);
+    return;
+  }
 
   int i=0;
   //Cycle through each receptor

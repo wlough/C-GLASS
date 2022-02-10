@@ -384,26 +384,18 @@ void Crosslink::CalculateTetherForces() {
   }
   anchors_[0].AddForce(force_);
   anchors_[1].SubForce(force_);
-  if (anchors_[0].IsWalker() == false) {
-    anchors_[0].SetCrosslinkLength(length_);
-  }
-  if (anchors_[1].IsWalker() == false) {
-    anchors_[1].SetCrosslinkLength(length_);
-  }
 
-  
   //If anchors are double bound and hopping between receptors then we need to calculate 
   //the energy to the neighboring sites to determine hopping rates
   if ((anchors_[0].IsBoundToSphere() == true) && (anchors_[1].IsBoundToSphere() == true)) {
     Sphere* sphere_zero_ = anchors_[0].GetBoundPointer();
     Sphere* sphere_one_ = anchors_[1].GetBoundPointer();
  
+    //Calculate current length of crosslinker
     Interaction ix_zo(sphere_zero_, sphere_one_);
     MinimumDistance mindist_zo;
     mindist_zo.ObjectObject(ix_zo);
     double length_zo_ = sqrt(ix_zo.dr_mag2);
-
-
     if (anchors_[0].IsWalker() == false) {
       anchors_[0].SetCrosslinkLength(length_zo_);
     }
@@ -412,13 +404,13 @@ void Crosslink::CalculateTetherForces() {
     }
     
     if(anchors_[1].IsWalker() == false) {
-     //receptor in plus direction of anchor zero
+      //receptor in plus direction of anchor zero
       Sphere* one_plus_n_ = sphere_one_ -> GetPlusNeighbor();
       Sphere* one_minus_n_ = sphere_one_ -> GetMinusNeighbor();
 
       //If anchor is at plus end of microtubule it won't have a plus neighbor
       if (one_plus_n_ == nullptr) {
-        anchors_[1].SetDisToOtherPlus(-1);
+        anchors_[1].SetLengthAtPlus(-1);
       }
       else {
         //Get length between anchor zero and plus neighbor of anchor one
@@ -426,64 +418,52 @@ void Crosslink::CalculateTetherForces() {
         MinimumDistance mindist_zp;
         mindist_zp.ObjectObject(ix_zp);
         double length_zp_ = sqrt(ix_zp.dr_mag2);
-        anchors_[1].SetDisToOtherPlus(length_zp_);  
+        anchors_[1].SetLengthAtPlus(length_zp_);  
       }
 
       //If anchor is at minus end of microtubule it won't have a plus neighbor
       if (one_minus_n_ == nullptr) {
-        anchors_[1].SetDisToOtherMinus(-1);
-     }
+        anchors_[1].SetLengthAtMinus(-1);
+      }
       else { 
         //Get length between anchor zero and minus neighbor of anchor one
         Interaction ix_zm(sphere_zero_, one_minus_n_);
         MinimumDistance mindist_zm;
         mindist_zm.ObjectObject(ix_zm);
         double length_zm_ = sqrt(ix_zm.dr_mag2);
-        anchors_[1].SetDisToOtherMinus(length_zm_);
+        anchors_[1].SetLengthAtMinus(length_zm_);
       }
-    }
+   }
+
    if (anchors_[0].IsWalker() == false) {
      Sphere* zero_plus_n_ = sphere_zero_ -> GetPlusNeighbor();
-      Sphere* zero_minus_n_ = sphere_zero_ -> GetMinusNeighbor();
+     Sphere* zero_minus_n_ = sphere_zero_ -> GetMinusNeighbor();
 
-      //If anchor is at plus end of microtubule it won't have a plus neighbor
-      if (zero_plus_n_ == nullptr) {
-        anchors_[0].SetDisToOtherPlus(-1);
+     //If anchor is at plus end of microtubule it won't have a plus neighbor
+     if (zero_plus_n_ == nullptr) {
+       anchors_[0].SetLengthAtPlus(-1);
      }
 
-      else { 
+     else { 
 
-      //Get length between anchor one and plus neighbor of anchor zero
-        Interaction ix_op(sphere_one_, zero_plus_n_);
-        double const *const loc_o = zero_plus_n_ -> GetPosition();
-
-        double const *const loc_t = sphere_zero_ -> GetPosition();
-        Logger::Warning("zero, %f, zero forward, %f", loc_t[0], loc_o[0]);
-        MinimumDistance mindist_op;
-
-        mindist_op.ObjectObject(ix_op);
-
-        double length_op_ = sqrt(ix_op.dr_mag2); 
-        anchors_[0].SetDisToOtherPlus(length_op_);
+       //Get length between anchor one and plus neighbor of anchor zero
+       Interaction ix_op(sphere_one_, zero_plus_n_);
+       MinimumDistance mindist_op;
+       mindist_op.ObjectObject(ix_op);
+       double length_op_ = sqrt(ix_op.dr_mag2); 
+       anchors_[0].SetLengthAtPlus(length_op_);
       }
-
       //If anchor is at plus end of microtubule it won't have a plus neighbor
       if (zero_minus_n_ == nullptr) {
-        anchors_[0].SetDisToOtherMinus(-1);
+        anchors_[0].SetLengthAtMinus(-1);
       }
- 
       else {  
-
-        double const *const loc_o = zero_minus_n_ -> GetPosition();
-
-        double const *const loc_t = sphere_one_ -> GetPosition();
-        Logger::Warning("one, %f, zero minus, %f", loc_t[0], loc_o[0]);
-       //Get length between anchor one and minus neighbor of anchor zero
+        //Get length between anchor one and minus neighbor of anchor zero
         Interaction ix_om(sphere_one_, zero_minus_n_);
         MinimumDistance mindist_om;
         mindist_om.ObjectObject(ix_om);
         double length_om_ = sqrt(ix_om.dr_mag2); 
-        anchors_[0].SetDisToOtherMinus(length_om_);
+        anchors_[0].SetLengthAtMinus(length_om_);
       }
     }
   }
