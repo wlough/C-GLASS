@@ -202,15 +202,16 @@ void Anchor::DecideToStepCrosslink(double discrete_diffusion_) {
   double k = sparams_ -> k_spring;
   double r_l = sparams_ -> rest_length;
   //Calculate the current energy
-  double energy = 0.5 * k * pow((length_ - r_l), 2);   
+  double energy = 0.5 * k * pow((cl_length_ - r_l), 2);   
   double step_size_ = sphere_ -> GetStepSize();
   double plus_diffusion = 0;
   double minus_diffusion = 0;
- 
-  //Calculating the chance the crosslinker will diffuse toward plus end
+
+
+ //Calculating the chance the crosslinker will diffuse toward plus end
   //If distance has been set to -1 this means the anchor is already at
   //the plus end of the microtubule and can't diffuse towards the plus end
-  if (distance_to_plus_ = -1) {
+  if (distance_to_plus_ < 0) {
     chance_forward_ = 0;
   }
   else {
@@ -221,11 +222,15 @@ void Anchor::DecideToStepCrosslink(double discrete_diffusion_) {
     double boltz_factor_p = exp(-0.5 * e_change_to_p);
     //modify diffusion rate using Boltzmann factor
     plus_diffusion = boltz_factor_p * D;
+    //See  equation 7.30 and 7.31 from "Molecular motors: thermodynamics and
+    //the random walk" (Thomas et al. 2001). Equation rearranged to solve for
+    //k+ and k-
+    chance_forward_ = (plus_diffusion/pow(step_size_,2))*delta_;
   } 
 
   //Calculate the chance the crosslinker will diffuse toward minus end
   //If at minus end chance to duffuse further is zero
-  if (distance_to_minus_ = -1) {
+  if (distance_to_minus_ < 0) {
     chance_back_ = 0;
   }
   else {
@@ -236,18 +241,18 @@ void Anchor::DecideToStepCrosslink(double discrete_diffusion_) {
     double boltz_factor_m = exp(-0.5 * e_change_to_m);
     //modify diffusion rate using Boltzmann factor
     minus_diffusion = boltz_factor_m * D;
-  } 
+    //See  equation 7.30 and 7.31 from "Molecular motors: thermodynamics and
+    //the random walk" (Thomas et al. 2001). Equation rearranged to solve for
+    //k+ and k-
+    chance_back_ = (minus_diffusion/pow(step_size_,2))*delta_;
 
-  //See  equation 7.30 and 7.31 from "Molecular motors: thermodynamics and
-  //the random walk" (Thomas et al. 2001). Equation rearranged to solve for
-  //k+ and k-
-  chance_forward_ = (plus_diffusion/pow(step_size_,2))*delta_;
-  chance_back_ = (minus_diffusion/pow(step_size_,2))*delta_;
-  if (chance_forward_>roll) {
-    StepForward();
+ } 
+
+if (chance_forward_>roll) {
+   StepForward();
   }
   if (chance_back_>(1-roll)) {
-    StepBack();
+   StepBack();
   }
   if ( (chance_back_+chance_forward_) > 1) {
     Logger::Error("Chance of anchor hopping sites greater than one, time step far too large");
@@ -264,6 +269,10 @@ void Anchor::SetDisToOtherPlus(double distance) {
 //the crosslinker
 void Anchor::SetDisToOtherMinus(double distance) {
   distance_to_minus_ = distance;
+}
+
+void Anchor::SetCrosslinkLength(double cl_length) {
+  cl_length_ = cl_length;
 }
 
 void Anchor::StepBack() {
@@ -913,6 +922,13 @@ const double Anchor::GetMaxVelocity() const {
     return 0;
   }
 }
+
+//Returns whether anchor is walker or not
+bool Anchor::IsWalker () { 
+  bool walker = abs(GetMaxVelocity()) > input_tol ? true : false;
+  return walker;
+}
+
 
 const double Anchor::GetDiffusionConst() const {
   switch (state_) {
