@@ -207,11 +207,10 @@ void Anchor::DecideToStepCrosslink(double discrete_diffusion_) {
   double plus_diffusion = 0;
   double minus_diffusion = 0;
 
-
- //Calculating the chance the crosslinker will diffuse toward plus end
+  //Calculating the chance the crosslinker will diffuse toward plus end
   //If distance has been set to -1 this means the anchor is already at
   //the plus end of the microtubule and can't diffuse towards the plus end
-  if (distance_to_plus_ < 0) {
+  if (distance_to_plus_ = -1) {
     chance_forward_ = 0;
   }
   else {
@@ -230,7 +229,7 @@ void Anchor::DecideToStepCrosslink(double discrete_diffusion_) {
 
   //Calculate the chance the crosslinker will diffuse toward minus end
   //If at minus end chance to duffuse further is zero
-  if (distance_to_minus_ < 0) {
+  if (distance_to_minus_ = -1) {
     chance_back_ = 0;
   }
   else {
@@ -246,10 +245,10 @@ void Anchor::DecideToStepCrosslink(double discrete_diffusion_) {
     //k+ and k-
     chance_back_ = (minus_diffusion/pow(step_size_,2))*delta_;
 
- } 
+  } 
 
-if (chance_forward_>roll) {
-   StepForward();
+  if (chance_forward_>roll) {
+    StepForward();
   }
   if (chance_back_>(1-roll)) {
    StepBack();
@@ -261,13 +260,13 @@ if (chance_forward_>roll) {
 
 //Set the distance to the plus neighbor of the other head of
 //the crosslinker
-void Anchor::SetDisToOtherPlus(double distance) {
+void Anchor::SetLengthAtPlus(double distance) {
   distance_to_plus_ = distance;
 }
 
 //Set the distance to the plus neighbor of the other head of
 //the crosslinker
-void Anchor::SetDisToOtherMinus(double distance) {
+void Anchor::SetLengthAtMinus(double distance) {
   distance_to_minus_ = distance;
 }
 
@@ -928,7 +927,6 @@ bool Anchor::IsWalker () {
   bool walker = abs(GetMaxVelocity()) > input_tol ? true : false;
   return walker;
 }
-
 
 const double Anchor::GetDiffusionConst() const {
   switch (state_) {

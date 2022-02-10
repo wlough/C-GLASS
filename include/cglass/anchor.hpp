@@ -90,8 +90,8 @@ class Anchor : public Object {
   void StepForward();
 
  public:
-  void SetDisToOtherPlus(double distance_);
-  void SetDisToOtherMinus(double distance_);
+  void SetLengthAtPlus(double distance_);
+  void SetLengthAtMinus(double distance_);
   void SetCrosslinkLength(double cl_length);
   Anchor(unsigned long seed);
   void Init(crosslink_parameters *sparams, int index);
