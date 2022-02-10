@@ -210,7 +210,7 @@ void Anchor::DecideToStepCrosslink(double discrete_diffusion_) {
   //Calculating the chance the crosslinker will diffuse toward plus end
   //If distance has been set to -1 this means the anchor is already at
   //the plus end of the microtubule and can't diffuse towards the plus end
-  if (distance_to_plus_ = -1) {
+  if (distance_to_plus_ == -1) {
     chance_forward_ = 0;
   }
   else {
@@ -229,7 +229,7 @@ void Anchor::DecideToStepCrosslink(double discrete_diffusion_) {
 
   //Calculate the chance the crosslinker will diffuse toward minus end
   //If at minus end chance to duffuse further is zero
-  if (distance_to_minus_ = -1) {
+  if (distance_to_minus_ == -1) {
     chance_back_ = 0;
   }
   else {
