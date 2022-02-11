@@ -141,7 +141,9 @@
   default_config["crosslink"]["anchors"][1]["k_off_d"] = "2";
   default_config["crosslink"]["concentration"] = "0";
   default_config["crosslink"]["begin_with_bound_crosslinks"] = "0";
-  default_config["crosslink"]["begin_double_bound"] = "true";
+  default_config["crosslink"]["begin_double_bound"] = "false";
+  default_config["crosslink"]["no_binding"] = "false";
+  default_config["crosslink"]["no_solution_binding"] = "false";
   default_config["crosslink"]["use_binding_volume"] = "true";
   default_config["crosslink"]["infinite_reservoir_flag"] = "false";
   default_config["crosslink"]["bind_site_density"] = "1";
