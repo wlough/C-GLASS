@@ -68,7 +68,7 @@ void Crosslink::SinglyKMC() {
   int head_bound = 0;
   // Set up KMC objects and calculate probabilities
   double unbind_prob = anchors_[bound_anchor_].GetOffRate() * delta_;
-  if (static_flag_) {
+  if (static_flag_ || sparams_->no_solution_binding) {
     unbind_prob = 0;
   }
   tracker_->TrackSU(unbind_prob);
@@ -333,8 +333,10 @@ void Crosslink::UpdateCrosslinkPositions() {
   UpdateAnchorPositions();
   /* Check if an anchor became unbound do to diffusion, etc */
   UpdateXlinkState();
-  /* Check for binding/unbinding events using KMC */
-  CalculateBinding();
+  if (sparams_->no_binding == false){
+    /* Check for binding/unbinding events using KMC */
+    CalculateBinding();
+  }
 }
 
 /* This function ensures that singly-bound crosslinks have anchor[0] bound and
