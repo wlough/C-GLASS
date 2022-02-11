@@ -164,7 +164,9 @@ struct species_parameters<species_id::crosslink>
     : public species_base_parameters {
   double concentration = 0;
   int begin_with_bound_crosslinks = 0;
-  bool begin_double_bound = true;
+  bool begin_double_bound = false;
+  bool no_binding = false;
+  bool no_solution_binding = false;
   bool use_binding_volume = true;
   bool infinite_reservoir_flag = false;
   double bind_site_density = 1;
