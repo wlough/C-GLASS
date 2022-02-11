@@ -679,6 +679,10 @@ species_base_parameters *parse_species_params(std::string sid,
       params.begin_with_bound_crosslinks = jt->second.as<int>();
       } else if (param_name.compare("begin_double_bound")==0) {
       params.begin_double_bound = jt->second.as<bool>();
+      } else if (param_name.compare("no_binding")==0) {
+      params.no_binding = jt->second.as<bool>();
+      } else if (param_name.compare("no_solution_binding")==0) {
+      params.no_solution_binding = jt->second.as<bool>();
       } else if (param_name.compare("use_binding_volume")==0) {
       params.use_binding_volume = jt->second.as<bool>();
       } else if (param_name.compare("infinite_reservoir_flag")==0) {

@@ -453,8 +453,10 @@ void CrosslinkSpecies::UpdatePositions() {
   if (!params_->on_midstep) {
     /* First update bound crosslinks state and positions */
     UpdateBoundCrosslinks();
-    /* Calculate implicit binding of crosslinks from solution */
-    CalculateBindingFree();
+    if (sparams_.no_binding == false && sparams_.no_solution_binding == false){
+      /* Calculate implicit binding of crosslinks from solution */
+      CalculateBindingFree();
+    }
   } else {
     /* Apply tether forces from doubly-bound crosslinks onto anchored objects.
        We do this every half step only, because the fullstep tether forces are
