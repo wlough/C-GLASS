@@ -277,10 +277,13 @@ void Anchor::SetCrosslinkLength(double cl_length) {
 void Anchor::StepBack() {
   Sphere* last_receptor_ = nullptr;
   last_receptor_ = sphere_->GetMinusNeighbor();
+  bool single_occupancy = true;
+  if (last_receptor_ != NULL) { 
+   std::string name = last_receptor_->GetName();
+    single_occupancy = bind_param_map_->at(index_)[name].single_occupancy; 
+  }
   //If receptor is trying to move to an open receptor move
   //If null that means the receptor is on edge of filament already
-  std::string name = last_receptor_->GetName();
-  bool single_occupancy = bind_param_map_->at(index_)[name].single_occupancy; 
   if((last_receptor_ != NULL) && (last_receptor_ -> GetNAnchored() == 0 || single_occupancy == false)){
     Unbind();
     AttachObjCenter(last_receptor_);
@@ -290,10 +293,13 @@ void Anchor::StepBack() {
 void Anchor::StepForward() {
   Sphere* next_receptor_ = nullptr;
   next_receptor_ = sphere_->GetPlusNeighbor();
+  bool single_occupancy = true;
+  if (next_receptor_ != NULL) {
+    std::string name = next_receptor_->GetName();
+    single_occupancy = bind_param_map_->at(index_)[name].single_occupancy;
+  }
   //If receptor is trying to move to an open receptor move
   //If null that means the receptor is on edge of tube already
-  std::string name = sphere_->GetName();
-  bool single_occupancy = bind_param_map_->at(index_)[name].single_occupancy;
   if((next_receptor_ != NULL) && (next_receptor_ -> GetNAnchored() == 0 || single_occupancy == false)){
     Unbind();
     AttachObjCenter(next_receptor_);
