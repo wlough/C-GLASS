@@ -196,7 +196,7 @@ LUTFiller *CrosslinkSpecies::MakeLUTFiller() {
     Logger::Warning("!!!Asymmetric springs are being used. This has not been "
                     "fully tested. Use at your own risk!");
     LUTFillerAsym *lut_filler_ptr = new LUTFillerAsym(grid_num, grid_num);
-    lut_filler_ptr->Init(sparams_.k_spring_compress, sparams_.k_spring,
+    lut_filler_ptr->Init(sparams_.k_spring_compress*.5, sparams_.k_spring*.5,
                          sparams_.energy_dep_factor, sparams_.force_dep_length,
                          sparams_.rest_length, 1);
     return lut_filler_ptr;

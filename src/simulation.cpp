@@ -317,6 +317,7 @@ if (species_.back()->GetNInsert() > 0) {
 /* Initialize object positions and orientations.*/
 void Simulation::InsertSpecies(bool force_overlap, bool processing) {
   Logger::Info("Inserting species");
+  Logger::Info("Running on branch, temp_binding_fix");
   for (auto spec = species_.begin(); spec != species_.end(); ++spec) {
     // Check for random insertion
     if (processing ||

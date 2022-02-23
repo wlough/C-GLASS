@@ -4,7 +4,7 @@ n_periodic: 0
 n_steps: 500000000 
 n_dim: 2
 delta: 0.0001
-graph_flag: false
+graph_flag: true
 movie_flag: false
 movie_directory: movie_fold
 n_graph: 100
