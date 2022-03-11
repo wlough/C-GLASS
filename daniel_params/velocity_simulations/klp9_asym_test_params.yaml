@@ -1,0 +1,375 @@
+run_name: klp9_asym_test
+seed: 34623463
+n_periodic: 0
+n_steps: 5000000
+n_dim: 2
+delta: 0.0001
+graph_flag: true
+movie_flag: false
+movie_directory: movie_fold
+n_graph: 1000
+system_radius: 20
+n_runs: 1
+n_random: 1
+single_occupancy: true
+rigid_filament:
+  - name: rig1
+    draw_type: fixed
+    color: .8
+    max_length: 5000
+    min_length: 5
+    num: 1
+    insertion_type: custom
+    insert_file: fileOne.yaml
+    length: 32
+    stationary_flag: false
+    constrain_motion_flag: false
+    constrain_to_move_in_y: true
+    packing_fraction: -1
+    n_equil: 0
+    spec_flag: true
+    n_spec: 1000
+    stationary_until: 100000
+  - name: rig2
+    insertion_type: custom
+    insert_file: fileTwoA.yaml
+    draw_type: fixed
+    color: .3
+    max_length: 5000
+    min_length: 5
+    num: 1
+    length: 32
+    stationary_flag: false
+    stationary_until: 100000
+    constrain_to_move_in_y: true
+    packing_fraction: -1
+    n_equil: 0
+    spec_flag: true
+    n_spec: 1000
+    constrain_motion_flag: false
+crosslink:
+  - name: Klp9
+    anchors:
+      - name: head
+        velocity_s: 0.0299
+        velocity_d: 0.029904
+        bind_file: KLP9_bind.yaml
+        color: 3
+        diameter: 0.32
+    concentration: 0.0094
+    diameter: .32
+    f_stall: 30.384
+    begin_with_bound_crosslinks: 0
+    use_binding_volume: false
+    k_spring: 152
+    rest_length: 2.28
+    draw_type: fixed
+    tether_draw_type: fixed
+    tether_color: 3.5
+    plus_end_pausing: true
+    minus_end_pausing: true
+    diffusion_s: 0.057
+    diffusion_d: 0.0097
+    spec_flag: true
+    n_spec: 10000
+    tether_diameter: 0.15
+    step_direction: 1
+    infinite_reservoir_flag: true
+    cant_cross: true
+    begin_double_bound: &1 false
+    no_binding: &2 false
+    no_solution_binding: &3 false
+    bind_site_density: &4 1
+    static_flag: &5 false
+    energy_dep_factor: &6 0
+    force_dep_length: &7 0
+    polar_affinity: &8 1
+    k_spring_compress: &9 -1.
+    force_dep_vel_flag: &10 true
+    k_align: &11 0
+    r_capture: &12 5
+    lut_grid_num: &13 256
+  - name: Klp2
+    anchors:
+      - name: head
+        velocity_s: -.131
+        velocity_d: -.131
+        bind_file: K14_bind.yaml
+        color: 1.4
+        diameter: 0.1
+      - name: tail
+        velocity_s: 0
+        velocity_d: 0
+        bind_file: K14_bind.yaml
+        color: 2.5
+        diameter: 0.1
+        tether_diametVer: 0.1
+    concentration: 0
+    diameter: .32
+    f_stall: -18.231
+    begin_with_bound_crosslinks: 0
+    k_spring: 152
+    rest_length: 3.12
+    draw_type: fixed
+    tether_draw_type: fixed
+    plus_end_pausing: true
+    minus_end_pausing: true
+    diffusion_s: 0.17
+    diffusion_d: 0.00085
+    spec_flag: true
+    n_spec: 1000
+    tether_diameter: 0.15
+    tether_color: 2
+    step_direction: 1
+    infinite_reservoir_flag: true
+    cant_cross: true
+    begin_double_bound: *1
+    no_binding: *2
+    no_solution_binding: *3
+    use_binding_volume: true
+    bind_site_density: *4
+    static_flag: *5
+    energy_dep_factor: *6
+    force_dep_length: *7
+    polar_affinity: *8
+    k_spring_compress: *9
+    force_dep_vel_flag: *10
+    k_align: *11
+    r_capture: *12
+    lut_grid_num: *13
+  - name: Ase1
+    anchors:
+      - name: head
+        velocity_s: 0
+        velocity_d: 0
+        bind_file: ase1_bind.yaml
+        color: 5
+        diameter: 0.1
+    concentration: 0
+    diameter: .32
+    begin_with_bound_crosslinks: 0
+    k_spring: 31.4
+    k_spring_compress: 31.4
+    rest_length: 2.28
+    draw_type: fixed
+    tether_draw_type: fixed
+    plus_end_pausing: true
+    minus_end_pausing: true
+    diffusion_s: 7.4
+    diffusion_d: 3.7
+    use_binding_volume: false
+    spec_flag: true
+    n_spec: 10000
+    tether_diameter: 0.15
+    tether_color: 5.5
+    step_direction: 1
+    infinite_reservoir_flag: true
+    cant_cross: true
+    begin_double_bound: *1
+    no_binding: *2
+    no_solution_binding: *3
+    bind_site_density: *4
+    static_flag: *5
+    energy_dep_factor: *6
+    force_dep_length: *7
+    polar_affinity: *8
+    f_stall: 100
+    force_dep_vel_flag: *10
+    k_align: *11
+    r_capture: *12
+    lut_grid_num: *13
+receptor:
+  - name: rig1_receptor
+    component: rig1
+    insertion_type: grid
+    num: 100
+    diameter: 0.32
+    concentration: &14 -1
+    induce_catastrophe: &15 false
+  - name: rig2_receptor
+    component: rig2
+    insertion_type: grid
+    num: 100
+    diameter: 0.32
+    concentration: *14
+    induce_catastrophe: *15
+species:
+  name: species
+  num: 0
+  diameter: 1
+  length: 0
+  insertion_type: random
+  insert_file: none
+  overlap: false
+  draw_type: orientation
+  color: 0
+  posit_flag: false
+  spec_flag: false
+  n_posit: 100
+  n_spec: 100
+  stationary_flag: false
+  stationary_until: -1
+filament:
+  packing_fraction: -1
+  persistence_length: 400
+  perlen_ratio: -1
+  polydispersity_flag: false
+  max_length: 500
+  min_length: 5
+  min_bond_length: 1.5
+  driving_factor: 0
+  n_equil: 0
+  nematic_driving: false
+  nematic_driving_freq: 0
+  peclet_number: -1
+  flexure_number: -1
+  radius_of_curvature: -1
+  intrinsic_curvature: 0
+  intrinsic_curvature_sig: 0
+  randomize_intrinsic_curvature_handedness: false
+  intrinsic_curvature_min: 0
+  highlight_handedness: false
+  highlight_curvature: false
+  draw_center_of_curvature: false
+  error_analysis: false
+  theta_analysis: false
+  lp_analysis: false
+  global_order_analysis: false
+  polar_order_analysis: false
+  polar_order_n_bins: 100
+  polar_order_contact_cutoff: 3
+  polar_order_width: 10
+  msd_analysis: false
+  curvature_cluster_analysis: false
+  cluster_lifetime_min: 100
+  cluster_by_handedness: false
+  spiral_init_flag: false
+  spiral_analysis: false
+  spiral_number_fail_condition: 0
+  orientation_corr_analysis: false
+  orientation_corr_n_steps: 1000
+  crossing_analysis: false
+  flocking_analysis: false
+  flock_polar_min: 0.5
+  flock_contact_min: 0.5
+  highlight_flock: false
+  flock_color_int: 1.57
+  flock_color_ext: 4.71
+  number_fluctuation_analysis: false
+  number_fluctuation_boxes: 6
+  number_fluctuation_centers: 10
+  in_out_analysis: false
+  drive_from_bond_center: true
+  flagella_flag: false
+  flagella_freq: 1
+  flagella_period: 2
+  flagella_amplitude: 1
+  friction_ratio: 2
+  dynamic_instability_flag: false
+  force_induced_catastrophe_flag: false
+  optical_trap_flag: false
+  optical_trap_spring: 20
+  optical_trap_fixed: false
+  cilia_trap_flag: false
+  fic_factor: 0.828
+  f_shrink_to_grow: 0.017
+  f_shrink_to_pause: 0.0
+  f_pause_to_grow: 0.0
+  f_pause_to_shrink: 0.0
+  f_grow_to_pause: 0.0
+  f_grow_to_shrink: 0.00554
+  v_poly: 0.44
+  v_depoly: 0.793
+  custom_set_tail: false
+  reference_frame_flag: false
+  partner_destab_A: 0
+  partner_destab_B: 0
+  partner_destab_k: 1
+br_bead:
+  driving_factor: 0
+  driving_torque: 0
+  density: -1
+  chiral_handedness: 0
+  rotational_noise: 1
+  translational_noise: 1
+  randomize_handedness: false
+  highlight_handedness: false
+  alignment_interaction: false
+  alignment_torque: 0
+  packing_fraction: -1
+  draw_shape: sphere
+spherocylinder:
+  diffusion_analysis: false
+  n_diffusion_samples: 1
+spindle:
+  n_filaments_bud: 0
+  n_filaments_mother: 0
+  alignment_potential: false
+  k_spring: 1000
+  k_align: 0
+  spring_length: 0
+  spb_diameter: 5
+  nuc_site_insertion: random
+boundary: 0
+i_step: 0
+on_midstep: false
+prev_step: 0
+dynamic_timestep: false
+dynamic_timestep_ramp: 0.001
+graph_diameter: 0
+invert_background: false
+draw_boundary: true
+load_checkpoint: false
+checkpoint_run_name: sc
+n_load: 0
+time_analysis: false
+bud_height: 680
+bud_radius: 300
+lj_epsilon: 1
+wca_eps: 1
+wca_sig: 1
+ss_a: 1
+ss_rs: 1.5
+ss_eps: 1
+f_cutoff: 2000
+constant_pressure: false
+constant_volume: false
+target_pressure: 0
+target_radius: 100
+pressure_time: 100
+compressibility: 1
+zero_temperature: false
+thermo_flag: false
+n_thermo: 1000
+insert_radius: -1
+interaction_flag: true
+remove_duplicate_interactions: false
+coarse_grained_mesh_interactions: false
+mesh_coarsening: 2
+species_insertion_failure_threshold: 10000
+species_insertion_reattempt_threshold: 10
+uniform_crystal: false
+n_steps_equil: 0
+n_steps_target: 100000
+static_particle_number: false
+checkpoint_from_spec: false
+potential: wca
+soft_potential_mag: 10
+soft_potential_mag_target: -1
+like_like_interactions: true
+auto_graph: false
+local_order_analysis: false
+local_order_width: 50
+local_order_bin_width: 0.5
+local_order_n_analysis: 100
+density_analysis: 0
+density_bin_width: 0.1
+density_com_only: false
+overlap_analysis: false
+highlight_overlaps: false
+reduced: false
+reload_reduce_switch: false
+checkpoint_flag: false
+n_checkpoint: 10000
+knockout_xlink: false
+no_midstep: false
