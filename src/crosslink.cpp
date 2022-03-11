@@ -112,6 +112,11 @@ void Crosslink::SinglyKMC() {
     if (!static_flag_ && polar_affinity_ != 1.0) {
       anchors_[bound_anchor_].CalculatePolarAffinity(bind_factors);
     }
+    //Logger::Warning("Printing bind factors");
+    //for (auto it = bind_factors.begin(); it != bind_factors.end(); ++it) {
+    //Logger::Warning("Bind factor is %f", it[0]*10000);
+    //}
+    
     /* Use auto-filter populated with 1's for every neighbor.
     We already guarantee uniqueness, so we won't overcount. */
     kmc_bind.LUCalcTotProbsSD(anchors_[bound_anchor_].GetNeighborListMemRods(), 
@@ -182,7 +187,7 @@ void Crosslink::SinglyKMC() {
         check_for_cross = true;
         last_bound_ = (int)!bound_anchor_;
         if (*global_check_for_cross_ == true) {
-          Logger::Error("Two crosslinks bound during same time step");
+          Logger::Warning("Two crosslinks bound during same time step");
         } else {
           *global_check_for_cross_ = true;
         }
