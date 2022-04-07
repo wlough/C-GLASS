@@ -172,9 +172,9 @@ void Crosslink::SinglyKMC() {
       Sphere *bind_obj = anchors_[bound_anchor_].GetSphereNeighbor(i_bind - n_neighbors_rod);
       (*bound_curr_)[bind_obj].first.push_back(kmc_bind.getProb(i_bind));
       (*bound_curr_)[bind_obj].second.push_back(&anchors_[(int)!bound_anchor_]);
-      anchors_[(int)!bound_anchor_].AttachObjCenter(bind_obj);
-      bind_obj->DecrementNAnchored(); // For knockout loop- allow collisions
-      SetDoubly();
+      //anchors_[(int)!bound_anchor_].AttachObjCenter(bind_obj);
+      //bind_obj->DecrementNAnchored(); // For knockout loop- allow collisions
+      //SetDoubly();
       Logger::Trace("Crosslink %d became doubly bound to obj %d", GetOID(),
                   bind_obj->GetOID());
       //If crosslinkers can't cross check if newly bound crosslinker is crossing

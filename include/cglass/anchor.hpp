@@ -47,6 +47,8 @@ class Anchor : public Object {
   double partner_on_d_;
   double distance_to_plus_;
   double distance_to_minus_;
+  std::map<Sphere *, std::pair<std::vector<double>, std::vector<Anchor*> > > *bound_curr_ = nullptr;
+  void SetBoundCurr(std::map<Sphere *, std::pair<std::vector<double>, std::vector<Anchor*> > > *bound_curr);
   double cl_length_;
   double k_off_s_;
   double k_off_d_;
