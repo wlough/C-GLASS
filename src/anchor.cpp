@@ -545,7 +545,9 @@ void Anchor::AttachObjRandom(Object *o) {
         }
         *obj_size_ -= o->GetArea();
       }
-      AttachObjCenter(o);
+      //AttachObjCenter(o);
+      
+ 
       break;
     }
     default: {
