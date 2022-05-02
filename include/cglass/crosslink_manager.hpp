@@ -3,6 +3,8 @@
 
 #include "output_manager.hpp"
 #include "species_factory.hpp"
+#include "rng.hpp"
+#include <numeric>
 
 class CrosslinkOutputManager : public OutputManagerBase<CrosslinkSpecies> {
   /* Do not write thermo - base output manager will handle that */
@@ -20,15 +22,20 @@ class CrosslinkManager {
   bool update_;
   std::vector<CrosslinkSpecies *> xlink_species_;
   std::vector<Object *> *objs_;
-  std::map<Sphere *, std::pair<std::vector<double>, std::vector<Anchor*> > > bound_curr_;
+  std::map<Sphere *, std::pair<std::vector<double>, std::vector<std::pair<Anchor*, std::string> > > > bound_curr_;
+  std::map<std::string, CrosslinkSpecies*> species_map_;
   SpaceBase *space_;
   Tracker *tracker_ = nullptr;
   bool global_check_for_cross = false;
   bool same_microtubules = true;
+  void KnockoutBind(Sphere* receptor, int winner);
+  RNG *rng_;
+  std::vector< std::pair<CrosslinkSpecies*, Sphere*> >  cl_to_add_this_step_;
+  void AddKnockoutCrosslinks();
 
  public:
   void Init(system_parameters *params, SpaceBase *space, Tracker *tracker,
-            std::vector<Object *> *objs);
+            std::vector<Object *> *objs, unsigned long seed);
   void GetInteractors(std::vector<Object *> &ixors);
   void UpdateCrosslinks();
   void UpdateObjsSize();

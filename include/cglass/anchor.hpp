@@ -26,6 +26,7 @@ class Anchor : public Object {
   bool active_;
   bool plus_end_pausing_;
   bool minus_end_pausing_;
+  bool changed_this_step_;
   crosslink_parameters *sparams_;
   int index_;
   int step_direction_;
@@ -47,9 +48,9 @@ class Anchor : public Object {
   double partner_on_d_;
   double distance_to_plus_;
   double distance_to_minus_;
-  std::map<Sphere *, std::pair<std::vector<double>, std::vector<Anchor*> > > *bound_curr_ = nullptr;
-  void SetBoundCurr(std::map<Sphere *, std::pair<std::vector<double>, std::vector<Anchor*> > > *bound_curr);
+  std::map<Sphere *, std::pair<std::vector<double>, std::vector<std::pair<Anchor*, std::string> > > > *bound_curr_ = nullptr;
   double cl_length_;
+  Object* cl_pointer_ = nullptr;
   double k_off_s_;
   double k_off_d_;
   double polar_affinity_;
@@ -88,19 +89,25 @@ class Anchor : public Object {
   bool CalcRodLambda();
   void DecideToStepMotor(double dis_dif, double dis_vel);
   void DecideToStepCrosslink(double dis_dif);
-  void StepBack();
-  void StepForward();
+  void PrepareToStepBack(double prop);
+  void PrepareToStepForward(double prop);
 
  public:
   void SetLengthAtPlus(double distance_);
   void SetLengthAtMinus(double distance_);
-  void SetCrosslinkLength(double cl_length);
+  void SetCrosslinkLength(double cl_length); 
+  void SetCrosslinkPointer(Object* cl_pointer);
+  Object* GetCrosslinkPointer() {return cl_pointer_;} 
+  void SetBoundCurr(std::map<Sphere *, std::pair<std::vector<double>, std::vector<std::pair<Anchor*, std::string> > > > *bound_curr); 
   Anchor(unsigned long seed);
   void Init(crosslink_parameters *sparams, int index);
   void SetBindParamMap(std::vector<std::map<std::string, bind_params> >*);
   bool IsBound();
   bool IsBoundToSphere();
   void UpdatePosition();
+  void SetChangedThisStep();
+  void ResetChangedThisStep();
+  bool GetChangedThisStep();
   void Activate();
   void Deactivate();
   void ApplyAnchorForces();
@@ -111,6 +118,8 @@ class Anchor : public Object {
   void AttachObjCenter(Object *o);
   void AttachObjMeshLambda(Object *o, double mesh_lambda);
   void AttachObjMeshCenter(Object *o);
+  void StepBack();
+  void StepForward();
   void CalculatePolarAffinity(std::vector<double> &doubly_binding_rates);
   void SetRodLambda(double l);
   void SetMeshLambda(double ml);

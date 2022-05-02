@@ -25,7 +25,7 @@ void InteractionManager::Init(system_parameters *params,
 
   // Update dr distance should be half the cell length, and we are comparing the
   // squares of the trajectory distances
-  xlink_.Init(params_, space_, tracker_, &ix_objects_);
+  xlink_.Init(params_, space_, tracker_, &ix_objects_, params_->seed);
   no_boundaries_ = false;
   if (space_->type == +boundary_type::none)
     no_boundaries_ = true;

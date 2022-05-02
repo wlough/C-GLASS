@@ -27,9 +27,11 @@ void Crosslink::Init(crosslink_parameters *sparams) {
   fdep_length_ = sparams_->force_dep_length;
   polar_affinity_ = sparams_->polar_affinity;
   use_bind_file_ = sparams_->anchors[0].bind_file.compare("none");
-  
   Anchor anchor1(rng_.GetSeed());
   Anchor anchor2(rng_.GetSeed());
+  if (bound_curr_){
+  Logger::Info("Bound curr not empty");
+  } 
   anchors_.push_back(anchor1);
   anchors_.push_back(anchor2);
   anchors_[0].Init(sparams_, 0);
@@ -41,10 +43,30 @@ void Crosslink::Init(crosslink_parameters *sparams) {
 
 void Crosslink::InitInteractionEnvironment(LookupTable *lut, Tracker *tracker, 
                                            std::map<Sphere *, std::pair<std::vector<double>, 
-                                           std::vector<Anchor*> > > *bound_curr) { 
+                                           std::vector<std::pair<Anchor*, std::string> > > > *bound_curr) { 
   lut_ = lut;
   tracker_ = tracker;
   bound_curr_ = bound_curr;
+
+  //if (!(*bound_curr_).empty()){
+  //Sphere* kv=(*bound_curr_).end()->first;
+  //Logger::Info("Bound curr bind type is %s ",(*bound_curr_)[kv].second[0].second);
+ 
+  //if ((*bound_curr_)[kv].second[0].first){
+  //Logger::Info("Bound curr anchor %p adress is %i ",(*bound_curr_)[kv].second[0].first,(*bound_curr_)[kv].second[0].first->GetOID());
+  //}
+  //} 
+  anchors_[0].SetBoundCurr(bound_curr);
+  anchors_[1].SetBoundCurr(bound_curr);
+  //if (!(*bound_curr_).empty()){
+  //Sphere* kv=(*bound_curr_).end()->first;
+  //Logger::Info("Bound curr bind type is %s ",(*bound_curr_)[kv].second[0].second);
+ 
+  //if ((*bound_curr_)[kv].second[0].first){
+  //Logger::Info("Bound curr anchor %p adress is %i ",(*bound_curr_)[kv].second[0].first,(*bound_curr_)[kv].second[0].first->GetOID());
+  //}
+  //} 
+ 
 }
 
 /* Function used to set anchor[0] position etc to xlink position etc */
@@ -122,7 +144,7 @@ void Crosslink::SinglyKMC() {
   } // Find out whether we bind, unbind, or neither.
   int head_activate = choose_kmc_double(unbind_prob, kmc_bind_prob, roll);
   // Change status of activated head
-  if (head_activate == 0) {
+  if (head_activate == 0 ) {
     // Unbind bound head
     // Track unbinding
     tracker_->UnbindSU();
@@ -133,6 +155,7 @@ void Crosslink::SinglyKMC() {
     anchors_[bound_anchor_].Unbind();
     SetUnbound();
     Logger::Trace("Crosslink %d came unbound", GetOID());
+    Logger::Warning("Anchor %i came unbound", anchors_[bound_anchor_].GetOID()); 
   } else if (head_activate == 1) {
     // Bind unbound head
     // Track binding
@@ -171,11 +194,15 @@ void Crosslink::SinglyKMC() {
     } else {
       Sphere *bind_obj = anchors_[bound_anchor_].GetSphereNeighbor(i_bind - n_neighbors_rod);
       (*bound_curr_)[bind_obj].first.push_back(kmc_bind.getProb(i_bind));
-      (*bound_curr_)[bind_obj].second.push_back(&anchors_[(int)!bound_anchor_]);
+      std::pair<Anchor*, std::string> anchor_and_bind_type;
+      anchors_[(int)!bound_anchor_].SetCrosslinkPointer(this);
+      anchor_and_bind_type.first = &anchors_[(int)!bound_anchor_]; 
+      anchor_and_bind_type.second = "single to double";
+      (*bound_curr_)[bind_obj].second.push_back(anchor_and_bind_type);
       //anchors_[(int)!bound_anchor_].AttachObjCenter(bind_obj);
       //bind_obj->DecrementNAnchored(); // For knockout loop- allow collisions
       //SetDoubly();
-      Logger::Trace("Crosslink %d became doubly bound to obj %d", GetOID(),
+      Logger::Trace("Crosslink %d, with anchor %d, became doubly bound to obj %d", GetOID(), anchors_[(int)!bound_anchor_].GetOID(),
                   bind_obj->GetOID());
       //If crosslinkers can't cross check if newly bound crosslinker is crossing
       if (sparams_ -> cant_cross == true) {
@@ -255,7 +282,7 @@ void Crosslink::DoublyKMC() {
     // one head can unbind during a time step.
     head_activate = choose_kmc_double(unbind_prob[0], unbind_prob[1], roll);
   }
-  if (head_activate > -1) {
+  if (head_activate > -1 && anchors_[head_activate].GetChangedThisStep() == false) {
     tracker_->UnbindDS();
     Logger::Trace("Doubly-bound crosslink %d came unbound from %d", GetOID(),
                   anchors_[head_activate].GetBoundOID());
