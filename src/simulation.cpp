@@ -37,6 +37,7 @@ void Simulation::RunSimulation() {
   time_ = 0;
   params_.i_step = 0;
   for (i_step_ = 1; params_.i_step <= (inv_step_fact_*params_.n_steps); ++i_step_) {
+    Logger::Warning("Begingin time step %i", i_step_);
     params_.on_midstep = i_step_ % inv_step_fact_;
     time_ += step_fact_ * Object::GetDelta();
     params_.i_step = i_step_;
