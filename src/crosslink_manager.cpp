@@ -143,46 +143,40 @@ void CrosslinkManager::CheckForCross() {
   }
 }
 
-// Loop over all spheres bound in the last dt. If multiple xlinks want to bind
-// to a site, roll based on their relative probabilities, and unbind all of the
-// "losers".
+// Loop over all sites crosslinkers tried to bind to in the last dt. If multiple xlinks want to bind
+// to a site, roll and select based on their relative probabilities, and unbind 
 void CrosslinkManager::Knockout() {
-  Logger::Info("Printing bound_curr, size is %i", bound_curr_.size());
-  for (auto& kv : bound_curr_) {
-    Sphere* receptor = kv.first;
-    std::pair<std::vector<double>, std::vector<std::pair<Anchor*, std::string> > >&  receptor_info = kv.second;
-    Logger::Info("Receptor id is, %d", receptor->GetOID());
-    int events = receptor_info.first.size();
-    while (events>0) { 
-      events-=1; 
-      Logger::Warning("Events is %i, lengths are, %i, %i, %i", events, receptor_info.first.size(), receptor_info.second.size(), receptor_info.second.size());
-      //Logger::Warning("Prpp is %i", )receptor_info.first[events]
-      Logger::Warning("bind type is %s", receptor_info.second[events].second.c_str());
-      if (receptor_info.second[events].second == "forward step" || receptor_info.second[events].second == "back step" || receptor_info.second[events].second == "single to double") {
-        Logger::Info("Inside if");
-        printf("Address of x is %p\n", (void *)receptor_info.second[events].first);
-        Logger::Info("Prop is %f, Anchor is %i, Bind type is %s", receptor_info.first[events], receptor_info.second[events].first->GetOID(), receptor_info.second[events].second.c_str());
+  #ifdef TRACE 
+	  Logger::Warning("\n");
+    Logger::Warning("Printing bound_curr, size is %i", bound_curr_.size());
+    for (auto& kv : bound_curr_) {
+      Sphere* receptor = kv.first;
+      std::pair<std::vector<double>, std::vector<std::pair<Anchor*, std::string> > >&  receptor_info = kv.second;
+      Logger::Trace("Receptor id is, %d", receptor->GetOID());
+      int events = receptor_info.first.size();
+      while (events>0) { 
+        events-=1; 
+        if (receptor_info.second[events].second == "forward step" || receptor_info.second[events].second == "back step" || receptor_info.second[events].second == "single to double") {
+         Logger::Trace("Prop is %f, Anchor is %i, Bind type is %s", receptor_info.first[events], receptor_info.second[events].first->GetOID(), receptor_info.second[events].second.c_str());
+        } 
       }
-    
     }
-    Logger::Info("After if"); 
-  } 
-  //Logger::Warning("knocjout seed in knockout is %f", rng_->RandomUniform());
-  //Logger::Warning("Begining knockout bind, %lu", bound_curr_.size());
+    Logger::Trace("\n");
+  #endif
+    
   for (auto& kv : bound_curr_) {
     Sphere* receptor = kv.first;
     std::pair<std::vector<double>, std::vector<std::pair<Anchor*, std::string> > >&  receptor_info = kv.second;
     // If one anchor wants to bind to a receptor bind it
-    
     if (receptor_info.first.size() == 1) {
       KnockoutBind(receptor, 0);
       }
     
     //If two or three anchors want to bind to a receptor choose which one binds 
     else if (receptor_info.first.size() == 2 || receptor_info.first.size() == 3) {
-      Logger::Warning("%i anchors wanted to bind to receptor, if this is common reduce time step", (receptor_info.first.size()));
+      Logger::Trace("%i anchors wanted to bind to receptor, if this is common reduce time step", (receptor_info.first.size()));
       double sum_of_probs = std::accumulate(receptor_info.first.begin(), receptor_info.first.end(), 0.0);
-      Logger::Warning("probability of anchor binding to site is %f. If this warning is common, or if probability is much greater than 1 reduce time step.", sum_of_probs);
+      Logger::Trace("probability of anchor binding to site %i is %f. If this warning is common, or if probability is much greater than 1 reduce time step.", receptor->GetOID(),sum_of_probs);
       double roll = sum_of_probs*rng_->RandomUniform();
       int count = 0;
       std::vector<double> prob_list = receptor_info.first;
@@ -190,7 +184,8 @@ void CrosslinkManager::Knockout() {
       for (auto prob = prob_list.begin(); prob != prob_list.end(); ++prob) {
         if (*prob>roll) {
           KnockoutBind(receptor, count);
-          Logger::Warning("chose %s, from roll, %f", receptor_info.second[count].second.c_str(), roll); 
+          Logger::Trace("chose %s, from roll, %f", receptor_info.second[count].second.c_str(), roll); 
+          roll =1000000;
         }
         else {
           roll -= *prob;
@@ -212,66 +207,49 @@ void CrosslinkManager::Knockout() {
   }  
   AddKnockoutCrosslinks();
   bound_curr_.clear();
-  //Logger::Warning("");
+  Logger::Trace("Bound_curr cleared");
 }
 
 void CrosslinkManager::KnockoutBind(Sphere* receptor, int winner) {
-  Logger::Warning("Bind type is %s", bound_curr_[receptor].second[winner].second.c_str());
+  Logger::Trace("Bind type is %s", bound_curr_[receptor].second[winner].second.c_str());
+
+  //Forward Step
   if (bound_curr_[receptor].second[winner].second == "forward step") {
-    Logger::Warning("steped forward");
-    Logger::Info("forward step %i", bound_curr_[receptor].second[winner].first->GetOID());
+    Logger::Trace("forward step %i", bound_curr_[receptor].second[winner].first->GetOID());
     bound_curr_[receptor].second[winner].first->StepForward();
-    //Logger::Warning("anchor %i wanted to bind to receptor %i, if this is common reduce time step", bound_curr_[receptor].second[0].first->GetOID(), receptor->GetOID()); 
- 
   }
-
+  //Back Step
   else if (bound_curr_[receptor].second[winner].second == "back step") {
-    Logger::Info("back step %i", bound_curr_[receptor].second[winner].first->GetOID());
     bound_curr_[receptor].second[winner].first->StepBack();
-    Logger::Warning("stepped back");
-    Logger::Warning("anchor %i wanted to backstep to receptor %i, if this is common reduce time step", bound_curr_[receptor].second[0].first->GetOID(), receptor->GetOID()); 
- 
+    Logger::Trace("anchor %i wanted to backstep to receptor %i, if this is common reduce time step", bound_curr_[receptor].second[0].first->GetOID(), receptor->GetOID()); 
   }
 
+  //Single to double bind
   else if (bound_curr_[receptor].second[winner].second == "single to double") {
-    Logger::Info("single to double %i", bound_curr_[receptor].second[winner].first->GetOID());
-    bound_curr_[receptor].second[winner].first->AttachObjCenter(receptor);
+    Logger::Trace("single to double %i", bound_curr_[receptor].second[winner].first->GetOID());
     Object* ob_pointer = bound_curr_[receptor].second[winner].first->GetCrosslinkPointer();
-    //Logger::Warning("Crosslink species is %d", ob_pointer->GetSID()); 
-    //if (ob_pointer == nullptr) {
-    //  Logger::Warning("Object pointer also null");
-    //} 
     Crosslink* cl_pointer = dynamic_cast<Crosslink*>(ob_pointer);
-    if (cl_pointer == nullptr) {
-    //Logger::Warning("pointer is null");
-    }
-    cl_pointer->SetDoubly();
-    //Logger::Warning("anchor %i, from crosslink %d wanted to bind to receptor, if this is common reduce time step", bound_curr_[receptor].second[0].first->GetOID(), cl_pointer->GetOID()); 
- 
+    if (!cl_pointer) {
+      Logger::Error("Dynamic cast failed, cl_ponter doesn't exist");
+    }    
+		cl_pointer->SetDoubly();
+    bound_curr_[receptor].second[winner].first->AttachObjCenter(receptor);
   }
-  //bind from soultion 
+
+  //bind from soultion, bind type is set to species name if binding from solution 
   else {
-  //for (auto it = xlink_species_.begin(); it != xlink_species_.end(); ++it) {
-    CrosslinkSpecies* cl_species_ = species_map_[bound_curr_[receptor].second[winner].second.c_str()];
-    //std::cout << "Bindingcrosslink from species :\n " << cl_species_->GetSpeciesName();
-    //Logger::Warning("Binding from solution, %i, %s", xlink_species_.size(), (cl_species_->GetSpeciesName()).c_str());
-    //Logger::Warning("anchor %i wanted to bind to receptor, if this is common reduce time step", bound_curr_[receptor].second[0].first->GetOID()); 
- 
+   CrosslinkSpecies* cl_species_ = species_map_[bound_curr_[receptor].second[winner].second.c_str()];
+   Logger::Trace("Binding crosslink from solution, species is %s", (cl_species_->GetSpeciesName()).c_str());
    std::pair<CrosslinkSpecies*, Sphere*> cl_rec_pair_;
    cl_rec_pair_.first = cl_species_;
    cl_rec_pair_.second = receptor;     
-   //}
-    //cl_species_->KnockoutBind(receptor);
-    cl_to_add_this_step_.push_back(cl_rec_pair_);
-    Logger::Info("Added Crosslink to knockout");
+   cl_to_add_this_step_.push_back(cl_rec_pair_);
   }
-
 }
 
 void CrosslinkManager::AddKnockoutCrosslinks() {
-  
   for (auto it = cl_to_add_this_step_.begin(); it != cl_to_add_this_step_.end(); ++it) {
-     Logger::Info("Added Crosslink during knockout");
+    Logger::Trace("Added crosslink from solution during knockout");
     (it->first)->KnockoutBind(it->second);
   }
   cl_to_add_this_step_.clear();

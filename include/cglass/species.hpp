@@ -144,7 +144,7 @@ template <typename T, unsigned char S> void Species<T, S>::Reserve() {
 
 template <typename T, unsigned char S> void Species<T, S>::AddMember() {
   T newmember(rng_.GetSeed());
-  Logger::Info("Adding member to %s %s, member number %d, member id %d",
+  Logger::Trace("Adding member to %s %s, member number %d, member id %d",
                 GetSID()._to_string(), GetSpeciesName().c_str(), n_members_ + 1,
                 newmember.GetOID());
   members_.push_back(newmember);
@@ -194,7 +194,7 @@ void Species<T, S>::ResetPreviousPositions() {
 }
 
 template <typename T, unsigned char S> void Species<T, S>::AddMember(T newmem) {
-  Logger::Info("Adding preexisting member to %s %s", GetSID()._to_string(),
+  Logger::Trace("Adding preexisting member to %s %s", GetSID()._to_string(),
                 GetSpeciesName().c_str());
   members_.push_back(newmem);
   newmem.SetSID(GetSID());
