@@ -35,7 +35,7 @@ private:
   int bound_anchor_ = 0; // Index of anchor that is bound if Singly
   int last_bound_ = 0;
   bool check_for_cross = false;
-  std::map<Sphere *, std::pair<std::vector<double>, std::vector<Anchor*> > > *bound_curr_ = nullptr;
+  std::map<Sphere *, std::pair<std::vector<double>, std::vector<std::pair<Anchor*, std::string> > > > *bound_curr_ = nullptr;
   std::vector<std::map<std::string, bind_params> > *bind_param_map_ = nullptr;
   double *bind_rate_ = nullptr;
   std::vector<Anchor> anchors_;
@@ -56,10 +56,11 @@ public:
   void SetGlobalCheckForCross(bool* check);
   void InitInteractionEnvironment(LookupTable *lut, Tracker *tracker, 
                                   std::map<Sphere *, std::pair<std::vector<double>, 
-                                  std::vector<Anchor*> > > *bound_curr);
+                                  std::vector<std::pair<Anchor*, std::string> > > > *bound_curr);
   void SetBindParamMap(std::vector<std::map<std::string, bind_params> > 
                        *bind_param_map);
   void AttachObjRandom(std::pair<Object *, int> obj_index);
+  void AttachSphere(std::pair<Sphere*, int> obj_index);
   void UpdateCrosslinkForces();
   void UpdateCrosslinkPositions();
   void GetAnchors(std::vector<Object *> &ixors);

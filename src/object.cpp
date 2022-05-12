@@ -141,12 +141,14 @@ void Object::ZeroPolarOrder() {
 void Object::SetInteractor(bool ix) { interacting_ = ix; }
 void Object::IncrementNAnchored() { 
   n_anchored_++;
+  Logger::Trace("Object %d was incremented", GetOID());
   if (n_anchored_ > 1 && params_ -> single_occupancy == true) {
     Logger::Error("n_anchored_ should not be >1");
   } 
 }
 void Object::DecrementNAnchored() { 
   n_anchored_--;
+  Logger::Trace("Object %d was decremented", GetOID());
   if (n_anchored_ < 0) {
     Logger::Error("n_anchored_ should not be <0");
   }
