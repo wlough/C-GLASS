@@ -29,9 +29,6 @@ void Crosslink::Init(crosslink_parameters *sparams) {
   use_bind_file_ = sparams_->anchors[0].bind_file.compare("none");
   Anchor anchor1(rng_.GetSeed());
   Anchor anchor2(rng_.GetSeed());
-  if (bound_curr_){
-  Logger::Info("Bound curr not empty");
-  } 
   anchors_.push_back(anchor1);
   anchors_.push_back(anchor2);
   anchors_[0].Init(sparams_, 0);
@@ -123,7 +120,8 @@ void Crosslink::SinglyKMC() {
                               anchors_[bound_anchor_].GetBoundOID(), bind_factors); 
     kmc_bind_prob = kmc_bind.getTotProb();
     tracker_->TrackSD(kmc_bind_prob);
-  } // Find out whether we bind, unbind, or neither.
+  } 
+  // Find out whether we bind, unbind, or neither.
   int head_activate = choose_kmc_double(unbind_prob, kmc_bind_prob, roll);
   
   // Change status of activated head
@@ -137,8 +135,8 @@ void Crosslink::SinglyKMC() {
     }
     anchors_[bound_anchor_].Unbind();
     SetUnbound();
-    Logger::Info("Crosslink %d came unbound", GetOID());
-    Logger::Info("Anchor %i came unbound", anchors_[bound_anchor_].GetOID()); 
+    Logger::Trace("Crosslink %i with anchor %i came unbound", GetOID(), anchors_[bound_anchor_].GetOID()); 
+  
   } else if (head_activate == 1) {
     // Bind unbound head
     // Track binding
@@ -179,12 +177,10 @@ void Crosslink::SinglyKMC() {
       (*bound_curr_)[bind_obj].first.push_back(kmc_bind.getProb(i_bind));
       std::pair<Anchor*, std::string> anchor_and_bind_type;
       anchors_[(int)!bound_anchor_].SetCrosslinkPointer(this);
-      anchor_and_bind_type.first = &anchors_[(int)!bound_anchor_]; 
+      anchor_and_bind_type.first = &anchors_[(int)!bound_anchor_];
       anchor_and_bind_type.second = "single to double";
+      //Add anchor to bound_curr, will be deciding if it binds during knockout
       (*bound_curr_)[bind_obj].second.push_back(anchor_and_bind_type);
-      //anchors_[(int)!bound_anchor_].AttachObjCenter(bind_obj);
-      //bind_obj->DecrementNAnchored(); // For knockout loop- allow collisions
-      //SetDoubly();
       Logger::Trace("Crosslink %d, with anchor %d, became doubly bound to obj %d", GetOID(), anchors_[(int)!bound_anchor_].GetOID(),
                   bind_obj->GetOID());
       //If crosslinkers can't cross check if newly bound crosslinker is crossing
@@ -553,8 +549,8 @@ void Crosslink::Draw(std::vector<graph_struct *> &graph_array) {
 }
 
 void Crosslink::SetDoubly() {
-   state_ = bind_state::doubly;
-   SetAnchorStates();
+  state_ = bind_state::doubly;
+  SetAnchorStates();
 }
 
 void Crosslink::SetSingly(int bound_anchor) {
