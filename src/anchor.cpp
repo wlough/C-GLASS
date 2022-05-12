@@ -191,9 +191,8 @@ void Anchor::DecideToStepMotor(double discrete_diffusion_, double discrete_veloc
     PrepareToStepBack(chance_back_);
   }
   if ( (chance_back_+chance_forward_) > 1) {
-    Logger::Warning("Chance of anchor, %i, hopping sites greater than one chance back %f, chance forward %f", this->GetOID(), chance_back_, chance_forward_);
- 
- }
+    Logger::Warning("Chance of anchor, %i, hopping sites greater than one chance back %f, chance forward %f", this->GetOID(), chance_back_, chance_forward_); 
+  }
 }
 
 /* Crosslinker decides if it's going to step forward, backwards, or not step*/
@@ -253,7 +252,7 @@ void Anchor::DecideToStepCrosslink(double discrete_diffusion_) {
     PrepareToStepForward(chance_forward_);
   }
   else if (chance_back_>(1-roll)) {
-    PrepareToStepBack(chance_back_);    
+    PrepareToStepBack(chance_back_);
   }
   if ( (chance_back_+chance_forward_) > 1) {
     Logger::Warning("Chance of anchor ,%i,hopping sites greater than one (chance back %f, chance forward %f)", this->GetOID(),chance_back_, chance_forward_);
@@ -271,7 +270,7 @@ void Anchor::PrepareToStepForward(double prob) {
   }
   //If receptor is trying to move to an open receptor move.
   //If null that means the receptor is on edge of filament already.
-  //If NAnchored is 0, the next reeptor isn't occupied. 
+  //If NAnchored is 0, the next reeptor isn't occupied.
   if((next_receptor_ != NULL) && (next_receptor_ -> GetNAnchored() == 0 || single_occupancy == false)){
     (*bound_curr_)[next_receptor_].first.push_back(prob);
     std::pair<Anchor*, std::string> anchor_and_bind_type;
@@ -301,7 +300,7 @@ void Anchor::PrepareToStepBack(double prob) {
    anchor_and_bind_type.second = "back step";
    (*bound_curr_)[last_receptor_].second.push_back(anchor_and_bind_type);
    SetChangedThisStep();
-   Logger::Trace("Anchor %i, added to bound_curr (Stepping Back)", this->GetOID()); 
+   Logger::Trace("Anchor %i, added to bound_curr (Stepping Back)", this->GetOID());
   }
 }
 
@@ -311,21 +310,24 @@ void Anchor::SetLengthAtPlus(double distance) {
   distance_to_plus_ = distance;
 }
 
-//Set the distance to the plus neighbor of the other head of
+//Set the distance to the minus neighbor of the other head of
 //the crosslinker
 void Anchor::SetLengthAtMinus(double distance) {
   distance_to_minus_ = distance;
 }
 
+//Set current length of crosslink anchor is a part off
 void Anchor::SetCrosslinkLength(double cl_length) {
   cl_length_ = cl_length;
 }
 
+//Set pointer to the crosslink anchor is a part of
 void Anchor::SetCrosslinkPointer(Object* cl_pointer) {
   cl_pointer_ = cl_pointer;
   Logger::Trace("crosslink  %d pointer set for anchor %d", cl_pointer_->GetOID(), this->GetOID());
 }
 
+//Anchor steps in the minus direction
 void Anchor::StepBack() {
   Sphere* last_receptor_ = nullptr;
   last_receptor_ = sphere_->GetMinusNeighbor();
@@ -342,6 +344,7 @@ void Anchor::StepBack() {
   }
 }
 
+//Anchor steps in the plus direction
 void Anchor::StepForward() {
   Sphere* next_receptor_ = nullptr;
   next_receptor_ = sphere_->GetPlusNeighbor();
@@ -578,7 +581,7 @@ void Anchor::Draw(std::vector<graph_struct *> &graph_array) {
   }
   std::copy(orientation_, orientation_ + 3, g_.u);
   g_.color = color_;
-  g_.diameter = .5; //diameter_;
+  g_.diameter = diameter_;
   g_.length = length_;
   g_.draw = draw_;
   graph_array.push_back(&g_);
@@ -600,9 +603,7 @@ void Anchor::AttachObjRandom(Object *o) {
         }
         *obj_size_ -= o->GetArea();
       }
-      AttachObjCenter(o);
-      
- 
+      AttachObjCenter(o); 
       break;
     }
     default: {
@@ -815,15 +816,19 @@ int Anchor::GetPCID() {
    in order to get them to draw while not technically bound to a bond
    ( e.g. rod_ -> null ) */
 void Anchor::SetBound() { bound_ = true; }
- 
+
+//Set pointer to map that contains the binding events from this step
+//Pointer is set so it can be added to within anchor.cpp 
 void Anchor::SetBoundCurr(std::map<Sphere *, std::pair<std::vector<double>, std::vector<std::pair<Anchor*, std::string> > > > *bound_curr) {
   bound_curr_ = bound_curr;
 }
 
+//Set if this anchor bound this step, unbinding events won't happen on the same turn
 void Anchor::SetChangedThisStep() {
   changed_this_step_ = true;
 }
 
+//Set changed this step back to false
 void Anchor::ResetChangedThisStep() {
   changed_this_step_ = false;
 }

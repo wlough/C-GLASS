@@ -416,7 +416,8 @@ std::pair <Object*, int> CrosslinkSpecies::GetRandomObject() {
   }
 }
 
-
+//Same function as GetRandomObj().
+//Get GetRandomObj() expects that a new crosslink has been added before getting an object to bind it to, this doesn't.
 std::pair <Object*, int> CrosslinkSpecies::GetRandomObjectKnockout() {
   if (use_bind_file_) {
     double bind_rate_sum = 0;
@@ -430,14 +431,14 @@ std::pair <Object*, int> CrosslinkSpecies::GetRandomObjectKnockout() {
         // Do not count objects that are not in bind_param_map
         if (bind_param_it == bind_param_map_[anchor_index].end()) continue;
         // obj_amount is area if surface density used, length if linear density used
-        double obj_amount = (bind_param_it->second.dens_type == +density_type::linear) 
+        double obj_amount = (bind_param_it->second.dens_type == +density_type::linear)
                             ? (*obj)->GetLength() : (*obj)->GetArea();
         // Do not contribute area/length if object is already occupied and single occupancy is
         // selected
         if (bind_param_it->second.single_occupancy && ((*obj)->GetNAnchored() > 0)) {
           obj_amount = 0;
         }
-        bind_rate_sum += bind_param_it->second.k_on_s * 
+        bind_rate_sum += bind_param_it->second.k_on_s *
                          bind_param_it->second.bind_site_density * obj_amount;
         if (bind_rate_sum > roll) {
           random_obj_probability_ = bind_rate_sum;
@@ -478,29 +479,9 @@ std::pair <Object*, int> CrosslinkSpecies::GetRandomObjectKnockout() {
 }
 
 /* A crosslink binds to an object from solution */
-void CrosslinkSpecies::BindCrosslink() {
-
-
-   /*for (auto& kv : *bound_curr_) {
-     Sphere* receptor = kv.first;
-     std::pair<std::vector<double>, std::vector<std::pair<Anchor*, std::string> > >&  receptor_info = kv.second;
-     Logger::Info("Receptor id is, %d, Inside BindCrosslink", receptor->GetOID());
-     int events = receptor_info.first.size();
-     while (events>0) {
-       events-=1;
-       Logger::Warning("Events is %i, lengths are, %i, %i, %i", events, receptor_info.first.size(), receptor_info.second.size(), receptor_info.second.size());
-       //Logger::Warning("Prpp is %i", )receptor_info.first[events]
-       Logger::Warning("bind type is %s", receptor_info.second[events].second.c_str());
-       if (receptor_info.second[events].second == "forward step" || receptor_info.second[events].second == "back step" || receptor_info.second[events].second == "single to double") {
-         Logger::Info("Inside if");
-         Logger::Info("Prop is %f, Anchor is %i, Bind type is %s", receptor_info.first[events], receptor_info.second[events].first->GetOID(), receptor_info.second[events].second.c_str());
-       }
-
-     }
-     Logger::Info("After if");
-  }*/
-
+void CrosslinkSpecies::BindCrosslink() {  
   std::pair <Object*, int>  RandomObj = GetRandomObjectKnockout();
+  //If binding to sphere, at to knockout
   if (RandomObj.first->GetShape() == +shape::sphere) {
     Sphere* RandomSphere = dynamic_cast<Sphere*>(RandomObj.first);
     (*bound_curr_)[RandomSphere].first.push_back(random_obj_probability_);
@@ -508,7 +489,8 @@ void CrosslinkSpecies::BindCrosslink() {
     anchor_and_bind_type.first = nullptr;
     anchor_and_bind_type.second = this->GetSpeciesName();
     (*bound_curr_)[RandomSphere].second.push_back(anchor_and_bind_type);
-   
+
+  //If binding to rod, bind now
   } else {
     AddMember();
     members_.back().AttachObjRandom(RandomObj);
@@ -516,10 +498,13 @@ void CrosslinkSpecies::BindCrosslink() {
   }
 }
 
+//Bind during knockout
 void CrosslinkSpecies::KnockoutBind(Sphere* receptor) {
     AddMember();
     std::pair <Sphere*, int>  Receptor_pair;
+    //receptor to bind to
     Receptor_pair.first = receptor;
+    //anchor 0
     Receptor_pair.second = 0;
     members_.back().AttachSphere(Receptor_pair);
     members_.back().SetGlobalCheckForCross(global_check_for_cross_);
