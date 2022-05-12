@@ -46,27 +46,9 @@ void Crosslink::InitInteractionEnvironment(LookupTable *lut, Tracker *tracker,
                                            std::vector<std::pair<Anchor*, std::string> > > > *bound_curr) { 
   lut_ = lut;
   tracker_ = tracker;
-  bound_curr_ = bound_curr;
-
-  //if (!(*bound_curr_).empty()){
-  //Sphere* kv=(*bound_curr_).end()->first;
-  //Logger::Info("Bound curr bind type is %s ",(*bound_curr_)[kv].second[0].second);
- 
-  //if ((*bound_curr_)[kv].second[0].first){
-  //Logger::Info("Bound curr anchor %p adress is %i ",(*bound_curr_)[kv].second[0].first,(*bound_curr_)[kv].second[0].first->GetOID());
-  //}
-  //} 
+  bound_curr_ = bound_curr; 
   anchors_[0].SetBoundCurr(bound_curr);
   anchors_[1].SetBoundCurr(bound_curr);
-  //if (!(*bound_curr_).empty()){
-  //Sphere* kv=(*bound_curr_).end()->first;
-  //Logger::Info("Bound curr bind type is %s ",(*bound_curr_)[kv].second[0].second);
- 
-  //if ((*bound_curr_)[kv].second[0].first){
-  //Logger::Info("Bound curr anchor %p adress is %i ",(*bound_curr_)[kv].second[0].first,(*bound_curr_)[kv].second[0].first->GetOID());
-  //}
-  //} 
- 
 }
 
 /* Function used to set anchor[0] position etc to xlink position etc */
@@ -143,8 +125,9 @@ void Crosslink::SinglyKMC() {
     tracker_->TrackSD(kmc_bind_prob);
   } // Find out whether we bind, unbind, or neither.
   int head_activate = choose_kmc_double(unbind_prob, kmc_bind_prob, roll);
+  
   // Change status of activated head
-  if (head_activate == 0 ) {
+  if (head_activate == 0 && anchors_[bound_anchor_].GetChangedThisStep()==false) {
     // Unbind bound head
     // Track unbinding
     tracker_->UnbindSU();
@@ -154,8 +137,8 @@ void Crosslink::SinglyKMC() {
     }
     anchors_[bound_anchor_].Unbind();
     SetUnbound();
-    Logger::Trace("Crosslink %d came unbound", GetOID());
-    Logger::Warning("Anchor %i came unbound", anchors_[bound_anchor_].GetOID()); 
+    Logger::Info("Crosslink %d came unbound", GetOID());
+    Logger::Info("Anchor %i came unbound", anchors_[bound_anchor_].GetOID()); 
   } else if (head_activate == 1) {
     // Bind unbound head
     // Track binding
@@ -522,6 +505,20 @@ void Crosslink::AttachObjRandom(std::pair<Object*, int> obj_index) {
   }
 }
 
+
+/* Attach a crosslink anchor to object in a random fashion */
+void Crosslink::AttachSphere(std::pair<Sphere*, int> obj_index) {
+  /* Attaching to random obj implies first anchor binding from solution, so
+   * this crosslink should be new and should not be singly or doubly bound */
+  if (obj_index.first->GetShape() == +shape::sphere) {
+    bound_anchor_ = obj_index.second;
+    anchors_[obj_index.second].AttachObjRandom(obj_index.first);
+    SetCompID(obj_index.first->GetCompID());
+  } else {
+    Logger::Error("Crosslink binding to %s shaped objects not yet implemented.", obj_index.first->GetShape()._to_string());
+  }
+}
+
 //Attatch crosslinker connected to two receptors, only used when crosslinkers
 //start doubly bound
 void Crosslink::DoublyCenter(Object* receptor_one, Object* receptor_two) {
@@ -556,8 +553,8 @@ void Crosslink::Draw(std::vector<graph_struct *> &graph_array) {
 }
 
 void Crosslink::SetDoubly() {
-  state_ = bind_state::doubly;
-  SetAnchorStates();
+   state_ = bind_state::doubly;
+   SetAnchorStates();
 }
 
 void Crosslink::SetSingly(int bound_anchor) {

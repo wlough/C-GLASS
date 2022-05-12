@@ -178,7 +178,7 @@ void Anchor::DecideToStepMotor(double discrete_diffusion_, double discrete_veloc
   double chance_forward_ = 0;
   double chance_back_ = 0;
   double D = discrete_diffusion_;
- //See  equation 7.30 and 7.31 from "Molecular motors: thermodynamics and
+  //See  equation 7.30 and 7.31 from "Molecular motors: thermodynamics and
   //the random walk" (Thomas et al. 2001). Equation rearranged to solve for
   //k+ and k-
   chance_forward_ = (D/pow(step_size_,2) + 0.5*vel_/step_size_)*delta_;
@@ -187,14 +187,16 @@ void Anchor::DecideToStepMotor(double discrete_diffusion_, double discrete_veloc
   if (chance_forward_>roll) {
     PrepareToStepForward(chance_forward_);
   }
-  if (chance_back_>(1-roll)) {
+  else if (chance_back_>(1-roll)) {
     PrepareToStepBack(chance_back_);
   }
   if ( (chance_back_+chance_forward_) > 1) {
-    Logger::Error("Chance of anchor hopping sites greater than one, time step far too large");
-  }
+    Logger::Warning("Chance of anchor, %i, hopping sites greater than one chance back %f, chance forward %f", this->GetOID(), chance_back_, chance_forward_);
+ 
+ }
 }
 
+/* Crosslinker decides if it's going to step forward, backwards, or not step*/
 void Anchor::DecideToStepCrosslink(double discrete_diffusion_) {
   double roll = rng_.RandomUniform();  
   double D = discrete_diffusion_;
@@ -245,26 +247,21 @@ void Anchor::DecideToStepCrosslink(double discrete_diffusion_) {
     //the random walk" (Thomas et al. 2001). Equation rearranged to solve for
     //k+ and k-
     chance_back_ = (minus_diffusion/pow(step_size_,2))*delta_;
-
   } 
 
   if (chance_forward_>roll) {
-    //StepForward();
     PrepareToStepForward(chance_forward_);
   }
-  if (chance_back_>(1-roll)) {
-    //StepBack();
-    PrepareToStepBack(chance_back_);
-    
+  else if (chance_back_>(1-roll)) {
+    PrepareToStepBack(chance_back_);    
   }
   if ( (chance_back_+chance_forward_) > 1) {
-    Logger::Error("Chance of anchor hopping sites greater than one, time step far too large");
+    Logger::Warning("Chance of anchor ,%i,hopping sites greater than one (chance back %f, chance forward %f)", this->GetOID(),chance_back_, chance_forward_);
   }
 }
 
-//Add steps to bound_curr
+//Add Anchor that has decided to step forward to bound_curr
 void Anchor::PrepareToStepForward(double prob) {
-  Logger::Warning("%i Prepareing to step forward", this->GetOID());
   Sphere* next_receptor_ = nullptr;
   next_receptor_ = sphere_->GetPlusNeighbor();
   bool single_occupancy = true;
@@ -272,8 +269,9 @@ void Anchor::PrepareToStepForward(double prob) {
     std::string name = next_receptor_->GetName();
     single_occupancy = bind_param_map_->at(index_)[name].single_occupancy;
   }
-  //If receptor is trying to move to an open receptor move
-  //If null that means the receptor is on edge of tube already
+  //If receptor is trying to move to an open receptor move.
+  //If null that means the receptor is on edge of filament already.
+  //If NAnchored is 0, the next reeptor isn't occupied. 
   if((next_receptor_ != NULL) && (next_receptor_ -> GetNAnchored() == 0 || single_occupancy == false)){
     (*bound_curr_)[next_receptor_].first.push_back(prob);
     std::pair<Anchor*, std::string> anchor_and_bind_type;
@@ -281,14 +279,13 @@ void Anchor::PrepareToStepForward(double prob) {
     anchor_and_bind_type.second = "forward step";
     (*bound_curr_)[next_receptor_].second.push_back(anchor_and_bind_type);
     SetChangedThisStep();
-    Logger::Warning("forward step added");
+    Logger::Trace("Anchor %i, added to bound curr (Stepping Forward)", this->GetOID());
   }
 }
 
-//Add steps to bound_curr
+//Add anchor that has decided to step back to bound_curr
 void Anchor::PrepareToStepBack(double prob) {
-  Logger::Warning("Anchor %d Prepareing to step back", this->GetOID()); 
-  Sphere* last_receptor_ = nullptr;
+ Sphere* last_receptor_ = nullptr;
  last_receptor_ = sphere_->GetMinusNeighbor();
  bool single_occupancy = true;
   if (last_receptor_ != NULL) {
@@ -304,8 +301,8 @@ void Anchor::PrepareToStepBack(double prob) {
    anchor_and_bind_type.second = "back step";
    (*bound_curr_)[last_receptor_].second.push_back(anchor_and_bind_type);
    SetChangedThisStep();
-   Logger::Warning("back step added");
- }
+   Logger::Trace("Anchor %i, added to bound_curr (Stepping Back)", this->GetOID()); 
+  }
 }
 
 //Set the distance to the plus neighbor of the other head of
@@ -419,6 +416,8 @@ double Anchor::DiscreteWalk() {
     double const force_proj =
       step_direction_ * dot_product(n_dim_, force_, rod_orientation_);
     double fdep = 1. + (force_proj / f_stall_);
+    //double const *const position = this->GetPosition();
+    //Logger::Warning("rod orientation x is %f, force x is %f, for anchor %i at x location %f", rod_orientation_[0], force_proj, this->GetOID(), position[0]);
     if (fdep >1) {
       fdep = 1;
     } else if (fdep<0) {
@@ -455,14 +454,12 @@ bool Anchor::CheckMesh() {
 }
 
 void Anchor::Unbind() {
-  Logger::Info("Anchor %i unbound", this->GetOID());
+  Logger::Trace("Anchor %i unbound", this->GetOID());
   if (static_flag_) {
     Logger::Error("Static anchor attempted to unbind");
   }
-  Logger::Warning("Before decrement");
   if (sphere_) sphere_->DecrementNAnchored();
   AddBackBindRate();
-  Logger::Warning("After add back bind rate");
   bound_ = false;
   rod_ = nullptr;
   sphere_ = nullptr;
@@ -480,7 +477,6 @@ void Anchor::Unbind() {
   SetCompID(-1);
   std::fill(position_, position_ + 3, 0.0);
   std::fill(orientation_, orientation_ + 3, 0.0);
-  Logger::Info("At end of unbind");
 }
 
 // Get the bind rate just for the object attached to this anchor
@@ -582,7 +578,7 @@ void Anchor::Draw(std::vector<graph_struct *> &graph_array) {
   }
   std::copy(orientation_, orientation_ + 3, g_.u);
   g_.color = color_;
-  g_.diameter = diameter_;
+  g_.diameter = .5; //diameter_;
   g_.length = length_;
   g_.draw = draw_;
   graph_array.push_back(&g_);

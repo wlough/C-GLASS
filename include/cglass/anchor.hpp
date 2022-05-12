@@ -95,10 +95,10 @@ class Anchor : public Object {
  public:
   void SetLengthAtPlus(double distance_);
   void SetLengthAtMinus(double distance_);
-  void SetCrosslinkLength(double cl_length); 
+  void SetCrosslinkLength(double cl_length);
   void SetCrosslinkPointer(Object* cl_pointer);
-  Object* GetCrosslinkPointer() {return cl_pointer_;} 
-  void SetBoundCurr(std::map<Sphere *, std::pair<std::vector<double>, std::vector<std::pair<Anchor*, std::string> > > > *bound_curr); 
+  Object* GetCrosslinkPointer() {return cl_pointer_;}
+  void SetBoundCurr(std::map<Sphere *, std::pair<std::vector<double>, std::vector<std::pair<Anchor*, std::string> > > > *bound_curr);
   Anchor(unsigned long seed);
   void Init(crosslink_parameters *sparams, int index);
   void SetBindParamMap(std::vector<std::map<std::string, bind_params> >*);

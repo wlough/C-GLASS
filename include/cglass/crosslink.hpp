@@ -60,6 +60,7 @@ public:
   void SetBindParamMap(std::vector<std::map<std::string, bind_params> > 
                        *bind_param_map);
   void AttachObjRandom(std::pair<Object *, int> obj_index);
+  void AttachSphere(std::pair<Sphere*, int> obj_index); 
   void UpdateCrosslinkForces();
   void UpdateCrosslinkPositions();
   void GetAnchors(std::vector<Object *> &ixors);

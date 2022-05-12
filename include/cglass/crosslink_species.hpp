@@ -21,7 +21,7 @@ private:
   bool infinite_reservoir_flag_;
   double k_on_;
   double k_off_;
-  double random_obj_probability_;
+  double random_obj_probability_;//Made global so probability can be added to bound_curr
   bool static_flag_;
   bool use_bind_file_ = false; // Whether to use a file with species names and parameters associated
   std::vector<std::string> bind_species_;
@@ -50,7 +50,7 @@ private:
   void UpdateBoundCrosslinkPositions();
   void ApplyCrosslinkTetherForces();
   std::pair<Object*, int> GetRandomObject();
-  std::pair<Object*, int> GetRandomObjectKnockout(); 
+  std::pair<Object*, int> GetRandomObjectKnockout();
   bool* global_check_for_cross_;
 
 public:

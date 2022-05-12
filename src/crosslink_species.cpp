@@ -123,7 +123,7 @@ void CrosslinkSpecies::InitInteractionEnvironment(std::vector<Object *> *objs,
     lut_.setBindVol(lut_filler_ptr->getBindingVolume());
   }
   /* TODO: Add time testing right here <24-06-20, ARL> */
-  TestKMCStepSize();
+  //TestKMCStepSize();
   delete lut_filler_ptr;
 }
 
@@ -481,7 +481,7 @@ std::pair <Object*, int> CrosslinkSpecies::GetRandomObjectKnockout() {
 void CrosslinkSpecies::BindCrosslink() {
 
 
-   for (auto& kv : *bound_curr_) {
+   /*for (auto& kv : *bound_curr_) {
      Sphere* receptor = kv.first;
      std::pair<std::vector<double>, std::vector<std::pair<Anchor*, std::string> > >&  receptor_info = kv.second;
      Logger::Info("Receptor id is, %d, Inside BindCrosslink", receptor->GetOID());
@@ -498,7 +498,7 @@ void CrosslinkSpecies::BindCrosslink() {
 
      }
      Logger::Info("After if");
-  }
+  }*/
 
   std::pair <Object*, int>  RandomObj = GetRandomObjectKnockout();
   if (RandomObj.first->GetShape() == +shape::sphere) {
@@ -518,8 +518,10 @@ void CrosslinkSpecies::BindCrosslink() {
 
 void CrosslinkSpecies::KnockoutBind(Sphere* receptor) {
     AddMember();
-    std::pair <Object*, int>  RandomObj = GetRandomObject();
-    members_.back().AttachObjRandom(RandomObj);
+    std::pair <Sphere*, int>  Receptor_pair;
+    Receptor_pair.first = receptor;
+    Receptor_pair.second = 0;
+    members_.back().AttachSphere(Receptor_pair);
     members_.back().SetGlobalCheckForCross(global_check_for_cross_);
 }
 
