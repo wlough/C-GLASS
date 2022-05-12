@@ -177,7 +177,7 @@ void CrosslinkManager::Knockout() {
     //If two or three anchors want to bind to a receptor choose which one binds 
     else if (receptor_info.first.size() == 2 || receptor_info.first.size() == 3) {
       double sum_of_probs = std::accumulate(receptor_info.first.begin(), receptor_info.first.end(), 0.0);
-      Logger::Trace("%i anchors want to bind to site %i with total probability %f. If this warning is common, or if probability is much greater than 1 reduce time step."
+      Logger::Trace("%i anchors want to bind to site %i with total probability %f. If this warning is common, or if probability is much greater than 1 reduce time step.",
                      receptor_info.first.size(), receptor->GetOID(), sum_of_probs);
       double roll = sum_of_probs*rng_->RandomUniform();
       int count = 0;
