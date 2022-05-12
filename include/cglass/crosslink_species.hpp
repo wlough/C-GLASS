@@ -21,13 +21,14 @@ private:
   bool infinite_reservoir_flag_;
   double k_on_;
   double k_off_;
+  double random_obj_probability_;//Made global so probability can be added to bound_curr
   bool static_flag_;
   bool use_bind_file_ = false; // Whether to use a file with species names and parameters associated
   std::vector<std::string> bind_species_;
   Tracker *tracker_ = nullptr;
   LookupTable lut_;
   std::vector<Object *> *objs_;
-  std::map<Sphere *, std::pair<std::vector<double>, std::vector<Anchor*> > > *bound_curr_;
+  std::map<Sphere *, std::pair<std::vector<double>, std::vector<std::pair<Anchor*, std::string> > > > *bound_curr_;
   
   // use a map of species names to binding parameters to
   // store binding parameters for specific species for each anchor
@@ -49,6 +50,7 @@ private:
   void UpdateBoundCrosslinkPositions();
   void ApplyCrosslinkTetherForces();
   std::pair<Object*, int> GetRandomObject();
+  std::pair<Object*, int> GetRandomObjectKnockout();
   bool* global_check_for_cross_;
 
 public:
@@ -57,7 +59,7 @@ public:
   void LoadBindingSpecies();
   void InitInteractionEnvironment(std::vector<Object *> *objs, double *obj_size, Tracker *tracker, bool *update,
                                   std::map<Sphere *, std::pair<std::vector<double>, 
-                                  std::vector<Anchor*> > > *bound_curr);
+                                  std::vector<std::pair<Anchor*, std::string> > > > *bound_curr);
   void TestKMCStepSize();
   void SetGlobalCheckForCrossPointer(bool* check);
   void GetInteractors(std::vector<Object *> &ixors);
@@ -69,6 +71,7 @@ public:
   void BindCrosslinkObj(Object *obj);
   void AddNeighborToAnchor(Object *anchor, Object *neighbor);
   void AddMember();
+  void KnockoutBind(Sphere* receptor);
   void InsertAttachedCrosslinksSpecies(std::vector<std::vector<Object *>> receptor_list);
   void GetAnchorInteractors(std::vector<Object *> &ixors);
   void ReadSpecs();

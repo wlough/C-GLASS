@@ -111,7 +111,7 @@ void CrosslinkSpecies::AddMember() {
 void CrosslinkSpecies::InitInteractionEnvironment(std::vector<Object *> *objs,
                                                   double *obj_size,
                                                   Tracker *tracker, bool *update,
-                       std::map<Sphere *, std::pair<std::vector<double>, std::vector<Anchor*> > > *bound_curr) {
+                       std::map<Sphere *, std::pair<std::vector<double>, std::vector<std::pair<Anchor*, std::string> > > > *bound_curr) {
   objs_ = objs;
   obj_size_ = obj_size;
   bound_curr_ = bound_curr;
@@ -123,7 +123,7 @@ void CrosslinkSpecies::InitInteractionEnvironment(std::vector<Object *> *objs,
     lut_.setBindVol(lut_filler_ptr->getBindingVolume());
   }
   /* TODO: Add time testing right here <24-06-20, ARL> */
-  TestKMCStepSize();
+  //TestKMCStepSize();
   delete lut_filler_ptr;
 }
 
@@ -377,6 +377,7 @@ std::pair <Object*, int> CrosslinkSpecies::GetRandomObject() {
         if (bind_rate_sum > roll) {
           Logger::Trace("Binding free crosslink to random object: xl %d -> obj %d",
                         members_.back().GetOID(), (*obj)->GetOID());
+          random_obj_probability_ = bind_rate_sum;
           return std::make_pair(*obj, anchor_index);
         }
       }
@@ -415,11 +416,98 @@ std::pair <Object*, int> CrosslinkSpecies::GetRandomObject() {
   }
 }
 
+//Same function as GetRandomObj().
+//Get GetRandomObj() expects that a new crosslink has been added before getting an object to bind it to, this doesn't.
+std::pair <Object*, int> CrosslinkSpecies::GetRandomObjectKnockout() {
+  if (use_bind_file_) {
+    double bind_rate_sum = 0;
+    // Roll to choose object
+    double roll = bind_rate_*rng_.RandomUniform();
+    // Count up bind rates to pick correct object
+    for (int anchor_index = 0; anchor_index < 2; ++anchor_index) {
+      for (auto obj = objs_->begin(); obj != objs_->end(); ++obj) {
+        std::string name = (*obj)->GetName();
+        auto bind_param_it = bind_param_map_[anchor_index].find(name);
+        // Do not count objects that are not in bind_param_map
+        if (bind_param_it == bind_param_map_[anchor_index].end()) continue;
+        // obj_amount is area if surface density used, length if linear density used
+        double obj_amount = (bind_param_it->second.dens_type == +density_type::linear)
+                            ? (*obj)->GetLength() : (*obj)->GetArea();
+        // Do not contribute area/length if object is already occupied and single occupancy is
+        // selected
+        if (bind_param_it->second.single_occupancy && ((*obj)->GetNAnchored() > 0)) {
+          obj_amount = 0;
+        }
+        bind_rate_sum += bind_param_it->second.k_on_s *
+                         bind_param_it->second.bind_site_density * obj_amount;
+        if (bind_rate_sum > roll) {
+          random_obj_probability_ = bind_rate_sum;
+          return std::make_pair(*obj, anchor_index);
+        }
+      }
+    }
+    Logger::Error("Crosslinks tried to bind to more sites than available- lower timestep.");
+    return std::make_pair(nullptr, -1);
+  } else {
+    // 2x factor comes from 2 anchors
+    double roll = 2*rng_.RandomUniform()*(*obj_size_);
+    double vol = 0;
+
+    // Search through interactors to find an object of shape sh
+    for (int anchor_index = 0; anchor_index < 2; ++anchor_index) {
+      for (auto obj = objs_->begin(); obj != objs_->end(); ++obj) {
+        switch((*obj)->GetShape()) {
+          case shape::rod:
+            vol += (*obj)->GetLength();
+            break;
+          case shape::sphere:
+            if ((*obj)->GetNAnchored()==0) {
+              vol += (*obj)->GetArea();
+            }
+            break;
+          default:
+            break;
+        }
+        if (vol > roll) {
+         return std::make_pair(*obj, anchor_index);
+        }
+      }
+    }
+    Logger::Error("Crosslinks tried to bind to more sites than available- lower timestep.");
+    return std::make_pair(nullptr, -1);
+  }
+}
+
 /* A crosslink binds to an object from solution */
-void CrosslinkSpecies::BindCrosslink() {
-  AddMember();
-  members_.back().AttachObjRandom(GetRandomObject());
-  members_.back().SetGlobalCheckForCross(global_check_for_cross_);
+void CrosslinkSpecies::BindCrosslink() {  
+  std::pair <Object*, int>  RandomObj = GetRandomObjectKnockout();
+  //If binding to sphere, at to knockout
+  if (RandomObj.first->GetShape() == +shape::sphere) {
+    Sphere* RandomSphere = dynamic_cast<Sphere*>(RandomObj.first);
+    (*bound_curr_)[RandomSphere].first.push_back(random_obj_probability_);
+    std::pair<Anchor*, std::string> anchor_and_bind_type;
+    anchor_and_bind_type.first = nullptr;
+    anchor_and_bind_type.second = this->GetSpeciesName();
+    (*bound_curr_)[RandomSphere].second.push_back(anchor_and_bind_type);
+
+  //If binding to rod, bind now
+  } else {
+    AddMember();
+    members_.back().AttachObjRandom(RandomObj);
+    members_.back().SetGlobalCheckForCross(global_check_for_cross_);
+  }
+}
+
+//Bind during knockout
+void CrosslinkSpecies::KnockoutBind(Sphere* receptor) {
+    AddMember();
+    std::pair <Sphere*, int>  Receptor_pair;
+    //receptor to bind to
+    Receptor_pair.first = receptor;
+    //anchor 0
+    Receptor_pair.second = 0;
+    members_.back().AttachSphere(Receptor_pair);
+    members_.back().SetGlobalCheckForCross(global_check_for_cross_);
 }
 
 //Insert crosslink attatched to two receptors
