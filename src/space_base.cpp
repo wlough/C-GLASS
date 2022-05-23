@@ -12,7 +12,14 @@ double SpaceBase::BoundaryArea() const{
       } else {
         return 4 * M_PI * SQR(radius);
       }
-    } 
+    }
+    case +boundary_type::protrusion: {
+      if (n_dim == 2) {
+        Logger::Error("Protrusion not set up for 2d");
+      } else {
+        return 4* M_PI * SQR(radius) + M_PI * SQR(pro_radius) * pro_length;
+      }
+    }
     case +boundary_type::box: {
       if (n_dim == 2) {
         return 8.0 * radius;

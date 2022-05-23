@@ -11,6 +11,8 @@ public:
   int n_periodic;
   bool bud;
   double radius;
+  double pro_radius; //protrusion radius
+  double pro_length; //protrusion length
   double pressure_tensor[9];  // pressure tensor
   double pressure;            // isometric pressure
   double volume;

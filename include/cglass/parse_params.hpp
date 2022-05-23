@@ -64,6 +64,10 @@ system_parameters parse_system_params(YAML::Node &node) {
     params.movie_directory = it->second.as<std::string>();
     } else if (param_name.compare("time_analysis")==0) {
     params.time_analysis = it->second.as<bool>();
+    } else if (param_name.compare("protrusion_radius")==0) {
+    params.protrusion_radius = it->second.as<double>();
+    } else if (param_name.compare("protrusion_length")==0) {
+    params.protrusion_length = it->second.as<double>();
     } else if (param_name.compare("bud_height")==0) {
     params.bud_height = it->second.as<double>();
     } else if (param_name.compare("bud_radius")==0) {

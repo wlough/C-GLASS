@@ -362,7 +362,7 @@ void RigidFilament::ApplyInteractionForces() {
 
 void RigidFilament::Draw(std::vector<graph_struct *> &graph_array) {
   for (auto bond = bonds_.begin(); bond != bonds_.end(); ++bond) {
-    bond->Draw(graph_array);
+    //bond->Draw(graph_array);
   }
 }
 

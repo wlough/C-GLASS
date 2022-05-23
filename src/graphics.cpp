@@ -777,6 +777,23 @@ void Graphics::DrawBoundary() {
       // DrawWireSphere(0.5*unit_cell_[0], 3, 32);
       DrawWireSphere(0.5 * unit_cell_[0], 32, 32);
     if (n_dim_ == 3) DrawWireSphere(0.5 * unit_cell_[0], 16, 16);
+  }
+  if (boundary_ == +boundary_type::protrusion) {
+    glDisable(GL_LIGHTING);
+    glDisable(GL_CULL_FACE);
+
+    /* Fixme: I'm not drawing anything */
+    // Turn on wireframe mode
+    if (n_dim_ == 2){
+      // DrawWireSphere(0.5*unit_cell_[0], 3, 32);
+      DrawWireSphere(0.5 * unit_cell_[0], 32, 32);
+      Logger::Error("Protrusion not set up for 2d");
+    }
+    if (n_dim_ == 3) {
+      DrawWireSphere(0.5 * unit_cell_[0], 16, 16);
+      DrawWireCylinder(0.5 * unit_cell_[0], space_->pro_radius, space_->pro_length);
+    }
+
 
   } else if (boundary_ == +boundary_type::box)
     DrawBox();
@@ -811,6 +828,37 @@ void Graphics::DrawWireSphere(double r, int lats, int longs) {
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
   glEnable(GL_LIGHTING);
   glEnable(GL_CULL_FACE);
+}
+
+
+void Graphics::DrawWireCylinder(double start, double radius, double length) {
+ /* glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+  glLineWidth(1.0);
+  
+  for (int i = 0; i <= lats; i++) {
+    double lat0 = M_PI * (-0.5 + (double)(i - 1) / lats);
+    double z0 = r * sin(lat0);
+    double zr0 = cos(lat0);
+    double lat1 = M_PI * (-0.5 + (double)i / lats);
+    double z1 = r * sin(lat1);
+    double zr1 = cos(lat1);
+    glBegin(GL_QUAD_STRIP);
+    for (int j = 0; j <= longs; j++) {
+      double lng = 2 * M_PI * (double)(j - 1) / longs;
+      double x = r * cos(lng);
+      double y = r * sin(lng);
+      glNormal3f(j, y * radius, z * radius);
+      glVertex3f(x * zr0, y * radius, z * radius);
+      //glNormal3f(x * zr1, y * zr1, z1);
+      //glVertex3f(x * zr1, y * zr1, z1);
+    }
+    glEnd();
+  }
+  // Turn off wireframe mode
+  glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+  glEnable(GL_LIGHTING);
+  glEnable(GL_CULL_FACE);
+*/
 }
 
 void Graphics::DrawLoop() {

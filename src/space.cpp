@@ -25,6 +25,8 @@ void Space::Init(system_parameters *params) {
   if (radius_ <= 0) {
     Logger::Error("System radius is not a positive number!");
   }
+  pro_radius_ = 0; //params_->protrusion_radius;
+  pro_length_ = 0; //params_->protrusion_length;
   bud_radius_ = 0;
   bud_height_ = 0;
   // r_cutoff_ = params_->r_cutoff_boundary;
@@ -76,6 +78,11 @@ void Space::Init(system_parameters *params) {
       break;
     default:
       Logger::Error("Boundary type %d not recognized!", params_->boundary);
+    case 5:
+      boundary_ = boundary_type::protrusion;
+      pro_radius_ = params_->protrusion_radius;
+      pro_length_ = params_->protrusion_length;
+      Logger::Info("Radius set to %f, length set to %f", pro_radius_, pro_length_);
   }
   InitUnitCell();
   CalculateVolume();
@@ -319,6 +326,16 @@ void Space::CalculateVolume() {
       break;
     default:
       break;
+
+    case 5: 
+      v_ratio_ = 0;
+      neck_height_ = 0;
+      neck_radius_ = 0;
+      if (n_dim_ == 2)
+        volume_ = M_PI * SQR(radius_);
+      else
+        volume_ = 4.0 / 3.0 * M_PI * CUBE(radius_);
+      break;
   }
 }
 
@@ -326,6 +343,10 @@ void Space::InitSpaceStruct() {
   s.n_dim = n_dim_;
   s.n_periodic = n_periodic_;
   s.type = boundary_;
+  if (boundary_ == +boundary_type::protrusion) {
+    s.pro_radius = pro_radius_;
+    s.pro_length = pro_length_;
+  }
   if (boundary_ == +boundary_type::budding) {
     s.bud = true;
     s.bud_height = bud_height_;

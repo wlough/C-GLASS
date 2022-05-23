@@ -12,6 +12,8 @@ boundary : [0, int]                  # 0: No boundary condition constraints.
                                      # 1: Box-like boundary condition.
                                      # 2: Spherical BC with radius of system_radius.
                                      # 3: Budding-yeast BC with mother and daughter cell.
+                                     # 4: Wall like boundary condition
+                                     # 5: Protrusion type boundary condition  
 system_radius : [100, double]        # Sets system volume. 1D system length is 2 x system_radius.
 n_steps : [1000000, int]             # Number of steps to run simulation before completion.
 i_step: [0, int]                     # Internal parameter used for tracking simulation iteration.
@@ -32,6 +34,8 @@ n_load: [0, int]                     # Internal parameter for keeping track of r
 movie_flag : [false, bool]           # Generate bitmaps of graphics window to movie_directory
 movie_directory : [frames, string]   # Directory to output graphics bitmaps
 time_analysis : [false, bool]        # Generate output file with simulation runtime data
+protrusion_radius: [50, double]      # Radius of protrusion when using protrusion boundary type
+protrusion_length: [50, double]      # Length of protrusion when using protrusion boundary type
 bud_height : [680, double]           # center separation of mother and daughter cells
 bud_radius : [300, double]           # radius of daughter cell
 lj_epsilon: [1, double]              # Energy scaling factor for Lennard-Jones potential

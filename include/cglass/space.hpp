@@ -21,6 +21,10 @@ private:
   double unit_cell_[9];     // unit cell matrix
   double unit_cell_inv_[9]; // inverse unit cell matrix
 
+  // protrusion data
+  double pro_radius_ = 10;
+  double pro_length_ = 10;
+
   // bud data
   double bud_radius_ = 0;  // radius of budding cell
   double bud_height_ = 0;  // center-center dist of mother and daughter cells

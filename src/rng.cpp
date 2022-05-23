@@ -79,6 +79,18 @@ void RNG::RandomCoordinate(const SpaceBase *const s, double *vec,
         vec[i] *= mag;
       }
       break;
+    // protrusion boundary
+    case +boundary_type::protrusion:  // protrusion
+      RandomUnitVector(n_dim, vec);
+      mag = gsl_rng_uniform_pos(rng_) * (R - buffer);
+      for (int i = 0; i < n_dim; ++i) {
+        vec[i] *= mag;
+        if (i==1 || i==2) {
+        vec[i] +=1;
+          
+        }
+      }
+      break;
     // budding yeast boundary type
     case +boundary_type::budding:  // budding
     {

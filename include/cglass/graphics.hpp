@@ -122,6 +122,7 @@ class Graphics {
   void DrawWireSphere(
       double r, int lats,
       int longs);  // Slow, not for mass drawing, just for boundary
+  void DrawWireCylinder(double center, double radius, double length);
   void DrawBoundary();
   void DrawBudding();
   void Draw2dBudding();  // Draws budding boundary

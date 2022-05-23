@@ -197,6 +197,8 @@
   default_config["movie_flag"] = "false";
   default_config["movie_directory"] = "frames";
   default_config["time_analysis"] = "false";
+  default_config["protrusion_radius"] = "50";
+  default_config["protrusion_length"] = "50";
   default_config["bud_height"] = "680";
   default_config["bud_radius"] = "300";
   default_config["lj_epsilon"] = "1";

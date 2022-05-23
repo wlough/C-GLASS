@@ -51,6 +51,11 @@ public:
                       double buffer);
   void SpheroBuddingBC(double const *const r, double const *const u, double const length, 
                       double *dr, double *dr_mag2, bool& outside, double *r_contact, double buffer);
+  void PointProtrusionBC(double const *const r, double *dr, double *dr_mag2, bool &outside, 
+                     double buffer);
+  void SpheroProtrusionBC(double const *const r, double const *const u, double const length,
+                      double *dr, double *dr_mag2, bool& outside, double *r_contact, 
+                      double buffer);
   void PointWallBC(double const *const r, double const *const s, double *dr, double *dr_mag2, 
                    bool& outside, double buffer);
   void SpheroWallBC(double const *const r, double const *const s,

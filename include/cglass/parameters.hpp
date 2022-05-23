@@ -245,6 +245,8 @@ struct system_parameters {
   bool movie_flag = false;
   std::string movie_directory = "frames";
   bool time_analysis = false;
+  double protrusion_radius = 50;
+  double protrusion_length = 50;
   double bud_height = 680;
   double bud_radius = 300;
   double lj_epsilon = 1;
