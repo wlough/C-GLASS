@@ -288,6 +288,7 @@ br_bead:
 spherocylinder:
   diffusion_analysis: [false, bool]
   n_diffusion_samples: [1, int]
+  unbound_crosslink: [false, bool]
 spindle:
   n_filaments_bud: [0, int]
   n_filaments_mother: [0, int]
@@ -309,6 +310,7 @@ crosslink:                          # Parameters specific to crosslinks.
                                     # Units in #/area or #/vol in 2D or 3D for free xlinks. In
                                     # #/area for grid spacing. In #/length or #/area for 2D or 3D
                                     # boundaries.
+  f_to_s_factor: [0, double]
   begin_with_bound_crosslinks: [0, int]   # if greater than 0 the simultion begins with the specified number
                                     # of crosslinkers singly attached to microtubules
   begin_double_bound: [false, bool]  # Crosslinks from begin with_with_bound_crosslinks start double
@@ -362,6 +364,8 @@ crosslink:                          # Parameters specific to crosslinks.
                                     # Calculated using k_spring, rest_length. User input ignored.
   lut_grid_num: [256, int]          # Number of grid points used in one dimension of the the lookup table (LUT).
                                     # Total entries go as the square of this number e.g. 256 x 256
+  exist_in_solution: [false, bool]
+  pro_diffusion_test: [false, bool]
 
   anchors:
     velocity_s: [0, double]           # Bound crosslink head velocities when walkers are singly bound.

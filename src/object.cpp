@@ -81,6 +81,9 @@ void Object::SetLength(double new_length) { length_ = new_length; }
 void Object::AddForce(double const *const f) {
   for (int i = 0; i < n_dim_; ++i)
     force_[i] += f[i];
+ //if ((this->GetName()).c_str() == "cut7") {
+ //Logger::Info("Force was added for %s, with ID %i, x is %f", (this->GetName()).c_str(), this->GetOID(), force_[0]);
+//}
 }
 void Object::SubForce(double const *const f) {
   for (int i = 0; i < n_dim_; ++i)
@@ -153,7 +156,7 @@ void Object::DecrementNAnchored() {
     Logger::Error("n_anchored_ should not be <0");
   }
 }
-double const *const Object::GetPosition() { return position_; }
+double const *const Object::GetPosition() const { return position_; }
 double const *const Object::GetPrevPosition() { return prev_position_; }
 double const *const Object::GetPrevOrientation() { return prev_orientation_; }
 double const *const Object::GetScaledPosition() { return scaled_position_; }
@@ -168,6 +171,8 @@ double const Object::GetContactNumber() { return contact_number_; }
 bool const Object::IsInteractor() { return interacting_; }
 bool const Object::IsMesh() { return is_mesh_; }
 bool const Object::IsFixed() { return fixed_; }
+bool Object::GetOutside() {return outside_;}
+void Object::SetOutside(bool outside) {outside_ = outside;}
 bool const Object::CheckInteractorUpdate() {
   if (interactor_update_) {
     interactor_update_ = false;
@@ -224,6 +229,9 @@ void Object::ZeroForce() {
   std::fill(force_, force_ + 3, 0.0);
   std::fill(torque_, torque_ + 3, 0.0);
   p_energy_ = 0.0;
+  //if ((this->GetName()).c_str() == "cut7") {
+  //Logger::Info("Force was zeroed for %s", (this->GetName()).c_str());
+  //}
 }
 
 void Object::Draw(std::vector<graph_struct *> &graph_array) {
@@ -247,6 +255,7 @@ void Object::UpdatePeriodic() {
                                space_->unit_cell, space_->unit_cell_inv,
                                position_, s);
   SetScaledPosition(s);
+  //Logger::Info("Scaled position set to %f,%f,%f", s[0], s[1],s[2]);
   UpdateKMC();
 }
 

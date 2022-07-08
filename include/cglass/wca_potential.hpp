@@ -20,7 +20,9 @@ public:
     double ffac = -(12.0 * c12_ * r6 - 6.0 * c6_) * r6 * rinv;
     // Cut off the force at fcut
     if (ABS(ffac) > max_force_) {
-      MaxForceViolation();
+      //MaxForceViolation();
+      ffac= ABS(ffac)/ffac * max_force_;
+      //Logger::Info("max force is %f", max_force_);
     }
     for (int i = 0; i < n_dim_; ++i) {
       ix.force[i] = ffac * dr[i] * rinv;

@@ -58,21 +58,21 @@ public:
 
   Object *GetNeighbor(int i_neighbor) {
     if (i_neighbor >= nlist_.size()) {
-      Logger::Error("Invalid index received in class NeighborList");
+      Logger::Error("Invalid index received in neigbor class NeighborList, i %i, size %i",i_neighbor , nlist_.size());
     }
     return nlist_[i_neighbor];
   }
 
   Sphere *GetSphereNeighbor(int i_neighbor) {
     if (i_neighbor >= nlist_sphere_.size()) {
-      Logger::Error("Invalid index received in class NeighborList");
+      Logger::Error("Invalid index received in sphere class NeighborList, i %i, size %i",i_neighbor , nlist_.size());
     }
     return const_cast<Sphere *>(nlist_sphere_[i_neighbor]);
   }
 
   Rod *GetRodNeighbor(int i_neighbor) {
     if (i_neighbor >= nlist_rod_.size()) {
-      Logger::Error("Invalid index received in class NeighborList");
+      Logger::Error("Invalid index received in rod class NeighborList, i %i, size %i",i_neighbor , nlist_.size());
     }
     return const_cast<Rod *>(nlist_rod_[i_neighbor]);
   }

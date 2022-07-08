@@ -100,9 +100,9 @@ Outputs:
 void periodic_boundary_conditions(int n_dim, int n_periodic, double *h,
                                   double *h_inv, double *r, double *s) {
   /* Compute scaled coordinate and apply periodic boundary conditions. */
-  for (int i = 0; i < n_periodic; ++i) {
+  for (int i = 0; i < n_dim; ++i) {
     s[i] = 0.0;
-    for (int j = 0; j < n_periodic; ++j) {
+    for (int j = 0; j < n_dim; ++j) {
       s[i] += h_inv[n_dim * i + j] * r[j];
     }
     s[i] -= NINT(s[i]);

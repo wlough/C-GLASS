@@ -62,7 +62,9 @@ void Anchor::UpdateAnchorPositionToMesh() {
   if (!bound_ || static_flag_)
     return;
   if (!mesh_) {
+    //Logger::Info("1");
     UpdateAnchorPositionToObj();
+    //Logger::Info("2");
     return;
   }
 
@@ -82,7 +84,9 @@ void Anchor::UpdateAnchorPositionToMesh() {
     return;
   }
   // Update anchor position with respect to bond
+  //Logger::Info("3");
   UpdateAnchorPositionToObj();
+  //Logger::Info("4");
 }
 
 bool Anchor::CalcRodLambda() {
@@ -391,6 +395,10 @@ void Anchor::Deactivate() {
   step_direction_ = -step_direction_;
 }
 
+bool Anchor::GetActive() {
+  return active_;
+}
+
 void Anchor::Walk() {
   double vel = GetMaxVelocity();
   if (force_dep_vel_flag_) {
@@ -475,12 +483,39 @@ void Anchor::Unbind() {
   mesh_lambda_ = -1;
   active_ = false;
   reached_plus_end_ = false;
-  ClearNeighbors();
+  if (sparams_->exist_in_solution == false) {
+    ClearNeighbors();
+  }
   ZeroForce();
   SetCompID(-1);
   std::fill(position_, position_ + 3, 0.0);
   std::fill(orientation_, orientation_ + 3, 0.0);
 }
+
+void Anchor::UnbindToFree() {
+  Logger::Trace("Anchor %i unbound", this->GetOID());
+  //if (static_flag_) {
+  //  Logger::Error("Static anchor attempted to unbind");
+  //}
+  if (sphere_) sphere_->DecrementNAnchored();
+  bound_ = true;
+  rod_ = nullptr;
+  sphere_ = nullptr;
+  comp_ = nullptr;
+  mesh_ = nullptr;
+  bond_ = nullptr;
+  mesh_n_bonds_ = -1;
+  rod_length_ = -1;
+  bond_lambda_ = -1;
+  mesh_lambda_ = -1;
+  active_ = false;
+  reached_plus_end_ = false;
+  ZeroForce();
+  SetCompID(-1);
+  std::fill(orientation_, orientation_ + 3, 0.0);
+}
+
+
 
 // Get the bind rate just for the object attached to this anchor
 double Anchor::CalcSingleBindRate() {
@@ -573,7 +608,7 @@ void Anchor::CalculatePolarAffinity(std::vector<double> &doubly_binding_rates) {
 }
 
 void Anchor::Draw(std::vector<graph_struct *> &graph_array) {
-  if (!bound_)
+  if ((!bound_) && (state_ != +bind_state::free))
     return;
   std::copy(scaled_position_, scaled_position_ + 3, g_.r);
   for (int i = space_->n_periodic; i < n_dim_; ++i) {
@@ -581,7 +616,7 @@ void Anchor::Draw(std::vector<graph_struct *> &graph_array) {
   }
   std::copy(orientation_, orientation_ + 3, g_.u);
   g_.color = color_;
-  g_.diameter = .33;
+  g_.diameter = 2;
   g_.length = length_;
   g_.draw = draw_;
   graph_array.push_back(&g_);
@@ -653,7 +688,9 @@ void Anchor::AttachObjLambda(Object *o, double lambda) {
   /* Distance anchor is relative to entire mesh length */
   mesh_lambda_ = bond_->GetMeshLambda() + bond_lambda_;
   SetCompID(rod_->GetCompID());
+  Logger::Info("5");
   UpdateAnchorPositionToObj();
+  Logger::Info("6");
   ZeroDrTot();
   bound_ = true;
 }
@@ -719,7 +756,9 @@ void Anchor::AttachObjMeshLambda(Object *o, double mesh_lambda) {
   bound_ = true;
   mesh_lambda_ = mesh_lambda;
   mesh_n_bonds_ = -1;
+  Logger::Info("Mesh 1");
   UpdateAnchorPositionToMesh();
+  Logger::Info("Mesh 2");
   if (!bound_) {
     Logger::Error(
         "Updating anchor to mesh from checkpoint resulted in an unbound "
@@ -873,7 +912,7 @@ double Anchor::GetRecS() {
       return -s;
     }
   } else {
-    Logger::Error("Anchor is not attatched to Sphere");
+    Logger::Warning("Anchor is not attatched to Sphere");
   return 0;
   }
 }
@@ -888,6 +927,9 @@ const int Anchor::GetNNeighborsSphere() const { return neighbors_.NNeighborsSphe
 
 
 void Anchor::WriteSpec(std::fstream &ospec) {
+  //bool bound_or_free = (state_ != +bind_state::free);
+
+  //Logger::Info("bound or free is %i", bound_or_free);
   ospec.write(reinterpret_cast<char *>(&bound_), sizeof(bool));
   ospec.write(reinterpret_cast<char *>(&active_), sizeof(bool));
   ospec.write(reinterpret_cast<char *>(&static_flag_), sizeof(bool));
@@ -951,6 +993,7 @@ void Anchor::ReadSpec(std::fstream &ispec) {
 
 void Anchor::SetStatic(bool static_flag) { static_flag_ = static_flag; }
 void Anchor::SetState(bind_state state) { state_ = state; }
+void Anchor::SetUnbound() {bound_ = false;}
 
 const double Anchor::GetOnRate() const {
   switch (state_) {

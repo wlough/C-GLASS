@@ -21,6 +21,7 @@ private:
   LookupTable *lut_;
   bool static_flag_ = false;
   bool asymmetric_spring_flag_ = false;
+  bool free_flag_ = false;
   double k_spring_;
   double k_spring_compress_;
   double k_align_;
@@ -41,8 +42,10 @@ private:
   std::vector<Anchor> anchors_;
   void CalculateTetherForces();
   void CalculateBinding();
+  void FreeKMC();
   void SinglyKMC();
   void DoublyKMC();
+  void DiffuseFree();
   void UpdateAnchorsToMesh();
   void UpdateAnchorPositions();
   void UpdateXlinkState();
@@ -75,10 +78,13 @@ public:
   void SetDoubly();
   void SetSingly(int bound_anchor);
   void SetUnbound();
+  void SetFree(bool a);
   void SetAnchorStates();
   const bool IsDoubly() const;
   const bool IsUnbound() const;
   const bool IsSingly() const;
+  const bool IsFree() const;
+  std::string GetState();
   void UpdatePosition();
   void WriteSpec(std::fstream &ospec);
   void WriteCheckpoint(std::fstream &ocheck);
@@ -90,6 +96,7 @@ public:
   void ZeroDrTot();
   const double GetDrTot();
   void InsertAt(double const *const new_pos, double const *const u);
+  void InsertFree(double const *const new_pos, double const *const u);
   const int GetNNeighbors() const;
   void SetObjSize(double *obj_size);
   void SetBindRate(double *bind_rate);

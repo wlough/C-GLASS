@@ -109,6 +109,7 @@
   default_config["br_bead"]["draw_shape"] = "sphere";
   default_config["spherocylinder"]["diffusion_analysis"] = "false";
   default_config["spherocylinder"]["n_diffusion_samples"] = "1";
+  default_config["spherocylinder"]["unbound_crosslink"] = "false";
   default_config["spindle"]["n_filaments_bud"] = "0";
   default_config["spindle"]["n_filaments_mother"] = "0";
   default_config["spindle"]["alignment_potential"] = "false";
@@ -140,6 +141,7 @@
   default_config["crosslink"]["anchors"][0]["k_off_d"] = "2";
   default_config["crosslink"]["anchors"][1]["k_off_d"] = "2";
   default_config["crosslink"]["concentration"] = "0";
+  default_config["crosslink"]["f_to_s_factor"] = "0";
   default_config["crosslink"]["begin_with_bound_crosslinks"] = "0";
   default_config["crosslink"]["begin_double_bound"] = "false";
   default_config["crosslink"]["no_binding"] = "false";
@@ -168,6 +170,8 @@
   default_config["crosslink"]["plus_end_pausing"] = "false";
   default_config["crosslink"]["r_capture"] = "5";
   default_config["crosslink"]["lut_grid_num"] = "256";
+  default_config["crosslink"]["exist_in_solution"] = "false";
+  default_config["crosslink"]["pro_diffusion_test"] = "false";
   default_config["receptor"]["component"] = "cortex";
   default_config["receptor"]["concentration"] = "-1";
   default_config["receptor"]["induce_catastrophe"] = "false";

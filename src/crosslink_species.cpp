@@ -220,7 +220,60 @@ void CrosslinkSpecies::InsertCrosslinks() {
   if (sparams_.insertion_type.compare("random") == 0) {
     sparams_.static_flag = false;
     return;
+  } else if (sparams_.insertion_type.compare("free") == 0) {
+    Logger::Info("Inserting free crosslink");
+    sparams_.infinite_reservoir_flag = false;
+    if (params_->n_dim == 3) {
+      if (space_->type == +boundary_type::none ||
+          space_->type == +boundary_type::box) {
+        sparams_.num = (int)round(4 * space_->radius * space_->radius *
+                                  xlink_concentration_);
+      } else if (space_->type == +boundary_type::sphere || space_->type == +boundary_type::protrusion) {
+        sparams_.num = (int)round(M_PI * space_->radius * space_->radius *
+                                  xlink_concentration_);
+        Logger::Info("Inserting %i crosslinks", sparams_.num);
+      } else if (space_->type == +boundary_type::budding) {
+        double R = space_->radius;
+        double r = space_->bud_radius;
+        double d = space_->bud_height;
+        sparams_.num = (int)round(
+            M_PI * SQR(R) + M_PI * SQR(r) -
+            SQR(r) * acos((SQR(d) + SQR(r) - SQR(R)) / (2 * d * r)) -
+            SQR(R) * acos((SQR(d) + SQR(R) - SQR(r)) / (2 * d * R)) +
+            0.5 * sqrt((R + r - d) * (r + d - R) * (R + d - r) * (R + r + d)));
+      } else {
+        Logger::Error("Boundary type not recognized in CrosslinkSpecies");
+      }
+    }
+    for (int i = 0; i < sparams_.num; ++i) {
+      AddMember();
+      members_.back().InsertRandom();
+
+      /* If in 3D, zero out the third dimension so the anchor is on a plane */
+      if (params_->n_dim == 3) {
+      if (sparams_.pro_diffusion_test == true) {
+        double projected_pos[3] = {0};
+        double same_u[3] = {0};       
+		    projected_pos[0] = (-space_->radius - .5 * space_->pro_length);
+        members_.back().InsertFree(projected_pos, same_u);
+        members_.back().SetGlobalCheckForCross(global_check_for_cross_);
+      } else { 
+        double projected_pos[3] = {0};
+        double same_u[3] = {0};
+        const double *const pos = members_.back().GetPosition();
+        const double *const u = members_.back().GetOrientation();
+        for (int j = 0; j < 3; ++j) {
+          projected_pos[j] = pos[j];
+          same_u[j] = u[j];
+        }
+        members_.back().InsertFree(projected_pos, same_u);
+       members_.back().SetGlobalCheckForCross(global_check_for_cross_);
+      }
+      }
+    }
+ 
   } else if (sparams_.insertion_type.compare("centered") == 0) {
+    Logger::Info("Inserting centered crosslinks");
     sparams_.num = 1;
     sparams_.static_flag = true;
     sparams_.infinite_reservoir_flag = false;
@@ -237,7 +290,7 @@ void CrosslinkSpecies::InsertCrosslinks() {
           space_->type == +boundary_type::box) {
         sparams_.num = (int)round(4 * space_->radius * space_->radius *
                                   xlink_concentration_);
-      } else if (space_->type == +boundary_type::sphere) {
+      } else if (space_->type == +boundary_type::sphere || space_->type == +boundary_type::protrusion) {
         sparams_.num = (int)round(M_PI * space_->radius * space_->radius *
                                   xlink_concentration_);
       } else if (space_->type == +boundary_type::budding) {
@@ -255,9 +308,17 @@ void CrosslinkSpecies::InsertCrosslinks() {
     }
     for (int i = 0; i < sparams_.num; ++i) {
       AddMember();
+      if (sparams_.pro_diffusion_test == true) {
+        double projected_pos[3] = {0};
+        double same_u[3] = {0};       
+		    projected_pos[0] = (-space_->radius - .5 * space_->pro_length);
+        members_.back().InsertAt(projected_pos, same_u);
+      } 
+      else {
       members_.back().InsertRandom();
+      }
       /* If in 3D, zero out the third dimension so the anchor is on a plane */
-      if (params_->n_dim == 3) {
+      if (params_->n_dim == 3 && sparams_.pro_diffusion_test == false) {
         double projected_pos[3] = {0};
         double same_u[3] = {0};
         const double *const pos = members_.back().GetPosition();
@@ -541,7 +602,7 @@ void CrosslinkSpecies::UpdatePositions() {
   if (!params_->on_midstep) {
     /* First update bound crosslinks state and positions */
     UpdateBoundCrosslinks();
-    if (sparams_.no_binding == false && sparams_.no_solution_binding == false){
+    if (sparams_.no_binding == false && sparams_.no_solution_binding == false && sparams_.exist_in_solution == false){
       /* Calculate implicit binding of crosslinks from solution */
       CalculateBindingFree();
     }
@@ -554,6 +615,18 @@ void CrosslinkSpecies::UpdatePositions() {
     // cleared on the full step and are double-counted
     ClearNeighbors();
   }
+  
+  int num = 0;
+  for (const auto &xl : members_) {
+    if (xl.IsFree())
+      ++num;
+  }
+  if (num == 0) {
+    Logger::Info("%i All Crosslinkers have bound at time step %i", num, params_->i_step);
+    Logger::Error("reached crosslink numebr");
+  }
+  
+
   // for (auto it=members_.begin(); it!=members_.end(); ++it) {
   // it->SanityCheck();
   //}
@@ -593,14 +666,16 @@ void CrosslinkSpecies::UpdateBoundCrosslinks() {
   /* Update anchor positions from diffusion, walking */
   UpdateBoundCrosslinkPositions();
   /* Remove crosslinks that came unbound */
-  if (!sparams_.static_flag) {
+  if (!sparams_.static_flag and *global_check_for_cross_ == true) {
     members_.erase(std::remove_if(members_.begin(), members_.end(),
                                   [](Crosslink x) { return x.IsUnbound(); }),
                    members_.end());
+     *global_check_for_cross_ = false;
   }
   /* Get the number of bound crosslinks so we know what the current
      concentration of free crosslinks is */
   n_members_ = members_.size();
+  //Logger::Info("number of members is %i", n_members_);
 }
 
 /* This must be done sequentially to avoid racy conditions when accessing
@@ -630,13 +705,17 @@ void CrosslinkSpecies::UpdateBoundCrosslinkForces() {
 #pragma omp for
     for (int i = 0; i < max_threads; ++i) {
       for (auto xlink = chunks[i].first; xlink != chunks[i].second; ++xlink) {
-        bool init_state = xlink->IsSingly();
+        bool init_state = (xlink->IsSingly() /*|| xlink->IsFree()*/);
+        //std::string state_ = xlink->GetState();
         if (sparams_.static_flag && init_state && xlink->GetNNeighbors() == 0) {
           continue;
         }
         xlink->UpdateCrosslinkForces();
-        if (xlink->IsSingly() != init_state) {
-          *update_ = true;
+        //if (state_ == "single" and xlink->GetState() == "free"){
+        //  *update_ = false;
+        //}
+        else if ((xlink->IsSingly() != init_state) /*&& ( xlink->IsFree() != init_state)*/) {
+					*update_ = true;
         }
       }
     }
@@ -644,12 +723,16 @@ void CrosslinkSpecies::UpdateBoundCrosslinkForces() {
 #else
   for (xlink_iterator xlink = members_.begin(); xlink != members_.end();
        ++xlink) {
-    bool init_state = xlink->IsSingly();
+    bool init_state = (xlink->IsSingly() /*|| xlink->IsFree()*/);
+    std::string state_ = xlink->GetState();
     if (sparams_.static_flag && init_state && xlink->GetNNeighbors() == 0) {
       continue;
     }
     xlink->UpdateCrosslinkForces();
-    if (xlink->IsSingly() != init_state) {
+        //if (state_ == "single" and xlink->GetState() == "free"){
+        //  *update_ = false;
+        //}
+    if ((xlink->IsSingly() != init_state) /*&& ( xlink->IsFree() != init_state)*/) {
       *update_ = true;
     }
   }
@@ -675,7 +758,8 @@ void CrosslinkSpecies::UpdateBoundCrosslinkPositions() {
 #pragma omp for
     for (int i = 0; i < max_threads; ++i) {
       for (auto xlink = chunks[i].first; xlink != chunks[i].second; ++xlink) {
-        bool init_state = xlink->IsSingly();
+        bool init_state = (xlink->IsSingly() /*|| xlink->IsFree()*/);
+        std::string state_ = xlink->GetState();
         if (sparams_.static_flag && init_state && xlink->GetNNeighbors() == 0) {
           continue;
         }
@@ -688,7 +772,11 @@ void CrosslinkSpecies::UpdateBoundCrosslinkPositions() {
           *update_ = true;
           /* If a crosslink enters or leaves the singly state, we need to
            * update xlink interactors */
-        } else if (xlink->IsSingly() != init_state) {
+        } 
+        //else if (state_ == "single" and xlink->GetState() == "free"){
+        //  *update_ = false;
+        //}
+				else if ((xlink->IsSingly() != init_state) /*&& ( xlink->IsFree() != init_state)*/) {
           *update_ = true;
         }
       }
@@ -697,7 +785,8 @@ void CrosslinkSpecies::UpdateBoundCrosslinkPositions() {
 #else
   for (xlink_iterator xlink = members_.begin(); xlink != members_.end();
        ++xlink) {
-    bool init_state = xlink->IsSingly();
+    bool init_state = (xlink->IsSingly() /*|| xlink->IsFree()*/);
+    std::string state_ = xlink->GetState();
     if (sparams_.static_flag && init_state && xlink->GetNNeighbors() == 0) {
       continue;
     }
@@ -710,7 +799,11 @@ void CrosslinkSpecies::UpdateBoundCrosslinkPositions() {
       *update_ = true;
       /* If a crosslink enters or leaves the singly state, we need to update
        * xlink interactors */
-    } else if (xlink->IsSingly() != init_state) {
+    } 
+    //else if (state_ == "single" and xlink->GetState() == "free"){
+    //      *update_ = false;
+    //    }
+		else if ((xlink->IsSingly() != init_state) /*&& ( xlink->IsFree() != init_state)*/){
       *update_ = true;
     }
   }

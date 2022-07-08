@@ -79,11 +79,13 @@ void CrosslinkManager::UpdateCrosslinks() {
     (*it)->UpdatePositions();
     (*it)->UpdateBindRate();
   }
+
   if (!bound_curr_.empty()){
     Knockout();
   }
   //Use global check for cross so we don't need to check individual crosslinkers every time step
   if (global_check_for_cross == true) {
+    Logger::Info("Checking for cross");
     CheckForCross();
     global_check_for_cross = false;
   }
@@ -110,6 +112,7 @@ void CrosslinkManager::CheckForCross() {
               //Get how far the crosslinker anchors are along the filament
               std::vector<double> link_one_s = link_one -> GetAnchorS();
               std::vector<double> link_two_s = link_two -> GetAnchorS();
+              if (link_one_s[0] == 0 || link_two_s[0] == 0 || link_one_s[1] == 0 || link_two_s[1] == 0) {break;}
               //Get the IDs of the PCs crosslink one is attatched to
               std::vector<int> rec_ids_one = link_one -> GetReceptorPCIDs();
               //Get the IDs of the PCs crosslink two is attatched to
@@ -227,12 +230,26 @@ void CrosslinkManager::KnockoutBind(Sphere* receptor, int winner) {
     Object* ob_pointer = bound_curr_[receptor].second[winner].first->GetCrosslinkPointer();
     Crosslink* cl_pointer = dynamic_cast<Crosslink*>(ob_pointer);
     if (!cl_pointer) {
-      Logger::Error("Dynamic cast failed, cl_ponter doesn't exist");
+      Logger::Warning("Dynamic cast failed, cl_ponter doesn't exist");
+      return;
     }    
 		cl_pointer->SetDoubly();
     bound_curr_[receptor].second[winner].first->AttachObjCenter(receptor);
   }
 
+  else if (bound_curr_[receptor].second[winner].second == "free to single") {
+  Logger::Info("Free to single bind");
+    Object* ob_pointer = bound_curr_[receptor].second[winner].first->GetCrosslinkPointer();
+    Crosslink* cl_pointer = dynamic_cast<Crosslink*>(ob_pointer);
+    if (!cl_pointer) {
+      Logger::Error("Dynamic cast failed, cl_ponter doesn't exist");
+    }
+    cl_pointer->SetSingly(0);    
+    bound_curr_[receptor].second[winner].first->AttachObjCenter(receptor);
+    //bound_curr_[receptor].second[winner].first->SetStatic(0);
+    //bound_curr_[receptor].second[winner].first->SetStatic(0);
+
+  }
   //Bind from soultion, bind type is set to species name if binding from solution 
   else {
    CrosslinkSpecies* cl_species_ = species_map_[bound_curr_[receptor].second[winner].second.c_str()];
@@ -253,8 +270,11 @@ void CrosslinkManager::AddKnockoutCrosslinks() {
 
 void CrosslinkManager::InsertCrosslinks() {
   for (auto it = xlink_species_.begin(); it != xlink_species_.end(); ++it) {
-    (*it)->InsertCrosslinks();
-    (*it)->SetGlobalCheckForCrossPointer(&global_check_for_cross);
+   (*it)->SetGlobalCheckForCrossPointer(&global_check_for_cross);
+ 
+  (*it)->InsertCrosslinks();
+ //   (*it)->SetGlobalCheckForCrossPointer(&global_check_for_cross);
+    Logger::Info("Inderting crosslinks");
   } 
 }
 

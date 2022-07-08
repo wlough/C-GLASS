@@ -51,6 +51,7 @@ protected:
   bool fixed_ = false;
   int n_anchored_;
   bool interactor_update_;
+  bool outside_;
 
   std::vector<Object *> interactors_;
   std::vector<object_interaction> ixs_;
@@ -106,7 +107,9 @@ public:
   const std::string& GetName() const;
   const int GetOID() const;
   const int GetCompID() const;
-  const double *const GetPosition();
+  bool GetOutside();
+  void SetOutside(bool outside);
+  const double *const GetPosition() const;
   const double *const GetPrevPosition();
   const double *const GetPrevOrientation();
   const double *const GetScaledPosition();

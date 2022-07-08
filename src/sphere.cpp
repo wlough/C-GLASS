@@ -20,6 +20,7 @@ Object* Sphere::GetPCObjectForSphere() {
   return pc_object_;
 }
 
+
 //Set how long the sphere is along the filament
 void Sphere::SetSphereS(double s) {
   s_ = s;

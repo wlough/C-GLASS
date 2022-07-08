@@ -305,7 +305,8 @@ if (species_.back()->GetNInsert() > 0) {
       double spec_length = species_.back()->GetSpecLength();
       double spec_d = species_.back()->GetSpecDiameter();
       spec_length = (spec_d > spec_length ? spec_d : spec_length);
-      CellList::SetMinCellLength(1.5 * spec_length);
+      //CellList::SetMinCellLength(1.5 * spec_length);
+      Logger::Info("Cell length set to %f from species length", 1.5*spec_length);
     } else {
       species_.back()->CleanUp();
       delete species_.back();

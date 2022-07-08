@@ -10,13 +10,16 @@ bool CellList::_no_init_ = true;
 void CellList::SetMinCellLength(double l) {
   if (l > _min_cell_length_) {
     Logger::Debug("Setting minimum cell length to be %2.2f", l);
-    _min_cell_length_ = l;
+    _min_cell_length_ = 3.75580*1.5; //l;
   }
+  
 }
-double CellList::GetCellLength() { return _cell_length_; }
+double CellList::GetCellLength() { return 3.75*1.5; /*_cell_length_;*/ }
 
 void CellList::Init(int n_dim, int n_periodic, double system_radius) {
-  _n_cells_1d_ = (int)floor(2 * system_radius / _min_cell_length_);
+  //_n_cells_1d_ = (int)floor(2 * system_radius / _min_cell_length_);
+  _n_cells_1d_ = (int)floor(240 / _min_cell_length_);
+  Logger::Info("Number of cells %i", _n_cells_1d_);
   _no_init_ = false;
 #ifdef TRACE
   if (_n_cells_1d_ > 20) {
@@ -39,7 +42,7 @@ void CellList::Init(int n_dim, int n_periodic, double system_radius) {
     /* Give debugging details if we have bad parameters and throw error. Note
        that _n_cells_1d_ can be 0 if the interaction distance is greater than
        the system diameter */
-    Logger::Debug("n_cells_1d: %d, min_cell_length: %2.6f, system_radius:"
+    Logger::Info("n_cells_1d: %d, min_cell_length: %2.6f, system_radius:"
                   " %2.2f",
                   _n_cells_1d_, _min_cell_length_, system_radius);
     Logger::Error("Cell list received bad initialization parameters!");
@@ -61,7 +64,7 @@ void CellList::Init(int n_dim, int n_periodic, double system_radius) {
   _cell_length_ = (double)2 * system_radius / _n_cells_1d_;
   _n_dim_ = n_dim;
   _n_periodic_ = n_periodic;
-  Logger::Debug("Cell list initialized with %d cells per side of length %2.2f",
+  Logger::Info("Cell list initialized with %d cells per side of length %2.2f",
                 _n_cells_1d_, _cell_length_);
 }
 
@@ -140,23 +143,63 @@ void CellList::MakePairs(std::vector<Interaction> &pair_list) {
 }
 
 xyz_coord CellList::FindCellCoords(Object &obj) {
-  const double *const spos = obj.GetScaledPosition();
-  double x = spos[0] + 0.5;
+  //const double *const spos = obj.GetScaledPosition();
+  const double *const pos = obj.GetPosition();
+
+  /*if (1 == 1) {
+  double x = pos[0]/74 + 0.5;
   int xcell = (int)floor(_n_cells_1d_ * x);
   if (xcell == _n_cells_1d_)
     xcell -= 1;
-  double y = spos[1] + 0.5;
+  double y = pos[1]/74 + 0.5;
   int ycell = (int)floor(_n_cells_1d_ * y);
   if (ycell == _n_cells_1d_)
     ycell -= 1;
   int zcell = 0;
   if (_n_dim_ == 3) {
-    double z = spos[2] + 0.5;
+    double z = pos[2]/74 + 0.5;
     zcell = (int)floor(_n_cells_1d_ * z);
     if (zcell == _n_cells_1d_)
       zcell -= 1;
   }
   return std::make_tuple(xcell, ycell, zcell);
+  }*/
+  //else {
+  double x = 0;
+  if (pos[0]<=-159) { x = 0; }
+  else if (pos[0]>=79) { x = 1; } 
+  else {
+  x = (pos[0]+160)*0.0042;
+   }
+  int xcell = (int)floor(_n_cells_1d_ * x);
+  if (xcell == _n_cells_1d_)
+    xcell -= 1;
+  double y =0;
+  if (pos[1]<=-79) { y = 0; }
+  else if (pos[1]>=79) { y = .66; }  
+  else {y = (pos[1] + 80)*0.0042;}
+  int ycell = (int)floor(_n_cells_1d_ * y);
+  if (ycell == _n_cells_1d_)
+    ycell -= 1;
+  int zcell = 0;
+  if (_n_dim_ == 3) {
+    double z =0;
+    if (pos[2]<=-79) { z = 0; }
+    else if (pos[2]>=79) { z = .66; } 
+ 
+    else {z = (pos[2] + 80)*0.0042;}
+    zcell = (int)floor(_n_cells_1d_ * z);
+    if (zcell == _n_cells_1d_)
+      zcell -= 1;
+  }
+  //Logger::Info("Cells are %i, %i, %i, with positions, %f, %f,%f", xcell, ycell, zcell, pos[0], pos[1], pos[2]);
+  return std::make_tuple(xcell, ycell, zcell);
+  //}
+  //double x_ratio=pos[0]/spos[0];
+  //double y_ratio=pos[1]/spos[1];
+  //Logger::Info("Coordinates are %f, %f", x_ratio, y_ratio);
+  Logger::Info("Cells are %i, %i, %i", xcell, ycell, zcell);
+  //return std::make_tuple(xcell, ycell, zcell);
 }
 
 void CellList::ClearCellObjects() {
@@ -193,10 +236,10 @@ void CellList::AssignObjectsCells(std::vector<Object *> &objs) {
   for (auto obj = objs.begin(); obj != objs.end(); ++obj) {
     int x, y, z;
     std::tie(x, y, z) = FindCellCoords(**obj);
-#ifdef TRACE
-    Logger::Trace("Object %d assigned to %s", (*obj)->GetOID(),
-                  cell_[x][y][z].Report().c_str());
-#endif
+//#ifdef TRACE
+    //Logger::Info("Object %d with type %s assigned to %s", (*obj)->GetOID(),((*obj)->GetName()).c_str(),
+    //              cell_[x][y][z].Report().c_str());
+//#endif
     cell_[x][y][z].AddObj(**obj);
   }
 }

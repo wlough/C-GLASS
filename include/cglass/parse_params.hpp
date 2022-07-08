@@ -579,6 +579,8 @@ species_base_parameters *parse_species_params(std::string sid,
       params.diffusion_analysis = jt->second.as<bool>();
       } else if (param_name.compare("n_diffusion_samples")==0) {
       params.n_diffusion_samples = jt->second.as<int>();
+      } else if (param_name.compare("unbound_crosslink")==0) {
+      params.unbound_crosslink = jt->second.as<bool>();
       } else {
         Logger::Warning("Unrecognized %s parameter: '%s'", sid.c_str(), param_name.c_str());
       }
@@ -679,6 +681,8 @@ species_base_parameters *parse_species_params(std::string sid,
       params.stationary_until = jt->second.as<int>();
       } else if (param_name.compare("concentration")==0) {
       params.concentration = jt->second.as<double>();
+      } else if (param_name.compare("f_to_s_factor")==0) {
+      params.f_to_s_factor = jt->second.as<double>();
       } else if (param_name.compare("begin_with_bound_crosslinks")==0) {
       params.begin_with_bound_crosslinks = jt->second.as<int>();
       } else if (param_name.compare("begin_double_bound")==0) {
@@ -735,6 +739,10 @@ species_base_parameters *parse_species_params(std::string sid,
       params.r_capture = jt->second.as<double>();
       } else if (param_name.compare("lut_grid_num")==0) {
       params.lut_grid_num = jt->second.as<int>();
+      } else if (param_name.compare("exist_in_solution")==0) {
+      params.exist_in_solution = jt->second.as<bool>();
+      } else if (param_name.compare("pro_diffusion_test")==0) {
+      params.pro_diffusion_test = jt->second.as<bool>();
       } else if (param_name.compare("anchors")==0) {
         for (size_t i = 0; i < jt->second.size(); ++i) {
           if (i > 1) {

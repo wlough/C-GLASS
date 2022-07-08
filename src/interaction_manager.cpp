@@ -36,9 +36,10 @@ void InteractionManager::InitInteractions() {
     return;
   }
   CellList::SetMinCellLength(xlink_.GetRCutoff());
+  Logger::Info("Min cell length set to %f from xlink",xlink_.GetRCutoff());
   potentials_.InitPotentials(params_);
   CellList::SetMinCellLength(sqrt(potentials_.GetRCut2()));
-
+  Logger::Info("Min cell length set to %f from potentials",sqrt(potentials_.GetRCut2()));
   CellList::Init(params_->n_dim, params_->n_periodic, params_->system_radius);
   Logger::Info("Constructing cell list data structure");
   clist_.BuildCellList();
@@ -368,6 +369,7 @@ void InteractionManager::ZeroDrTot() {
 void InteractionManager::ProcessPairInteraction(ix_iterator ix) {
   if (processing_) {
     mindist_.ObjectObject(*ix);
+    Logger::Info("Cutoff is %f", potentials_.GetRCut2());
     //Check to see if particles are not close enough to interact
     if (ix->dr_mag2 > potentials_.GetRCut2())
       return;
@@ -394,7 +396,18 @@ void InteractionManager::ProcessPairInteraction(ix_iterator ix) {
     ix->no_interaction = true;
     return;
   }
-
+  
+  //Temporary
+  if (obj1->GetSID() == +species_id::spherocylinder ||
+      obj2->GetSID() == +species_id::spherocylinder) {
+      if (obj1->GetSID() == +species_id::rigid_filament || obj2->GetSID() == +species_id::rigid_filament) {
+        
+      }
+    else{
+    ix->no_interaction = true;
+    return;
+    }
+  }
   /* If one of the objects are not prime interactors, don't interact */
   if (!obj1->IsInteractor() && !obj2->IsInteractor()) {
     ix->no_interaction = true;
@@ -449,10 +462,19 @@ void InteractionManager::ProcessPairInteraction(ix_iterator ix) {
 
 void InteractionManager::ProcessBoundaryInteraction(ix_iterator ix) {
   mindist_.CheckBoundaryInteraction(*ix);
+  //Logger::Info("Species types are %s, %f", (ix->obj1->GetName()).c_str(), ix->obj1->GetDiameter());
   // Check for particle overlapping with boundary edge
   if (ix->dr_mag2 < 0.25 * SQR(ix->obj1->GetDiameter())) {
     overlap_ = true;
+    //Logger::Info("Overlap is true");
   }
+  //if (mindist_.CheckOutsideBoundary(*(ix->obj1))) {
+  //  Logger::Info("Setting outside for obj %i", (ix->obj1)->GetOID());
+  //  (ix->obj1)->SetOutside(true);
+  //} else {(ix->obj1)->SetOutside(false);
+  //  Logger::Info("Setting inside for obj %i", (ix->obj1)->GetOID());
+  //}
+
   if (ix->dr_mag2 > potentials_.GetRCut2())
     return;
   potentials_.CalcPotential(*ix);
@@ -675,6 +697,7 @@ void InteractionManager::ApplyBoundaryInteractions() {
        ix != boundary_interactions_.end(); ++ix) {
     Object *obj1 = ix->obj1;
     obj1->AddForce(ix->force);
+    //Logger::Info("Force, %f,%f,%f, added for object %s", (ix->force)[0], (ix->force)[1],(ix->force)[2],(ix->obj1->GetName()).c_str());
     obj1->AddTorque(ix->t1);
     obj1->AddPotential(ix->pote);
     for (int i = 0; i < n_dim_; ++i) {
@@ -730,6 +753,7 @@ bool InteractionManager::CheckOverlap(std::vector<Object *> &ixors) {
 }
 
 bool InteractionManager::CheckBoundaryConditions(std::vector<Object *> &ixors) {
+  Logger::Info("Checking Boundary");
   bool outside_boundary = false;
   for (auto ixor = ixors.begin(); ixor != ixors.end(); ++ixor) {
     if (mindist_.CheckOutsideBoundary(**ixor)) {

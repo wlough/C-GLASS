@@ -142,6 +142,7 @@ struct species_parameters<species_id::spherocylinder>
     : public species_base_parameters {
   bool diffusion_analysis = false;
   int n_diffusion_samples = 1;
+  bool unbound_crosslink = false;
 };
 typedef species_parameters<species_id::spherocylinder> spherocylinder_parameters;
 
@@ -163,6 +164,7 @@ template <>
 struct species_parameters<species_id::crosslink>
     : public species_base_parameters {
   double concentration = 0;
+  double f_to_s_factor = 0;
   int begin_with_bound_crosslinks = 0;
   bool begin_double_bound = false;
   bool no_binding = false;
@@ -191,6 +193,8 @@ struct species_parameters<species_id::crosslink>
   bool plus_end_pausing = false;
   double r_capture = 5;
   int lut_grid_num = 256;
+  bool exist_in_solution = false;
+  bool pro_diffusion_test = false;
   struct anchor_parameters {
     double velocity_s = 0;
     double velocity_d = 0;

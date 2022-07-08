@@ -825,32 +825,33 @@ void Graphics::DrawWireSphere(double r, int lats, int longs) {
     glEnd();
   }
   // Turn off wireframe mode
-  glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-  glEnable(GL_LIGHTING);
-  glEnable(GL_CULL_FACE);
+  //glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+  //glEnable(GL_LIGHTING);
+  //glEnable(GL_CULL_FACE);
 }
 
 
-void Graphics::DrawWireCylinder(double start, double radius, double length) {
- /* glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+void Graphics::DrawWireCylinder(double start, double r, double length) {
+  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
   glLineWidth(1.0);
-  
+  int lats = 13;
+  int longs = 8;
   for (int i = 0; i <= lats; i++) {
-    double lat0 = M_PI * (-0.5 + (double)(i - 1) / lats);
-    double z0 = r * sin(lat0);
-    double zr0 = cos(lat0);
-    double lat1 = M_PI * (-0.5 + (double)i / lats);
-    double z1 = r * sin(lat1);
-    double zr1 = cos(lat1);
+    double lat0 = ((double)(-i*1.5));
+    double z0 = r * lat0;
+    double zr0 = 1;
+    double lat1 = ((double)(-i/3));
+    double z1 = r * lat1;
+    double zr1 = 1;
     glBegin(GL_QUAD_STRIP);
     for (int j = 0; j <= longs; j++) {
       double lng = 2 * M_PI * (double)(j - 1) / longs;
       double x = r * cos(lng);
       double y = r * sin(lng);
-      glNormal3f(j, y * radius, z * radius);
-      glVertex3f(x * zr0, y * radius, z * radius);
-      //glNormal3f(x * zr1, y * zr1, z1);
-      //glVertex3f(x * zr1, y * zr1, z1);
+      glNormal3f(z0-82, y * zr0, x * zr0);
+      glVertex3f(z0-82, y * zr0, x * zr0);
+      glNormal3f(z1-82, y * zr1, x * zr1);
+      glVertex3f(z1-82, y * zr1, x * zr1);
     }
     glEnd();
   }
@@ -858,7 +859,7 @@ void Graphics::DrawWireCylinder(double start, double radius, double length) {
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
   glEnable(GL_LIGHTING);
   glEnable(GL_CULL_FACE);
-*/
+
 }
 
 void Graphics::DrawLoop() {

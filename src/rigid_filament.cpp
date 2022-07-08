@@ -117,6 +117,7 @@ void RigidFilament::Integrate() {
       force_eff[i] -= f_dot_u * constrain_vec_[i];
       torque_eff[i] = t_dot_u * constrain_vec_[i];
     }
+    Logger::Info("Effective forces %f, %f", force_eff[0], force_eff[1]);
   }
   // Construct mobility matrix
   for (int i = 0; i < n_dim_; ++i) {
@@ -323,12 +324,18 @@ void RigidFilament::ApplyForcesTorques() {
 //With constrain_to_move_in_y flag on, filaments don't rotate and only move in the y direction
 void RigidFilament::ApplyForcesTorquesYOnly() {
   const double *force = bonds_.back().GetForce();
+  double force_counter = 0;
+  //Logger::Info("x, an y force is %f, %f", force_[0], force_[1]);
   for (int i = 0; i < 3; ++i) {
     if (i==1){
       force_[i] += force[1];
     }
     else {
       force_[i]=0;
+      if (i==0){
+      force_counter+=force[0];
+      //Logger::Info("x, an y force is %f, %f", force[0], force[1]);
+      }
     }
     torque_[i] = 0;
   }

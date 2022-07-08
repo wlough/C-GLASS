@@ -168,7 +168,7 @@ template <typename T, unsigned char S> double const Species<T, S>::GetDrMax() {
     }
   }
   // if (max_dr > params_->system_radius * params_->system_radius) {
-  if (max_dr > 10000) {
+  if (max_dr > 1000000) {
     Logger::Warning("Oddly large dr (%2.2f) in %s %s", max_dr,
                     GetSID()._to_string(), GetSpeciesName().c_str());
     throw std::runtime_error("Unphysical result");

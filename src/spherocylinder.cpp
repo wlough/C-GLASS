@@ -30,7 +30,7 @@ void Spherocylinder::UpdatePosition() {
   ApplyForcesTorques();
   if (!params_->on_midstep && !sparams_->stationary_flag)
     Integrate();
-    position_[0]-=0.001;
+    //position_[0]-=0.001;
   UpdatePeriodic();
 }
 

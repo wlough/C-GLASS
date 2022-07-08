@@ -26,5 +26,6 @@ class Sphere : public Object {
       Object* GetPCObjectForSphere();
       Sphere* GetPlusNeighbor();
       Sphere* GetMinusNeighbor();
+      Sphere* GetNotConstFromConst() const;
 };
 #endif // _CGLASS_SPHERE_H_

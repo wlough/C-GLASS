@@ -110,6 +110,7 @@ class Anchor : public Object {
   bool GetChangedThisStep();
   void Activate();
   void Deactivate();
+  bool GetActive();
   void ApplyAnchorForces();
   void UpdateAnchorPositionToMesh();
   void SetDiffusion();
@@ -125,6 +126,7 @@ class Anchor : public Object {
   void SetMeshLambda(double ml);
   void SetBound();
   void Unbind();
+  void UnbindToFree();
   void AddBackBindRate();
   Sphere* GetBoundPointer();
   int const GetBoundOID();
@@ -140,7 +142,7 @@ class Anchor : public Object {
   void BindToPosition(double *bind_pos);
   void SetStatic(bool static_flag);
   void SetState(bind_state state);
-
+  void SetUnbound();
   double const GetMeshLambda();
   double const GetBondLambda();
   Object *GetNeighbor(int i_neighbor);

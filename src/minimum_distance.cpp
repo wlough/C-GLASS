@@ -685,7 +685,7 @@ void MinimumDistance::PointProtrusionBC(double const *const r, double *dr,
   //Distance of start of protrusion from center
   double pro_dis_cen = sqrt(SQR(radius_) - SQR(space_->pro_radius));
   //In Sphere
-  Logger::Info("In protrusion dis, %f, radius %f", pro_dis_cen, r[0]);
+  //Logger::Info("In protrusion dis, %f, radius %f", pro_dis_cen, r[0]);
  
   if (r[0] > -pro_dis_cen){
 
@@ -697,6 +697,7 @@ void MinimumDistance::PointProtrusionBC(double const *const r, double *dr,
     double dl = radius_ / r_mag - 1;
     // We are outside the cell if dl<0
     outside = (dl<0);
+    //ix.obj1->SetOutside(outside);
     for (int i = 0; i < n_dim_; ++i) {
       dr[i] = dl * r[i];
     }
@@ -709,7 +710,7 @@ void MinimumDistance::PointProtrusionBC(double const *const r, double *dr,
     //We are outside if distance from axis is greater than protrusion radius
     double dis_from_end = r[0] + pro_dis_cen + space_ -> pro_length;
     double dis_from_edge = space_ -> pro_radius - dis_pro_axis;
-    Logger::Info("edge distance, %f, end distance %f", dis_from_edge, dis_from_end);
+    //Logger::Info("edge distance, %f, end distance %f", dis_from_edge, dis_from_end);
     //closer to edge than end
     if (dis_from_edge < dis_from_end) {
 			double dl = (space_->pro_radius)/(dis_pro_axis)-1;
@@ -743,9 +744,8 @@ void MinimumDistance::SpheroProtrusionBC(double const *const r,
   //double dis_pro_axis = SQR(r[1]) + SQR(r[2]);
   //Distance of start of protrusion from center
   double pro_dis_cen = sqrt(SQR(radius_) - SQR(space_->pro_radius));
-  Logger::Info("In protrusion min dis, %f", space_->pro_radius);
+  //Logger::Info("Using SPhereo In protrusion min dis, %f", space_->pro_radius);
   if (r[0] > -pro_dis_cen){
-    Logger::Info("In SPhere");
     //In Sphere
     /* For a spherocylinder with spherical BCs, the minimum distance will
        always be at one of the endpoints */
@@ -769,6 +769,7 @@ void MinimumDistance::SpheroProtrusionBC(double const *const r,
     double dl = space_->radius / r_mag - 1;
     // We are outside the cell if dl<0
     outside = (dl<0);
+    
     for (int i = 0; i < n_dim_; ++i) {
       dr[i] = dl * r_min[i];
     }
@@ -777,7 +778,7 @@ void MinimumDistance::SpheroProtrusionBC(double const *const r,
       *dr_mag2 += dr[i] * dr[i];
     }
   } else {
-    Logger::Warning("IN Protrusion");
+    //Logger::Warning("IN Protrusion");
     //in protrusion
     //x direction is not important in protrusion
     double r_cyl[3] = {0, r[1], r[2]};
@@ -1059,12 +1060,11 @@ bool MinimumDistance::CheckBoundaryInteraction(Interaction &ix) {
                       ix.buffer_mag);
     }
   } else if (space_->type == +boundary_type::protrusion) {
-     Logger::Info("Space type Protrusion");
+     //Logger::Info("Space type Protrusion");
      if (l1 == 0) {
-      Logger::Info("Point");
+      //Logger::Info("Point");
       PointProtrusionBC(r1, ix.dr, &(ix.dr_mag2), outside, ix.buffer_mag);
     } else {
-      Logger::Info("SPhere");
       SpheroProtrusionBC(r1, u1, l1, ix.dr, &(ix.dr_mag2), outside, ix.contact1,
                    ix.buffer_mag);
     }
@@ -1102,6 +1102,45 @@ bool MinimumDistance::CheckOutsideBoundary(Object &obj) {
     }
     return false;
   }
+
+  if (space_->type == +boundary_type::protrusion){
+  double radius_ = space_->radius;
+  //Distance from the protrusion axis squared
+  double dis_pro_axis = sqrt( SQR(r[1]) + SQR(r[2]) );
+  //Distance of start of protrusion from center
+  double pro_dis_cen = sqrt(SQR(radius_) - SQR(space_->pro_radius));
+  //In Sphere
+  //Logger::Info("In protrusion dis, %f, radius %f", pro_dis_cen, r[0])
+  if (r[0] > -pro_dis_cen){
+    double r_mag = 0;
+    for (int i = 0; i < n_dim_; ++i) {
+      r_mag += r[i] * r[i];
+    }
+    r_mag = sqrt(r_mag);
+    double dl = radius_ / r_mag - 1;
+    new_radius_ = 2*radius_ - r_mag;
+    // We are outside the cell if dl<0
+    return (dl<0);
+    //ix.obj1->SetOutside(outside);
+  } else { 
+    //In protrusion
+    //We are outside if distance from axis is greater than protrusion radius
+    double dis_from_end = r[0] + pro_dis_cen + space_ -> pro_length;
+    double dis_from_edge = space_ -> pro_radius - dis_pro_axis;
+    //Logger::Info("edge distance, %f, end distance %f", dis_from_edge, dis_from_end);
+    //closer to edge than end
+    if (dis_from_edge < dis_from_end) {
+			double dl = (space_->pro_radius)/(dis_pro_axis)-1;
+      new_radius_ = 2*space_->pro_radius - dis_pro_axis;
+      return (dl<0);
+    //closer to end than edge
+    } else {
+ 			double dl = -(pro_dis_cen + space_ -> pro_length)/r[0]-1;
+      new_radius_ = -2*(pro_dis_cen + space_ -> pro_length) - r[0];
+      return (dl<0);  
+    }
+  }
+  }
   if (space_->type == +boundary_type::budding &&
       r[n_dim_ - 1] > space_->bud_neck_height) {
     z0 = space_->bud_height;
@@ -1112,6 +1151,9 @@ bool MinimumDistance::CheckOutsideBoundary(Object &obj) {
   }
   r_mag += SQR(r[n_dim_ - 1] + sign * 0.5 * l * u[n_dim_ - 1] - z0);
   return (r_mag > SQR(r_boundary - 0.5 * d));
+}
+double MinimumDistance::GetNewRadius() {
+  return new_radius_;
 }
 
 #undef SMALL
