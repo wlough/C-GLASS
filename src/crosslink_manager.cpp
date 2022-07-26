@@ -214,7 +214,7 @@ void CrosslinkManager::Knockout() {
 }
 
 void CrosslinkManager::KnockoutBind(Sphere* receptor, int winner) {
-
+  Logger::Info("Crosslink bound to receptor %i", receptor->GetOID());
   //Forward Step
   if (bound_curr_[receptor].second[winner].second == "forward step") {
     bound_curr_[receptor].second[winner].first->StepForward();

@@ -114,7 +114,7 @@ void Crosslink::FreeKMC () {
           anchor_and_bind_type.second = "free to single";
           (*bound_curr_)[bind_obj].second.push_back(anchor_and_bind_type); 
           anchors_[0].SetCrosslinkPointer(this);
-          //Logger::Info("Free to single bind added");
+          Logger::Info("Free to single bind added for object %i", this->GetOID());
           return;
         }
         else{

@@ -252,9 +252,13 @@ void CrosslinkSpecies::InsertCrosslinks() {
       /* If in 3D, zero out the third dimension so the anchor is on a plane */
       if (params_->n_dim == 3) {
       if (sparams_.pro_diffusion_test == true) {
+        //Logger::Error("In if");
         double projected_pos[3] = {0};
         double same_u[3] = {0};       
 		    projected_pos[0] = (-space_->radius - .5 * space_->pro_length);
+        double roll = rng_.RandomUniform();
+        projected_pos[1] = (space_->pro_radius)*roll;
+        Logger::Warning("Inserted at %f, %f, %f", projected_pos[0], projected_pos[1], projected_pos[2]);
         members_.back().InsertFree(projected_pos, same_u);
         members_.back().SetGlobalCheckForCross(global_check_for_cross_);
       } else { 
@@ -457,11 +461,13 @@ std::pair <Object*, int> CrosslinkSpecies::GetRandomObject() {
           case shape::rod:
             vol += (*obj)->GetLength();
             break;
-          case shape::sphere:
-            if ((*obj)->GetNAnchored()==0) {
+          case shape::sphere: {
+						std::string name = (*obj)->GetName();
+            auto bind_param_it = bind_param_map_[anchor_index].find(name);
+            if (bind_param_it->second.single_occupancy == 0 || ((*obj)->GetNAnchored()==0)) {
               vol += (*obj)->GetArea();
             }
-            break;
+            }break;
           default:
             break;
         }
@@ -521,11 +527,13 @@ std::pair <Object*, int> CrosslinkSpecies::GetRandomObjectKnockout() {
           case shape::rod:
             vol += (*obj)->GetLength();
             break;
-          case shape::sphere:
-            if ((*obj)->GetNAnchored()==0) {
+          case shape::sphere: {
+						std::string name = (*obj)->GetName();
+            auto bind_param_it = bind_param_map_[anchor_index].find(name);
+            if (bind_param_it->second.single_occupancy == 0 || (*obj)->GetNAnchored()==0) {
               vol += (*obj)->GetArea();
             }
-            break;
+            }break;
           default:
             break;
         }

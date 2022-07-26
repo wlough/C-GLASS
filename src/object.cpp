@@ -143,14 +143,14 @@ void Object::ZeroPolarOrder() {
 }
 void Object::SetInteractor(bool ix) { interacting_ = ix; }
 void Object::IncrementNAnchored() { 
-  n_anchored_++;
+  //n_anchored_++;
   Logger::Trace("Object %d was incremented", GetOID());
   if (n_anchored_ > 1 && params_ -> single_occupancy == true) {
     Logger::Error("n_anchored_ should not be >1");
   } 
 }
 void Object::DecrementNAnchored() { 
-  n_anchored_--;
+  //n_anchored_--;
   Logger::Trace("Object %d was decremented", GetOID());
   if (n_anchored_ < 0) {
     Logger::Error("n_anchored_ should not be <0");
@@ -202,7 +202,7 @@ void Object::InsertRandom(double buffer) {
   }
   double pos[3] = {0, 0, 0};
   double u[3] = {0, 0, 0};
-  Logger::Trace("Inserting object %d randomly", GetOID());
+  Logger::Info("Inserting object %d, from species %s, randomly", GetOID(), GetName().c_str());
   rng_.RandomCoordinate(space_, pos, buffer);
   rng_.RandomUnitVector(n_dim_, u);
   InsertAt(pos, u);
@@ -215,11 +215,16 @@ void Object::InsertRandomOriented(double const *const u) {
 }
 
 void Object::InsertAt(double const *const new_pos, double const *const u) {
+  //if (new_pos[1]!=0) {
+  //  double pos[3] = {0, 0, 0};
+  //  pos[0]=-583;
+  //  SetPosition(pos);
+  //} else {SetPosition(new_pos);} 
   SetPosition(new_pos);
   SetOrientation(u);
   normalize_vector(orientation_, n_dim_);
   UpdatePeriodic();
-  Logger::Trace("Object %d inserted at [%2.2f, %2.2f, %2.2f] with orientation "
+  Logger::Info("Object %d inserted at [%2.2f, %2.2f, %2.2f] with orientation "
                 "[%2.2f %2.2f %2.2f]",
                 GetOID(), position_[0], position_[1], position_[2],
                 orientation_[0], orientation_[1], orientation_[2]);
