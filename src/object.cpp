@@ -202,7 +202,7 @@ void Object::InsertRandom(double buffer) {
   }
   double pos[3] = {0, 0, 0};
   double u[3] = {0, 0, 0};
-  Logger::Info("Inserting object %d, from species %s, randomly", GetOID(), GetName().c_str());
+  Logger::Trace("Inserting object %d, from species %s, randomly", GetOID(), GetName().c_str());
   rng_.RandomCoordinate(space_, pos, buffer);
   rng_.RandomUnitVector(n_dim_, u);
   InsertAt(pos, u);
@@ -224,7 +224,7 @@ void Object::InsertAt(double const *const new_pos, double const *const u) {
   SetOrientation(u);
   normalize_vector(orientation_, n_dim_);
   UpdatePeriodic();
-  Logger::Info("Object %d inserted at [%2.2f, %2.2f, %2.2f] with orientation "
+  Logger::Trace("Object %d inserted at [%2.2f, %2.2f, %2.2f] with orientation "
                 "[%2.2f %2.2f %2.2f]",
                 GetOID(), position_[0], position_[1], position_[2],
                 orientation_[0], orientation_[1], orientation_[2]);

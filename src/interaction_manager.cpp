@@ -753,7 +753,7 @@ bool InteractionManager::CheckOverlap(std::vector<Object *> &ixors) {
 }
 
 bool InteractionManager::CheckBoundaryConditions(std::vector<Object *> &ixors) {
-  Logger::Info("Checking Boundary");
+  Logger::Trace("Checking Boundary");
   bool outside_boundary = false;
   for (auto ixor = ixors.begin(); ixor != ixors.end(); ++ixor) {
     if (mindist_.CheckOutsideBoundary(**ixor)) {

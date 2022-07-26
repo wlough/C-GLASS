@@ -722,7 +722,7 @@ void CrosslinkSpecies::UpdateBoundCrosslinkForces() {
         //if (state_ == "single" and xlink->GetState() == "free"){
         //  *update_ = false;
         //}
-        else if ((xlink->IsSingly() != init_state) /*&& ( xlink->IsFree() != init_state)*/) {
+        if ((xlink->IsSingly() != init_state) /*&& ( xlink->IsFree() != init_state)*/) {
 					*update_ = true;
         }
       }

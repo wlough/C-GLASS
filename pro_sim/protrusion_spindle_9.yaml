@@ -3,8 +3,8 @@ seed: 8877775
 n_periodic: 0
 n_steps: 16850000
 n_dim: 3
-delta: .01
-graph_flag: true
+delta: .0001
+graph_flag: false
 movie_flag: false
 movie_directory: movie_fold
 n_graph: 10
@@ -178,7 +178,7 @@ crosslink:
 - name: cut7
   anchors:
     - name: head
-      velocity_s: -0.28
+      velocity_s: -0.028
       velocity_d: -0.043
       bind_file: cut_no_steric.yaml
       color: 5
