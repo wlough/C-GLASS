@@ -624,15 +624,15 @@ void CrosslinkSpecies::UpdatePositions() {
     ClearNeighbors();
   }
   
-  int num = 0;
-  for (const auto &xl : members_) {
-    if (xl.IsFree())
-      ++num;
-  }
-  if (num == 0) {
-    Logger::Info("%i All Crosslinkers have bound at time step %i", num, params_->i_step);
-    Logger::Error("reached crosslink numebr");
-  }
+  //int num = 0;
+  //for (const auto &xl : members_) {
+  //  if (xl.IsFree())
+  //    ++num;
+  //}
+  //if (num == 0) {
+  //  Logger::Info("%i All Crosslinkers have bound at time step %i", num, params_->i_step);
+  //  Logger::Error("reached crosslink numebr");
+  //}
   
 
   // for (auto it=members_.begin(); it!=members_.end(); ++it) {
