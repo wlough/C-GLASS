@@ -4,7 +4,7 @@ n_periodic: 0
 n_steps: 16850000
 n_dim: 3
 delta: .0001
-graph_flag: false
+graph_flag: true
 movie_flag: false
 movie_directory: movie_fold
 n_graph: 10
@@ -183,7 +183,7 @@ crosslink:
         bind_file: cut_no_steric.yaml
         color: 5
         diameter: 10
-    insertion_type: free
+    insertion_type: random
     concentration: .003
     f_to_s_factor: 2
     diameter: .32
@@ -200,15 +200,15 @@ crosslink:
     diffusion_d: 0.05696
     use_binding_volume: false
     spec_flag: true
-    n_spec: 100
+    n_spec: 10000
     tether_diameter: 0.15
     tether_color: 5.5
     step_direction: 1
-    infinite_reservoir_flag: true
+    infinite_reservoir_flag: false
     cant_cross: false
     polar_affinity: 1
     f_stall: -36
-    exist_in_solution: true
+    exist_in_solution: false
     pro_diffusion_test: false
     begin_double_bound: false
     no_solution_binding: false

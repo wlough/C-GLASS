@@ -200,7 +200,7 @@ void CrosslinkManager::Knockout() {
 
     // If more than 3 anchors want to bind to a receptor throw error
     else if (receptor_info.first.size()>3) {
-      Logger::Error("More than 3 anchors trying to bind to receptor, time step too large");
+      Logger::Warning("More than 3 anchors trying to bind to receptor, time step too large");
     }
     for (auto it = receptor_info.second.begin(); it != receptor_info.second.end(); ++it){
       if (it->second == "forward step" || it->second == "back step") {

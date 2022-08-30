@@ -1,0 +1,92 @@
+run_name: bind_test
+seed: 1
+n_periodic: 0
+n_steps: 2000000
+n_dim: 3
+delta: .01
+graph_flag: true
+movie_flag: false
+movie_directory: movie_fold
+n_graph: 10
+potential: wca
+wca_sig: 3
+wca_eps: .02
+system_radius: 21.63
+f_cutoff: 1500000
+n_runs: 3
+n_random: 1
+single_occupancy: false
+boundary: 2
+like_like_interactions: false
+rigid_filament:
+  - name: rig1
+    draw_type: orientation
+    color: .8
+    max_length: 5000
+    min_length: 0
+    num: 80
+    insertion_type: random
+    #insert_file: fil_centered.yaml
+    length: 8 #124.8
+    stationary_flag: true
+    constrain_motion_flag: false
+    constrain_to_move_in_y: false
+    packing_fraction: -1
+    n_equil: 0
+    spec_flag: false
+    n_spec: 1000
+    stationary_until: 1000000
+crosslink:
+  - name: cut7
+    anchors:
+      - name: head
+        velocity_s: 0 #-0.071
+        velocity_d: 0 #-0.043
+        bind_file: cut_bind_test.yaml
+        color: 5
+        diameter: 10
+    insertion_type: free
+    concentration: 0.00943
+    f_to_s_factor: 0.045
+    diameter: .32
+    begin_with_bound_crosslinks: 0
+    k_spring: 45.6
+    k_spring_compress: 45.6
+    no_binding: false
+    rest_length: 3.12
+    draw_type: fixed
+    tether_draw_type: fixed
+    plus_end_pausing: true
+    minus_end_pausing: true
+    diffusion_s: 0 #0.05696
+    diffusion_d: 0 #0.05696
+    use_binding_volume: false
+    spec_flag: true
+    n_spec: 10000
+    tether_diameter: 0.15
+    tether_color: 5.5
+    step_direction: 1
+    infinite_reservoir_flag: false
+    cant_cross: false
+    polar_affinity: 1
+    f_stall: -36
+    exist_in_solution: true
+    begin_double_bound: false
+    no_solution_binding: false
+    bind_site_density: 1
+    static_flag: false
+    energy_dep_factor: 0
+    force_dep_length: 0
+    force_dep_vel_flag: true
+    k_align: 0
+    r_capture: 5
+    lut_grid_num: 256
+    pro_diffusion_test: false
+receptor:
+  - name: rig1_receptor
+    component: rig1
+    insertion_type: grid
+    num: 2000 #[V, 197, 395, 790, 1186, 1581, 1976]
+    diameter: 0.32
+    concentration: &1 -1
+    induce_catastrophe: &2 false

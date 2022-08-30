@@ -616,7 +616,7 @@ void Anchor::Draw(std::vector<graph_struct *> &graph_array) {
   }
   std::copy(orientation_, orientation_ + 3, g_.u);
   g_.color = color_;
-  g_.diameter = 2;
+  g_.diameter = .4;
   g_.length = length_;
   g_.draw = draw_;
   graph_array.push_back(&g_);

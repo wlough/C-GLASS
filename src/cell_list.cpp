@@ -17,8 +17,8 @@ void CellList::SetMinCellLength(double l) {
 double CellList::GetCellLength() { return 3.75*1.5; /*_cell_length_;*/ }
 
 void CellList::Init(int n_dim, int n_periodic, double system_radius) {
-  //_n_cells_1d_ = (int)floor(2 * system_radius / _min_cell_length_);
-  _n_cells_1d_ = (int)floor(240 / _min_cell_length_);
+  _n_cells_1d_ = 14; //(int)floor(2 * system_radius / _min_cell_length_);
+  //_n_cells_1d_ = (int)floor(240 / _min_cell_length_);
   Logger::Info("Number of cells %i", _n_cells_1d_);
   _no_init_ = false;
 #ifdef TRACE

@@ -47,6 +47,7 @@ void ReceptorSpecies::AddMember() {
   if ((pc_species_) && (members_.size() == 0)) {
     smax_ = pc_species_->GetSpecLength() / 2.0;
     n_members_pc_ = pc_species_->GetNMembers();
+    Logger::Info("members is %i", n_members_pc_);
     spacing_ = 2 * n_members_pc_ * smax_ / sparams_.num;
     s0_ = spacing_ / 2.0 - smax_;
     i_ = 0;

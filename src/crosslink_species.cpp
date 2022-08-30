@@ -12,7 +12,7 @@ void CrosslinkSpecies::Init(std::string spec_name, ParamsParser &parser) {
   begin_with_bound_crosslinks_ = sparams_.begin_with_bound_crosslinks;
   xlink_concentration_ = sparams_.concentration;
   infinite_reservoir_flag_ = sparams_.infinite_reservoir_flag;
-  sparams_.num = (int)round(sparams_.concentration * space_->volume);
+  sparams_.num = 39.38; //(int)round(sparams_.concentration * space_->volume);
   std::vector<std::string> bind_file = {sparams_.anchors[0].bind_file, sparams_.anchors[1].bind_file};
   
   // Create a default set of specific binding parameters
@@ -229,8 +229,8 @@ void CrosslinkSpecies::InsertCrosslinks() {
         sparams_.num = (int)round(4 * space_->radius * space_->radius *
                                   xlink_concentration_);
       } else if (space_->type == +boundary_type::sphere || space_->type == +boundary_type::protrusion) {
-        sparams_.num = (int)round(M_PI * space_->radius * space_->radius *
-                                  xlink_concentration_);
+        sparams_.num = 39; //(int)round(4/3 * M_PI * space_->radius * space_->radius * space_->radius *
+                                  //xlink_concentration_);
         Logger::Info("Inserting %i crosslinks", sparams_.num);
       } else if (space_->type == +boundary_type::budding) {
         double R = space_->radius;
@@ -392,9 +392,11 @@ void CrosslinkSpecies::CalculateBindingFree() {
     free_concentration = xlink_concentration_;
   } else { // Have a constant number of crosslinkers in a space
     free_concentration = (sparams_.num - n_members_) / space_->volume;
+    //Logger::Info("Free concentration is %f, members %i, num %i", free_concentration, n_members_, sparams_.num);
   }
   if (use_bind_file_) {
     int num_to_bind = rng_.RandomPoisson(free_concentration * params_->delta * bind_rate_);
+    //Logger::Info("bind_rate_ is %f", bind_rate_);
     for (int i = 0; i < num_to_bind; ++i) {
       BindCrosslink();
     }

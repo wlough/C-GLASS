@@ -1,0 +1,259 @@
+run_name: not_free
+seed: 8877775
+n_periodic: 0
+n_steps: 16850000
+n_dim: 3
+delta: .0001
+graph_flag: false
+movie_flag: false
+movie_directory: movie_fold
+n_graph: 10
+potential: none
+wca_sig: 3
+wca_eps: .02
+system_radius: 83
+f_cutoff: 1500000
+n_runs: 1
+n_random: 1
+single_occupancy: false
+boundary: 5
+protrusion_radius: 1
+protrusion_length: 81
+like_like_interactions: false
+rigid_filament:
+  - name: rig1
+    draw_type: orientation
+    color: .8
+    max_length: 5000
+    min_length: 5
+    num: 1
+    insertion_type: custom
+    insert_file: file1.yaml
+    length: 160
+    stationary_flag: true
+    constrain_motion_flag: false
+    constrain_to_move_in_y: false
+    packing_fraction: -1
+    n_equil: 0
+    spec_flag: false
+    n_spec: 1000
+    stationary_until: 1000000
+  - name: rig2
+    draw_type: orientation
+    color: .8
+    max_length: 5000
+    min_length: 5
+    num: 1
+    insertion_type: custom
+    insert_file: file2.yaml
+    length: 80
+    stationary_flag: true
+    constrain_motion_flag: false
+    constrain_to_move_in_y: false
+    packing_fraction: -1
+    n_equil: 0
+    spec_flag: false
+    n_spec: 1000
+    stationary_until: 1000000
+  - name: rig3
+    draw_type: orientation
+    color: .8
+    max_length: 5000
+    min_length: 5
+    num: 1
+    insertion_type: custom
+    insert_file: file3.yaml
+    length: 80
+    stationary_flag: true
+    constrain_motion_flag: false
+    constrain_to_move_in_y: false
+    packing_fraction: -1
+    n_equil: 0
+    spec_flag: false
+    n_spec: 1000
+    stationary_until: 1000000
+  - name: rig4
+    draw_type: orientation
+    color: .8
+    max_length: 5000
+    min_length: 5
+    num: 1
+    insertion_type: custom
+    insert_file: file4.yaml
+    length: 80
+    stationary_flag: true
+    constrain_motion_flag: false
+    constrain_to_move_in_y: false
+    packing_fraction: -1
+    n_equil: 0
+    spec_flag: false
+    n_spec: 1000
+    stationary_until: 1000000
+  - name: rig5
+    draw_type: orientation
+    color: .8
+    max_length: 5000
+    min_length: 5
+    num: 1
+    insertion_type: custom
+    insert_file: file5.yaml
+    length: 80
+    stationary_flag: true
+    constrain_motion_flag: false
+    constrain_to_move_in_y: false
+    packing_fraction: -1
+    n_equil: 0
+    spec_flag: false
+    n_spec: 1000
+    stationary_until: 1000000
+  - name: rig6
+    draw_type: orientation
+    color: .8
+    max_length: 5000
+    min_length: 5
+    num: 1
+    insertion_type: custom
+    insert_file: file6.yaml
+    length: 80
+    stationary_flag: true
+    constrain_motion_flag: false
+    constrain_to_move_in_y: false
+    packing_fraction: -1
+    n_equil: 0
+    spec_flag: false
+    n_spec: 1000
+    stationary_until: 1000000
+  - name: rig7
+    draw_type: orientation
+    color: .8
+    max_length: 5000
+    min_length: 5
+    num: 1
+    insertion_type: custom
+    insert_file: file7.yaml
+    length: 80
+    stationary_flag: true
+    constrain_motion_flag: false
+    constrain_to_move_in_y: false
+    packing_fraction: -1
+    n_equil: 0
+    spec_flag: false
+    n_spec: 1000
+    stationary_until: 1000000
+  - name: rig8
+    draw_type: orientation
+    color: .8
+    max_length: 5000
+    min_length: 5
+    num: 1
+    insertion_type: custom
+    insert_file: file8.yaml
+    length: 80
+    stationary_flag: true
+    constrain_motion_flag: false
+    constrain_to_move_in_y: false
+    packing_fraction: -1
+    n_equil: 0
+    spec_flag: false
+    n_spec: 1000
+    stationary_until: 1000000
+  - name: rig9
+    draw_type: orientation
+    color: .8
+    max_length: 5000
+    min_length: 5
+    num: 1
+    insertion_type: custom
+    insert_file: file9.yaml
+    length: 80
+    stationary_flag: true
+    constrain_motion_flag: false
+    constrain_to_move_in_y: false
+    packing_fraction: -1
+    n_equil: 0
+    spec_flag: false
+    n_spec: 1000
+    stationary_until: 1000000
+crosslink:
+- name: cut7
+  anchors:
+    - name: head
+      velocity_s: -0.114
+      velocity_d: -0.114
+      bind_file: cut_no_steric.yaml
+      color: 5
+      diameter: 10
+  insertion_type: random
+  concentration: .003 #0.0005 #0.0094
+  num: 65
+  f_to_s_factor: 2
+  diameter: .32
+  begin_with_bound_crosslinks: 0
+  k_spring: 45.6
+  k_spring_compress: 45.6
+  no_binding: false
+  rest_length: 3.12
+  draw_type: fixed
+  tether_draw_type: fixed
+  plus_end_pausing: true
+  minus_end_pausing: true
+  diffusion_s: 0.05696
+  diffusion_d: 0.05696
+  use_binding_volume: false
+  spec_flag: true
+  n_spec: 10000
+  tether_diameter: 0.15
+  tether_color: 5.5
+  step_direction: 1
+  infinite_reservoir_flag: false
+  cant_cross: false
+  polar_affinity: 1
+  f_stall: -36
+  exist_in_solution: false
+  pro_diffusion_test: false
+receptor:
+  - name: rig1_receptor
+    component: rig1
+    insertion_type: grid
+    num: 500 #100
+    diameter: 0.32
+  - name: rig2_receptor
+    component: rig2
+    insertion_type: grid
+    num: 250 #100
+    diameter: 0.32
+  - name: rig3_receptor
+    component: rig3
+    insertion_type: grid
+    num: 250 #100
+    diameter: 0.32
+  - name: rig4_receptor
+    component: rig4
+    insertion_type: grid
+    num: 250 #100
+    diameter: 0.32
+  - name: rig5_receptor
+    component: rig5
+    insertion_type: grid
+    num: 250 #100
+    diameter: 0.32
+  - name: rig6_receptor
+    component: rig6
+    insertion_type: grid
+    num: 250 #100
+    diameter: 0.32
+  - name: rig7_receptor
+    component: rig7
+    insertion_type: grid
+    num: 250 #100
+    diameter: 0.32
+  - name: rig8_receptor
+    component: rig8
+    insertion_type: grid
+    num: 250 #100
+    diameter: 0.32
+  - name: rig9_receptor
+    component: rig9
+    insertion_type: grid
+    num: 250 #100
+    diameter: 0.32
