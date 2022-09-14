@@ -115,6 +115,10 @@ void Crosslink::FreeKMC () {
           (*bound_curr_)[bind_obj].second.push_back(anchor_and_bind_type); 
           anchors_[0].SetCrosslinkPointer(this);
           Logger::Trace("Free to single bind added for object %i", this->GetOID());
+          if (no_move==true) {
+            Logger::Info("no move bound");
+            no_move =false;
+          }
           return;
         }
         else{
@@ -132,6 +136,7 @@ void Crosslink::SinglyKMC() {
    //Logger::Info("Singly Anchor 1 active? %i, 2? %i", anchors_[0].GetActive(),anchors_[1].GetActive());
  
   //Logger::Info("Single KMC");
+
   double roll = rng_.RandomUniform();
   int head_bound = 0;
   // Set up KMC objects and calculate probabilities
@@ -467,9 +472,14 @@ void Crosslink::UpdateCrosslinkPositions() {
 void Crosslink::DiffuseFree() {
     //double const *const forcey = anchors_[0].GetForce();
 //Logger::Info("position of obj type %i to %f, %f, %f", this->GetOID(), position_[0], position_[1], position_[2]);
- 
+    double D = 0; 
+    if (no_move == true) {
+     D = .001;
+    } else {
+     D = sparams_->diffusion_free;
+    }
     for (int i = 0; i < params_->n_dim; ++i) {
-      double dr = sqrt(2*256*params_->delta) * rng_.RandomNormal(1);
+      double dr = sqrt(2*D*params_->delta) * rng_.RandomNormal(1);
       //if (forcey[i]*forcey[i] > 1){
       //  if (forcey[i]>0){
       //  position_[i]+=dr + 1*5;
@@ -820,6 +830,8 @@ void Crosslink::ConvertSpec(std::fstream &ispec, std::fstream &otext) {
   int oid;
   // Read in all data from spec file ispec
   ispec.read(reinterpret_cast<char *>(&is_doubly), sizeof(bool));
+  bool is_free;
+  ispec.write(reinterpret_cast<char *>(&is_free), sizeof(bool));
   ispec.read(reinterpret_cast<char *>(&diameter), sizeof(double));
   ispec.read(reinterpret_cast<char *>(&length), sizeof(double));
   for (int i = 0; i < 3; ++i) {
@@ -830,7 +842,7 @@ void Crosslink::ConvertSpec(std::fstream &ispec, std::fstream &otext) {
   }
   ispec.read(reinterpret_cast<char *>(&oid), sizeof(int));
   // Write out data to SpecText file otext
-  otext << is_doubly << " " << diameter << " " << length << " " << position[0] << " " 
+  otext << is_doubly << " " << is_free << " " << diameter << " " << length << " " << position[0] << " " 
         << position[1] << " " << position[2] << " " << orientation[0] 
         << " " << orientation[1] << " " << orientation[2] << " " << oid << std::endl;
   // Convert anchor data
@@ -846,6 +858,8 @@ void Crosslink::ReadSpec(std::fstream &ispec) {
   SetSingly(bound_anchor_);
   bool is_doubly;
   ispec.read(reinterpret_cast<char *>(&is_doubly), sizeof(bool));
+  bool is_free = IsFree();
+  ispec.write(reinterpret_cast<char *>(&is_free), sizeof(bool));
   ispec.read(reinterpret_cast<char *>(&diameter_), sizeof(double));
   ispec.read(reinterpret_cast<char *>(&length_), sizeof(double));
   for (int i = 0; i < 3; ++i) {
@@ -920,8 +934,17 @@ void Crosslink::InsertFree(double const *const new_pos, double const *const u) {
  
   //state_ = bind_state::free;
   SetFree(0);
-  for (int i = 0; i < params_->n_dim; ++i) {
-    position_[i] = new_pos[i];
+  if (sparams_->start_at_spb == true) {
+    position_[0] = -78;
+    position_[1] = 0;
+    position_[2] = 0;
+    no_move = true;
+    Logger::Info("In loop");
+    return;
+  } else {
+    for (int i = 0; i < params_->n_dim; ++i) {
+      position_[i] = new_pos[i];
+    } 
   }
   //anchors_[bound_anchor_].InsertAt(new_pos, u);
   //anchors_[0].SetFree();

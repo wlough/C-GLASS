@@ -616,7 +616,7 @@ void Anchor::Draw(std::vector<graph_struct *> &graph_array) {
   }
   std::copy(orientation_, orientation_ + 3, g_.u);
   g_.color = color_;
-  g_.diameter = .4;
+  g_.diameter = 2;
   g_.length = length_;
   g_.draw = draw_;
   graph_array.push_back(&g_);
@@ -974,6 +974,7 @@ void Anchor::ConvertSpec(std::fstream &ispec, std::fstream &otext) {
 }
 
 void Anchor::ReadSpec(std::fstream &ispec) {
+  Logger::Info("inside spec");
   ispec.read(reinterpret_cast<char *>(&bound_), sizeof(bool));
   ispec.read(reinterpret_cast<char *>(&active_), sizeof(bool));
   ispec.read(reinterpret_cast<char *>(&static_flag_), sizeof(bool));

@@ -109,6 +109,9 @@ knockout_xlink: [false, bool]        # Use knockout algorithm to limit occupancy
 no_midstep: [false, bool]            # Specify the simulation is not using a mid step algorithm 
 single_occupancy: [true, bool]       # when set to false the sites can be occupied by multiple crosslinkers
                                      # not yet set up to be false with binding/unbinding on
+start_growth: [0, double]
+growth_speed: [100, double]
+
 
 species:                             # Shared parameters used for all species.
   name: [species, string]            # Label given to species (e.g. microtubule, kinesin, etc)
@@ -140,6 +143,9 @@ species:                             # Shared parameters used for all species.
                                      # stationary flag, currently only implemented for rigid/flexable filaments
 
 rigid_filament:
+  start_growth: [0, double]
+  growth_speed: [100, double]
+  end_point: [0, double]
   max_length: [500, double]          # maximum filament length. also used for dynamic instability.
   min_length: [5, double]            # minimum filament length. also used for dynamic instability.
   constrain_motion_flag: [false, bool] # If true, rigid filaments will move in planes such that two filaments
@@ -151,7 +157,6 @@ rigid_filament:
   packing_fraction: [-1, double]    # if num > 0, and packing fraction > 0, filaments are inserted
   #                                  # until the ratio filament to system volumes match this value.
   n_equil: [0, int]                 # internal filament parameter used for shuffling.
-
 filament:                            # Parameters unique to filament class of objects.
   packing_fraction: [-1, double]    # if num > 0, and packing fraction > 0, filaments are inserted
   persistence_length: [400, double]  # persistence length of filament.
@@ -311,6 +316,7 @@ crosslink:                          # Parameters specific to crosslinks.
                                     # #/area for grid spacing. In #/length or #/area for 2D or 3D
                                     # boundaries.
   f_to_s_factor: [0, double]
+  start_at_spb: [false, bool]
   begin_with_bound_crosslinks: [0, int]   # if greater than 0 the simultion begins with the specified number
                                     # of crosslinkers singly attached to microtubules
   begin_double_bound: [false, bool]  # Crosslinks from begin with_with_bound_crosslinks start double
@@ -332,6 +338,7 @@ crosslink:                          # Parameters specific to crosslinks.
   static_flag: [false, bool]        # Flag for setting one crosslinker head to be fixed in space
   diffusion_s: [0, double]          # Diffusion coefficient for singly bound crosslinks
   diffusion_d: [0, double]          # Diffusion coefficient for doubly bound crosslinks
+  diffusion_free: [256, double]
   energy_dep_factor: [0, double]    # Scalar in exponential force-dependent off-rate of doubly-
                                     # bound crosslinks when under a load.
   force_dep_length: [0, double]     # Characteristic length (x_c) used in 

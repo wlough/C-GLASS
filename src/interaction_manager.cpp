@@ -237,10 +237,10 @@ void InteractionManager::PairBondCrosslinks() {
 
   }
   /* Check that all anchors found their bond attachments */
-  if (n_anchors_attached != anchors.size()) {
-    Logger::Error("Not all anchors have found their bond! %d/%lu",
-                  n_anchors_attached, anchors.size());
-  }
+  //if (n_anchors_attached != anchors.size()) {
+  //  Logger::Error("Not all anchors have found their bond! %d/%lu",
+  //                n_anchors_attached, anchors.size());
+  //}
 }
 
 void InteractionManager::UpdateInteractions() {
@@ -387,7 +387,7 @@ void InteractionManager::ProcessPairInteraction(ix_iterator ix) {
   // Composite objects do self interact if they want to
   // Check to make sure we aren't self-interacting at the simple object level
   if (obj1->GetOID() == obj2->GetOID()) {
-    Logger::Error("Object %d attempted self-interaction!", obj1->GetOID());
+    Logger::Error("Object %d attempted self-interaction! %s", obj1->GetOID(), obj1->GetName().c_str());
   }
   // If we are disallowing like-like interactions, then similar species do not
   // interact...

@@ -170,6 +170,10 @@ system_parameters parse_system_params(YAML::Node &node) {
     params.no_midstep = it->second.as<bool>();
     } else if (param_name.compare("single_occupancy")==0) {
     params.single_occupancy = it->second.as<bool>();
+    } else if (param_name.compare("start_growth")==0) {
+    params.start_growth = it->second.as<double>();
+    } else if (param_name.compare("growth_speed")==0) {
+    params.growth_speed = it->second.as<double>();
     } else {
       Logger::Warning("Unrecognized parameter '%s'", param_name.c_str());
     }
@@ -266,6 +270,12 @@ species_base_parameters *parse_species_params(std::string sid,
       params.stationary_flag = jt->second.as<bool>();
       } else if (param_name.compare("stationary_until")==0) {
       params.stationary_until = jt->second.as<int>();
+      } else if (param_name.compare("start_growth")==0) {
+      params.start_growth = jt->second.as<double>();
+      } else if (param_name.compare("growth_speed")==0) {
+      params.growth_speed = jt->second.as<double>();
+      } else if (param_name.compare("end_point")==0) {
+      params.end_point = jt->second.as<double>();
       } else if (param_name.compare("max_length")==0) {
       params.max_length = jt->second.as<double>();
       } else if (param_name.compare("min_length")==0) {
@@ -683,6 +693,8 @@ species_base_parameters *parse_species_params(std::string sid,
       params.concentration = jt->second.as<double>();
       } else if (param_name.compare("f_to_s_factor")==0) {
       params.f_to_s_factor = jt->second.as<double>();
+      } else if (param_name.compare("start_at_spb")==0) {
+      params.start_at_spb = jt->second.as<bool>();
       } else if (param_name.compare("begin_with_bound_crosslinks")==0) {
       params.begin_with_bound_crosslinks = jt->second.as<int>();
       } else if (param_name.compare("begin_double_bound")==0) {
@@ -705,6 +717,8 @@ species_base_parameters *parse_species_params(std::string sid,
       params.diffusion_s = jt->second.as<double>();
       } else if (param_name.compare("diffusion_d")==0) {
       params.diffusion_d = jt->second.as<double>();
+      } else if (param_name.compare("diffusion_free")==0) {
+      params.diffusion_free = jt->second.as<double>();
       } else if (param_name.compare("energy_dep_factor")==0) {
       params.energy_dep_factor = jt->second.as<double>();
       } else if (param_name.compare("force_dep_length")==0) {

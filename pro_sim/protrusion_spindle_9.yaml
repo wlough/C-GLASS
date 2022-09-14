@@ -1,13 +1,17 @@
-run_name: test
-seed: 8877775
+run_name: 3_tubes
+seed: 24521452
 n_periodic: 0
-n_steps: 16850000
+n_steps: 10000000 #16850000
 n_dim: 3
-delta: .0001
+delta: .001
 graph_flag: false
 movie_flag: false
+checkpoint_flag: false
+n_checkpoint: 1000
+load_checkpoint: false
+checkpoint_run_name: cp_test
 movie_directory: movie_fold
-n_graph: 10
+n_graph: 100
 potential: none
 wca_sig: 3
 wca_eps: .02
@@ -17,8 +21,11 @@ n_runs: 1
 n_random: 1
 single_occupancy: false
 boundary: 5
-protrusion_radius: 1
+protrusion_radius: 2
 protrusion_length: 81
+start_growth: 1000000
+growth_speed: .014 #0.00494
+
 like_like_interactions: false
 rigid_filament:
   - name: rig1
@@ -38,6 +45,9 @@ rigid_filament:
     spec_flag: false
     n_spec: 1000
     stationary_until: 1000000
+    start_growth: 100000
+    growth_speed: -.014
+    end_point: -81
   - name: rig2
     draw_type: orientation
     color: .8
@@ -178,18 +188,19 @@ crosslink:
 - name: cut7
   anchors:
     - name: head
-      velocity_s: -0.028
+      velocity_s: -0.0712
       velocity_d: -0.043
       bind_file: cut_no_steric.yaml
       color: 5
       diameter: 10
   insertion_type: free
-  concentration: .003 #0.0005 #0.0094
-  f_to_s_factor: 2
+  concentration: 0 #.003 #0.0005 #0.0094
+  f_to_s_factor: .936 #0.58
+  start_at_spb: true
   diameter: .32
   begin_with_bound_crosslinks: 0
-  k_spring: 45.6
-  k_spring_compress: 45.6
+  k_spring: 152
+  k_spring_compress: 152
   no_binding: false
   rest_length: 3.12
   draw_type: fixed
@@ -198,10 +209,12 @@ crosslink:
   minus_end_pausing: true
   diffusion_s: 0.05696
   diffusion_d: 0.05696
+  diffusion_free: 25.6
   use_binding_volume: false
   spec_flag: true
-  n_spec: 100
+  n_spec: 1000
   tether_diameter: 0.15
+  energy_dep_factor: .5
   tether_color: 5.5
   step_direction: 1
   infinite_reservoir_flag: true

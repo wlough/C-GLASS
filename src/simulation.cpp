@@ -134,6 +134,7 @@ void Simulation::Integrate() {
   for (auto it = species_.begin(); it != species_.end(); ++it) {
     (*it)->UpdatePositions();
   }
+  space_.GrowProtrusion();
 }
 
 /* Calculate interaction forces between all objects if necessary. */

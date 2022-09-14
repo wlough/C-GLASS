@@ -786,7 +786,7 @@ void Graphics::DrawBoundary() {
     // Turn on wireframe mode
     if (n_dim_ == 2){
       // DrawWireSphere(0.5*unit_cell_[0], 3, 32);
-      DrawWireSphere(0.5 * unit_cell_[0], 32, 32);
+      //DrawWireSphere(0.5 * unit_cell_[0], 32, 32);
       Logger::Error("Protrusion not set up for 2d");
     }
     if (n_dim_ == 3) {
@@ -834,11 +834,12 @@ void Graphics::DrawWireSphere(double r, int lats, int longs) {
 void Graphics::DrawWireCylinder(double start, double r, double length) {
   glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
   glLineWidth(1.0);
-  int lats = 13;
+  int spacing = 2;
+  int lats = length/spacing;
   int longs = 8;
   for (int i = 0; i <= lats; i++) {
-    double lat0 = ((double)(-i*1.5));
-    double z0 = r * lat0;
+    double lat0 = ((double)(-i*spacing));
+    double z0 = lat0;
     double zr0 = 1;
     double lat1 = ((double)(-i/3));
     double z1 = r * lat1;
@@ -848,10 +849,10 @@ void Graphics::DrawWireCylinder(double start, double r, double length) {
       double lng = 2 * M_PI * (double)(j - 1) / longs;
       double x = r * cos(lng);
       double y = r * sin(lng);
-      glNormal3f(z0-82, y * zr0, x * zr0);
-      glVertex3f(z0-82, y * zr0, x * zr0);
-      glNormal3f(z1-82, y * zr1, x * zr1);
-      glVertex3f(z1-82, y * zr1, x * zr1);
+      glNormal3f(z0-start, y * zr0, x * zr0);
+      glVertex3f(z0-start, y * zr0, x * zr0);
+      glNormal3f(z1-start, y * zr1, x * zr1);
+      glVertex3f(z1-start, y * zr1, x * zr1);
     }
     glEnd();
   }

@@ -29,6 +29,9 @@ typedef species_parameters<species_id::none> species_base_parameters;
 template <>
 struct species_parameters<species_id::rigid_filament>
     : public species_base_parameters {
+  double start_growth = 0;
+  double growth_speed = 100;
+  double end_point = 0;
   double max_length = 500;
   double min_length = 5;
   bool constrain_motion_flag = false;
@@ -165,6 +168,7 @@ struct species_parameters<species_id::crosslink>
     : public species_base_parameters {
   double concentration = 0;
   double f_to_s_factor = 0;
+  bool start_at_spb = false;
   int begin_with_bound_crosslinks = 0;
   bool begin_double_bound = false;
   bool no_binding = false;
@@ -176,6 +180,7 @@ struct species_parameters<species_id::crosslink>
   bool static_flag = false;
   double diffusion_s = 0;
   double diffusion_d = 0;
+  double diffusion_free = 256;
   double energy_dep_factor = 0;
   double force_dep_length = 0;
   double polar_affinity = 1;
@@ -302,6 +307,8 @@ struct system_parameters {
   bool knockout_xlink = false;
   bool no_midstep = false;
   bool single_occupancy = true;
+  double start_growth = 0;
+  double growth_speed = 100;
 };
 
 #endif // _CGLASS_PARAMETERS_H_

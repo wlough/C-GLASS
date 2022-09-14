@@ -270,6 +270,18 @@ void RigidFilament::UpdatePosition() {
   if (!params_->on_midstep && !sparams_->stationary_flag && (sparams_->stationary_until)<eq_steps_count_)
     Integrate();
   eq_steps_count_++;
+
+  if (.5*eq_steps_count_>sparams_->start_growth && position_[0]>sparams_->end_point){
+   position_[0] += .5*(sparams_->growth_speed)*params_->delta;
+   UpdatePeriodic();
+   UpdateSitePositions();
+   UpdateBondPositions();
+   //Logger::Info("New pos set");
+    
+  }
+  //if(eq_steps_count_==200 || eq_steps_count_==400){
+  //Logger::Info("time is %i, filament position is %f", eq_steps_count_, position_[0]);
+  //}
 }
 
 void RigidFilament::GetNematicOrder(double *nematic_order_tensor) {
@@ -369,7 +381,7 @@ void RigidFilament::ApplyInteractionForces() {
 
 void RigidFilament::Draw(std::vector<graph_struct *> &graph_array) {
   for (auto bond = bonds_.begin(); bond != bonds_.end(); ++bond) {
-    //bond->Draw(graph_array);
+    bond->Draw(graph_array);
   }
 }
 

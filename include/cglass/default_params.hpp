@@ -14,6 +14,9 @@
   default_config["species"]["n_spec"] = "100";
   default_config["species"]["stationary_flag"] = "false";
   default_config["species"]["stationary_until"] = "-1";
+  default_config["rigid_filament"]["start_growth"] = "0";
+  default_config["rigid_filament"]["growth_speed"] = "100";
+  default_config["rigid_filament"]["end_point"] = "0";
   default_config["rigid_filament"]["max_length"] = "500";
   default_config["rigid_filament"]["min_length"] = "5";
   default_config["rigid_filament"]["constrain_motion_flag"] = "false";
@@ -142,6 +145,7 @@
   default_config["crosslink"]["anchors"][1]["k_off_d"] = "2";
   default_config["crosslink"]["concentration"] = "0";
   default_config["crosslink"]["f_to_s_factor"] = "0";
+  default_config["crosslink"]["start_at_spb"] = "false";
   default_config["crosslink"]["begin_with_bound_crosslinks"] = "0";
   default_config["crosslink"]["begin_double_bound"] = "false";
   default_config["crosslink"]["no_binding"] = "false";
@@ -153,6 +157,7 @@
   default_config["crosslink"]["static_flag"] = "false";
   default_config["crosslink"]["diffusion_s"] = "0";
   default_config["crosslink"]["diffusion_d"] = "0";
+  default_config["crosslink"]["diffusion_free"] = "256";
   default_config["crosslink"]["energy_dep_factor"] = "0";
   default_config["crosslink"]["force_dep_length"] = "0";
   default_config["crosslink"]["polar_affinity"] = "1";
@@ -254,3 +259,5 @@
   default_config["knockout_xlink"] = "false";
   default_config["no_midstep"] = "false";
   default_config["single_occupancy"] = "true";
+  default_config["start_growth"] = "0";
+  default_config["growth_speed"] = "100";

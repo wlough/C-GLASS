@@ -17,6 +17,7 @@ void Space::Init(system_parameters *params) {
   n_dim_ = params_->n_dim;
   n_periodic_ = params_->n_periodic;
   delta_ = params_->delta;
+  time= 0;
   compressibility_ = params_->compressibility;
   pressure_time_ = params_->pressure_time;
   // Make sure that n_periodic <= n_dim
@@ -81,7 +82,11 @@ void Space::Init(system_parameters *params) {
     case 5:
       boundary_ = boundary_type::protrusion;
       pro_radius_ = params_->protrusion_radius;
-      pro_length_ = params_->protrusion_length;
+      if (params_->growth_speed == 0) {
+        pro_length_ = params_->protrusion_length;
+      } else {
+        pro_length_ = 0;
+      }
       Logger::Info("Radius set to %f, length set to %f", pro_radius_, pro_length_);
   }
   InitUnitCell();
@@ -150,6 +155,19 @@ void Space::UpdateSpace() {
   UpdateUnitCell();
   UpdateVolume();
   UpdateSpaceStruct();
+}
+
+void Space::GrowProtrusion() {
+  if (boundary_ != +boundary_type::protrusion) return;
+    if (.5*time>params_->start_growth && pro_length_<params_->protrusion_length) {
+      pro_length_ += .5*(params_->growth_speed)*params_->delta;  
+      s.pro_length = pro_length_;
+      //Logger::Info("In loop");
+   }
+   time+=1;
+   //if (time == 200 || time == 400) {
+   //Logger::Info("time is %i, protrusion length is %f", time, pro_length_);
+   //}
 }
 
 /* XXX Only works for periodic boundary conditions so far, need to add volume

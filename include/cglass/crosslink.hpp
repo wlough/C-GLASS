@@ -22,6 +22,7 @@ private:
   bool static_flag_ = false;
   bool asymmetric_spring_flag_ = false;
   bool free_flag_ = false;
+  bool no_move = false;
   double k_spring_;
   double k_spring_compress_;
   double k_align_;

@@ -24,6 +24,7 @@ private:
   // protrusion data
   double pro_radius_ = 10;
   double pro_length_ = 10;
+  int time = 0;
 
   // bud data
   double bud_radius_ = 0;  // radius of budding cell
@@ -64,6 +65,7 @@ public:
   void UpdateSpace();
   void ConstantPressure();
   void ConstantVolume();
+  void GrowProtrusion();
   SpaceBase *GetSpaceBase();
   bool GetUpdate() { return update_; }
 };
