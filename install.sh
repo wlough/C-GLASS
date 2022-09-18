@@ -1,5 +1,7 @@
 #!/bin/bash
-
+#ifdef _OPENMP_
+#include<omp.h> 
+#endif
 do_build() {
     mkdir build
     cd build || exit 1

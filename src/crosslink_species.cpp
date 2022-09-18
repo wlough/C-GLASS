@@ -698,7 +698,7 @@ void CrosslinkSpecies::ApplyCrosslinkTetherForces() {
 
 void CrosslinkSpecies::UpdateBoundCrosslinkForces() {
 #ifdef ENABLE_OPENMP
-  Logger::Info("OPENMP");
+  //Logger::Info("OPENMP");
   int max_threads = omp_get_max_threads();
   xlink_chunk_vector chunks;
   chunks.reserve(max_threads);
@@ -732,7 +732,7 @@ void CrosslinkSpecies::UpdateBoundCrosslinkForces() {
     }
   }
 #else
-  Logger::Info("Else");
+  //Logger::Info("Else");
   for (xlink_iterator xlink = members_.begin(); xlink != members_.end();
        ++xlink) {
     bool init_state = (xlink->IsSingly() /*|| xlink->IsFree()*/);
