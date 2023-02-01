@@ -2,16 +2,17 @@
 #define _CGLASS_SPECIES_FACTORY_H_
 
 #include "br_bead_species.hpp"
+#include "chromosome_species.hpp"
 #include "crosslink_species.hpp"
 #include "filament_species.hpp"
+#include "receptor_species.hpp"
 #include "rigid_filament_species.hpp"
 #include "spherocylinder_species.hpp"
 #include "spindle_species.hpp"
-#include "receptor_species.hpp"
 
 class SpeciesFactory {
- public:
-  SpeciesBase* CreateSpecies(const species_id sid, unsigned long seed) const {
+public:
+  SpeciesBase *CreateSpecies(const species_id sid, unsigned long seed) const {
     if (sid == +species_id::filament) {
       return new FilamentSpecies(seed);
     } else if (sid == +species_id::rigid_filament) {
@@ -26,6 +27,8 @@ class SpeciesFactory {
       return new SpherocylinderSpecies(seed);
     } else if (sid == +species_id::receptor) {
       return new ReceptorSpecies(seed);
+    } else if (sid == +species_id::chromosome) {
+      return new ChromosomeSpecies(seed);
     }
 
     Logger::Error("Species ID not recognized in SpeciesFactory!");

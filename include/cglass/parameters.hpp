@@ -5,7 +5,8 @@
 
 #include <string>
 
-template <unsigned char S> struct species_parameters {
+template <unsigned char S>
+struct species_parameters {
   std::string name = "species";
   int num = 0;
   double diameter = 1;
@@ -27,6 +28,14 @@ template <unsigned char S> struct species_parameters {
 typedef species_parameters<species_id::none> species_base_parameters;
 
 template <>
+struct species_parameters<species_id::chromosome>
+    : public species_base_parameters {
+
+  double n_attached = 0;
+};
+typedef species_parameters<species_id::chromosome> chromosome_parameters;
+
+template <>
 struct species_parameters<species_id::rigid_filament>
     : public species_base_parameters {
   double max_length = 500;
@@ -36,7 +45,8 @@ struct species_parameters<species_id::rigid_filament>
   double packing_fraction = -1;
   int n_equil = 0;
 };
-typedef species_parameters<species_id::rigid_filament> rigid_filament_parameters;
+typedef species_parameters<species_id::rigid_filament>
+    rigid_filament_parameters;
 
 template <>
 struct species_parameters<species_id::filament>
@@ -143,7 +153,8 @@ struct species_parameters<species_id::spherocylinder>
   bool diffusion_analysis = false;
   int n_diffusion_samples = 1;
 };
-typedef species_parameters<species_id::spherocylinder> spherocylinder_parameters;
+typedef species_parameters<species_id::spherocylinder>
+    spherocylinder_parameters;
 
 template <>
 struct species_parameters<species_id::spindle>
