@@ -383,8 +383,8 @@ void Simulation::InsertSpecies(bool force_overlap, bool processing) {
           break;
         }
         if ((*spec)->GetSID() == +species_id::chromosome) {
-          double pos[3] = {inserted, inserted, inserted};
-          (*spec)->GetMember(inserted)->SetPosition(pos);
+          // double pos[3] = {inserted, inserted, inserted};
+          // (*spec)->GetMember(inserted)->SetPosition(pos);
           printf("chromo %i inserted @ (%g, %g, %g)\n", inserted,
                  (*spec)->GetMember(inserted)->GetPosition()[0],
                  (*spec)->GetMember(inserted)->GetPosition()[1],

@@ -30,7 +30,8 @@ public:
   void GetInteractors(std::vector<Object *> &ixors);
 
   void GetLastInteractors(std::vector<Object *> &ixors) {
-    ixors.push_back(&members_.back());
+    members_.back().GetInteractors(ixors);
+    // ixors.push_back(&members_.back());
   }
 };
 

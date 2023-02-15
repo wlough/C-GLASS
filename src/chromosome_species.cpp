@@ -31,6 +31,7 @@ void ChromosomeSpecies::UpdatePositions() {
 
 void ChromosomeSpecies::GetInteractors(std::vector<Object *> &ixors) {
   for (auto &&chromo : members_) {
-    ixors.push_back(&chromo);
+    chromo.GetInteractors(ixors);
+    // ixors.push_back(&chromo);
   }
 }
