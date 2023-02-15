@@ -36,7 +36,8 @@ void Simulation::RunSimulation() {
   double delta_diff = 0;
   time_ = 0;
   params_.i_step = 0;
-  for (i_step_ = 1; params_.i_step <= (inv_step_fact_*params_.n_steps); ++i_step_) {
+  for (i_step_ = 1; params_.i_step <= (inv_step_fact_ * params_.n_steps);
+       ++i_step_) {
     params_.on_midstep = i_step_ % inv_step_fact_;
     time_ += step_fact_ * Object::GetDelta();
     params_.i_step = i_step_;
@@ -73,7 +74,7 @@ void Simulation::RunSimulation() {
         Logger::Warning(
             "Dynamic delta has become ridiculously tiny! (%2.14f) Likely an"
             " interaction error occurred. Triggering an early exit. %f",
-            Object::GetDelta(), step_fact_*i_step_);
+            Object::GetDelta(), step_fact_ * i_step_);
         return;
       }
       continue;
@@ -116,7 +117,7 @@ void Simulation::PrintComplete() {
       Logger::Info("Current timestep: %2.10f", Object::GetDelta());
     }
   }
-  if (i_step_ == inv_step_fact_*(log_interval_ + 1)) {
+  if (i_step_ == inv_step_fact_ * (log_interval_ + 1)) {
     Logger::Info("%d steps completed", log_interval_);
     log_interval_ = (int)floor(2 * log_interval_);
     if (params_.dynamic_timestep) {
@@ -154,7 +155,7 @@ void Simulation::ZeroForces() {
 /* Update system pressure, volume and rescale system size if necessary,
  * handling periodic boundaries in a sane way. */
 void Simulation::Statistics() {
-  if (params_.i_step % (inv_step_fact_*params_.n_thermo) == 0 &&
+  if (params_.i_step % (inv_step_fact_ * params_.n_thermo) == 0 &&
       params_.i_step != params_.prev_step && params_.i_step > 0) {
     Logger::Debug("Calculating system pressure and volume");
     /* Calculate system pressure from stress tensor */
@@ -261,7 +262,7 @@ void Simulation::InitGraphics() {
   if (params_.movie_flag) {
     // Record bmp image of frame into movie_directory
     grabber(graphics_.windx_, graphics_.windy_, params_.movie_directory,
-            (int)params_.i_step / (inv_step_fact_*params_.n_graph));
+            (int)params_.i_step / (inv_step_fact_ * params_.n_graph));
   }
 #endif
 }
@@ -270,6 +271,7 @@ void Simulation::InitGraphics() {
 void Simulation::InitSpecies() {
   std::vector<sid_label> species_labels = parser_.GetSpeciesLabels();
   species_.reserve(parser_.GetNSpecies());
+  printf(" %i species\n", parser_.GetNSpecies());
   SpeciesFactory species_factory;
   for (auto slab = species_labels.begin(); slab != species_labels.end();
        ++slab) {
@@ -278,12 +280,15 @@ void Simulation::InitSpecies() {
       ix_mgr_.InitCrosslinkSpecies(*slab, parser_, rng_->GetSeed());
       continue;
     }
+    if (sid == +species_id::chromosome) {
+      printf("WE HERE\n");
+    }
     species_.push_back(species_factory.CreateSpecies(sid, rng_->GetSeed()));
     species_.back()->Init(slab->second, parser_);
     if (sid == +species_id::receptor) {
       species_.back()->SetPC(cortex_, species_);
     }
-if (species_.back()->GetNInsert() > 0) {
+    if (species_.back()->GetNInsert() > 0) {
 #ifdef TRACE
       if (species_.back()->GetNInsert() > 20) {
         Logger::Warning("Simulation run in trace mode with a large number of "
@@ -301,9 +306,14 @@ if (species_.back()->GetNInsert() > 0) {
         }
       }
 #endif
+      printf("we insertin\n");
       species_.back()->Reserve();
       double spec_length = species_.back()->GetSpecLength();
       double spec_d = species_.back()->GetSpecDiameter();
+      if (sid == +species_id::chromosome) {
+        printf("L: %g\n", spec_length);
+        printf("D: %g\n", spec_d);
+      }
       spec_length = (spec_d > spec_length ? spec_d : spec_length);
       CellList::SetMinCellLength(1.5 * spec_length);
     } else {
@@ -323,11 +333,13 @@ void Simulation::InsertSpecies(bool force_overlap, bool processing) {
         (*spec)->GetInsertionType().find("random") == std::string::npos) {
       /* Insertion is non-random: don't check for overlaps */
       force_overlap = true;
+      printf("what\n");
     }
     int num = (*spec)->GetNInsert();
     bool not_done = true;
     int inserted = 0;
     int num_attempts = 0;
+    printf("Species: %s\n\n", (*spec)->GetSpeciesName().c_str());
     while (num != inserted) {
       inserted = 0;
       int num_failures = 0;
@@ -339,18 +351,22 @@ void Simulation::InsertSpecies(bool force_overlap, bool processing) {
         // First check that we are respecting boundary conditions
         std::vector<Object *> last_ixors;
         (*spec)->GetLastInteractors(last_ixors);
-        if (params_.boundary != 0 && !processing && ((*spec)->GetSID() !=
-            +species_id::receptor) && ix_mgr_.CheckBoundaryConditions(last_ixors)) {
+        if (params_.boundary != 0 && !processing &&
+            ((*spec)->GetSID() != +species_id::receptor) &&
+            ix_mgr_.CheckBoundaryConditions(last_ixors)) {
           (*spec)->PopMember();
           /* We are not counting boundary condition failures in insertion
            failures, since insertion failures are for packing issues */
+          printf("POP\n");
         }
         // Check if we have an overlap of objects
-        else if (!force_overlap && ((*spec)->GetSID() !=
-            +species_id::receptor) && !(*spec)->CanOverlap() && !processing &&
+        else if (!force_overlap &&
+                 ((*spec)->GetSID() != +species_id::receptor) &&
+                 !(*spec)->CanOverlap() && !processing &&
                  ix_mgr_.CheckOverlap(last_ixors)) {
           (*spec)->PopMember();
           num_failures++;
+          printf("%i failures\n", num_failures);
         }
         /* Otherwise update interaction engine to include new interactors and
            update display of percentage of species inserted */
@@ -366,20 +382,27 @@ void Simulation::InsertSpecies(bool force_overlap, bool processing) {
                           100.0 * inserted / (float)num);
           break;
         }
+        if ((*spec)->GetSID() == +species_id::chromosome) {
+          double pos[3] = {inserted, inserted, inserted};
+          (*spec)->GetMember(inserted)->SetPosition(pos);
+          printf("chromo %i inserted @ (%g, %g, %g)\n", inserted,
+                 (*spec)->GetMember(inserted)->GetPosition()[0],
+                 (*spec)->GetMember(inserted)->GetPosition()[1],
+                 (*spec)->GetMember(inserted)->GetPosition()[2]);
+        }
       }
       //Set neighbors for receptors so anchors know where to step to
       //Currently might throw error is receptors aren't on filament, need to check
-      if ((*spec)->GetSID() == +species_id::receptor){
+      if ((*spec)->GetSID() == +species_id::receptor) {
         (*spec)->SetAllNeighbors();
-        //Get receptors so they can be passed to InserAttatchedCrosslinks  
+        //Get receptors so they can be passed to InserAttatchedCrosslinks
         //Only set up for 2 filaments
         if (tube_count == 0) {
           receptor_list_.push_back((*spec)->GetReceptors());
           tube_count = 1;
+        } else {
+          receptor_list_.push_back((*spec)->GetReceptors());
         }
-        else {
-          receptor_list_.push_back((*spec)->GetReceptors()); 
-        }  
       }
 
       if (num != inserted && params_.n_dim == 2) {
@@ -416,9 +439,9 @@ void Simulation::InsertSpecies(bool force_overlap, bool processing) {
           // First check that we are respecting boundary conditions
           std::vector<Object *> last_ixors;
           (*spec)->GetLastInteractors(last_ixors);
-          if (params_.boundary != 0 && !processing && (*spec)->GetSID() !=
-              +species_id::receptor
-              && ix_mgr_.CheckBoundaryConditions(last_ixors)) {
+          if (params_.boundary != 0 && !processing &&
+              (*spec)->GetSID() != +species_id::receptor &&
+              ix_mgr_.CheckBoundaryConditions(last_ixors)) {
             (*spec)->PopMember();
             // We are not counting boundary condition failures in insertion
             // failures, since insertion failures are for packing issues
@@ -474,7 +497,7 @@ void Simulation::InsertSpecies(bool force_overlap, bool processing) {
   ix_mgr_.Reset();
   // if (!processing) {
   ix_mgr_.CheckUpdateObjects(); // Forces update as well
-  //}  
+  //}
   ix_mgr_.InsertAttachedCrosslinks(receptor_list_);
 }
 
@@ -508,7 +531,8 @@ void Simulation::ClearSpecies() {
 /* Update the OpenGL graphics window */
 void Simulation::Draw(bool single_frame) {
 #ifndef NOGRAPH
-  if (params_.graph_flag && params_.i_step % (inv_step_fact_*params_.n_graph) == 0 &&
+  if (params_.graph_flag &&
+      params_.i_step % (inv_step_fact_ * params_.n_graph) == 0 &&
       params_.i_step != params_.prev_step) {
     Logger::Trace("Drawing graphable objects");
     /* Get updated object positions and orientations */
@@ -552,7 +576,8 @@ void Simulation::InitInputs(run_options run_opts) {
   output_mgr_.Init(&params_, &species_, space_.GetSpaceBase(), true, &run_opts);
   ix_mgr_.InitOutputs(true, &run_opts);
   /* Initialize object positions from output files if post-processing */
-  if (run_opts.convert) return;
+  if (run_opts.convert)
+    return;
   output_mgr_.ReadInputs();
   ix_mgr_.ReadInputs();
 }
@@ -564,7 +589,8 @@ void Simulation::WriteOutputs() {
   ix_mgr_.WriteOutputs();
   /* If we are analyzing run time and this is the last step, record final time
    * here. */
-  if (params_.time_analysis && params_.i_step == inv_step_fact_*params_.n_steps) {
+  if (params_.time_analysis &&
+      params_.i_step == inv_step_fact_ * params_.n_steps) {
     double cpu_final_time = cpu_time();
     double cpu_time = cpu_final_time - cpu_init_time_;
     Logger::Info("CPU Time for Initialization: %2.6f", cpu_init_time_);
@@ -604,7 +630,8 @@ void Simulation::InitProcessing(run_options run_opts) {
   space_.Init(&params_);
   InitObjects();
   cortex_ = new Cortex(rng_->GetSeed());
-  ix_mgr_.Init(&params_, &species_, space_.GetSpaceBase(), cortex_, &tracker_, true);
+  ix_mgr_.Init(&params_, &species_, space_.GetSpaceBase(), cortex_, &tracker_,
+               true);
   InitSpecies();
   // ix_mgr_.InitInteractions();
   InsertSpecies(true, true);
@@ -642,7 +669,7 @@ void Simulation::InitProcessing(run_options run_opts) {
 void Simulation::RunProcessing(run_options run_opts) {
   Logger::Info("Processing outputs for %s", run_name_.c_str());
 
-  for (i_step_ = 1; i_step_ <= (params_.n_steps*inv_step_fact_); ++i_step_) {
+  for (i_step_ = 1; i_step_ <= (params_.n_steps * inv_step_fact_); ++i_step_) {
     params_.i_step = i_step_;
     time_ = params_.i_step * params_.delta * step_fact_;
     PrintComplete();
@@ -655,14 +682,16 @@ void Simulation::RunProcessing(run_options run_opts) {
       ix_mgr_.Convert();
       continue;
     }
-    if (run_opts.analysis_flag && params_.i_step >= (inv_step_fact_*params_.n_steps_equil)) {
+    if (run_opts.analysis_flag &&
+        params_.i_step >= (inv_step_fact_ * params_.n_steps_equil)) {
       bool struct_update = false;
       /* Check if we are running any species analysis to determine whether we
        * run structure analysis */
       for (auto it = species_.begin(); it != species_.end(); ++it) {
         if (((*it)->GetPositFlag() &&
-             params_.i_step % (inv_step_fact_*(*it)->GetNPosit()) == 0) ||
-            ((*it)->GetSpecFlag() && params_.i_step % (inv_step_fact_*(*it)->GetNSpec()) == 0)) {
+             params_.i_step % (inv_step_fact_ * (*it)->GetNPosit()) == 0) ||
+            ((*it)->GetSpecFlag() &&
+             params_.i_step % (inv_step_fact_ * (*it)->GetNSpec()) == 0)) {
           struct_update = true;
           break;
         }
@@ -671,9 +700,9 @@ void Simulation::RunProcessing(run_options run_opts) {
         ix_mgr_.InteractionAnalysis();
         for (auto it = species_.begin(); it != species_.end(); ++it) {
           if (((*it)->GetPositFlag() &&
-               params_.i_step % (inv_step_fact_*(*it)->GetNPosit()) == 0) ||
+               params_.i_step % (inv_step_fact_ * (*it)->GetNPosit()) == 0) ||
               ((*it)->GetSpecFlag() &&
-               params_.i_step % (inv_step_fact_*(*it)->GetNSpec() == 0))) {
+               params_.i_step % (inv_step_fact_ * (*it)->GetNSpec() == 0))) {
             (*it)->RunAnalysis();
           }
         }
@@ -686,8 +715,9 @@ void Simulation::RunProcessing(run_options run_opts) {
   Draw(run_opts.single_frame);
   early_exit = false;
   Logger::Info("Early exit triggered on step %f. Ending simulation.",
-               params_.i_step*step_fact_);
-  if (run_opts.analysis_flag && i_step_ > (inv_step_fact_*params_.n_steps_equil)) {
+               params_.i_step * step_fact_);
+  if (run_opts.analysis_flag &&
+      i_step_ > (inv_step_fact_ * params_.n_steps_equil)) {
     for (auto it = species_.begin(); it != species_.end(); ++it) {
       (*it)->FinalizeAnalysis();
     }

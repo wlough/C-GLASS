@@ -19,9 +19,19 @@ private:
 public:
   // ChromosomeSpecies(){};
   ChromosomeSpecies(unsigned long seed);
-  void Init(std::string spec_name, ParamsParser &parser) {}
+  void Init(std::string spec_name, ParamsParser &parser);
+  void PopMember();
+  void AddMember();
 
-  void UpdatePositions() {}
+  void Reserve();
+
+  void UpdatePositions();
+
+  void GetInteractors(std::vector<Object *> &ixors);
+
+  void GetLastInteractors(std::vector<Object *> &ixors) {
+    ixors.push_back(&members_.back());
+  }
 };
 
 #endif

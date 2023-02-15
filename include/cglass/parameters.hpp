@@ -32,6 +32,9 @@ struct species_parameters<species_id::chromosome>
     : public species_base_parameters {
 
   double n_attached = 0;
+  double translational_noise = 0;
+  double rotational_noise = 0;
+  bool zero_temperature = false;
 };
 typedef species_parameters<species_id::chromosome> chromosome_parameters;
 

@@ -3,7 +3,7 @@
 
 void InteractionManager::Init(system_parameters *params,
                               std::vector<SpeciesBase *> *species,
-                              SpaceBase *space, Cortex *cortex, 
+                              SpaceBase *space, Cortex *cortex,
                               Tracker *tracker, bool processing) {
   // Set up pointer structures
   params_ = params;
@@ -124,7 +124,7 @@ void InteractionManager::UpdateInteractors() {
        ++spec_it) {
     (*spec_it)->GetInteractors(ix_objects_);
   }
-  
+
   // Add crosslinks as interactors
   interactors_.insert(interactors_.end(), ix_objects_.begin(),
                       ix_objects_.end());
@@ -232,8 +232,6 @@ void InteractionManager::PairBondCrosslinks() {
         n_anchors_attached++;
       }
     }
-
-
   }
   /* Check that all anchors found their bond attachments */
   if (n_anchors_attached != anchors.size()) {
@@ -378,6 +376,7 @@ void InteractionManager::ProcessPairInteraction(ix_iterator ix) {
   // Avoid certain types of interactions
   Object *obj1 = ix->obj1;
   Object *obj2 = ix->obj2;
+  // printf("%i vs. %i\n", +obj1->GetSID(), +obj2->GetSID());
 #ifdef TRACE
   Logger::Trace("Processing interaction between %d and %d", obj1->GetOID(),
                 obj2->GetOID());
@@ -434,6 +433,15 @@ void InteractionManager::ProcessPairInteraction(ix_iterator ix) {
     xlink_.AddNeighborToAnchor(obj2, obj1);
     return;
   }
+  // if (obj1->GetSID() == +species_id::chromosome) {
+  //   printf("chromo 1 @ (%g, %g, %g)\n", obj1->GetPosition()[0],
+  //          obj1->GetPosition()[1], obj1->GetPosition()[2]);
+  // }
+  // if (obj2->GetSID() == +species_id::chromosome) {
+  //   printf("chromo 2 @ (%g, %g, %g)\n", obj2->GetPosition()[0],
+  //          obj2->GetPosition()[1], obj2->GetPosition()[2]);
+  // }
+
   mindist_.ObjectObject(*ix);
 
   // Check for particle overlaps
@@ -800,7 +808,8 @@ void InteractionManager::LoadCrosslinksFromCheckpoints(
 
 void InteractionManager::InsertCrosslinks() { xlink_.InsertCrosslinks(); }
 
-void InteractionManager::InsertAttachedCrosslinks(std::vector<std::vector<Object *>> receptor_list) {
+void InteractionManager::InsertAttachedCrosslinks(
+    std::vector<std::vector<Object *>> receptor_list) {
   if (processing_ && !run_interaction_analysis_) {
     return;
   }
