@@ -1,10 +1,14 @@
 #ifndef _CGLASS_KINETOCHORE_H_
 #define _CGLASS_KINETOCHORE_H_
 
-class Kinetochore {
+#include "object.hpp"
+
+class Kinetochore : public Object {
 
 public:
-  Kinetochore();
-  void Init();
+  Kinetochore(unsigned long seed) : Object(seed) {
+    SetSID(species_id::chromosome);
+  }
+  void Init() {}
 };
 #endif

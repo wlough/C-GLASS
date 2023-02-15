@@ -629,6 +629,8 @@ void Graphics::DrawSpheros() {
 
   /* Don't draw back facing triangles (as they would be occluded anyway */
   glEnable(GL_CULL_FACE);
+
+  // VV PREP DRAW
   /* Use vertex/fragment custom shader for spherocylinder */
   glUseProgram(spherocylinder_.program_);
   /* Get location of half_l parameter, this shouldn't need to be done everytime
@@ -652,6 +654,7 @@ void Graphics::DrawSpheros() {
   /* Use the element buffer (numerical pointer to each set of vertices that make
    * a triangle) */
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, spherocylinder_.element_buffer_);
+  // ^^ PREP DRAW
 
   GLfloat color[4] = {0.0, 0.0, 1.0, 1.0}; // default bond color
   // for (int i_bond = 0; i_bond < n_spheros; ++i_bond) {
@@ -735,6 +738,8 @@ void Graphics::DrawSpheros() {
     GLfloat half_length = 0.5 * (*it)->length;
     glUniform1f(spherocylinder_.uniforms_.half_l, half_length);
     glUniform1f(spherocylinder_.uniforms_.diameter, (*it)->diameter);
+
+    // VV DRAW
     /* Make copy of modelview matrix to work on */
     glPushMatrix();
 
@@ -751,6 +756,7 @@ void Graphics::DrawSpheros() {
                    GL_UNSIGNED_SHORT, (void *)0);
     /* Reset modelview matrix */
     glPopMatrix();
+    // ^^ DRAW
   }
   glDisableVertexAttribArray(spherocylinder_.attributes_.position);
 }
@@ -759,7 +765,6 @@ void Graphics::Draw3d() {
   KeyInteraction();
   UpdateWindow();
   DrawSpheros();
-  DrawChromosomes();
   DrawBoundary();
   // DrawText();
   glfwSwapBuffers(window_);
