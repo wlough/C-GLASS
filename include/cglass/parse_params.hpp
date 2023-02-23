@@ -873,6 +873,71 @@ parse_species_params(std::string sid, YAML::Node &subnode, YAML::Node &node) {
       }
     }
     return new receptor_parameters(params);
+  } else if (sid.compare("centrosome") == 0) {
+    printf("lol CENTROSOME params\n");
+    centrosome_parameters params;
+    parse_species_base_params(params, node);
+    for (auto jt = subnode.begin(); jt != subnode.end(); ++jt) {
+      std::string param_name = jt->first.as<std::string>();
+      if (false) {
+      } else if (param_name.compare("name") == 0) {
+        params.name = jt->second.as<std::string>();
+      } else if (param_name.compare("num") == 0) {
+        params.num = jt->second.as<int>();
+      } else if (param_name.compare("diameter") == 0) {
+        params.diameter = jt->second.as<double>();
+      } else if (param_name.compare("length") == 0) {
+        params.length = jt->second.as<double>();
+      } else if (param_name.compare("insertion_type") == 0) {
+        params.insertion_type = jt->second.as<std::string>();
+      } else if (param_name.compare("insert_file") == 0) {
+        params.insert_file = jt->second.as<std::string>();
+      } else if (param_name.compare("overlap") == 0) {
+        params.overlap = jt->second.as<bool>();
+      } else if (param_name.compare("draw_type") == 0) {
+        params.draw_type = jt->second.as<std::string>();
+      } else if (param_name.compare("color") == 0) {
+        params.color = jt->second.as<double>();
+      } else if (param_name.compare("posit_flag") == 0) {
+        params.posit_flag = jt->second.as<bool>();
+      } else if (param_name.compare("spec_flag") == 0) {
+        params.spec_flag = jt->second.as<bool>();
+      } else if (param_name.compare("n_posit") == 0) {
+        params.n_posit = jt->second.as<int>();
+      } else if (param_name.compare("n_spec") == 0) {
+        params.n_spec = jt->second.as<int>();
+      } else if (param_name.compare("stationary_flag") == 0) {
+        params.stationary_flag = jt->second.as<bool>();
+      } else if (param_name.compare("stationary_until") == 0) {
+        params.stationary_until = jt->second.as<int>();
+      } else if (param_name.compare("rotational_noise") == 0) {
+        params.rotational_noise = jt->second.as<double>();
+      } else if (param_name.compare("translational_noise") == 0) {
+        params.translational_noise = jt->second.as<double>();
+      } else if (param_name.compare("zero_temperature") == 0) {
+        params.zero_temperature = jt->second.as<bool>();
+        // } else if (param_name.compare("n_filaments_bud") == 0) {
+        //   params.n_filaments_bud = jt->second.as<int>();
+        // } else if (param_name.compare("n_filaments_mother") == 0) {
+        //   params.n_filaments_mother = jt->second.as<int>();
+        // } else if (param_name.compare("alignment_potential") == 0) {
+        //   params.alignment_potential = jt->second.as<bool>();
+        // } else if (param_name.compare("k_spring") == 0) {
+        //   params.k_spring = jt->second.as<double>();
+        // } else if (param_name.compare("k_align") == 0) {
+        //   params.k_align = jt->second.as<double>();
+        // } else if (param_name.compare("spring_length") == 0) {
+        //   params.spring_length = jt->second.as<double>();
+        // } else if (param_name.compare("spb_diameter") == 0) {
+        //   params.spb_diameter = jt->second.as<double>();
+        // } else if (param_name.compare("nuc_site_insertion") == 0) {
+        //   params.nuc_site_insertion = jt->second.as<std::string>();
+      } else {
+        Logger::Warning("Unrecognized %s parameter: '%s'", sid.c_str(),
+                        param_name.c_str());
+      }
+    }
+    return new centrosome_parameters(params);
   } else if (sid.compare("chromosome") == 0) {
     printf("lol chromosome params\n");
     chromosome_parameters params;
@@ -914,6 +979,8 @@ parse_species_params(std::string sid, YAML::Node &subnode, YAML::Node &node) {
         params.rotational_noise = jt->second.as<double>();
       } else if (param_name.compare("translational_noise") == 0) {
         params.translational_noise = jt->second.as<double>();
+      } else if (param_name.compare("zero_temperature") == 0) {
+        params.zero_temperature = jt->second.as<bool>();
         // } else if (param_name.compare("n_filaments_bud") == 0) {
         //   params.n_filaments_bud = jt->second.as<int>();
         // } else if (param_name.compare("n_filaments_mother") == 0) {

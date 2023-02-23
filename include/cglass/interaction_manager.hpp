@@ -1,7 +1,6 @@
 #ifndef _CGLASS_INTERACTION_MANAGER_H_
 #define _CGLASS_INTERACTION_MANAGER_H_
 
-//#include "cell_list.hpp"
 #include "auxiliary.hpp"
 #include "cell_list.hpp"
 #include "cortex.hpp"
@@ -9,12 +8,12 @@
 #include "minimum_distance.hpp"
 #include "potential_manager.hpp"
 #include "species.hpp"
-#include "struct_analysis.hpp"
+// #include "struct_analysis.hpp"
 
 typedef std::vector<Interaction>::iterator ix_iterator;
 
 class InteractionManager {
- private:
+private:
   double stress_[9];
   double dr_update_;
   bool overlap_;
@@ -73,7 +72,7 @@ class InteractionManager {
   void ApplyInteractions();
   void CalculateInteractions();
 
- public:
+public:
   InteractionManager() {}
   void Init(system_parameters *params, std::vector<SpeciesBase *> *species,
             SpaceBase *space, Cortex *cortex, Tracker *tracker,
@@ -103,7 +102,8 @@ class InteractionManager {
   void LoadCrosslinksFromCheckpoints(std::string run_name,
                                      std::string checkpoint_run_name);
   void InsertCrosslinks();
-  void InsertAttachedCrosslinks(std::vector<std::vector<Object *>> receptor_list);
+  void
+  InsertAttachedCrosslinks(std::vector<std::vector<Object *>> receptor_list);
   void SetInteractionAnalysis(bool set) { run_interaction_analysis_ = set; }
 };
 

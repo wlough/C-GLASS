@@ -33,7 +33,7 @@ void Chromosome::Init(chromosome_parameters *sparams) {
     double pos_sis[3]{pos[0], pos[1], pos[2]};
     for (int i{0}; i < 3; i++) {
       double sign{i_sis == 0 ? -1.0 : 1.0};
-      pos_sis[i] += 0.8 * sign * diameter_;
+      pos_sis[i] += 0.5 * sign * diameter_;
     }
     sisters_[i_sis].Init(sparams);
     sisters_[i_sis].InsertAt(pos_sis, u);

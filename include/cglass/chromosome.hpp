@@ -56,10 +56,10 @@ public:
     }
   }
   void GetInteractors(std::vector<Object *> &ixors) {
-    ixors.push_back(this);
-    for (auto &&sis : sisters_) {
-      ixors.push_back(&sis);
-    }
+    // ixors.push_back(this);
+    // for (auto &&sis : sisters_) {
+    //   ixors.push_back(&sis);
+    // }
   }
   void UpdatePosition();
 };

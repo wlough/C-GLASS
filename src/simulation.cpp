@@ -220,6 +220,16 @@ void Simulation::InitSimulation() {
   inv_step_fact_ = params_.no_midstep ? 1 : 2;
   if (params_.graph_flag) {
     InitGraphics();
+    // FIXME make this less bad
+    for (auto spec = species_.begin(); spec != species_.end(); spec++) {
+      if ((*spec)->GetSID() == +species_id::centrosome) {
+        for (int i_centro{0}; i_centro < (*spec)->GetNMembers(); i_centro++) {
+          graphics_.spbs_.push_back(
+              dynamic_cast<Centrosome *>((*spec)->GetMember(i_centro)));
+          printf("pushing back centrosome #%i\n", i_centro);
+        }
+      }
+    }
   }
   params_.i_step = 0;
   WriteOutputs();

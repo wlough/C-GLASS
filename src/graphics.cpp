@@ -624,6 +624,119 @@ void Graphics::Draw2d() {
 // windy_, windx_, windy_);
 //}
 
+void Graphics::DrawSPBs() {
+
+  qobj_ = gluNewQuadric();
+  gluQuadricCallback(qobj_, GLU_ERROR, NULL);
+  gluQuadricDrawStyle(qobj_, GLU_FILL);
+  gluQuadricNormals(qobj_, GLU_SMOOTH);
+
+  // glColor4f(1, 0.64453125, 0.0, 1.0);
+  // for (int i_spb = 0; i_spb < spbs_.size(); i_spb++) {
+  for (auto &&spb : spbs_) {
+    double clength = spb->GetLength();
+    // for (int ianchor = 0; ianchor < 1; ++ianchor) {
+    // double r_box = 0.0;
+    // for (int i = 0; i < 3; ++i) {
+    //    r_box += SQR(r_anchor[ianchor][i]);
+    //}
+    // r_box = sqrt(r_box);
+    double r_box = space_->radius;
+    // Azimuthal angle
+    double phi = atan2(spb->GetPosition()[1], spb->GetPosition()[2]);
+    // Polar angle
+    double theta = acos(spb->GetPosition()[1] / r_box);
+
+    // Set the position of one side of the cylinder
+    double v0 =
+        spb->GetPosition()[0] - 0.5 * clength * spb->GetPosition()[0] / r_box;
+    double v1 =
+        spb->GetPosition()[1] - 0.5 * clength * spb->GetPosition()[1] / r_box;
+    double v2 =
+        spb->GetPosition()[2] - 0.5 * clength * spb->GetPosition()[2] / r_box;
+
+    // Set the color
+    GLfloat color[4] = {0.0, 0.0, 1.0, 1.0}; // default bond color
+    double L = 0.3 * spb->GetOrientation()[2] + 0.5;
+    double C = (1 - ABS(2 * L - 1));
+    // FIXME idk bruh
+    double H_prime = 3.0 * theta / M_PI;
+    double X = C * (1.0 - ABS(fmod(H_prime, 2.0) - 1));
+    if (H_prime < 0.0) {
+      color[0] = 0.0;
+      color[1] = 0.0;
+      color[2] = 0.0;
+    } else if (H_prime < 1.0) {
+      color[0] = C;
+      color[1] = X;
+      color[2] = 0;
+    } else if (H_prime < 2.0) {
+      color[0] = X;
+      color[1] = C;
+      color[2] = 0;
+    } else if (H_prime < 3.0) {
+      color[0] = 0;
+      color[1] = C;
+      color[2] = X;
+    } else if (H_prime < 4.0) {
+      color[0] = 0;
+      color[1] = X;
+      color[2] = C;
+    } else if (H_prime < 5.0) {
+      color[0] = X;
+      color[1] = 0;
+      color[2] = C;
+    } else if (H_prime < 6.0) {
+      color[0] = C;
+      color[1] = 0;
+      color[2] = X;
+    }
+
+    double m = L - 0.5 * C;
+    color[0] = color[0] + m;
+    color[1] = color[1] + m;
+    color[2] = color[2] + m;
+
+    glColor4fv(color);
+
+    // glColor4f(anchor_color[ianchor][0], anchor_color[ianchor][1],
+    //           anchor_color[ianchor][2], anchor_color[ianchor][3]);
+
+    glPushMatrix();
+    glTranslatef(v0, v1, v2);
+    if (phi != 0.0)
+      glRotatef((GLfloat)((phi / M_PI) * 180.0), 0.0, 0.0, 1.0);
+    if (theta != 0.0)
+      glRotatef((GLfloat)((theta / M_PI) * 180.0), 0.0, 1.0, 0.0);
+    gluQuadricOrientation(qobj_, GLU_OUTSIDE);
+    // if (tomogram_view_ <= 1) {
+    gluCylinder(qobj_, 0.5 * spb->GetDiameter(), 0.5 * spb->GetDiameter(),
+                clength, 16, 1);
+    gluQuadricOrientation(qobj_, GLU_INSIDE);
+    gluDisk(qobj_, 0.0, 0.5 * spb->GetDiameter(), 16, 16);
+    // }
+    glPopMatrix();
+
+    v0 = spb->GetPosition()[0] + 0.5 * clength * spb->GetPosition()[0] / r_box;
+    v1 = spb->GetPosition()[1] + 0.5 * clength * spb->GetPosition()[1] / r_box;
+    v2 = spb->GetPosition()[2] + 0.5 * clength * spb->GetPosition()[2] / r_box;
+
+    glPushMatrix();
+    glTranslatef(v0, v1, v2);
+    if (phi != 0.0)
+      glRotatef((GLfloat)((phi / M_PI) * 180.0), 0.0, 0.0, 1.0);
+    if (theta != 0.0)
+      glRotatef((GLfloat)((theta / M_PI) * 180.0), 0.0, 1.0, 0.0);
+    // if (tomogram_view_ <= 1) {
+    gluQuadricOrientation(qobj_, GLU_OUTSIDE);
+    gluDisk(qobj_, 0.0, 0.5 * spb->GetDiameter(), 16, 16);
+    // }
+    glPopMatrix();
+  }
+  // Remove the quadric
+  gluDeleteQuadric(qobj_);
+}
+
 void Graphics::DrawSpheros() {
   glMatrixMode(GL_MODELVIEW); // Use modelview matrix
 
@@ -764,6 +877,7 @@ void Graphics::DrawSpheros() {
 void Graphics::Draw3d() {
   KeyInteraction();
   UpdateWindow();
+  DrawSPBs();
   DrawSpheros();
   DrawBoundary();
   // DrawText();

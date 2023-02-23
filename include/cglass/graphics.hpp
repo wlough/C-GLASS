@@ -4,7 +4,9 @@
 #ifndef NOGRAPH
 
 #include "auxiliary.hpp"
+#include "cglass/centrosome.hpp"
 #include <GL/glew.h>
+#include <GL/glu.h>
 #include <GLFW/glfw3.h>
 #include <string>
 #include <vector>
@@ -79,6 +81,9 @@ public:
   GraphicsPrimitive spherocylinder_; // actual spherocylinder
   // GraphicsText text_;
 
+  std::vector<Centrosome *> spbs_;
+  GLUquadricObj *qobj_;
+
   GLfloat xAngle_, yAngle_, zAngle_;    // system rotation
   GLfloat xyzScale_;                    // zoom
   GLfloat xTrans_, yTrans_, zTrans_;    // translation of system
@@ -127,6 +132,7 @@ private:
   void Draw2dBudding();       // Draws budding boundary
   void Draw3dBudding();       // Draws budding boundary
   void DrawSpheros();         // draw spherocylinders (3d)
+  void DrawSPBs();            // Draw spindle pole bodies (3d only)
   void DrawDiscorectangles(); // draw solid discorectangles (2d spherocylinders)
   void UpdateWindow();        // update window parameters in case of resize
   void Draw2d();

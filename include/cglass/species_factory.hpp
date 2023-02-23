@@ -2,6 +2,7 @@
 #define _CGLASS_SPECIES_FACTORY_H_
 
 #include "br_bead_species.hpp"
+#include "centrosome_species.hpp"
 #include "chromosome_species.hpp"
 #include "crosslink_species.hpp"
 #include "filament_species.hpp"
@@ -27,6 +28,8 @@ public:
       return new SpherocylinderSpecies(seed);
     } else if (sid == +species_id::receptor) {
       return new ReceptorSpecies(seed);
+    } else if (sid == +species_id::centrosome) {
+      return new CentrosomeSpecies(seed);
     } else if (sid == +species_id::chromosome) {
       return new ChromosomeSpecies(seed);
     }

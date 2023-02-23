@@ -28,6 +28,15 @@ struct species_parameters {
 typedef species_parameters<species_id::none> species_base_parameters;
 
 template <>
+struct species_parameters<species_id::centrosome>
+    : public species_base_parameters {
+  bool zero_temperature = false;
+  double translational_noise = 0;
+  double rotational_noise = 0;
+};
+typedef species_parameters<species_id::centrosome> centrosome_parameters;
+
+template <>
 struct species_parameters<species_id::chromosome>
     : public species_base_parameters {
 

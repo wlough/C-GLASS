@@ -17,7 +17,6 @@ private:
 public:
 private:
 public:
-  // ChromosomeSpecies(){};
   ChromosomeSpecies(unsigned long seed);
   void Init(std::string spec_name, ParamsParser &parser);
   void PopMember();
@@ -31,7 +30,6 @@ public:
 
   void GetLastInteractors(std::vector<Object *> &ixors) {
     members_.back().GetInteractors(ixors);
-    // ixors.push_back(&members_.back());
   }
 };
 
