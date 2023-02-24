@@ -220,6 +220,7 @@ void Simulation::InitSimulation() {
   inv_step_fact_ = params_.no_midstep ? 1 : 2;
   if (params_.graph_flag) {
     InitGraphics();
+#ifndef NOGRAPH
     // FIXME make this less bad
     for (auto spec = species_.begin(); spec != species_.end(); spec++) {
       if ((*spec)->GetSID() == +species_id::centrosome) {
@@ -230,6 +231,7 @@ void Simulation::InitSimulation() {
         }
       }
     }
+#endif
   }
   params_.i_step = 0;
   WriteOutputs();

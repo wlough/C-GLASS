@@ -3,6 +3,7 @@
 
 #include "anchor.hpp"
 #include "filament.hpp"
+#include <armadillo>
 
 class Centrosome : public Object {
 protected:

@@ -1,7 +1,6 @@
 #ifndef _CGLASS_CROSSLINK_H_
 #define _CGLASS_CROSSLINK_H_
 
-//#include "species.hpp"
 #include "anchor.hpp"
 #include "minimum_distance.hpp"
 #include "tracker.hpp"
@@ -35,8 +34,10 @@ private:
   int bound_anchor_ = 0; // Index of anchor that is bound if Singly
   int last_bound_ = 0;
   bool check_for_cross = false;
-  std::map<Sphere *, std::pair<std::vector<double>, std::vector<std::pair<Anchor*, std::string> > > > *bound_curr_ = nullptr;
-  std::vector<std::map<std::string, bind_params> > *bind_param_map_ = nullptr;
+  std::map<Sphere *, std::pair<std::vector<double>,
+                               std::vector<std::pair<Anchor *, std::string>>>>
+      *bound_curr_ = nullptr;
+  std::vector<std::map<std::string, bind_params>> *bind_param_map_ = nullptr;
   double *bind_rate_ = nullptr;
   std::vector<Anchor> anchors_;
   void CalculateTetherForces();
@@ -48,19 +49,22 @@ private:
   void UpdateXlinkState();
   double *obj_size_ = nullptr;
   Tracker *tracker_ = nullptr;
- bool* global_check_for_cross_ = nullptr;
+  bool *global_check_for_cross_ = nullptr;
 
 public:
   Crosslink(unsigned long seed);
   void Init(crosslink_parameters *sparams);
-  void SetGlobalCheckForCross(bool* check);
-  void InitInteractionEnvironment(LookupTable *lut, Tracker *tracker, 
-                                  std::map<Sphere *, std::pair<std::vector<double>, 
-                                  std::vector<std::pair<Anchor*, std::string> > > > *bound_curr);
-  void SetBindParamMap(std::vector<std::map<std::string, bind_params> > 
-                       *bind_param_map);
+  void SetGlobalCheckForCross(bool *check);
+  void InitInteractionEnvironment(
+      LookupTable *lut, Tracker *tracker,
+      std::map<Sphere *,
+               std::pair<std::vector<double>,
+                         std::vector<std::pair<Anchor *, std::string>>>>
+          *bound_curr);
+  void SetBindParamMap(
+      std::vector<std::map<std::string, bind_params>> *bind_param_map);
   void AttachObjRandom(std::pair<Object *, int> obj_index);
-  void AttachSphere(std::pair<Sphere*, int> obj_index);
+  void AttachSphere(std::pair<Sphere *, int> obj_index);
   void UpdateCrosslinkForces();
   void UpdateCrosslinkPositions();
   void GetAnchors(std::vector<Object *> &ixors);
@@ -94,10 +98,10 @@ public:
   void SetObjSize(double *obj_size);
   void SetBindRate(double *bind_rate);
   void SetSpheresBoundCurr(double *obj_size);
-  const double* const GetObjSize();
+  const double *const GetObjSize();
   const double *const GetPosition();
   const double *const GetOrientation();
-  void DoublyCenter(Object* receptor_one, Object* receptor_two);
+  void DoublyCenter(Object *receptor_one, Object *receptor_two);
   // Convert binary data to text. Static to avoid needing to istantiate
   // species members.
   static void ConvertSpec(std::fstream &ispec, std::fstream &otext);

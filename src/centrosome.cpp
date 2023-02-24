@@ -26,12 +26,19 @@ void Centrosome::Init(centrosome_parameters *sparams) {
   printf("diffusion: %g\n\n", diffusion_);
   diffusion_rot_ = noise_rot_ * sqrt(8.0 * CUBE(diameter_) / delta_);
   Logger::Trace("Inserting object %d randomly", GetOID());
-  //   double u[3] = {0, 0, 0};
-  //   rng_.RandomUnitVector(n_dim_, u);
+
+  int n_mts{5};
+  for (int i_mt{0}; i_mt < n_mts; i_mt++) {
+  }
+
+  double u[3] = {0, 0, 0};
+  rng_.RandomUnitVector(n_dim_, u);
   double r{params_->system_radius};
+  double pos[3] = {r * u[0], r * u[1], r * u[2]};
+  // We want the SPB to point directly at the center of the spherical cell wall
   //   double pos[3] = {};
-  double u[3] = {1, 0, 0}; // Initially align with x
-  double pos[3] = {r, 0, 0};
+  //   double u[3] = {1, 0, 0}; // Initially align with x
+  //   double pos[3] = {r, 0, 0};
   InsertAt(pos, u);
 
   //   for (int i_sis{0}; i_sis < sisters_.size(); i_sis++) {

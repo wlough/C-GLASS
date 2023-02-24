@@ -630,9 +630,6 @@ void Graphics::DrawSPBs() {
   gluQuadricCallback(qobj_, GLU_ERROR, NULL);
   gluQuadricDrawStyle(qobj_, GLU_FILL);
   gluQuadricNormals(qobj_, GLU_SMOOTH);
-
-  // glColor4f(1, 0.64453125, 0.0, 1.0);
-  // for (int i_spb = 0; i_spb < spbs_.size(); i_spb++) {
   for (auto &&spb : spbs_) {
     double clength = spb->GetLength();
     // for (int ianchor = 0; ianchor < 1; ++ianchor) {
@@ -659,7 +656,6 @@ void Graphics::DrawSPBs() {
     GLfloat color[4] = {0.0, 0.0, 1.0, 1.0}; // default bond color
     double L = 0.3 * spb->GetOrientation()[2] + 0.5;
     double C = (1 - ABS(2 * L - 1));
-    // FIXME idk bruh
     double H_prime = 3.0 * theta / M_PI;
     double X = C * (1.0 - ABS(fmod(H_prime, 2.0) - 1));
     if (H_prime < 0.0) {
@@ -691,7 +687,6 @@ void Graphics::DrawSPBs() {
       color[1] = 0;
       color[2] = X;
     }
-
     double m = L - 0.5 * C;
     color[0] = color[0] + m;
     color[1] = color[1] + m;

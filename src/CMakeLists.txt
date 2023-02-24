@@ -2,9 +2,10 @@ find_package(yaml-cpp REQUIRED)
 message("-- Found yaml-cpp: ${YAML_CPP_INCLUDE_DIR}")
 find_package(GSL REQUIRED)
 find_package(FFTW REQUIRED)
+find_package(Armadillo REQUIRED) # TODO add this requirement to documentation
 
-set(LIB ${YAML_CPP_LIBRARIES} ${GSL_LIBRARIES}  ${FFTW_LIBRARIES} KMC)
-set(INCLUDES ${GSL_INCLUDE_DIRS} ${FFTW_INCLUDE_DIR} ${YAML_CPP_INCLUDE_DIR})
+set(LIB ${YAML_CPP_LIBRARIES} ${GSL_LIBRARIES}  ${FFTW_LIBRARIES} ${ARMADILLO_LIBRARIES} KMC)
+set(INCLUDES ${GSL_INCLUDE_DIRS} ${FFTW_INCLUDE_DIR} ${ARMADILLO_INCLUDE_DIRS} ${YAML_CPP_INCLUDE_DIR})
 
 if (OMP)
     find_package(OpenMP REQUIRED)

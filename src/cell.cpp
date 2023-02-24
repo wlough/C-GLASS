@@ -40,27 +40,33 @@ void Cell::PairSingleObject(Object &obj,
   }
 }
 
+// SF TODO encode chromosome interactions here
+
 // Check if species ID's are a valid interacting pair
 bool Cell::IsInteractingPair(species_id si, species_id sj) const {
   // If pair are receptors and crosslinks, they are valid; receptor and non-crosslink
   // are not valid
   switch (si) {
-    case species_id::receptor:
-      // receptor & crosslinks interact
-      if (sj == +species_id::crosslink) return true; 
-      else return false;
-    // crosslinks interact with everything
-    case species_id::crosslink:
+  case species_id::receptor:
+    // receptor & crosslinks interact
+    if (sj == +species_id::crosslink)
       return true;
-    default:
-      if (sj == +species_id::receptor) return false;
-      else return true;
+    else
+      return false;
+  // crosslinks interact with everything
+  case species_id::crosslink:
+    return true;
+  default:
+    if (sj == +species_id::receptor)
+      return false;
+    else
+      return true;
   }
   return true;
 }
 
-
-void Cell::MakePairsCell(Cell &cell, std::vector<Interaction> &pair_list) const {
+void Cell::MakePairsCell(Cell &cell,
+                         std::vector<Interaction> &pair_list) const {
   if (cell.NObjs() == 0)
     return;
   const std::vector<Object *> those_objs = cell.GetCellObjects();

@@ -123,8 +123,8 @@ chromosome:
     color: 3
 centrosome: 
   - name: TESTI
-    num: 1
-    length: 0.1
+    num: 2
+    length: 0.5
     diameter: 3
     draw_type: fixed
     zero_temperature: false
