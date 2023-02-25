@@ -6,6 +6,9 @@
 #include <armadillo>
 
 class Centrosome : public Object {
+  // Direction vectors that define plane of SPB
+  // (r = position_ and u = orentation_)
+
 protected:
   bool zero_temperature_ = false;
 
@@ -34,6 +37,10 @@ protected:
   void Rotate();
   void Integrate();
   void RandomizeAnchorPosition(int i_fil);
+
+public:
+  double v_[3];
+  double w_[3];
 
 public:
   Centrosome(unsigned long seed);

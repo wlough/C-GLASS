@@ -2,7 +2,7 @@ seed: 114222003020845
 run_name: testino
 n_dim: 3
 n_periodic: 0
-delta: 0.00005
+delta: 0.005
 dynamic_timestep: true
 dynamic_timestep_ramp: 0.0001
 n_steps: 10000000
@@ -123,10 +123,10 @@ chromosome:
     color: 3
 centrosome: 
   - name: TESTI
-    num: 2
+    num: 1
     length: 0.5
     diameter: 3
-    draw_type: fixed
+    draw_type: orientation
     zero_temperature: false
     translational_noise: 0.1
     rotational_noise: 1e-6
