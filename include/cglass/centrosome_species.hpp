@@ -29,6 +29,8 @@ public:
 
   void UpdatePositions();
 
+  double CalcNonMonotonicWallForce(double ne_ratio, double f0, double delta_r);
+
   double ComputeLagrangeCorrection(const arma::vec4 &q,
                                    const arma::vec4 &qtilde);
 

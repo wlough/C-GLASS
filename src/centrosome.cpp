@@ -41,6 +41,11 @@ void Centrosome::Init(centrosome_parameters *sparams) {
   double u[3] = {1, 0, 0}; // Initially align with z
   InsertAt(pos, u);
 
+  for (int i{0}; i < 3; i++) {
+    r_[i] = pos[i];
+    u_[i] = u[i];
+  }
+
   double vect1[3] = {1.0, 0, 0.0};
   double vect2[3] = {0.0, 1.0, 0.0};
   if (1.0 - ABS(u[0]) > 1e-2)

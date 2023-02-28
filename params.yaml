@@ -113,7 +113,7 @@ n_checkpoint: 1000
 #     reference_frame_flag: false
 chromosome: 
   - name: test
-    num: 3
+    num: 0
     length: 5
     diameter: 1.5  
     draw_type: orientation
@@ -123,7 +123,7 @@ chromosome:
     color: 3
 centrosome: 
   - name: TESTI
-    num: 1
+    num: 2
     length: 0.5
     diameter: 3
     draw_type: orientation

@@ -630,27 +630,16 @@ void Graphics::DrawSPBs() {
   gluQuadricCallback(qobj_, GLU_ERROR, NULL);
   gluQuadricDrawStyle(qobj_, GLU_FILL);
   gluQuadricNormals(qobj_, GLU_SMOOTH);
+
   for (auto &&spb : spbs_) {
     double clength = spb->GetLength();
-    // for (int ianchor = 0; ianchor < 1; ++ianchor) {
-    // double r_box = 0.0;
-    // for (int i = 0; i < 3; ++i) {
-    //    r_box += SQR(r_anchor[ianchor][i]);
-    //}
-    // r_box = sqrt(r_box);
-    double r_box = space_->radius;
-    // Azimuthal angle
-    double phi = atan2(spb->GetPosition()[1], spb->GetPosition()[2]);
-    // Polar angle
-    double theta = acos(spb->GetPosition()[1] / r_box);
-
-    // Set the position of one side of the cylinder
-    double v0 =
-        spb->GetPosition()[0] - 0.5 * clength * spb->GetPosition()[0] / r_box;
-    double v1 =
-        spb->GetPosition()[1] - 0.5 * clength * spb->GetPosition()[1] / r_box;
-    double v2 =
-        spb->GetPosition()[2] - 0.5 * clength * spb->GetPosition()[2] / r_box;
+    // Direction of the SPB
+    double phi = atan2(spb->GetU(1), spb->GetU(0));
+    double theta = acos(spb->GetU(2));
+    // The anchor points in the uhat direction
+    double v0 = spb->GetR(0) - 0.5 * clength * spb->GetU(0);
+    double v1 = spb->GetR(1) - 0.5 * clength * spb->GetU(1);
+    double v2 = spb->GetR(2) - 0.5 * clength * spb->GetU(2);
 
     // Set the color
     GLfloat color[4] = {0.0, 0.0, 1.0, 1.0}; // default bond color
@@ -694,9 +683,6 @@ void Graphics::DrawSPBs() {
 
     glColor4fv(color);
 
-    // glColor4f(anchor_color[ianchor][0], anchor_color[ianchor][1],
-    //           anchor_color[ianchor][2], anchor_color[ianchor][3]);
-
     glPushMatrix();
     glTranslatef(v0, v1, v2);
     if (phi != 0.0)
@@ -712,9 +698,9 @@ void Graphics::DrawSPBs() {
     // }
     glPopMatrix();
 
-    v0 = spb->GetPosition()[0] + 0.5 * clength * spb->GetPosition()[0] / r_box;
-    v1 = spb->GetPosition()[1] + 0.5 * clength * spb->GetPosition()[1] / r_box;
-    v2 = spb->GetPosition()[2] + 0.5 * clength * spb->GetPosition()[2] / r_box;
+    v0 = spb->GetR(0) + 0.5 * clength * spb->GetU(0);
+    v1 = spb->GetR(1) + 0.5 * clength * spb->GetU(1);
+    v2 = spb->GetR(2) + 0.5 * clength * spb->GetU(2);
 
     glPushMatrix();
     glTranslatef(v0, v1, v2);

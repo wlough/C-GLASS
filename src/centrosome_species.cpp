@@ -11,6 +11,7 @@ void CentrosomeSpecies::Init(std::string spec_name, ParamsParser &parser) {
     return;
   }
   printf("Initializing centrosome\n");
+  // NAB uses 'anchor' to refer to SPBs. Anchors are unique objects in C-GLASS tho (FIXME)
   int n_anchors{GetNInsert()};
   // TODO make sure you delete these in deconstructor
   // All of the new rotation information for this class
@@ -76,23 +77,114 @@ void CentrosomeSpecies::AddMember() {
 
 void CentrosomeSpecies::UpdatePositions() {
 
-  const double thermal_diff_scale = 10;
+  const double thermal_diff_scale = 1;
+  double sys_radius = space_->radius;
   double delta_t = params_->delta;
   double kT = 1.0;
   const arma::vec3 nx = {1.0, 0.0, 0.0};
   const arma::vec3 ny = {0.0, 1.0, 0.0};
   const arma::vec3 nz = {0.0, 0.0, 1.0};
   for (int idx{0}; idx < members_.size(); idx++) {
-
     Centrosome *centro{&members_[idx]};
 
+    // Construct the amount (and direction) the SPB is outside the radius
+    // If outside the nucleus, negative
+    double rmag = 0.0;
+    for (int i = 0; i < 3; ++i) {
+      rmag += SQR(centro->GetR(i));
+    }
+    rmag = std::sqrt(rmag);
+    double rhat[3] = {0.0};
+    for (int i = 0; i < 3; ++i) {
+      rhat[i] = centro->GetR(i) / rmag;
+      //   printf("rhat[%i] = %g\n", i, rhat[i]);
+    }
+
+    // Construct the force vector
+    double forcevec[3] = {0.0};
+
+    /*
+    // If we are using a harmonic force
+    if (properties->anchors.spb_confinement_type == 0) {
+      double k = properties->anchors.centrosome_confinement_radial_k_;
+
+      // Guard against pathological behavior by capping the force at some level
+      double factor = -k * (rmag - sys_radius);
+      double fcutoff = 0.1 / parameters->delta /
+                       MAX(properties->anchors.mu_tb_[idx](0, 0),
+                           properties->anchors.mu_tb_[idx](1, 1));
+      if (factor < 0.0) {
+        if (-1.0 * factor > fcutoff) {
+          factor = -1.0 * fcutoff;
+          std::cerr << " *** Force exceeded fcutoff "
+                       "spb_confinement_potential_harmonic_bd radial ***\n";
+        }
+      } else {
+        if (factor > fcutoff) {
+          factor = fcutoff;
+          std::cerr << " *** Force exceeded fcutoff "
+                       "spb_confinement_potential_harmonic_bd radial ***\n";
+        }
+      }
+
+      for (int i = 0; i < 3; ++i) {
+        forcevec[i] = factor * rhat[i];
+      }
+    } else if (properties->anchors.spb_confinement_type == 1) {
+        */
+
+    double f0 = 103.406326034025;
+    // properties->anchors.centrosome_confinement_f0_;
+
+    double delta_r = ABS(sys_radius - rmag);
+    double ne_ratio{24.61538};
+    double factor = CalcNonMonotonicWallForce(ne_ratio, f0, delta_r);
+
+    // Check the sign of the force, want to move outwards if we are in the nucleoplasm
+    if (rmag > sys_radius) {
+      for (int i = 0; i < 3; ++i) {
+        forcevec[i] = -1.0 * factor * rhat[i];
+        // printf("F[%i] = %g\n", i, forcevec[i]);
+      }
+    } else {
+      for (int i = 0; i < 3; ++i) {
+        forcevec[i] = 1.0 * factor * rhat[i];
+        // printf("f[%i] = %g\n", i, forcevec[i]);
+      }
+    }
+    // }
+
+    // auto copy = centro->GetOrientation();
+    // for (int i{0}; i < 3; i++) {
+    //   printf("u[%i] = %g\n", i, copy[i]);
+    // }
+
+    //Based on the potential, calculate the torques on the system
+    // FIXME this is always 1!! NOT RIGHT
+    double uhat_dot_rhat = dot_product(3, rhat, centro->GetOrientation());
+    double uhat_cross_rhat[3] = {0.0};
+    cross_product(centro->GetOrientation(), rhat, uhat_cross_rhat, 3);
+    double kr = 1000.0; //properties->anchors.centrosome_confinement_angular_k_;
+    // The torque is thusly
+    double torquevec[3] = {0.0};
+
+    // printf("dot = %g\n", uhat_dot_rhat);
+    for (int i = 0; i < 3; ++i) {
+      //   printf("cross[%i] = %g\n", i, uhat_cross_rhat[i]);
+      torquevec[i] = -kr * (uhat_dot_rhat + 1.0) * uhat_cross_rhat[i];
+      //   printf("T[%i] = %g\n", i, torquevec[i]);
+    }
+    // Add the contribution to the total forces
+    centro->AddForce(forcevec);
+    centro->AddTorque(torquevec);
+
+    /* BELOW CODE IS FOR 'FREE' SPB, I.E., NOT CONFINED TO MEMBRANE */
+
     // Set up armadillo versions of all of our information of interest
-    arma::vec3 r = {centro->GetPosition()[0], centro->GetPosition()[1],
-                    centro->GetPosition()[2]};
-    arma::vec3 u = {centro->GetOrientation()[0], centro->GetOrientation()[1],
-                    centro->GetOrientation()[2]};
-    arma::vec3 v = {centro->v_[0], centro->v_[1], centro->v_[2]};
-    arma::vec3 w = {centro->w_[0], centro->w_[1], centro->w_[2]};
+    arma::vec3 r = {centro->GetR(0), centro->GetR(1), centro->GetR(2)};
+    arma::vec3 u = {centro->GetU(0), centro->GetU(1), centro->GetU(2)};
+    arma::vec3 v = {centro->GetV(0), centro->GetV(1), centro->GetV(2)};
+    arma::vec3 w = {centro->GetW(0), centro->GetW(1), centro->GetW(2)};
 
     arma::vec3 force = {centro->GetForce()[0], centro->GetForce()[1],
                         centro->GetForce()[2]};
@@ -109,7 +201,7 @@ void CentrosomeSpecies::UpdatePositions() {
         ((A_[idx] * sqrt_mu_tb_[idx]) * theta) * std::sqrt(2.0 * kT * delta_t);
 
     // for (int i{0}; i < 3; i++) {
-    //   printf("%g\n", dr(i));
+    //   printf("dr[%i] = %g\n", i, dr(i));
     // }
     // Now handle the rotation part
     bsub_[idx](0, 0) = -q_[idx][1];
@@ -154,7 +246,6 @@ void CentrosomeSpecies::UpdatePositions() {
     q_[idx] = qtilde + lambdaq * q_[idx];
 
     // Update the rotation matrix and orientation vectors
-    // rotation_matrix_from_quaternion(A[idx], q[idx]);
     RotationMatrixFromQuaternion(A_[idx], q_[idx]);
     u = A_[idx] * nx;
     v = A_[idx] * ny;
@@ -168,17 +259,18 @@ void CentrosomeSpecies::UpdatePositions() {
     // Write back into the anchor structure the proper double variables
     for (int i = 0; i < 3; ++i) {
       r_new[i] = r(i);
-      printf("r[%i] = %g\n", i, r_new[i]);
+      //   printf("r_new[%i] = %g\n", i, r_new[i]);
       u_new[i] = u(i);
+      //   printf("u_new[%i] = %g\n", i, u_new[i]);
       v_new[i] = v(i);
+      //   printf("v_new[%i] = %g\n", i, v_new[i]);
       w_new[i] = w(i);
+      //   printf("w_new[%i] = %g\n\n", i, w_new[i]);
     }
 
-    centro->SetPosition(r_new);
-    // printf("BONK\n");
-    centro->SetOrientation(u_new);
-    std::copy(v_new, v_new + 3, centro->v_);
-    std::copy(w_new, w_new + 3, centro->w_);
+    centro->UpdatePosition(r_new, u_new, v_new, w_new);
+    // std::copy(v_new, v_new + 3, centro->v_);
+    // std::copy(w_new, w_new + 3, centro->w_);
 
     // Now we have to update the positions of the MTs on the anchor
     /*
@@ -218,6 +310,27 @@ void CentrosomeSpecies::UpdatePositions() {
     }
     */
   }
+}
+
+double CentrosomeSpecies::CalcNonMonotonicWallForce(double ne_ratio, double f0,
+                                                    double delta_r) {
+  //Constants from paper
+  double a1 = 0.746;
+  double a2 = 0.726;
+  double alpha1 = 0.347;
+  double alpha2 = 3.691;
+  double a = a1 * a2;
+  double b = sqrt(ne_ratio);
+  double c = alpha1 + alpha2;
+  // Calculate location of maximum force
+  double xm = b * (((7.0 / 4.0) * M_PI) - c); //value of dr that gives max force
+  // Calculate wall force
+  // Exponential prefactor added to make forces conform to boundary conditions.
+  // Characteristic length chosen to be 1/30th the value of delta_r that gives max force
+  double factor =
+      (1 - exp(-delta_r * 30 / xm)) *
+      (2.0 * f0 * a * exp(-1.0 * delta_r / b) * cos((delta_r / b) + c) + f0);
+  return factor;
 }
 
 double CentrosomeSpecies::ComputeLagrangeCorrection(const arma::vec4 &q,

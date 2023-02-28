@@ -39,6 +39,8 @@ protected:
   void RandomizeAnchorPosition(int i_fil);
 
 public:
+  double r_[3];
+  double u_[3];
   double v_[3];
   double w_[3];
 
@@ -50,7 +52,21 @@ public:
 
   void GetInteractors(std::vector<Object *> &ixors) {}
 
+  double GetR(int i_dim) { return r_[i_dim]; }
+  double GetU(int i_dim) { return u_[i_dim]; }
+  double GetV(int i_dim) { return v_[i_dim]; }
+  double GetW(int i_dim) { return w_[i_dim]; }
   void UpdatePosition() {}
+  void UpdatePosition(double *r_new, double *u_new, double *v_new,
+                      double *w_new) {
+
+    for (int i{0}; i < 3; i++) {
+      position_[i] = r_[i] = r_new[i];
+      orientation_[i] = u_[i] = u_new[i];
+      v_[i] = v_new[i];
+      w_[i] = w_new[i];
+    }
+  }
 };
 
 #endif // _CGLASS_CENTROSOME_H_
