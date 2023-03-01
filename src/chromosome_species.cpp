@@ -2,7 +2,6 @@
 
 ChromosomeSpecies::ChromosomeSpecies(unsigned long seed) : Species(seed) {
   SetSID(species_id::chromosome);
-  printf("NEW chromosome!!\n");
 }
 
 void ChromosomeSpecies::Init(std::string spec_name, ParamsParser &parser) {
@@ -10,13 +9,11 @@ void ChromosomeSpecies::Init(std::string spec_name, ParamsParser &parser) {
   if (GetNInsert() <= 0) {
     return;
   }
-  printf("Initializing chromosome !!\n");
 }
 
 void ChromosomeSpecies::Reserve() {
   SpeciesBase::Reserve();
   members_.reserve(GetNInsert());
-  printf("Reserving memory fo chromosome !!\n");
 }
 
 void ChromosomeSpecies::PopMember() { Species::PopMember(); }

@@ -2,6 +2,7 @@
 #include <iostream>
 
 Chromosome::Chromosome(unsigned long seed) : Object(seed) {
+  printf("NEW chromosome\n");
   SetSID(species_id::chromosome);
   sisters_.emplace_back(Chromatid(seed));
   sisters_.emplace_back(Chromatid(seed));
@@ -17,18 +18,21 @@ void Chromosome::Init(chromosome_parameters *sparams) {
   diameter_ = sparams->diameter;
   gamma_trans_ = 1.0 / (diameter_);
   gamma_rot_ = 3.0 / CUBE(diameter_);
-  printf("diameter: %g\n", diameter_);
   noise_tr_ = sparams->translational_noise;
-  printf("noise: %g\n", noise_tr_);
   noise_rot_ = sparams->rotational_noise;
   diffusion_ = noise_tr_ * sqrt(24.0 * diameter_ / delta_);
-  printf("diffusion: %g\n\n", diffusion_);
+  // printf("diameter: %g\n", diameter_);
+  // printf("noise: %g\n", noise_tr_);
+  // printf("diffusion: %g\n\n", diffusion_);
   diffusion_rot_ = noise_rot_ * sqrt(8.0 * CUBE(diameter_) / delta_);
   double pos[3] = {0, 0, 0};
   double u[3] = {0, 0, 0};
   Logger::Trace("Inserting object %d randomly", GetOID());
   rng_.RandomCoordinate(space_, pos, diameter_);
   rng_.RandomUnitVector(n_dim_, u);
+  InsertAt(pos, u);
+  printf("chromosome inserted @ (%g, %g, %g)\n", GetPosition()[0],
+         GetPosition()[1], GetPosition()[2]);
   for (int i_sis{0}; i_sis < sisters_.size(); i_sis++) {
     double pos_sis[3]{pos[0], pos[1], pos[2]};
     for (int i{0}; i < 3; i++) {
@@ -37,11 +41,10 @@ void Chromosome::Init(chromosome_parameters *sparams) {
     }
     sisters_[i_sis].Init(sparams);
     sisters_[i_sis].InsertAt(pos_sis, u);
-    printf("chromatid %i inserted @ (%g, %g, %g)\n", i_sis,
+    printf("  chromatid %i inserted @ (%g, %g, %g)\n", i_sis,
            sisters_[i_sis].GetPosition()[0], sisters_[i_sis].GetPosition()[1],
            sisters_[i_sis].GetPosition()[2]);
   }
-  InsertAt(pos, u);
 }
 
 void Chromosome::GetBodyFrame() {

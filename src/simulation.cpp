@@ -227,7 +227,7 @@ void Simulation::InitSimulation() {
         for (int i_centro{0}; i_centro < (*spec)->GetNMembers(); i_centro++) {
           graphics_.spbs_.push_back(
               dynamic_cast<Centrosome *>((*spec)->GetMember(i_centro)));
-          printf("pushing back centrosome #%i\n", i_centro);
+          printf("Adding centrosome #%i to graphics\n", i_centro);
         }
       }
     }
@@ -283,7 +283,6 @@ void Simulation::InitGraphics() {
 void Simulation::InitSpecies() {
   std::vector<sid_label> species_labels = parser_.GetSpeciesLabels();
   species_.reserve(parser_.GetNSpecies());
-  printf(" %i species\n", parser_.GetNSpecies());
   SpeciesFactory species_factory;
   for (auto slab = species_labels.begin(); slab != species_labels.end();
        ++slab) {
@@ -291,9 +290,6 @@ void Simulation::InitSpecies() {
     if (sid == +species_id::crosslink) {
       ix_mgr_.InitCrosslinkSpecies(*slab, parser_, rng_->GetSeed());
       continue;
-    }
-    if (sid == +species_id::chromosome) {
-      printf("WE HERE\n");
     }
     species_.push_back(species_factory.CreateSpecies(sid, rng_->GetSeed()));
     species_.back()->Init(slab->second, parser_);
@@ -318,14 +314,9 @@ void Simulation::InitSpecies() {
         }
       }
 #endif
-      printf("we insertin\n");
       species_.back()->Reserve();
       double spec_length = species_.back()->GetSpecLength();
       double spec_d = species_.back()->GetSpecDiameter();
-      if (sid == +species_id::chromosome) {
-        printf("L: %g\n", spec_length);
-        printf("D: %g\n", spec_d);
-      }
       spec_length = (spec_d > spec_length ? spec_d : spec_length);
       CellList::SetMinCellLength(1.5 * spec_length);
     } else {
@@ -339,19 +330,37 @@ void Simulation::InitSpecies() {
 /* Initialize object positions and orientations.*/
 void Simulation::InsertSpecies(bool force_overlap, bool processing) {
   Logger::Info("Inserting species");
+  // SF: this is probably bad lol
+  FilamentSpecies *filaments{nullptr};
+  CentrosomeSpecies *centrosomes{nullptr};
   for (auto spec = species_.begin(); spec != species_.end(); ++spec) {
+    if ((*spec)->GetSID() == +species_id::filament) {
+      if (filaments != nullptr) {
+        printf("WOAH in InsertSpecies()\n");
+        exit(1);
+      }
+      filaments = dynamic_cast<FilamentSpecies *>((*spec));
+      printf("FOUND filaments\n");
+    }
+    if ((*spec)->GetSID() == +species_id::centrosome) {
+      if (centrosomes != nullptr) {
+        printf("WOAH 2 in InsertSpecies()\n");
+        exit(1);
+      }
+      centrosomes = dynamic_cast<CentrosomeSpecies *>((*spec));
+      printf("FOUND centrosomes\n");
+    }
     // Check for random insertion
     if (processing ||
         (*spec)->GetInsertionType().find("random") == std::string::npos) {
       /* Insertion is non-random: don't check for overlaps */
       force_overlap = true;
-      printf("what\n");
     }
     int num = (*spec)->GetNInsert();
     bool not_done = true;
     int inserted = 0;
     int num_attempts = 0;
-    printf("Species: %s\n\n", (*spec)->GetSpeciesName().c_str());
+    printf("Species: %s\n", (*spec)->GetSpeciesName().c_str());
     while (num != inserted) {
       inserted = 0;
       int num_failures = 0;
@@ -393,14 +402,6 @@ void Simulation::InsertSpecies(bool force_overlap, bool processing) {
                           "to insert %2.1f%% of objects",
                           100.0 * inserted / (float)num);
           break;
-        }
-        if ((*spec)->GetSID() == +species_id::chromosome) {
-          // double pos[3] = {inserted, inserted, inserted};
-          // (*spec)->GetMember(inserted)->SetPosition(pos);
-          printf("chromo %i inserted @ (%g, %g, %g)\n", inserted,
-                 (*spec)->GetMember(inserted)->GetPosition()[0],
-                 (*spec)->GetMember(inserted)->GetPosition()[1],
-                 (*spec)->GetMember(inserted)->GetPosition()[2]);
         }
       }
       //Set neighbors for receptors so anchors know where to step to
@@ -488,6 +489,7 @@ void Simulation::InsertSpecies(bool force_overlap, bool processing) {
                       params_.species_insertion_reattempt_threshold);
       }
     }
+    // SF: I don't think this does anything. InitMembers() deprecated?
     if (!processing) {
       (*spec)->InitMembers();
       if ((*spec)->GetInsertionType().find("random") == std::string::npos) {
@@ -495,6 +497,12 @@ void Simulation::InsertSpecies(bool force_overlap, bool processing) {
       }
     }
   }
+  // LINK SPB AND FILAMENTS HERE?
+  if (centrosomes != nullptr and filaments != nullptr) {
+    printf("INITIALIZE!!\n");
+    centrosomes->AnchorFilaments(filaments);
+  }
+
   /* Initialize static crosslink positions */
   ix_mgr_.InsertCrosslinks();
   /* Should do this all the time to force object counting */

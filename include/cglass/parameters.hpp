@@ -31,6 +31,8 @@ template <>
 struct species_parameters<species_id::centrosome>
     : public species_base_parameters {
   bool zero_temperature = false;
+  int num_filaments_ea = 0;
+  std::string filament_species_name;
   double translational_noise = 0;
   double rotational_noise = 0;
 };

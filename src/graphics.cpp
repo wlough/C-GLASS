@@ -630,7 +630,6 @@ void Graphics::DrawSPBs() {
   gluQuadricCallback(qobj_, GLU_ERROR, NULL);
   gluQuadricDrawStyle(qobj_, GLU_FILL);
   gluQuadricNormals(qobj_, GLU_SMOOTH);
-
   for (auto &&spb : spbs_) {
     double clength = spb->GetLength();
     // Direction of the SPB
@@ -640,7 +639,6 @@ void Graphics::DrawSPBs() {
     double v0 = spb->GetR(0) - 0.5 * clength * spb->GetU(0);
     double v1 = spb->GetR(1) - 0.5 * clength * spb->GetU(1);
     double v2 = spb->GetR(2) - 0.5 * clength * spb->GetU(2);
-
     // Set the color
     GLfloat color[4] = {0.0, 0.0, 1.0, 1.0}; // default bond color
     double L = 0.3 * spb->GetOrientation()[2] + 0.5;
@@ -680,9 +678,7 @@ void Graphics::DrawSPBs() {
     color[0] = color[0] + m;
     color[1] = color[1] + m;
     color[2] = color[2] + m;
-
     glColor4fv(color);
-
     glPushMatrix();
     glTranslatef(v0, v1, v2);
     if (phi != 0.0)
@@ -697,11 +693,9 @@ void Graphics::DrawSPBs() {
     gluDisk(qobj_, 0.0, 0.5 * spb->GetDiameter(), 16, 16);
     // }
     glPopMatrix();
-
     v0 = spb->GetR(0) + 0.5 * clength * spb->GetU(0);
     v1 = spb->GetR(1) + 0.5 * clength * spb->GetU(1);
     v2 = spb->GetR(2) + 0.5 * clength * spb->GetU(2);
-
     glPushMatrix();
     glTranslatef(v0, v1, v2);
     if (phi != 0.0)

@@ -412,7 +412,7 @@ double const Filament::GetVolume() {
 
 void Filament::UpdatePosition() {
   ApplyForcesTorques();
-  if (!sparams_->stationary_flag  && (sparams_->stationary_until)<eq_steps_)
+  if (!sparams_->stationary_flag && (sparams_->stationary_until) < eq_steps_)
     Integrate();
   UpdateAvgPosition();
   DynamicInstability();
@@ -850,7 +850,7 @@ void Filament::CalculateTensions() {
 }
 
 void Filament::UpdateSitePositions() {
-  double delta = (params_->on_midstep ? 0.5 * delta_ : delta_ );
+  double delta = (params_->on_midstep ? 0.5 * delta_ : delta_);
   double f_site[3];
   // First get total forces
   // Handle end sites first
@@ -1152,9 +1152,7 @@ void Filament::RescaleBonds() {
   CalculateAngles();
 }
 
-void Filament::Depolymerize() {
-  poly_ = poly_state::shrink;
-}
+void Filament::Depolymerize() { poly_ = poly_state::shrink; }
 
 void Filament::UpdatePolyState() {
   double partner_fact = 1;
@@ -1165,10 +1163,12 @@ void Filament::UpdatePolyState() {
       partner_fact = partner_destab_B_;
     }
   } else {
-    partner_fact = partner_destab_A_*exp(-n_end_xlinks_/n_end_partners_*partner_destab_k_)+partner_destab_B_;
+    partner_fact = partner_destab_A_ * exp(-n_end_xlinks_ / n_end_partners_ *
+                                           partner_destab_k_) +
+                   partner_destab_B_;
   }
-  double p_g2s = p_g2s_*partner_fact;
-  double p_p2s = p_p2s_*partner_fact;
+  double p_g2s = p_g2s_ * partner_fact;
+  double p_p2s = p_p2s_ * partner_fact;
   double roll = rng_.RandomUniform();
   double p_norm;
   // Modify catastrophe probabilities if the end of the filament is under a
@@ -1264,7 +1264,7 @@ void Filament::CheckFlocking() {
 
 void Filament::Draw(std::vector<graph_struct *> &graph_array) {
   if (sparams_->curvature_cluster_analysis && cluster_ > 0) {
-    double color = sparams_->color + cluster_*0.1*M_PI*M_PI;
+    double color = sparams_->color + cluster_ * 0.1 * M_PI * M_PI;
     for (auto bond = bonds_.begin(); bond != bonds_.end(); ++bond) {
       bond->SetColor(color, draw_type::fixed);
     }
@@ -1472,7 +1472,8 @@ void Filament::ConvertSpec(std::fstream &ispec, std::fstream &otext) {
   ispec.read(reinterpret_cast<char *>(&poly), sizeof(unsigned char));
 
   otext << "bending_stiffness curvature poly" << std::endl;
-  otext << bending_stiffness << " " << curvature << " " << poly._to_string() << std::endl;
+  otext << bending_stiffness << " " << curvature << " " << poly._to_string()
+        << std::endl;
 }
 
 void Filament::ReadSpec(std::fstream &ispec) {
@@ -1621,21 +1622,13 @@ void Filament::RotateToReferenceFrame() {
 }
 
 /* Increment crosslink at filament end count */
-void Filament::IncrementNEndXlinks() {
-  n_end_xlinks_++;
-}
+void Filament::IncrementNEndXlinks() { n_end_xlinks_++; }
 
 /* Decrement crosslink at filament end count */
-void Filament::DecrementNEndXlinks() {
-  n_end_xlinks_--;
-}
+void Filament::DecrementNEndXlinks() { n_end_xlinks_--; }
 
 /* Decrease partner protein at filament end amount */
-void Filament::SubNPartners(double n_sub) {
-  n_end_partners_ -= n_sub;
-}
+void Filament::SubNPartners(double n_sub) { n_end_partners_ -= n_sub; }
 
 /* Increase partner protein at filament end amount */
-void Filament::AddNPartners(double n_add) {
-  n_end_partners_ += n_add;
-}
+void Filament::AddNPartners(double n_add) { n_end_partners_ += n_add; }

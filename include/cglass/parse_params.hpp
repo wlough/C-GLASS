@@ -874,7 +874,6 @@ parse_species_params(std::string sid, YAML::Node &subnode, YAML::Node &node) {
     }
     return new receptor_parameters(params);
   } else if (sid.compare("centrosome") == 0) {
-    printf("lol CENTROSOME params\n");
     centrosome_parameters params;
     parse_species_base_params(params, node);
     for (auto jt = subnode.begin(); jt != subnode.end(); ++jt) {
@@ -882,6 +881,10 @@ parse_species_params(std::string sid, YAML::Node &subnode, YAML::Node &node) {
       if (false) {
       } else if (param_name.compare("name") == 0) {
         params.name = jt->second.as<std::string>();
+      } else if (param_name.compare("num_filaments_ea") == 0) {
+        params.num_filaments_ea = jt->second.as<int>();
+      } else if (param_name.compare("filament_species_name") == 0) {
+        params.filament_species_name = jt->second.as<std::string>();
       } else if (param_name.compare("num") == 0) {
         params.num = jt->second.as<int>();
       } else if (param_name.compare("diameter") == 0) {
@@ -939,7 +942,6 @@ parse_species_params(std::string sid, YAML::Node &subnode, YAML::Node &node) {
     }
     return new centrosome_parameters(params);
   } else if (sid.compare("chromosome") == 0) {
-    printf("lol chromosome params\n");
     chromosome_parameters params;
     parse_species_base_params(params, node);
     for (auto jt = subnode.begin(); jt != subnode.end(); ++jt) {

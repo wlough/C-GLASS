@@ -5,7 +5,7 @@ FilamentSpecies::FilamentSpecies(unsigned long seed) : Species(seed) {
 }
 void FilamentSpecies::Init(std::string spec_name, ParamsParser &parser) {
   Species::Init(spec_name, parser);
-  
+
   // Return to avoid min_length warnings if there are no filaments
   if (GetNInsert() <= 0) {
     return;
@@ -92,6 +92,7 @@ void FilamentSpecies::Init(std::string spec_name, ParamsParser &parser) {
 }
 
 void FilamentSpecies::InitMembers() {
+  // what the fuck is this
   return;
   if ((sparams_.radius_of_curvature > 0 || sparams_.intrinsic_curvature != 0) &&
       sparams_.randomize_intrinsic_curvature_handedness) {
@@ -252,8 +253,8 @@ const double FilamentSpecies::GetSpecLength() const {
 }
 
 // Overloaded to catch error for filaments with receptor cover
-void FilamentSpecies::CalcPCPosition(int i, double s, double* pos) {
-   Logger::Error("Receptor PointCovers not set up for flexible filaments.");
+void FilamentSpecies::CalcPCPosition(int i, double s, double *pos) {
+  Logger::Error("Receptor PointCovers not set up for flexible filaments.");
 }
 
 void FilamentSpecies::LoadAnalysis() {

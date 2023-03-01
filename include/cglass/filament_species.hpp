@@ -2,24 +2,24 @@
 #define _CGLASS_FILAMENT_SPECIES_H_
 
 #include "filament.hpp"
-#include "species.hpp"
-#include "filament_curvature_cluster_analysis.hpp"
-#include "filament_spiral_analysis.hpp"
 #include "filament_angle_distribution_analysis.hpp"
-#include "filament_flocking_analysis.hpp"
-#include "filament_orientation_correlation_analysis.hpp"
-#include "filament_polar_order_analysis.hpp"
-#include "filament_global_order_analysis.hpp"
-#include "filament_end_to_end_fluctuation_analysis.hpp"
-#include "filament_giant_number_fluctuation_analysis.hpp"
 #include "filament_barrier_crossing_analysis.hpp"
+#include "filament_curvature_cluster_analysis.hpp"
+#include "filament_end_to_end_fluctuation_analysis.hpp"
+#include "filament_flocking_analysis.hpp"
+#include "filament_giant_number_fluctuation_analysis.hpp"
+#include "filament_global_order_analysis.hpp"
 #include "filament_incoming_outgoing_angle_analysis.hpp"
 #include "filament_mean_squared_displacement_analysis.hpp"
+#include "filament_orientation_correlation_analysis.hpp"
+#include "filament_polar_order_analysis.hpp"
+#include "filament_spiral_analysis.hpp"
+#include "species.hpp"
 
 typedef Analysis<Filament, species_id::filament> FilamentAnalysis;
 
 class FilamentSpecies : public Species<Filament, species_id::filament> {
- protected:
+protected:
   // Analysis structures
   double fill_volume_;
   double packing_fraction_;
@@ -28,21 +28,28 @@ class FilamentSpecies : public Species<Filament, species_id::filament> {
   void InitErrorAnalysis();
   void RunErrorAnalysis();
 
- public:
+public:
   FilamentSpecies(unsigned long seed);
   void Init(std::string spec_name, ParamsParser &parser);
   void InitMembers();
   void PopMember();
   void AddMember();
 
+  void ArrangeMembers() {
+    if (GetInsertionType().compare("spb_anchored") == 0) {
+      return;
+    } else {
+      Species::ArrangeMembers();
+    }
+  }
+
   void Reserve();
   void UpdatePositions();
   void CleanUp();
   virtual const double GetSpecLength() const;
-  virtual void CalcPCPosition(int i, double s, double* pos);
+  virtual void CalcPCPosition(int i, double s, double *pos);
   // Redundant for filaments.
   virtual void CenteredOrientedArrangement() {}
-
 };
 
 #endif

@@ -15,8 +15,8 @@ private:
 
 public:
   Chromatid(unsigned long seed) : Object(seed), kc(seed) {
+    printf("  NEW chromatid\n");
     SetSID(species_id::chromosome);
-    printf("BONK\n");
   }
   void Init(chromosome_parameters *sparams) {
     sparams_ = sparams;

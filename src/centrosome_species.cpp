@@ -1,8 +1,10 @@
 #include "cglass/centrosome_species.hpp"
+#include "cglass/filament_species.hpp"
+
+// TODO: add overlap detection, wca potential between centros
 
 CentrosomeSpecies::CentrosomeSpecies(unsigned long seed) : Species(seed) {
   SetSID(species_id::centrosome);
-  printf("NEW centrosome!\n");
 }
 
 void CentrosomeSpecies::Init(std::string spec_name, ParamsParser &parser) {
@@ -10,7 +12,14 @@ void CentrosomeSpecies::Init(std::string spec_name, ParamsParser &parser) {
   if (GetNInsert() <= 0) {
     return;
   }
-  printf("Initializing centrosome\n");
+  // std::string filament_species_name = sparams_.filament_species_name;
+  // printf("filament species name: %s\n", filament_species_name.c_str());
+  // // First, store filament parameters to later pass to each individual centrosome
+  // species_base_parameters *sparams{parser.GetNewSpeciesParameters(
+  //     species_id::filament, filament_species_name)};
+  // fparams_ = *dynamic_cast<filament_parameters *>(sparams);
+  // delete sparams;
+
   // NAB uses 'anchor' to refer to SPBs. Anchors are unique objects in C-GLASS tho (FIXME)
   int n_anchors{GetNInsert()};
   // TODO make sure you delete these in deconstructor
@@ -24,10 +33,10 @@ void CentrosomeSpecies::Init(std::string spec_name, ParamsParser &parser) {
   bsub_ = new arma::mat::fixed<4, 3>[n_anchors];
 
   double attach_diameter[n_anchors];
-
   // initialize geometry stuff lol
   for (int i_spb{0}; i_spb < n_anchors; i_spb++) {
     double spb_diffusion = 0.256;
+    //   parameters->spb_diffusion * diffusion_scale_spbs;
     attach_diameter[i_spb] = 6.5;
     // Now that we have the diffusion scale, we need to encode the proper SPB
     // translation and rotation matrices into the matrices (including sqrt)
@@ -36,16 +45,12 @@ void CentrosomeSpecies::Init(std::string spec_name, ParamsParser &parser) {
     arma::mat33 rotation;
     translation.eye();
     rotation.eye();
-
-    //   parameters->spb_diffusion * diffusion_scale_spbs;
-
     translation(0, 0) = 0.5 * spb_diffusion;
     translation(1, 1) = spb_diffusion;
     translation(2, 2) = spb_diffusion;
     rotation(0, 0) = spb_diffusion / SQR(0.5 * attach_diameter[i_spb]);
     rotation(1, 1) = 0.01 * spb_diffusion / SQR(0.5 * attach_diameter[i_spb]);
     rotation(2, 2) = 0.01 * spb_diffusion / SQR(0.5 * attach_diameter[i_spb]);
-
     // Set the mobility matrices (assuming they don't change) and the sqrt of same
     mu_tb_[i_spb] = translation;
     mu_rb_[i_spb] = rotation;
@@ -62,31 +67,37 @@ void CentrosomeSpecies::Reserve() {
 void CentrosomeSpecies::PopMember() { Species::PopMember(); }
 void CentrosomeSpecies::AddMember() {
   Species::AddMember();
-  double u[3] = {members_.back().GetOrientation()[0],
-                 members_.back().GetOrientation()[1],
-                 members_.back().GetOrientation()[2]};
+  // Not worth it to handle filaments entirely independently
+  // Use FilamentSpecies and link at initialization
+  // members_.back().InitFilaments(&fparams_);
   int i_spb{members_.size() - 1};
+  double u[3] = {members_.back().GetU(0), members_.back().GetU(1),
+                 members_.back().GetU(2)};
   // Create the rotatio matrix from body-space coordinate transformation
   CreateRotationMatrixBodySpace(A_[i_spb], u, members_.back().v_,
                                 members_.back().w_);
-
-  // Create the associated quaternion describing the initial orientation of the
-  // rigid body
+  // Create the associated quaternion describing initial orientation of the rigid body
   QuaternionFromRotationMatrix(q_[i_spb], A_[i_spb]);
+}
+
+void CentrosomeSpecies::AnchorFilaments(FilamentSpecies *filas) {
+
+  // UPDATE POS AND U OF ANCHORSITE
+  // UPDATE POS AND U OF FILAMENT
+  // UPDATE REL_POS AND REL_U OF ANCHORSITE
 }
 
 void CentrosomeSpecies::UpdatePositions() {
 
+  double kT = 1.0;
   const double thermal_diff_scale = 1;
   double sys_radius = space_->radius;
   double delta_t = params_->delta;
-  double kT = 1.0;
   const arma::vec3 nx = {1.0, 0.0, 0.0};
   const arma::vec3 ny = {0.0, 1.0, 0.0};
   const arma::vec3 nz = {0.0, 0.0, 1.0};
   for (int idx{0}; idx < members_.size(); idx++) {
     Centrosome *centro{&members_[idx]};
-
     // Construct the amount (and direction) the SPB is outside the radius
     // If outside the nucleus, negative
     double rmag = 0.0;
@@ -97,12 +108,9 @@ void CentrosomeSpecies::UpdatePositions() {
     double rhat[3] = {0.0};
     for (int i = 0; i < 3; ++i) {
       rhat[i] = centro->GetR(i) / rmag;
-      //   printf("rhat[%i] = %g\n", i, rhat[i]);
     }
-
     // Construct the force vector
     double forcevec[3] = {0.0};
-
     /*
     // If we are using a harmonic force
     if (properties->anchors.spb_confinement_type == 0) {
@@ -132,65 +140,45 @@ void CentrosomeSpecies::UpdatePositions() {
       }
     } else if (properties->anchors.spb_confinement_type == 1) {
         */
-
-    double f0 = 103.406326034025;
     // properties->anchors.centrosome_confinement_f0_;
-
+    double f0 = 103.406326034025;
     double delta_r = ABS(sys_radius - rmag);
     double ne_ratio{24.61538};
     double factor = CalcNonMonotonicWallForce(ne_ratio, f0, delta_r);
-
     // Check the sign of the force, want to move outwards if we are in the nucleoplasm
     if (rmag > sys_radius) {
       for (int i = 0; i < 3; ++i) {
         forcevec[i] = -1.0 * factor * rhat[i];
-        // printf("F[%i] = %g\n", i, forcevec[i]);
       }
     } else {
       for (int i = 0; i < 3; ++i) {
         forcevec[i] = 1.0 * factor * rhat[i];
-        // printf("f[%i] = %g\n", i, forcevec[i]);
       }
     }
     // }
-
-    // auto copy = centro->GetOrientation();
-    // for (int i{0}; i < 3; i++) {
-    //   printf("u[%i] = %g\n", i, copy[i]);
-    // }
-
     //Based on the potential, calculate the torques on the system
-    // FIXME this is always 1!! NOT RIGHT
     double uhat_dot_rhat = dot_product(3, rhat, centro->GetOrientation());
     double uhat_cross_rhat[3] = {0.0};
     cross_product(centro->GetOrientation(), rhat, uhat_cross_rhat, 3);
-    double kr = 1000.0; //properties->anchors.centrosome_confinement_angular_k_;
+    double kr = 9999.0; //properties->anchors.centrosome_confinement_angular_k_;
     // The torque is thusly
     double torquevec[3] = {0.0};
-
-    // printf("dot = %g\n", uhat_dot_rhat);
     for (int i = 0; i < 3; ++i) {
-      //   printf("cross[%i] = %g\n", i, uhat_cross_rhat[i]);
       torquevec[i] = -kr * (uhat_dot_rhat + 1.0) * uhat_cross_rhat[i];
-      //   printf("T[%i] = %g\n", i, torquevec[i]);
     }
     // Add the contribution to the total forces
     centro->AddForce(forcevec);
     centro->AddTorque(torquevec);
-
     /* BELOW CODE IS FOR 'FREE' SPB, I.E., NOT CONFINED TO MEMBRANE */
-
     // Set up armadillo versions of all of our information of interest
     arma::vec3 r = {centro->GetR(0), centro->GetR(1), centro->GetR(2)};
     arma::vec3 u = {centro->GetU(0), centro->GetU(1), centro->GetU(2)};
     arma::vec3 v = {centro->GetV(0), centro->GetV(1), centro->GetV(2)};
     arma::vec3 w = {centro->GetW(0), centro->GetW(1), centro->GetW(2)};
-
     arma::vec3 force = {centro->GetForce()[0], centro->GetForce()[1],
                         centro->GetForce()[2]};
     arma::vec3 torque = {centro->GetTorque()[0], centro->GetTorque()[1],
                          centro->GetTorque()[2]};
-
     // Deterministic translation
     arma::vec3 dr = (((A_[idx] * mu_tb_[idx]) * A_[idx].t()) * force) * delta_t;
     // Random thermal translation motion
@@ -199,52 +187,38 @@ void CentrosomeSpecies::UpdatePositions() {
                         thermal_diff_scale * rng_.RandomNormal(1.0)};
     dr +=
         ((A_[idx] * sqrt_mu_tb_[idx]) * theta) * std::sqrt(2.0 * kT * delta_t);
-
-    // for (int i{0}; i < 3; i++) {
-    //   printf("dr[%i] = %g\n", i, dr(i));
-    // }
     // Now handle the rotation part
     bsub_[idx](0, 0) = -q_[idx][1];
     bsub_[idx](0, 1) = -q_[idx][2];
     bsub_[idx](0, 2) = -q_[idx][3];
-
     bsub_[idx](1, 0) = q_[idx][0];
     bsub_[idx](1, 1) = -q_[idx][3];
     bsub_[idx](1, 2) = q_[idx][2];
-
     bsub_[idx](2, 0) = q_[idx][3];
     bsub_[idx](2, 1) = q_[idx][0];
     bsub_[idx](2, 2) = -q_[idx][1];
-
     bsub_[idx](3, 0) = -q_[idx][2];
     bsub_[idx](3, 1) = q_[idx][1];
     bsub_[idx](3, 2) = q_[idx][0];
-
     // Deterministic rotation part
     arma::vec4 dq =
         (((bsub_[idx] * mu_rb_[idx]) * A_[idx].t()) * torque) * delta_t;
-
     // Random reorientation
     arma::vec3 theta_rotation = {thermal_diff_scale * rng_.RandomNormal(1.0),
                                  thermal_diff_scale * rng_.RandomNormal(1.0),
                                  thermal_diff_scale * rng_.RandomNormal(1.0)};
     dq += ((bsub_[idx] * sqrt_mu_rb_[idx]) * theta_rotation) *
           std::sqrt(2.0 * kT * delta_t);
-
     // Compute the lagrange correction
     arma::vec4 qtilde = q_[idx] + dq;
     // Compute the corrected quaternion
-
-    // double lambdaq = compute_lagrange_correction(q[idx], qtilde);
     double lambdaq = ComputeLagrangeCorrection(q_[idx], qtilde);
     if (std::isnan(lambdaq)) {
       std::cerr << " quaternion correction error: " << lambdaq << std::endl;
     }
-
     // Actually update the information
     r += dr;
     q_[idx] = qtilde + lambdaq * q_[idx];
-
     // Update the rotation matrix and orientation vectors
     RotationMatrixFromQuaternion(A_[idx], q_[idx]);
     u = A_[idx] * nx;
@@ -255,22 +229,15 @@ void CentrosomeSpecies::UpdatePositions() {
     double u_new[3];
     double v_new[3];
     double w_new[3];
-
     // Write back into the anchor structure the proper double variables
     for (int i = 0; i < 3; ++i) {
       r_new[i] = r(i);
-      //   printf("r_new[%i] = %g\n", i, r_new[i]);
       u_new[i] = u(i);
-      //   printf("u_new[%i] = %g\n", i, u_new[i]);
       v_new[i] = v(i);
-      //   printf("v_new[%i] = %g\n", i, v_new[i]);
       w_new[i] = w(i);
-      //   printf("w_new[%i] = %g\n\n", i, w_new[i]);
     }
 
     centro->UpdatePosition(r_new, u_new, v_new, w_new);
-    // std::copy(v_new, v_new + 3, centro->v_);
-    // std::copy(w_new, w_new + 3, centro->w_);
 
     // Now we have to update the positions of the MTs on the anchor
     /*
@@ -337,7 +304,6 @@ double CentrosomeSpecies::ComputeLagrangeCorrection(const arma::vec4 &q,
                                                     const arma::vec4 &qtilde) {
   double qqtilde = arma::dot(q, qtilde);
   double qtilde2 = arma::dot(qtilde, qtilde);
-
   // Solve the quadratic formulat for what is correct. Doesn't matter which
   // solution we take, as the rotations are equivalent
   double d = (2.0 * qqtilde) * (2.0 * qqtilde) - 4.0 * (qtilde2 - 1.0);
@@ -397,11 +363,9 @@ void CentrosomeSpecies::RotationMatrixFromQuaternion(arma::mat33 &R,
   R(0, 0) = 1. - 2. * (q[2] * q[2] + q[3] * q[3]);
   R(0, 1) = 2. * (q[1] * q[2] - q[3] * q[0]);
   R(0, 2) = 2. * (q[1] * q[3] + q[2] * q[0]);
-
   R(1, 0) = 2. * (q[1] * q[2] + q[3] * q[0]);
   R(1, 1) = 1 - 2. * (q[1] * q[1] + q[3] * q[3]);
   R(1, 2) = 2. * (q[2] * q[3] - q[1] * q[0]);
-
   R(2, 0) = 2. * (q[1] * q[3] - q[2] * q[0]);
   R(2, 1) = 2. * (q[2] * q[3] + q[1] * q[0]);
   R(2, 2) = 1 - 2. * (q[1] * q[1] + q[2] * q[2]);
