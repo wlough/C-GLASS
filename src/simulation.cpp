@@ -331,24 +331,34 @@ void Simulation::InitSpecies() {
 void Simulation::InsertSpecies(bool force_overlap, bool processing) {
   Logger::Info("Inserting species");
   // SF: this is probably bad lol
-  FilamentSpecies *filaments{nullptr};
   CentrosomeSpecies *centrosomes{nullptr};
-  for (auto spec = species_.begin(); spec != species_.end(); ++spec) {
-    if ((*spec)->GetSID() == +species_id::filament) {
-      if (filaments != nullptr) {
-        printf("WOAH in InsertSpecies()\n");
-        exit(1);
-      }
-      filaments = dynamic_cast<FilamentSpecies *>((*spec));
-      printf("FOUND filaments\n");
-    }
+  std::string filament_species_name;
+  // std::string crosslink_species_name;
+  // SF: first, scan thru species to find SPB filament+xlink species
+  for (auto spec{species_.begin()}; spec != species_.end(); ++spec) {
     if ((*spec)->GetSID() == +species_id::centrosome) {
       if (centrosomes != nullptr) {
         printf("WOAH 2 in InsertSpecies()\n");
         exit(1);
       }
       centrosomes = dynamic_cast<CentrosomeSpecies *>((*spec));
-      printf("FOUND centrosomes\n");
+      printf("FOUND centrosomes -- '%s'\n", (*spec)->GetSpeciesName().c_str());
+      filament_species_name = centrosomes->GetFilamentSpeciesName();
+      // crosslink_species_name = centrosomes->GetCrosslinkSpeciesName();
+    }
+  }
+  // SF: next, pick out SPB filament species and store ptr
+  FilamentSpecies *filaments{nullptr};
+  for (auto spec = species_.begin(); spec != species_.end(); ++spec) {
+    if ((*spec)->GetSID() == +species_id::filament) {
+      if ((*spec)->GetSpeciesName().compare(filament_species_name) == 0) {
+        if (filaments != nullptr) {
+          printf("WOAH in InsertSpecies()\n");
+          exit(1);
+        }
+        filaments = dynamic_cast<FilamentSpecies *>((*spec));
+        printf("FOUND filaments - '%s'\n", (*spec)->GetSpeciesName().c_str());
+      }
     }
     // Check for random insertion
     if (processing ||
@@ -490,6 +500,7 @@ void Simulation::InsertSpecies(bool force_overlap, bool processing) {
       }
     }
     // SF: I don't think this does anything. InitMembers() deprecated?
+    // SF (later): Apparently, but ArrangeMembers() is still in use!
     if (!processing) {
       (*spec)->InitMembers();
       if ((*spec)->GetInsertionType().find("random") == std::string::npos) {
@@ -497,10 +508,16 @@ void Simulation::InsertSpecies(bool force_overlap, bool processing) {
       }
     }
   }
+  // SF: next, get SPB crosslink species from interaction manager
+  // CrosslinkSpecies *tethers{ix_mgr_.GetSPBCrosslinks(crosslink_species_name)};
+  // if (tethers != nullptr) {
+  // printf("wtf\n");
+  // printf("FOUND SPB tethers - '%s'\n", tethers->GetSpeciesName().c_str());
+  // }
   // LINK SPB AND FILAMENTS HERE?
   if (centrosomes != nullptr and filaments != nullptr) {
     printf("INITIALIZE!!\n");
-    centrosomes->AnchorFilaments(filaments);
+    centrosomes->AnchorFilaments(filaments, nullptr);
   }
 
   /* Initialize static crosslink positions */
@@ -519,6 +536,9 @@ void Simulation::InsertSpecies(bool force_overlap, bool processing) {
   ix_mgr_.CheckUpdateObjects(); // Forces update as well
   //}
   ix_mgr_.InsertAttachedCrosslinks(receptor_list_);
+  if (centrosomes != nullptr and filaments != nullptr) {
+    ix_mgr_.SetSPBs(centrosomes);
+  }
 }
 
 /* Tear down data structures, e.g. cell lists, and close graphics window if

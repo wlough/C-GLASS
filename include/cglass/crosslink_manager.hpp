@@ -2,8 +2,8 @@
 #define _CGLASS_CROSSLINK_MANAGER_H_
 
 #include "output_manager.hpp"
-#include "species_factory.hpp"
 #include "rng.hpp"
+#include "species_factory.hpp"
 #include <numeric>
 
 class CrosslinkOutputManager : public OutputManagerBase<CrosslinkSpecies> {
@@ -14,26 +14,28 @@ class CrosslinkOutputManager : public OutputManagerBase<CrosslinkSpecies> {
 };
 
 class CrosslinkManager {
- private:
+private:
   system_parameters *params_;
   CrosslinkOutputManager output_mgr_;
   double obj_size_;
-  double rcutoff_ = 0;  // Cutoff for binding any crosslink and bond
+  double rcutoff_ = 0; // Cutoff for binding any crosslink and bond
   bool update_;
   std::vector<CrosslinkSpecies *> xlink_species_;
   std::vector<Object *> *objs_;
-  std::map<Sphere *, std::pair<std::vector<double>, std::vector<std::pair<Anchor*, std::string> > > > bound_curr_;
-  std::map<std::string, CrosslinkSpecies*> species_map_;
+  std::map<Sphere *, std::pair<std::vector<double>,
+                               std::vector<std::pair<Anchor *, std::string>>>>
+      bound_curr_;
+  std::map<std::string, CrosslinkSpecies *> species_map_;
   SpaceBase *space_;
   Tracker *tracker_ = nullptr;
   bool global_check_for_cross = false;
   bool same_microtubules = true;
-  void KnockoutBind(Sphere* receptor, int winner);
+  void KnockoutBind(Sphere *receptor, int winner);
   RNG *rng_;
-  std::vector< std::pair<CrosslinkSpecies*, Sphere*> >  cl_to_add_this_step_;
+  std::vector<std::pair<CrosslinkSpecies *, Sphere *>> cl_to_add_this_step_;
   void AddKnockoutCrosslinks();
 
- public:
+public:
   void Init(system_parameters *params, SpaceBase *space, Tracker *tracker,
             std::vector<Object *> *objs, unsigned long seed);
   void GetInteractors(std::vector<Object *> &ixors);
@@ -58,10 +60,19 @@ class CrosslinkManager {
   void ReadInputs();
   void Convert();
   void InsertCrosslinks();
-  void InsertAttachedCrosslinks(std::vector<std::vector<Object *>> receptor_list);
+  void
+  InsertAttachedCrosslinks(std::vector<std::vector<Object *>> receptor_list);
   const double GetRCutoff() const {
     Logger::Trace("Crosslink rcutoff is %2.2f", rcutoff_);
     return rcutoff_;
+  }
+
+  CrosslinkSpecies *GetSPBCrosslinkSpecies(std::string name) {
+    auto map_entry{species_map_.find(name)};
+    if (map_entry == species_map_.end()) {
+      return nullptr;
+    }
+    return map_entry->second;
   }
 };
 

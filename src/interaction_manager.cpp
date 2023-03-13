@@ -59,6 +59,9 @@ void InteractionManager::ApplyInteractions() {
   if (!no_interactions_) {
     ApplyPairInteractions();
   }
+  if (spbs_active_) {
+    spbs_->ApplyInteractions();
+  }
   ApplyBoundaryInteractions();
 }
 

@@ -1,4 +1,5 @@
 #include "cglass/centrosome_species.hpp"
+#include "cglass/crosslink_species.hpp"
 #include "cglass/filament_species.hpp"
 
 // TODO: add overlap detection, wca potential between centros
@@ -35,7 +36,7 @@ void CentrosomeSpecies::Init(std::string spec_name, ParamsParser &parser) {
   double attach_diameter[n_anchors];
   // initialize geometry stuff lol
   for (int i_spb{0}; i_spb < n_anchors; i_spb++) {
-    double spb_diffusion = 0.256;
+    double spb_diffusion = 2.56; //  x10
     //   parameters->spb_diffusion * diffusion_scale_spbs;
     attach_diameter[i_spb] = 6.5;
     // Now that we have the diffusion scale, we need to encode the proper SPB
@@ -70,7 +71,7 @@ void CentrosomeSpecies::AddMember() {
   // Not worth it to handle filaments entirely independently
   // Use FilamentSpecies and link at initialization
   // members_.back().InitFilaments(&fparams_);
-  int i_spb{members_.size() - 1};
+  int i_spb{(int)members_.size() - 1};
   double u[3] = {members_.back().GetU(0), members_.back().GetU(1),
                  members_.back().GetU(2)};
   // Create the rotatio matrix from body-space coordinate transformation
@@ -80,7 +81,54 @@ void CentrosomeSpecies::AddMember() {
   QuaternionFromRotationMatrix(q_[i_spb], A_[i_spb]);
 }
 
-void CentrosomeSpecies::AnchorFilaments(FilamentSpecies *filas) {
+void CentrosomeSpecies::AnchorFilaments(FilamentSpecies *filas,
+                                        CrosslinkSpecies *teths) {
+
+  int n_filaments{filas->GetNMembers()};
+  if (n_filaments != GetNMembers() * sparams_.num_filaments_ea) {
+    printf("oh no\n");
+    exit(1);
+  }
+
+  // need to:
+  // Create tether (AddMember())
+  // Insert it proper
+  // Bind one head to SPB
+  // Insert filament
+  // Bind other to filament
+  // printf("no 1\n");
+  // printf("FOUND SPB tethers - '%s'\n", teths->GetSpeciesName().c_str());
+  // printf("no 2\n");
+
+  // SF TODO: generalize this for more than 1 SPB / anchor lol
+  for (int i_fila{0}; i_fila < filas->GetNMembers(); i_fila++) {
+    Filament *fil{dynamic_cast<Filament *>(filas->GetMember(i_fila))};
+    // FIXME for discrete anchor site locations
+    const double *const anchor_u = members_.back().anchors_[i_fila].u_;
+    const double *const anchor_pos = members_.back().anchors_[i_fila].pos_;
+    double new_pos[3] = {0, 0, 0};
+    for (int i_dim{0}; i_dim < params_->n_dim; i_dim++) {
+      new_pos[i_dim] =
+          anchor_pos[i_dim] + 0.5 * fil->GetLength() * anchor_u[i_dim];
+      printf("%g = %g + %g\n", new_pos[i_dim], anchor_pos[i_dim],
+             0.5 * fil->GetLength() * anchor_u[i_dim]);
+    }
+    fil->InsertAt(new_pos, anchor_u);
+    for (int i_dim{0}; i_dim < params_->n_dim; i_dim++) {
+      printf("(%g)\n", fil->GetTailPosition()[i_dim]);
+    }
+    // teths->AddMember();
+    // teths->GetMember(0)->InsertAt(new_pos, anchor_u);
+    members_.back().anchors_[i_fila].filament_ = fil;
+    // fil->SetOrientation(u);
+  }
+
+  // int i_fila{0};
+  // for (auto &&fil : filas->GetMembers()) {
+  //   double u[3] = {0, 0, 1}; // Initially align with z
+  //   fil.SetOrientation(u);
+  //   printf("FILA #%i\n", i_fila++);
+  // }
 
   // UPDATE POS AND U OF ANCHORSITE
   // UPDATE POS AND U OF FILAMENT
@@ -111,6 +159,7 @@ void CentrosomeSpecies::UpdatePositions() {
     }
     // Construct the force vector
     double forcevec[3] = {0.0};
+
     /*
     // If we are using a harmonic force
     if (properties->anchors.spb_confinement_type == 0) {
@@ -140,6 +189,7 @@ void CentrosomeSpecies::UpdatePositions() {
       }
     } else if (properties->anchors.spb_confinement_type == 1) {
         */
+
     // properties->anchors.centrosome_confinement_f0_;
     double f0 = 103.406326034025;
     double delta_r = ABS(sys_radius - rmag);
@@ -169,6 +219,7 @@ void CentrosomeSpecies::UpdatePositions() {
     // Add the contribution to the total forces
     centro->AddForce(forcevec);
     centro->AddTorque(torquevec);
+
     /* BELOW CODE IS FOR 'FREE' SPB, I.E., NOT CONFINED TO MEMBRANE */
     // Set up armadillo versions of all of our information of interest
     arma::vec3 r = {centro->GetR(0), centro->GetR(1), centro->GetR(2)};

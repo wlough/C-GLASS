@@ -885,6 +885,8 @@ parse_species_params(std::string sid, YAML::Node &subnode, YAML::Node &node) {
         params.num_filaments_ea = jt->second.as<int>();
       } else if (param_name.compare("filament_species_name") == 0) {
         params.filament_species_name = jt->second.as<std::string>();
+      } else if (param_name.compare("crosslink_species_name") == 0) {
+        params.crosslink_species_name = jt->second.as<std::string>();
       } else if (param_name.compare("num") == 0) {
         params.num = jt->second.as<int>();
       } else if (param_name.compare("diameter") == 0) {

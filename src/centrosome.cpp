@@ -9,6 +9,7 @@ Centrosome::Centrosome(unsigned long seed) : Object(seed) {
 
 void Centrosome::Init(centrosome_parameters *sparams) {
 
+  int n_dim{params_->n_dim};
   sparams_ = sparams;
   zero_temperature_ = sparams_->zero_temperature;
   color_ = sparams->color;
@@ -20,56 +21,79 @@ void Centrosome::Init(centrosome_parameters *sparams) {
   noise_tr_ = sparams->translational_noise;
   noise_rot_ = sparams->rotational_noise;
   diffusion_ = noise_tr_ * sqrt(24.0 * diameter_ / delta_);
-  //   printf("diameter: %g\n", diameter_);
-  //   printf("noise: %g\n", noise_tr_);
-  //   printf("diffusion: %g\n\n", diffusion_);
   diffusion_rot_ = noise_rot_ * sqrt(8.0 * CUBE(diameter_) / delta_);
   Logger::Trace("Inserting object %d randomly", GetOID());
 
-  n_filaments_ = sparams->num_filaments_ea;
-
-  // We want the SPB to point directly at the center of the spherical cell wall
-  double r{params_->system_radius};
-  double pos[3] = {r, 0, 0};
-  double u[3] = {1, 0, 0}; // Initially align with z
-  InsertAt(pos, u);
-  // flip orientation fector (neg. sign.) cuz we want it to point inwards
-  for (int i{0}; i < 3; i++) {
-    r_[i] = position_[i] = pos[i];
-    u_[i] = orientation_[i] = -u[i];
+  // Insert centrosome
+  double pos[3] = {0, 0, params_->system_radius}; // position of C.O.M.
+  double u[3] = {0, 0, -1}; // orientation; normal points to boundary center
+  double v[3] = {0, 0, 0};  // aux vector; defines plane of SPB together with w
+  double w[3] = {0, 0, 0};  // aux vector; defines plane of SPB together with v
+  // SF: not sure if this is general or b/c we initialize aligned to zhat
+  double xhat[3] = {1.0, 0.0, 0.0};
+  double yhat[3] = {0.0, 1.0, 0.0};
+  if (1.0 - ABS(u[0]) > 1e-2) {
+    cross_product(u, xhat, v, 3);
+  } else {
+    cross_product(u, yhat, v, 3);
   }
-  // Calculate vectors that define plane of SPB
-  double vect1[3] = {1.0, 0, 0.0};
-  double vect2[3] = {0.0, 1.0, 0.0};
-  if (1.0 - ABS(u[0]) > 1e-2)
-    cross_product(u, vect1, v_, 3);
-  else
-    cross_product(u, vect2, v_, 3);
-  double norm_factor = sqrt(1.0 / dot_product(3, v_, v_));
-  for (int i = 0; i < 3; ++i)
-    v_[i] *= norm_factor;
-  cross_product(u, v_, w_, 3);
+  double norm_factor{sqrt(1.0 / dot_product(3, v, v))};
+  for (int i_dim{0}; i_dim < n_dim; i_dim++) {
+    v[i_dim] *= norm_factor;
+  }
+  cross_product(u, v, w, 3);
+  InsertAt(pos, u);
+  UpdatePosition(pos, u, v, w);
 
+  // Insert associated anchors
+  n_filaments_ = sparams->num_filaments_ea; // FIXME: change to n_anchors
   // Initialize AnchorSite properties
   anchors_.resize(n_filaments_);
   for (int i_anchor{0}; i_anchor < n_filaments_; i_anchor++) {
-    anchors_[i_anchor].r0 = 2.0;
+    // Set basic physical properties -- SF TODO put in YAML files
     anchors_[i_anchor].k_ = 100;
     anchors_[i_anchor].kr_ = 1000;
+    anchors_[i_anchor].r0_ = 0.5;
+    // Centrosome surface is 2-D,so we can define position w/ R and phi
+    double r_on_spb = 1.5;
+    double phi = M_PI;
+    double base_pos[3];
+    // lmfao fixme
+    int sign{i_anchor == 0 ? 1 : -1};
+    for (int i_dim{0}; i_dim < n_dim; i_dim++) {
+      base_pos[i_dim] = GetPosition()[i_dim] + sign * r_on_spb * w_[i_dim];
+    }
+    // Set anchor absolute position and orientation (same as SPB for now)
+    for (int i_dim{0}; i_dim < n_dim; i_dim++) {
+      anchors_[i_anchor].pos_[i_dim] =
+          base_pos[i_dim] + anchors_[i_anchor].r0_ * u[i_dim];
+      anchors_[i_anchor].u_[i_dim] = GetOrientation()[i_dim];
+    }
+    // Set anchor relative position (should be r0 for now ...)
+    double r_rel[3];
+    for (int i_dim{0}; i_dim < n_dim; i_dim++) {
+      r_rel[i_dim] = anchors_[i_anchor].pos_[i_dim] - GetPosition()[i_dim];
+    }
+    double u_proj = dot_product(n_dim, r_rel, u_);
+    double v_proj = dot_product(n_dim, r_rel, v_);
+    double w_proj = dot_product(n_dim, r_rel, w_);
+    for (int i_dim{0}; i_dim < n_dim; i_dim++) {
+      anchors_[i_anchor].pos_rel_[i_dim] =
+          u_[i_dim] * u_proj + v_[i_dim] * v_proj + w_[i_dim] * w_proj;
+    }
+    // no angular springs for now (mode 0 from NAB)
+    double u_anchor[3];
+    for (int i_dim{0}; i_dim < n_dim; i_dim++) {
+      u_anchor[i_dim] = anchors_[i_anchor].u_[i_dim];
+    }
+    double u_proj_rel = dot_product(n_dim, u_anchor, u_);
+    double v_proj_rel = dot_product(n_dim, u_anchor, v_);
+    double w_proj_rel = dot_product(n_dim, u_anchor, w_);
+    anchors_[i_anchor].u_rel_[0] = u_proj_rel;
+    anchors_[i_anchor].u_rel_[1] = v_proj_rel;
+    anchors_[i_anchor].u_rel_[2] = w_proj_rel;
+    // Position and orientation set; still need to anchor w/ filament
   }
-
-  //   for (int i_sis{0}; i_sis < sisters_.size(); i_sis++) {
-  //     double pos_sis[3]{pos[0], pos[1], pos[2]};
-  //     for (int i{0}; i < 3; i++) {
-  //       double sign{i_sis == 0 ? -1.0 : 1.0};
-  //       pos_sis[i] += 0.5 * sign * diameter_;
-  //     }
-  //     sisters_[i_sis].Init(sparams);
-  //     sisters_[i_sis].InsertAt(pos_sis, u);
-  //     printf("chromatid %i inserted @ (%g, %g, %g)\n", i_sis,
-  //            sisters_[i_sis].GetPosition()[0], sisters_[i_sis].GetPosition()[1],
-  //            sisters_[i_sis].GetPosition()[2]);
-  //   }
 }
 
 /*

@@ -1,7 +1,7 @@
 #include "cglass/crosslink_species.hpp"
 
-CrosslinkSpecies::CrosslinkSpecies(unsigned long seed) : Species(seed), bind_param_map_(2),
-                                                         default_bind_params_(2) {
+CrosslinkSpecies::CrosslinkSpecies(unsigned long seed)
+    : Species(seed), bind_param_map_(2), default_bind_params_(2) {
   SetSID(species_id::crosslink);
 }
 void CrosslinkSpecies::Init(std::string spec_name, ParamsParser &parser) {
@@ -13,16 +13,19 @@ void CrosslinkSpecies::Init(std::string spec_name, ParamsParser &parser) {
   xlink_concentration_ = sparams_.concentration;
   infinite_reservoir_flag_ = sparams_.infinite_reservoir_flag;
   sparams_.num = (int)round(sparams_.concentration * space_->volume);
-  std::vector<std::string> bind_file = {sparams_.anchors[0].bind_file, sparams_.anchors[1].bind_file};
-  
+  std::vector<std::string> bind_file = {sparams_.anchors[0].bind_file,
+                                        sparams_.anchors[1].bind_file};
+
   // Create a default set of specific binding parameters
   InitializeBindParams();
 
-  if (bool(bind_file[0].compare("none"))!=bool(bind_file[1].compare("none"))) {
-    Logger::Error("Cannot have bind file=none for one anchor and a bind file for the other.");
+  if (bool(bind_file[0].compare("none")) !=
+      bool(bind_file[1].compare("none"))) {
+    Logger::Error("Cannot have bind file=none for one anchor and a bind file "
+                  "for the other.");
   }
 
-  // If bind file is not "none", load bind file parameters and calulate the number of 
+  // If bind file is not "none", load bind file parameters and calulate the number of
   // expected binding events per file.
   if (bind_file[0].compare("none")) {
     LoadBindingSpecies();
@@ -53,47 +56,63 @@ void CrosslinkSpecies::LoadBindingSpecies() {
     try {
       bnode = YAML::LoadFile(sparams_.anchors[anchor_index].bind_file);
     } catch (...) {
-      Logger::Error("Failed to load binding species file in crosslink_species.cpp");
+      Logger::Error(
+          "Failed to load binding species file in crosslink_species.cpp");
     }
     for (auto it = bnode.begin(); it != bnode.end(); ++it) {
       std::string param_name = it->first.as<std::string>();
       // Error if there is already a map entry with given string name
-      if (bind_param_map_[anchor_index].find(param_name) != bind_param_map_[anchor_index].end()) {
+      if (bind_param_map_[anchor_index].find(param_name) !=
+          bind_param_map_[anchor_index].end()) {
         Logger::Error("Duplicate species names found in Crosslink bind file.");
       }
       // Initialize to default
-      bind_param_map_[anchor_index][param_name] = default_bind_params_[anchor_index];
+      bind_param_map_[anchor_index][param_name] =
+          default_bind_params_[anchor_index];
       if (it->second["use_partner"]) {
-        bind_param_map_[anchor_index][param_name].use_partner = it->second["use_partner"].as<bool>();
-      }if (it->second["k_on_s"]) {
-        bind_param_map_[anchor_index][param_name].k_on_s = it->second["k_on_s"].as<double>();
+        bind_param_map_[anchor_index][param_name].use_partner =
+            it->second["use_partner"].as<bool>();
+      }
+      if (it->second["k_on_s"]) {
+        bind_param_map_[anchor_index][param_name].k_on_s =
+            it->second["k_on_s"].as<double>();
       }
       if (it->second["k_on_d"]) {
-        bind_param_map_[anchor_index][param_name].k_on_d = it->second["k_on_d"].as<double>();
+        bind_param_map_[anchor_index][param_name].k_on_d =
+            it->second["k_on_d"].as<double>();
       }
       if (it->second["k_off_s"]) {
-        bind_param_map_[anchor_index][param_name].k_off_s = it->second["k_off_s"].as<double>();
+        bind_param_map_[anchor_index][param_name].k_off_s =
+            it->second["k_off_s"].as<double>();
       }
       if (it->second["k_off_d"]) {
-        bind_param_map_[anchor_index][param_name].k_off_d = it->second["k_off_d"].as<double>();
+        bind_param_map_[anchor_index][param_name].k_off_d =
+            it->second["k_off_d"].as<double>();
       }
       if (it->second["partner_on_s"]) {
-        bind_param_map_[anchor_index][param_name].partner_on_s = it->second["partner_on_s"].as<double>();
+        bind_param_map_[anchor_index][param_name].partner_on_s =
+            it->second["partner_on_s"].as<double>();
       }
       if (it->second["partner_on_d"]) {
-        bind_param_map_[anchor_index][param_name].partner_on_d = it->second["partner_on_d"].as<double>();
+        bind_param_map_[anchor_index][param_name].partner_on_d =
+            it->second["partner_on_d"].as<double>();
       }
       if (it->second["density_type"]) {
-        bind_param_map_[anchor_index][param_name].dens_type = 
-                        density_type::_from_string(it->second["density_type"].Scalar().c_str());
+        bind_param_map_[anchor_index][param_name].dens_type =
+            density_type::_from_string(
+                it->second["density_type"].Scalar().c_str());
       } else {
-        Logger::Warning("No density type found for species name %s, defaulting to linear.", param_name.c_str());
+        Logger::Warning(
+            "No density type found for species name %s, defaulting to linear.",
+            param_name.c_str());
       }
       if (it->second["bind_site_density"]) {
-        bind_param_map_[anchor_index][param_name].bind_site_density = it->second["bind_site_density"].as<double>();
+        bind_param_map_[anchor_index][param_name].bind_site_density =
+            it->second["bind_site_density"].as<double>();
       }
       if (it->second["single_occupancy"]) {
-        bind_param_map_[anchor_index][param_name].single_occupancy = it->second["single_occupancy"].as<bool>();
+        bind_param_map_[anchor_index][param_name].single_occupancy =
+            it->second["single_occupancy"].as<bool>();
       }
     }
   }
@@ -108,10 +127,12 @@ void CrosslinkSpecies::AddMember() {
   *update_ = true;
 }
 
-void CrosslinkSpecies::InitInteractionEnvironment(std::vector<Object *> *objs,
-                                                  double *obj_size,
-                                                  Tracker *tracker, bool *update,
-                       std::map<Sphere *, std::pair<std::vector<double>, std::vector<std::pair<Anchor*, std::string> > > > *bound_curr) {
+void CrosslinkSpecies::InitInteractionEnvironment(
+    std::vector<Object *> *objs, double *obj_size, Tracker *tracker,
+    bool *update,
+    std::map<Sphere *, std::pair<std::vector<double>,
+                                 std::vector<std::pair<Anchor *, std::string>>>>
+        *bound_curr) {
   objs_ = objs;
   obj_size_ = obj_size;
   bound_curr_ = bound_curr;
@@ -220,6 +241,16 @@ void CrosslinkSpecies::InsertCrosslinks() {
   if (sparams_.insertion_type.compare("random") == 0) {
     sparams_.static_flag = false;
     return;
+  } else if (sparams_.insertion_type.compare("spb_anchored") == 0) {
+    sparams_.static_flag = true;
+    sparams_.infinite_reservoir_flag = false;
+    // sparams_.num = 1;
+    // AddMember();
+    // double pos[3] = {0, 0, 0};
+    // double u[3] = {0, 0, 0};
+    // u[params_->n_dim - 1] = 1.0;
+    // members_.back().InsertAt(pos, u);
+    return;
   } else if (sparams_.insertion_type.compare("centered") == 0) {
     sparams_.num = 1;
     sparams_.static_flag = true;
@@ -272,14 +303,14 @@ void CrosslinkSpecies::InsertCrosslinks() {
     }
   } else if (sparams_.insertion_type.compare("random_boundary") == 0) {
     sparams_.infinite_reservoir_flag = false;
-    sparams_.num = (int)round(space_->BoundaryArea() * xlink_concentration_);        
+    sparams_.num = (int)round(space_->BoundaryArea() * xlink_concentration_);
     double pos[3] = {0};
     double u[3] = {1, 0, 0};
     for (int i = 0; i < sparams_.num; ++i) {
       rng_.RandomBoundaryCoordinate(space_, pos);
       AddMember();
       members_.back().InsertAt(pos, u);
-    } 
+    }
   } else {
     Logger::Error("Insertion type %s not implemented yet for crosslinks",
                   sparams_.insertion_type.c_str());
@@ -287,8 +318,9 @@ void CrosslinkSpecies::InsertCrosslinks() {
 }
 
 //Adds in Crosslinkers for begin_with_bound_crosslinks flag
-void CrosslinkSpecies::InsertAttachedCrosslinksSpecies(std::vector<std::vector<Object *>> receptor_list) {
-  if (begin_with_bound_crosslinks_<=0) {
+void CrosslinkSpecies::InsertAttachedCrosslinksSpecies(
+    std::vector<std::vector<Object *>> receptor_list) {
+  if (begin_with_bound_crosslinks_ <= 0) {
     return;
   }
   Crosslink xlink(rng_.GetSeed());
@@ -302,16 +334,16 @@ void CrosslinkSpecies::InsertAttachedCrosslinksSpecies(std::vector<std::vector<O
   UpdateBoundCrosslinks();
   //If crosslinkers are starting singly bound
   if (sparams_.begin_double_bound == false) {
-    for (int i=0; i < begin_with_bound_crosslinks_; ++i) {
+    for (int i = 0; i < begin_with_bound_crosslinks_; ++i) {
       BindCrosslink();
     }
   }
-  //If crosslinkers are starting doubly bound 
+  //If crosslinkers are starting doubly bound
   else {
-    for (int i=0; i < begin_with_bound_crosslinks_; ++i) {
+    for (int i = 0; i < begin_with_bound_crosslinks_; ++i) {
       BindDoubly(receptor_list[0][i], receptor_list[1][i]);
     }
-  }   
+  }
 }
 
 // Calculate and bind crosslinkers from solution implicitly
@@ -329,13 +361,14 @@ void CrosslinkSpecies::CalculateBindingFree() {
     free_concentration = (sparams_.num - n_members_) / space_->volume;
   }
   if (use_bind_file_) {
-    int num_to_bind = rng_.RandomPoisson(free_concentration * params_->delta * bind_rate_);
+    int num_to_bind =
+        rng_.RandomPoisson(free_concentration * params_->delta * bind_rate_);
     for (int i = 0; i < num_to_bind; ++i) {
       BindCrosslink();
     }
   } else {
     double expected_bind_n = bind_site_density_ * free_concentration *
-                       (*obj_size_) * k_on_ * params_->delta;
+                             (*obj_size_) * k_on_ * params_->delta;
     // Use a Poisson distribution to calculate the number of particles
     int bind_num = rng_.RandomPoisson(expected_bind_n);
     // Track US probabilities
@@ -351,91 +384,103 @@ void CrosslinkSpecies::CalculateBindingFree() {
 
 /* Returns a random object with selection probability proportional to object
    bind rate. */
-std::pair <Object*, int> CrosslinkSpecies::GetRandomObject() {
+std::pair<Object *, int> CrosslinkSpecies::GetRandomObject() {
   if (use_bind_file_) {
     double bind_rate_sum = 0;
     std::string name = "";
     // Roll to choose object
-    double roll = bind_rate_*rng_.RandomUniform();
+    double roll = bind_rate_ * rng_.RandomUniform();
     // Count up bind rates to pick correct object
     for (int anchor_index = 0; anchor_index < 2; ++anchor_index) {
       for (auto obj = objs_->begin(); obj != objs_->end(); ++obj) {
         name = (*obj)->GetName();
         auto bind_param_it = bind_param_map_[anchor_index].find(name);
         // Do not count objects that are not in bind_param_map
-        if (bind_param_it == bind_param_map_[anchor_index].end()) continue;
+        if (bind_param_it == bind_param_map_[anchor_index].end())
+          continue;
         // obj_amount is area if surface density used, length if linear density used
-        double obj_amount = (bind_param_it->second.dens_type == +density_type::linear) 
-                            ? (*obj)->GetLength() : (*obj)->GetArea();
+        double obj_amount =
+            (bind_param_it->second.dens_type == +density_type::linear)
+                ? (*obj)->GetLength()
+                : (*obj)->GetArea();
         // Do not contribute area/length if object is already occupied and single occupancy is
         // selected
-        if (bind_param_it->second.single_occupancy && ((*obj)->GetNAnchored() > 0)) {
+        if (bind_param_it->second.single_occupancy &&
+            ((*obj)->GetNAnchored() > 0)) {
           obj_amount = 0;
         }
-        bind_rate_sum += bind_param_it->second.k_on_s * 
+        bind_rate_sum += bind_param_it->second.k_on_s *
                          bind_param_it->second.bind_site_density * obj_amount;
         if (bind_rate_sum > roll) {
-          Logger::Trace("Binding free crosslink to random object: xl %d -> obj %d",
-                        members_.back().GetOID(), (*obj)->GetOID());
+          Logger::Trace(
+              "Binding free crosslink to random object: xl %d -> obj %d",
+              members_.back().GetOID(), (*obj)->GetOID());
           random_obj_probability_ = bind_rate_sum;
           return std::make_pair(*obj, anchor_index);
         }
       }
     }
-    Logger::Error("Crosslinks tried to bind to more sites than available- lower timestep.");
+    Logger::Error("Crosslinks tried to bind to more sites than available- "
+                  "lower timestep.");
     return std::make_pair(nullptr, -1);
   } else {
     // 2x factor comes from 2 anchors
-    double roll = 2*rng_.RandomUniform()*(*obj_size_);
+    double roll = 2 * rng_.RandomUniform() * (*obj_size_);
     double vol = 0;
 
     // Search through interactors to find an object of shape sh
     for (int anchor_index = 0; anchor_index < 2; ++anchor_index) {
       for (auto obj = objs_->begin(); obj != objs_->end(); ++obj) {
-        switch((*obj)->GetShape()) {
-          case shape::rod:
-            vol += (*obj)->GetLength();
-            break;
-          case shape::sphere:
-            if ((*obj)->GetNAnchored()==0) {
-              vol += (*obj)->GetArea();
-            }
-            break;
-          default:
-            break;
+        switch ((*obj)->GetShape()) {
+        case shape::rod:
+          vol += (*obj)->GetLength();
+          break;
+        case shape::sphere:
+          if ((*obj)->GetNAnchored() == 0) {
+            vol += (*obj)->GetArea();
+          }
+          break;
+        default:
+          break;
         }
         if (vol > roll) {
-          Logger::Trace("Binding free crosslink to random object: xl %d -> obj %d",
-                        members_.back().GetOID(), (*obj)->GetOID());
+          Logger::Trace(
+              "Binding free crosslink to random object: xl %d -> obj %d",
+              members_.back().GetOID(), (*obj)->GetOID());
           return std::make_pair(*obj, anchor_index);
         }
       }
     }
-    Logger::Error("Crosslinks tried to bind to more sites than available- lower timestep.");
+    Logger::Error("Crosslinks tried to bind to more sites than available- "
+                  "lower timestep.");
     return std::make_pair(nullptr, -1);
   }
 }
 
 //Same function as GetRandomObj().
 //Get GetRandomObj() expects that a new crosslink has been added before getting an object to bind it to, this doesn't.
-std::pair <Object*, int> CrosslinkSpecies::GetRandomObjectKnockout() {
+std::pair<Object *, int> CrosslinkSpecies::GetRandomObjectKnockout() {
   if (use_bind_file_) {
     double bind_rate_sum = 0;
     // Roll to choose object
-    double roll = bind_rate_*rng_.RandomUniform();
+    double roll = bind_rate_ * rng_.RandomUniform();
     // Count up bind rates to pick correct object
     for (int anchor_index = 0; anchor_index < 2; ++anchor_index) {
       for (auto obj = objs_->begin(); obj != objs_->end(); ++obj) {
         std::string name = (*obj)->GetName();
         auto bind_param_it = bind_param_map_[anchor_index].find(name);
         // Do not count objects that are not in bind_param_map
-        if (bind_param_it == bind_param_map_[anchor_index].end()) continue;
+        if (bind_param_it == bind_param_map_[anchor_index].end())
+          continue;
         // obj_amount is area if surface density used, length if linear density used
-        double obj_amount = (bind_param_it->second.dens_type == +density_type::linear)
-                            ? (*obj)->GetLength() : (*obj)->GetArea();
+        double obj_amount =
+            (bind_param_it->second.dens_type == +density_type::linear)
+                ? (*obj)->GetLength()
+                : (*obj)->GetArea();
         // Do not contribute area/length if object is already occupied and single occupancy is
         // selected
-        if (bind_param_it->second.single_occupancy && ((*obj)->GetNAnchored() > 0)) {
+        if (bind_param_it->second.single_occupancy &&
+            ((*obj)->GetNAnchored() > 0)) {
           obj_amount = 0;
         }
         bind_rate_sum += bind_param_it->second.k_on_s *
@@ -446,51 +491,53 @@ std::pair <Object*, int> CrosslinkSpecies::GetRandomObjectKnockout() {
         }
       }
     }
-    Logger::Error("Crosslinks tried to bind to more sites than available- lower timestep.");
+    Logger::Error("Crosslinks tried to bind to more sites than available- "
+                  "lower timestep.");
     return std::make_pair(nullptr, -1);
   } else {
     // 2x factor comes from 2 anchors
-    double roll = 2*rng_.RandomUniform()*(*obj_size_);
+    double roll = 2 * rng_.RandomUniform() * (*obj_size_);
     double vol = 0;
 
     // Search through interactors to find an object of shape sh
     for (int anchor_index = 0; anchor_index < 2; ++anchor_index) {
       for (auto obj = objs_->begin(); obj != objs_->end(); ++obj) {
-        switch((*obj)->GetShape()) {
-          case shape::rod:
-            vol += (*obj)->GetLength();
-            break;
-          case shape::sphere:
-            if ((*obj)->GetNAnchored()==0) {
-              vol += (*obj)->GetArea();
-            }
-            break;
-          default:
-            break;
+        switch ((*obj)->GetShape()) {
+        case shape::rod:
+          vol += (*obj)->GetLength();
+          break;
+        case shape::sphere:
+          if ((*obj)->GetNAnchored() == 0) {
+            vol += (*obj)->GetArea();
+          }
+          break;
+        default:
+          break;
         }
         if (vol > roll) {
-         return std::make_pair(*obj, anchor_index);
+          return std::make_pair(*obj, anchor_index);
         }
       }
     }
-    Logger::Error("Crosslinks tried to bind to more sites than available- lower timestep.");
+    Logger::Error("Crosslinks tried to bind to more sites than available- "
+                  "lower timestep.");
     return std::make_pair(nullptr, -1);
   }
 }
 
 /* A crosslink binds to an object from solution */
-void CrosslinkSpecies::BindCrosslink() {  
-  std::pair <Object*, int>  RandomObj = GetRandomObjectKnockout();
+void CrosslinkSpecies::BindCrosslink() {
+  std::pair<Object *, int> RandomObj = GetRandomObjectKnockout();
   //If binding to sphere, at to knockout
   if (RandomObj.first->GetShape() == +shape::sphere) {
-    Sphere* RandomSphere = dynamic_cast<Sphere*>(RandomObj.first);
+    Sphere *RandomSphere = dynamic_cast<Sphere *>(RandomObj.first);
     (*bound_curr_)[RandomSphere].first.push_back(random_obj_probability_);
-    std::pair<Anchor*, std::string> anchor_and_bind_type;
+    std::pair<Anchor *, std::string> anchor_and_bind_type;
     anchor_and_bind_type.first = nullptr;
     anchor_and_bind_type.second = this->GetSpeciesName();
     (*bound_curr_)[RandomSphere].second.push_back(anchor_and_bind_type);
 
-  //If binding to rod, bind now
+    //If binding to rod, bind now
   } else {
     AddMember();
     members_.back().AttachObjRandom(RandomObj);
@@ -499,19 +546,19 @@ void CrosslinkSpecies::BindCrosslink() {
 }
 
 //Bind during knockout
-void CrosslinkSpecies::KnockoutBind(Sphere* receptor) {
-    AddMember();
-    std::pair <Sphere*, int>  Receptor_pair;
-    //receptor to bind to
-    Receptor_pair.first = receptor;
-    //anchor 0
-    Receptor_pair.second = 0;
-    members_.back().AttachSphere(Receptor_pair);
-    members_.back().SetGlobalCheckForCross(global_check_for_cross_);
+void CrosslinkSpecies::KnockoutBind(Sphere *receptor) {
+  AddMember();
+  std::pair<Sphere *, int> Receptor_pair;
+  //receptor to bind to
+  Receptor_pair.first = receptor;
+  //anchor 0
+  Receptor_pair.second = 0;
+  members_.back().AttachSphere(Receptor_pair);
+  members_.back().SetGlobalCheckForCross(global_check_for_cross_);
 }
 
 //Insert crosslink attatched to two receptors
-void CrosslinkSpecies::BindDoubly(Object* receptor_one, Object* receptor_two) {
+void CrosslinkSpecies::BindDoubly(Object *receptor_one, Object *receptor_two) {
   AddMember();
   members_.back().DoublyCenter(receptor_one, receptor_two);
 }
@@ -531,9 +578,7 @@ void CrosslinkSpecies::GetAnchorInteractors(std::vector<Object *> &ixors) {
   }
 }
 
-Crosslink* CrosslinkSpecies::GetCrosslink(int i) {
-  return &members_[i];
-}
+Crosslink *CrosslinkSpecies::GetCrosslink(int i) { return &members_[i]; }
 
 void CrosslinkSpecies::UpdatePositions() {
   /* Only do this every other step (assuming flexible filaments with midstep)
@@ -541,7 +586,7 @@ void CrosslinkSpecies::UpdatePositions() {
   if (!params_->on_midstep) {
     /* First update bound crosslinks state and positions */
     UpdateBoundCrosslinks();
-    if (sparams_.no_binding == false && sparams_.no_solution_binding == false){
+    if (sparams_.no_binding == false && sparams_.no_solution_binding == false) {
       /* Calculate implicit binding of crosslinks from solution */
       CalculateBindingFree();
     }
@@ -560,7 +605,8 @@ void CrosslinkSpecies::UpdatePositions() {
 }
 
 void CrosslinkSpecies::UpdateBindRate() {
-  if (!use_bind_file_) return;  
+  if (!use_bind_file_)
+    return;
   bind_rate_ = 0;
   for (int anchor_index = 0; anchor_index < 2; ++anchor_index) {
     for (auto obj = objs_->begin(); obj != objs_->end(); ++obj) {
@@ -569,14 +615,17 @@ void CrosslinkSpecies::UpdateBindRate() {
       auto bind_param_it = bind_param_map_[anchor_index].find(name);
       if (bind_param_it != bind_param_map_[anchor_index].end()) {
         // obj_amount is area if surface density used, length if linear density used
-        double obj_amount = (bind_param_it->second.dens_type == +density_type::linear) 
-                            ? (*obj)->GetLength() : (*obj)->GetArea();
+        double obj_amount =
+            (bind_param_it->second.dens_type == +density_type::linear)
+                ? (*obj)->GetLength()
+                : (*obj)->GetArea();
         // Do not contribute area/length if object is already occupied and single occupancy is
         // selected
-        if (bind_param_it->second.single_occupancy && ((*obj)->GetNAnchored() > 0)) {
+        if (bind_param_it->second.single_occupancy &&
+            ((*obj)->GetNAnchored() > 0)) {
           obj_amount = 0;
         }
-        bind_rate_ += bind_param_it->second.k_on_s * 
+        bind_rate_ += bind_param_it->second.k_on_s *
                       bind_param_it->second.bind_site_density * obj_amount;
       }
     }
@@ -793,7 +842,8 @@ const double CrosslinkSpecies::GetConcentration() const {
 }
 
 //Set pointer to global check for cross flag so individual crosslinks can change it
-void CrosslinkSpecies::SetGlobalCheckForCrossPointer(bool* global_check_for_cross) {
+void CrosslinkSpecies::SetGlobalCheckForCrossPointer(
+    bool *global_check_for_cross) {
   global_check_for_cross_ = global_check_for_cross;
 }
 

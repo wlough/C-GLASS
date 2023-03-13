@@ -3,6 +3,7 @@
 
 #include "auxiliary.hpp"
 #include "cell_list.hpp"
+#include "centrosome_species.hpp"
 #include "cortex.hpp"
 #include "crosslink_manager.hpp"
 #include "minimum_distance.hpp"
@@ -24,6 +25,7 @@ private:
   bool in_out_flag_ = false;
   bool decrease_dynamic_timestep_ = false;
   bool run_interaction_analysis_ = false;
+  bool spbs_active_ = false;
   int n_dim_;
   int n_periodic_;
   int n_objs_;
@@ -47,6 +49,8 @@ private:
   CellList clist_;
   PotentialManager potentials_;
   CrosslinkManager xlink_;
+
+  CentrosomeSpecies *spbs_;
 
   const bool CheckSpeciesInteractorUpdate() const;
   void CheckUpdateXlinks();
@@ -105,6 +109,15 @@ public:
   void
   InsertAttachedCrosslinks(std::vector<std::vector<Object *>> receptor_list);
   void SetInteractionAnalysis(bool set) { run_interaction_analysis_ = set; }
+
+  CrosslinkSpecies *GetSPBCrosslinks(std::string name) {
+    return xlink_.GetSPBCrosslinkSpecies(name);
+  }
+
+  void SetSPBs(CentrosomeSpecies *ptr) {
+    spbs_ = ptr;
+    spbs_active_ = true;
+  }
 };
 
 #endif
