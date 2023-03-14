@@ -1,6 +1,8 @@
 #include "cglass/centrosome.hpp"
 #include <iostream>
 
+size_t Centrosome::i_spb_ = 0;
+
 Centrosome::Centrosome(unsigned long seed) : Object(seed) {
   SetSID(species_id::centrosome);
   // FIXME anchors and filament insertion when??
@@ -23,12 +25,14 @@ void Centrosome::Init(centrosome_parameters *sparams) {
   diffusion_ = noise_tr_ * sqrt(24.0 * diameter_ / delta_);
   diffusion_rot_ = noise_rot_ * sqrt(8.0 * CUBE(diameter_) / delta_);
   Logger::Trace("Inserting object %d randomly", GetOID());
-
+  printf("I_SPB: %zu\n", i_spb_);
+  double sign{i_spb_++ == 0 ? 1.0 : -1.0};
   // Insert centrosome
-  double pos[3] = {0, 0, params_->system_radius}; // position of C.O.M.
-  double u[3] = {0, 0, -1}; // orientation; normal points to boundary center
-  double v[3] = {0, 0, 0};  // aux vector; defines plane of SPB together with w
-  double w[3] = {0, 0, 0};  // aux vector; defines plane of SPB together with v
+  double pos[3] = {0, sign * params_->system_radius, 0}; // position of C.O.M.
+  double u[3] = {0, sign * -1.0,
+                 0};       // orientation; normal points to boundary center
+  double v[3] = {0, 0, 0}; // aux vector; defines plane of SPB together with w
+  double w[3] = {0, 0, 0}; // aux vector; defines plane of SPB together with v
   // SF: not sure if this is general or b/c we initialize aligned to zhat
   double xhat[3] = {1.0, 0.0, 0.0};
   double yhat[3] = {0.0, 1.0, 0.0};
@@ -55,13 +59,14 @@ void Centrosome::Init(centrosome_parameters *sparams) {
     anchors_[i_anchor].kr_ = 1000;
     anchors_[i_anchor].r0_ = 0.5;
     // Centrosome surface is 2-D,so we can define position w/ R and phi
-    double r_on_spb = 1.5;
-    double phi = M_PI;
+    // For now, distribute them uniformly along circumference of a circle
+    double r_on_spb = 1.25;
+    double delta_phi = 2.0 * M_PI / double(n_filaments_);
     double base_pos[3];
-    // lmfao fixme
-    int sign{i_anchor == 0 ? 1 : -1};
     for (int i_dim{0}; i_dim < n_dim; i_dim++) {
-      base_pos[i_dim] = GetPosition()[i_dim] + sign * r_on_spb * w_[i_dim];
+      base_pos[i_dim] = GetPosition()[i_dim] +
+                        r_on_spb * sin(i_anchor * delta_phi) * v_[i_dim] +
+                        r_on_spb * cos(i_anchor * delta_phi) * w_[i_dim];
     }
     // Set anchor absolute position and orientation (same as SPB for now)
     for (int i_dim{0}; i_dim < n_dim; i_dim++) {

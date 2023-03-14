@@ -36,8 +36,8 @@ chromosome:
     color: 1.5
 centrosome: 
   - name: SPB
-    num: 1
-    num_filaments_ea: 2  # replace with 'num_anchors'
+    num: 2
+    num_filaments_ea: 7  # replace with 'num_anchors'
     filament_species_name: SPINDLE
     crosslink_species_name: SPINDLE
     length: 0.5
@@ -49,8 +49,8 @@ centrosome:
     color: 1.5
 crosslink:
   - name: mehoy
-    num: 1
-    concentration: 0.3  # need to fix this; cannot be 0
+    num: 0 
+    concentration: 0.03  # need to fix this; cannot be 0
     insertion_type: random
     diameter: 1
     diffusion_s: 0
@@ -88,7 +88,7 @@ crosslink:
     tether_color: 4.67
 filament:
   - name: SPINDLE
-    num: 2
+    num: 14
     insertion_type: spb_anchored
     # partner_destab_A: -0.61550307
     # partner_destab_B: 0.28391844

@@ -15,6 +15,7 @@ struct AnchorSite {
   double u_[3];
   double u_rel_[3];
   Filament *filament_;
+  graph_struct g_;
 };
 
 class CentrosomeSpecies;
@@ -33,6 +34,8 @@ protected:
   double noise_rot_ = 0.0;
   double diffusion_rot_ = 0.0;
   double body_frame_[6];
+
+  static size_t i_spb_; // lol this is bad
 
   double r_[3];
   double u_[3];
@@ -72,22 +75,22 @@ public:
       // std::copy(scaled_position_, scaled_position_ + 3, g_.r);
       double r_teth{0.0};
       for (int i = space_->n_periodic; i < n_dim_; ++i) {
-        g_.r[i] = anch.pos_[i];
         r_teth += SQR(anch.pos_[i] - anch.filament_->GetTailPosition()[i]);
+        anch.g_.r[i] = anch.pos_[i];
       }
       r_teth = sqrt(r_teth);
       // std::copy(position_, position_+3, g_.r);
-      std::copy(anch.u_, anch.u_ + 3, g_.u);
-      g_.color = 1.8 * M_PI;
+      std::copy(anch.u_, anch.u_ + 3, anch.g_.u);
+      anch.g_.color = 1.8 * M_PI;
       // if (params_->graph_diameter > 0) {
       //   g_.diameter = params_->graph_diameter;
       // } else {
       //   g_.diameter = diameter_;
       // }
-      g_.diameter = 0.3;
-      g_.length = r_teth; //length_;
-      g_.draw = draw_;
-      graph_array.push_back(&g_);
+      anch.g_.diameter = 0.3;
+      anch.g_.length = r_teth; //length_;
+      anch.g_.draw = draw_;
+      graph_array.push_back(&anch.g_);
     }
     // for (auto &&fila : filaments_) {
     //   fila.Draw(graph_array);
@@ -172,17 +175,29 @@ public:
       }
       */
       // Centrosome surface is 2-D,so we can define position w/ R and phi
-      double r_on_spb = 1.5;
-      double phi = M_PI;
+      // For now, distribute them uniformly along circumference of a circle
+      double r_on_spb = 1.25;
+      double delta_phi = 2.0 * M_PI / double(n_filaments_);
       double base_pos[3];
-      // lmfao fixme
-      int sign{i_anchor++ == 0 ? 1 : -1};
       for (int i_dim{0}; i_dim < params_->n_dim; i_dim++) {
-        base_pos[i_dim] = GetPosition()[i_dim] + sign * r_on_spb * w_[i_dim];
+        base_pos[i_dim] = GetPosition()[i_dim] +
+                          r_on_spb * sin(i_anchor * delta_phi) * v_[i_dim] +
+                          r_on_spb * cos(i_anchor * delta_phi) * w_[i_dim];
       }
+      i_anchor++;
+      double r_teth{0.0};
+      double u_new[3] = {0, 0, 0};
       for (int i_dim{0}; i_dim < params_->n_dim; i_dim++) {
-        anchor.u_[i_dim] = GetOrientation()[i_dim];
+        // anchor.u_[i_dim] = GetOrientation()[i_dim];
         anchor.pos_[i_dim] = base_pos[i_dim] + 0.5 * anchor.r0_ * u_[i_dim];
+        u_new[i_dim] =
+            anchor.pos_[i_dim] - anchor.filament_->GetTailPosition()[i_dim];
+        r_teth += SQR(u_new[i_dim]);
+      }
+      r_teth = sqrt(r_teth);
+      for (int i_dim{0}; i_dim < params_->n_dim; i_dim++) {
+        u_new[i_dim] = u_new[i_dim] / r_teth;
+        anchor.u_[i_dim] = u_new[i_dim];
       }
       // Create a check if the position isn't working correctly
       for (int i = 0; i < 3; ++i) {

@@ -67,6 +67,7 @@ void CentrosomeSpecies::Reserve() {
 
 void CentrosomeSpecies::PopMember() { Species::PopMember(); }
 void CentrosomeSpecies::AddMember() {
+  // Centrosome::i_spb_ = 0;
   Species::AddMember();
   // Not worth it to handle filaments entirely independently
   // Use FilamentSpecies and link at initialization
@@ -101,11 +102,18 @@ void CentrosomeSpecies::AnchorFilaments(FilamentSpecies *filas,
   // printf("no 2\n");
 
   // SF TODO: generalize this for more than 1 SPB / anchor lol
+  size_t i_spb{0};
   for (int i_fila{0}; i_fila < filas->GetNMembers(); i_fila++) {
     Filament *fil{dynamic_cast<Filament *>(filas->GetMember(i_fila))};
+    size_t i_anchor{i_fila < sparams_.num_filaments_ea
+                        ? i_fila
+                        : i_fila - sparams_.num_filaments_ea};
+    if (i_fila == sparams_.num_filaments_ea) {
+      i_spb++;
+    }
     // FIXME for discrete anchor site locations
-    const double *const anchor_u = members_.back().anchors_[i_fila].u_;
-    const double *const anchor_pos = members_.back().anchors_[i_fila].pos_;
+    const double *const anchor_u = members_[i_spb].anchors_[i_anchor].u_;
+    const double *const anchor_pos = members_[i_spb].anchors_[i_anchor].pos_;
     double new_pos[3] = {0, 0, 0};
     for (int i_dim{0}; i_dim < params_->n_dim; i_dim++) {
       new_pos[i_dim] =
@@ -119,7 +127,7 @@ void CentrosomeSpecies::AnchorFilaments(FilamentSpecies *filas,
     }
     // teths->AddMember();
     // teths->GetMember(0)->InsertAt(new_pos, anchor_u);
-    members_.back().anchors_[i_fila].filament_ = fil;
+    members_[i_spb].anchors_[i_anchor].filament_ = fil;
     // fil->SetOrientation(u);
   }
 
