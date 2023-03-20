@@ -389,6 +389,7 @@ void Simulation::InsertSpecies(bool force_overlap, bool processing) {
           /* We are not counting boundary condition failures in insertion
            failures, since insertion failures are for packing issues */
           printf("POP\n");
+          exit(1);
         }
         // Check if we have an overlap of objects
         else if (!force_overlap &&
@@ -520,6 +521,7 @@ void Simulation::InsertSpecies(bool force_overlap, bool processing) {
     centrosomes->AnchorFilaments(filaments, nullptr);
   }
 
+  // ix_mgr_.ForceUpdate(); // SF do this work?
   /* Initialize static crosslink positions */
   ix_mgr_.InsertCrosslinks();
   /* Should do this all the time to force object counting */

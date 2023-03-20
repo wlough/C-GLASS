@@ -36,7 +36,7 @@ void CentrosomeSpecies::Init(std::string spec_name, ParamsParser &parser) {
   double attach_diameter[n_anchors];
   // initialize geometry stuff lol
   for (int i_spb{0}; i_spb < n_anchors; i_spb++) {
-    double spb_diffusion = 2.56; //  x10
+    double spb_diffusion = 2.56;
     //   parameters->spb_diffusion * diffusion_scale_spbs;
     attach_diameter[i_spb] = 6.5;
     // Now that we have the diffusion scale, we need to encode the proper SPB
@@ -105,19 +105,27 @@ void CentrosomeSpecies::AnchorFilaments(FilamentSpecies *filas,
   size_t i_spb{0};
   for (int i_fila{0}; i_fila < filas->GetNMembers(); i_fila++) {
     Filament *fil{dynamic_cast<Filament *>(filas->GetMember(i_fila))};
-    size_t i_anchor{i_fila < sparams_.num_filaments_ea
-                        ? i_fila
-                        : i_fila - sparams_.num_filaments_ea};
+    // SF TODO baaaaaaaaaaaaad
+    int i_anchor{i_fila < sparams_.num_filaments_ea
+                     ? i_fila
+                     : i_fila - sparams_.num_filaments_ea};
     if (i_fila == sparams_.num_filaments_ea) {
       i_spb++;
     }
     // FIXME for discrete anchor site locations
     const double *const anchor_u = members_[i_spb].anchors_[i_anchor].u_;
     const double *const anchor_pos = members_[i_spb].anchors_[i_anchor].pos_;
+    double anchor_endpoint[3] = {0, 0, 0};
     double new_pos[3] = {0, 0, 0};
     for (int i_dim{0}; i_dim < params_->n_dim; i_dim++) {
+      anchor_endpoint[i_dim] =
+          anchor_pos[i_dim] +
+          anchor_u[i_dim] * members_[i_spb].anchors_[i_anchor].r0_;
+      printf("END: %g = %g + %g*%g\n", anchor_endpoint[i_dim],
+             anchor_pos[i_dim], anchor_u[i_dim],
+             members_[i_spb].anchors_[i_anchor].r0_);
       new_pos[i_dim] =
-          anchor_pos[i_dim] + 0.5 * fil->GetLength() * anchor_u[i_dim];
+          anchor_endpoint[i_dim] + 0.5 * fil->GetLength() * anchor_u[i_dim];
       printf("%g = %g + %g\n", new_pos[i_dim], anchor_pos[i_dim],
              0.5 * fil->GetLength() * anchor_u[i_dim]);
     }
@@ -125,6 +133,7 @@ void CentrosomeSpecies::AnchorFilaments(FilamentSpecies *filas,
     for (int i_dim{0}; i_dim < params_->n_dim; i_dim++) {
       printf("(%g)\n", fil->GetTailPosition()[i_dim]);
     }
+    fil->UpdatePosition();
     // teths->AddMember();
     // teths->GetMember(0)->InsertAt(new_pos, anchor_u);
     members_[i_spb].anchors_[i_anchor].filament_ = fil;
@@ -199,7 +208,7 @@ void CentrosomeSpecies::UpdatePositions() {
         */
 
     // properties->anchors.centrosome_confinement_f0_;
-    double f0 = 103.406326034025;
+    double f0 = 10.3406326034025;
     double delta_r = ABS(sys_radius - rmag);
     double ne_ratio{24.61538};
     double factor = CalcNonMonotonicWallForce(ne_ratio, f0, delta_r);
@@ -218,7 +227,7 @@ void CentrosomeSpecies::UpdatePositions() {
     double uhat_dot_rhat = dot_product(3, rhat, centro->GetOrientation());
     double uhat_cross_rhat[3] = {0.0};
     cross_product(centro->GetOrientation(), rhat, uhat_cross_rhat, 3);
-    double kr = 9999.0; //properties->anchors.centrosome_confinement_angular_k_;
+    double kr = 999.0; //properties->anchors.centrosome_confinement_angular_k_;
     // The torque is thusly
     double torquevec[3] = {0.0};
     for (int i = 0; i < 3; ++i) {
