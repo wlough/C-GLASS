@@ -881,28 +881,32 @@ parse_species_params(std::string sid, YAML::Node &subnode, YAML::Node &node) {
       if (false) {
       } else if (param_name.compare("name") == 0) {
         params.name = jt->second.as<std::string>();
-      } else if (param_name.compare("num_filaments_ea") == 0) {
-        params.num_filaments_ea = jt->second.as<int>();
       } else if (param_name.compare("filament_species_name") == 0) {
         params.filament_species_name = jt->second.as<std::string>();
-      } else if (param_name.compare("crosslink_species_name") == 0) {
-        params.crosslink_species_name = jt->second.as<std::string>();
-      } else if (param_name.compare("num") == 0) {
-        params.num = jt->second.as<int>();
-      } else if (param_name.compare("diameter") == 0) {
-        params.diameter = jt->second.as<double>();
-      } else if (param_name.compare("length") == 0) {
-        params.length = jt->second.as<double>();
       } else if (param_name.compare("insertion_type") == 0) {
         params.insertion_type = jt->second.as<std::string>();
-      } else if (param_name.compare("insert_file") == 0) {
-        params.insert_file = jt->second.as<std::string>();
-      } else if (param_name.compare("overlap") == 0) {
-        params.overlap = jt->second.as<bool>();
       } else if (param_name.compare("draw_type") == 0) {
         params.draw_type = jt->second.as<std::string>();
       } else if (param_name.compare("color") == 0) {
         params.color = jt->second.as<double>();
+      } else if (param_name.compare("num") == 0) {
+        params.num = jt->second.as<int>();
+      } else if (param_name.compare("num_anchors_ea") == 0) {
+        params.num_anchors_ea = jt->second.as<int>();
+      } else if (param_name.compare("length") == 0) {
+        params.length = jt->second.as<double>();
+      } else if (param_name.compare("diameter") == 0) {
+        params.diameter = jt->second.as<double>();
+      } else if (param_name.compare("attach_diameter") == 0) {
+        params.attach_diameter = jt->second.as<double>();
+      } else if (param_name.compare("diffusion") == 0) {
+        params.diffusion = jt->second.as<double>();
+      } else if (param_name.compare("wall_f0") == 0) {
+        params.wall_f0 = jt->second.as<double>();
+      } else if (param_name.compare("wall_ne") == 0) {
+        params.wall_ne = jt->second.as<double>();
+      } else if (param_name.compare("wall_kr") == 0) {
+        params.wall_kr = jt->second.as<double>();
       } else if (param_name.compare("posit_flag") == 0) {
         params.posit_flag = jt->second.as<bool>();
       } else if (param_name.compare("spec_flag") == 0) {
@@ -911,16 +915,10 @@ parse_species_params(std::string sid, YAML::Node &subnode, YAML::Node &node) {
         params.n_posit = jt->second.as<int>();
       } else if (param_name.compare("n_spec") == 0) {
         params.n_spec = jt->second.as<int>();
-      } else if (param_name.compare("stationary_flag") == 0) {
-        params.stationary_flag = jt->second.as<bool>();
-      } else if (param_name.compare("stationary_until") == 0) {
-        params.stationary_until = jt->second.as<int>();
-      } else if (param_name.compare("rotational_noise") == 0) {
-        params.rotational_noise = jt->second.as<double>();
-      } else if (param_name.compare("translational_noise") == 0) {
-        params.translational_noise = jt->second.as<double>();
-      } else if (param_name.compare("zero_temperature") == 0) {
-        params.zero_temperature = jt->second.as<bool>();
+        // } else if (param_name.compare("rotational_noise") == 0) {
+        //   params.rotational_noise = jt->second.as<double>();
+        // } else if (param_name.compare("translational_noise") == 0) {
+        //   params.translational_noise = jt->second.as<double>();
         // } else if (param_name.compare("n_filaments_bud") == 0) {
         //   params.n_filaments_bud = jt->second.as<int>();
         // } else if (param_name.compare("n_filaments_mother") == 0) {

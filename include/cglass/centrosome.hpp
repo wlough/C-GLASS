@@ -42,6 +42,7 @@ protected:
   double diffusion_rot_ = 0.0;
   double body_frame_[6];
 
+  // FIXME; introduce 'bioriented' and 'natural' lol
   static size_t i_spb_; // lol this is bad
   size_t index_;        // consequence of above badness
 

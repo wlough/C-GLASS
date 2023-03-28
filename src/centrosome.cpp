@@ -10,6 +10,7 @@ Centrosome::Centrosome(unsigned long seed) : Object(seed) {
   printf("NEW centrosome\n");
 }
 
+// called during AddMember()
 void Centrosome::Init(centrosome_parameters *sparams) {
 
   int n_dim{params_->n_dim};
@@ -18,18 +19,42 @@ void Centrosome::Init(centrosome_parameters *sparams) {
   draw_ = draw_type::_from_string(sparams_->draw_type.c_str());
   length_ = sparams->length;
   diameter_ = sparams->diameter;
-  noise_tr_ = sparams->translational_noise;
-  noise_rot_ = sparams->rotational_noise;
   diffusion_ = 0.0;     //noise_tr_ * sqrt(24.0 * diameter_ / delta_);
   diffusion_rot_ = 0.0; //noise_rot_ * sqrt(8.0 * CUBE(diameter_) / delta_);
   Logger::Trace("Inserting object %d randomly", GetOID());
   // SF FIXME this is bad lol
   printf("I_SPB: %zu\n", i_spb_);
-  index_ = i_spb_;
-  double sign{i_spb_++ == 0 ? 1.0 : -1.0};
+  index_ = i_spb_++;
+
+  double sign{index_ == 0 ? 1.0 : -1.0};
+  double pos[3] = {0, params_->system_radius, 0}; // position of C.O.M.
+  double u[3] = {0, -1.0, 0}; // normal; points to boundary center
+  if (index_ > 0) {
+    if (sparams_->insertion_type.compare("bioriented") == 0) {
+      printf("BIORIENT\n");
+      if (sparams_->num != 2) {
+        printf("Error; need 2 SPBS to biorient\n");
+        exit(1);
+      }
+      pos[1] *= -1.0;
+      u[1] *= -1.0;
+    } else if (sparams_->insertion_type.compare("normal") == 0) {
+      printf("NORMAL\n");
+      // Displace second SPB by 1.5 diameter to avoid overlap
+      pos[0] = -1.5 * sparams->diameter;
+      double r_mag2{0.0};
+      for (int i_dim{0}; i_dim < 3; i_dim++) {
+        r_mag2 += SQR(pos[i_dim]);
+      }
+      r_mag2 = sqrt(r_mag2);
+      for (int i_dim{0}; i_dim < 3; i_dim++) {
+        u[i_dim] = -1.0 * pos[i_dim] / r_mag2;
+        pos[i_dim] = -1.0 * u[i_dim] * params_->system_radius;
+      }
+    }
+  }
+
   // Insert centrosome
-  double pos[3] = {0, sign * params_->system_radius, 0}; // position of C.O.M.
-  double u[3] = {0, sign * -1.0, 0}; // normal; points to boundary center
   double v[3] = {0, 0, 0}; // aux vector; defines plane of SPB together with w
   double w[3] = {0, 0, 0}; // aux vector; defines plane of SPB together with v
   // SF: not sure if this is general or b/c we initialize aligned to zhat
@@ -55,7 +80,7 @@ void Centrosome::Init(centrosome_parameters *sparams) {
   }
 
   // Initialize associated anchors
-  n_filaments_ = sparams->num_filaments_ea; // FIXME: change to n_anchors
+  n_filaments_ = sparams->num_anchors_ea; // FIXME: change to n_anchors
   // Initialize AnchorSite properties
   anchors_.resize(n_filaments_);
   for (int i_anchor{0}; i_anchor < n_filaments_; i_anchor++) {
@@ -171,6 +196,7 @@ void Centrosome::ApplyInteractions() {
     //   }
     // }
     // apply forces -- SF TODO: integrate this into Interacte() routine
+    // ! SF TODO add torque
     anchor.filament_->AddForceTail(f_spring);
     SubForce(f_spring);
     // anchor.filament_->UpdatePosition();
@@ -213,7 +239,7 @@ void Centrosome::UpdatePosition(double *r_new, double *u_new, double *v_new,
                      anchor.u_rel_[2] * w_[i];
     }
     */
-    // SF: trash below from misinterpreting NAB algorithm
+    // SF: trash (or NOT??) below from misinterpreting NAB algorithm
 
     // Centrosome surface is 2-D,so we can define position w/ R and phi
     // For now, distribute them uniformly along circumference of a circle

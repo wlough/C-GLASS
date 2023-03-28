@@ -36,9 +36,8 @@ void CentrosomeSpecies::Init(std::string spec_name, ParamsParser &parser) {
   double attach_diameter[n_anchors];
   // initialize geometry stuff lol
   for (int i_spb{0}; i_spb < n_anchors; i_spb++) {
-    double spb_diffusion = 2.56;
-    //   parameters->spb_diffusion * diffusion_scale_spbs;
-    attach_diameter[i_spb] = 6.5;
+    double spb_diffusion = sparams_.diffusion;
+    attach_diameter[i_spb] = sparams_.attach_diameter;
     // Now that we have the diffusion scale, we need to encode the proper SPB
     // translation and rotation matrices into the matrices (including sqrt)
     // for proper rigid body dynamics
@@ -67,15 +66,11 @@ void CentrosomeSpecies::Reserve() {
 
 void CentrosomeSpecies::PopMember() { Species::PopMember(); }
 void CentrosomeSpecies::AddMember() {
-  // Centrosome::i_spb_ = 0;
   Species::AddMember();
-  // Not worth it to handle filaments entirely independently
-  // Use FilamentSpecies and link at initialization
-  // members_.back().InitFilaments(&fparams_);
   int i_spb{(int)members_.size() - 1};
   double u[3] = {members_.back().GetU(0), members_.back().GetU(1),
                  members_.back().GetU(2)};
-  // Create the rotatio matrix from body-space coordinate transformation
+  // Create the rotation matrix from body-space coordinate transformation
   CreateRotationMatrixBodySpace(A_[i_spb], u, members_.back().v_,
                                 members_.back().w_);
   // Create the associated quaternion describing initial orientation of the rigid body
@@ -86,7 +81,7 @@ void CentrosomeSpecies::AnchorFilaments(FilamentSpecies *filas,
                                         CrosslinkSpecies *teths) {
 
   int n_filaments{filas->GetNMembers()};
-  if (n_filaments != GetNMembers() * sparams_.num_filaments_ea) {
+  if (n_filaments != GetNMembers() * sparams_.num_anchors_ea) {
     printf("oh no\n");
     exit(1);
   }
@@ -106,10 +101,10 @@ void CentrosomeSpecies::AnchorFilaments(FilamentSpecies *filas,
   for (int i_fila{0}; i_fila < filas->GetNMembers(); i_fila++) {
     Filament *fil{dynamic_cast<Filament *>(filas->GetMember(i_fila))};
     // SF TODO baaaaaaaaaaaaad
-    int i_anchor{i_fila < sparams_.num_filaments_ea
+    int i_anchor{i_fila < sparams_.num_anchors_ea
                      ? i_fila
-                     : i_fila - sparams_.num_filaments_ea};
-    if (i_fila == sparams_.num_filaments_ea) {
+                     : i_fila - sparams_.num_anchors_ea};
+    if (i_fila == sparams_.num_anchors_ea) {
       i_spb++;
     }
     // FIXME for discrete anchor site locations
@@ -155,6 +150,8 @@ void CentrosomeSpecies::AnchorFilaments(FilamentSpecies *filas,
 void CentrosomeSpecies::UpdatePositions() {
 
   double kT = 1.0;
+  const double four_epsilon = 4.0;
+  const double r_cutoff_factor2 = pow(2, 1.0 / 3.0);
   const double thermal_diff_scale = 1;
   double sys_radius = space_->radius;
   double delta_t = params_->delta;
@@ -163,6 +160,53 @@ void CentrosomeSpecies::UpdatePositions() {
   const arma::vec3 nz = {0.0, 0.0, 1.0};
   for (int idx{0}; idx < members_.size(); idx++) {
     Centrosome *centro{&members_[idx]};
+    // First, WCA potentials
+    for (int jdx{idx + 1}; jdx < members_.size(); jdx++) {
+      double dr_mag2 = 0.0;
+      double dr[3];
+      for (int i = 0; i < params_->n_dim; ++i) {
+        dr[i] = members_[jdx].GetR(i) - members_[idx].GetR(i);
+        dr_mag2 += SQR(dr[i]);
+      }
+      const double d_eff = 1.0;
+      const double d_eff2 = SQR(d_eff);
+      double dr_mag = sqrt(dr_mag2);
+      double scale =
+          (0.5 * (members_[idx].diameter_ + members_[jdx].diameter_) - d_eff) /
+          dr_mag;
+      dr_mag2 = 0.0;
+      for (int i = 0; i < params_->n_dim; ++i) {
+        dr[i] -= scale * dr[i];
+        dr_mag2 += SQR(dr[i]);
+      }
+
+      if (dr_mag2 < r_cutoff_factor2 * d_eff2) {
+        /* Add contributions to potential energy and forces. */
+        double rho2 = d_eff2 / dr_mag2;
+        double rho6 = CUBE(rho2);
+        double rho12 = SQR(rho6);
+
+        double factor = 6.0 * four_epsilon * (2.0 * rho12 - rho6) / dr_mag2;
+        double f_wca[3];
+        for (int i = 0; i < params_->n_dim; ++i) {
+          f_wca[i] = factor * dr[i];
+        }
+        members_[idx].SubForce(f_wca);
+        members_[jdx].AddForce(f_wca);
+        /*
+        u += four_epsilon * (rho12 - rho6) + 1.0;
+        // Add contribution to virial
+        if (properties->control.virial_flag) {
+          for (int i = 0; i < parameters->n_dim; ++i) {
+            for (int j = 0; j < parameters->n_dim; ++j) {
+              virial[i][j] += dr[i] * factor * dr[j];
+            }
+          }
+        }
+      */
+      }
+    }
+    // Next, handle deterministic forces/torques and diffusion
     // Construct the amount (and direction) the SPB is outside the radius
     // If outside the nucleus, negative
     double rmag = 0.0;
@@ -208,9 +252,11 @@ void CentrosomeSpecies::UpdatePositions() {
         */
 
     // properties->anchors.centrosome_confinement_f0_;
-    double f0 = 10.3406326034025;
+    double f0 = sparams_.wall_f0;
+    // double f0 = 10.3406326034025;
     double delta_r = ABS(sys_radius - rmag);
-    double ne_ratio{24.61538};
+    double ne_ratio = sparams_.wall_ne;
+    // double ne_ratio{24.61538};
     double factor = CalcNonMonotonicWallForce(ne_ratio, f0, delta_r);
     // Check the sign of the force, want to move outwards if we are in the nucleoplasm
     if (rmag > sys_radius) {
@@ -227,11 +273,13 @@ void CentrosomeSpecies::UpdatePositions() {
     double uhat_dot_rhat = dot_product(3, rhat, centro->GetOrientation());
     double uhat_cross_rhat[3] = {0.0};
     cross_product(centro->GetOrientation(), rhat, uhat_cross_rhat, 3);
-    double kr = 999.0; //properties->anchors.centrosome_confinement_angular_k_;
+    double kr = sparams_.wall_kr;
+    // double kr = 999.0; //properties->anchors.centrosome_confinement_angular_k_;
     // The torque is thusly
     double torquevec[3] = {0.0};
     for (int i = 0; i < 3; ++i) {
       torquevec[i] = -kr * (uhat_dot_rhat + 1.0) * uhat_cross_rhat[i];
+      // printf("torque[%i] = %g\n", i, torquevec[i]);
     }
     // Add the contribution to the total forces
     centro->AddForce(forcevec);

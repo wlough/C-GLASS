@@ -221,7 +221,7 @@ void Simulation::InitSimulation() {
   if (params_.graph_flag) {
     InitGraphics();
 #ifndef NOGRAPH
-    // FIXME make this less bad
+    // SF FIXME make this less bad
     for (auto spec = species_.begin(); spec != species_.end(); spec++) {
       if ((*spec)->GetSID() == +species_id::centrosome) {
         for (int i_centro{0}; i_centro < (*spec)->GetNMembers(); i_centro++) {
@@ -333,8 +333,7 @@ void Simulation::InsertSpecies(bool force_overlap, bool processing) {
   // SF: this is probably bad lol
   CentrosomeSpecies *centrosomes{nullptr};
   std::string filament_species_name;
-  // std::string crosslink_species_name;
-  // SF: first, scan thru species to find SPB filament+xlink species
+  // SF: first, scan thru species to find SPB-associated filamentspecies
   for (auto spec{species_.begin()}; spec != species_.end(); ++spec) {
     if ((*spec)->GetSID() == +species_id::centrosome) {
       if (centrosomes != nullptr) {
@@ -344,7 +343,6 @@ void Simulation::InsertSpecies(bool force_overlap, bool processing) {
       centrosomes = dynamic_cast<CentrosomeSpecies *>((*spec));
       printf("FOUND centrosomes -- '%s'\n", (*spec)->GetSpeciesName().c_str());
       filament_species_name = centrosomes->GetFilamentSpeciesName();
-      // crosslink_species_name = centrosomes->GetCrosslinkSpeciesName();
     }
   }
   // SF: next, pick out SPB filament species and store ptr
@@ -510,18 +508,11 @@ void Simulation::InsertSpecies(bool force_overlap, bool processing) {
     }
   }
   // SF: next, get SPB crosslink species from interaction manager
-  // CrosslinkSpecies *tethers{ix_mgr_.GetSPBCrosslinks(crosslink_species_name)};
-  // if (tethers != nullptr) {
-  // printf("wtf\n");
-  // printf("FOUND SPB tethers - '%s'\n", tethers->GetSpeciesName().c_str());
-  // }
-  // LINK SPB AND FILAMENTS HERE?
   if (centrosomes != nullptr and filaments != nullptr) {
-    printf("INITIALIZE!!\n");
+    printf("Anchoring filaments to SPBs\n");
     centrosomes->AnchorFilaments(filaments, nullptr);
   }
 
-  // ix_mgr_.ForceUpdate(); // SF do this work?
   /* Initialize static crosslink positions */
   ix_mgr_.InsertCrosslinks();
   /* Should do this all the time to force object counting */

@@ -924,7 +924,7 @@ void Filament::UpdateSitePositions() {
     n_normalize_ = 0;
     if (normalize_switch_) {
       // Normalize from tail to head
-      printf("T->H\n");
+      // printf("T->H\n");
       for (int i_site = 1; i_site < n_sites_; ++i_site) {
         double const *const r_site1 = sites_[i_site - 1].GetPosition();
         double const *const u_site1 = sites_[i_site - 1].GetOrientation();
@@ -934,7 +934,7 @@ void Filament::UpdateSitePositions() {
       }
     } else {
       // Normalize from head to tail
-      printf("H->T\n");
+      // printf("H->T\n");
       for (int i_site = n_sites_ - 1; i_site > 0; --i_site) {
         double const *const r_site1 = sites_[i_site].GetPosition();
         double const *const u_site1 = sites_[i_site - 1].GetOrientation();
