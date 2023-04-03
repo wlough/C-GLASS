@@ -163,45 +163,49 @@ void Centrosome::ApplyInteractions() {
   int i_anchor{0};
   for (auto &&anchor : anchors_) {
     double dr[3];
-    // printf("boink\n");
     // Now that anchor positions are updated, apply force to filaments
-    // printf("\nSPB %zu anchor #%i:\n", index_, i_anchor++);
     for (int i_dim{0}; i_dim < params_->n_dim; i_dim++) {
       dr[i_dim] =
           anchor.pos_[i_dim] - anchor.filament_->GetTailPosition()[i_dim];
-      // printf("dr[%i] = %g = %g - %g\n", i_dim, dr[i_dim], anchor.pos_[i_dim],
-      //        anchor.filament_->GetTailPosition()[i_dim]);
-      // printf("dr[%i] = %g\n", i_dim, dr[i_dim]);
-      // printf("dr[%i] = %g - %g = %g\n", i_dim, anchor.pos_[i_dim],
-      //        anchor.filament_->GetTailPosition()[i_dim], dr[i_dim]);
     }
     double dr_mag2 = dot_product(params_->n_dim, dr, dr);
-    // printf("dr_mag2 = %g\n", dr_mag2);
     double factor{dr_mag2 > 0.0 ? anchor.k_ * (1.0 - anchor.r0_ / sqrt(dr_mag2))
                                 : 0.0};
     double f_spring[3];
-    // printf("step #%i\n", params_->i_step);
     for (int i_dim{0}; i_dim < params_->n_dim; i_dim++) {
       f_spring[i_dim] = factor * dr[i_dim];
-      // printf("f[%i] = %g\n", i_dim, f_spring[i_dim]);
-      // if (std::fabs(f_spring[i_dim]) > 100.0) {
-      //   exit(1);
-      // }
     }
-    // printf("\n");
-    // for (int i_dim{0}; i_dim < params_->n_dim; i_dim++) {
-    //   if (dr[i_dim] > 1.0 or dr[i_dim] < -1.0) {
-    //     printf("POW\n");
-    //     exit(0);
-    //   }
-    // }
     // apply forces -- SF TODO: integrate this into Interacte() routine
-    // ! SF TODO add torque
     anchor.filament_->AddForceTail(f_spring);
     SubForce(f_spring);
-    // anchor.filament_->UpdatePosition();
-    // UpdatePosition();
-    // UpdatePosition();
+    // ! SF TODO add torque
+    double r_spb[3];
+    double r_bond[3];
+    for (int i_dim{0}; i_dim < params_->n_dim; i_dim++) {
+      r_spb[i_dim] = anchor.pos_[i_dim] - GetPosition()[i_dim];
+      r_bond[i_dim] = anchor.pos_[i_dim] -
+                      (anchor.filament_->GetTailPosition()[i_dim] +
+                       0.5 * anchor.filament_->GetTailOrientation()[i_dim] *
+                           anchor.filament_->GetBondLength());
+      // printf("r_spb[%i] = %g\n", i_dim, r_spb[i_dim]);
+      // printf("r_bond[%i] = %g\n", i_dim, r_bond[i_dim]);
+    }
+    double tau_spb[3];
+    double tau_bond[3];
+    cross_product(r_spb, f_spring, tau_spb, params_->n_dim);
+    cross_product(r_bond, f_spring, tau_bond, params_->n_dim);
+    anchor.filament_->AddTorqueTail(tau_bond);
+    SubTorque(tau_spb);
+    // double tau_bond_mag{0.0};
+    // double tau_spb_mag{0.0};
+    // for (int i_dim{0}; i_dim < params_->n_dim; i_dim++) {
+    //   tau_bond_mag += tau_bond[i_dim];
+    //   tau_spb_mag += tau_spb[i_dim];
+    // }
+    // tau_bond_mag = sqrt(tau_bond_mag);
+    // tau_spb_mag = sqrt(tau_spb_mag);
+    // printf("tq_mag_spb: %g\n", tau_spb_mag);
+    // printf("tq_mag_bond: %g\n", tau_bond_mag);
   }
 }
 
