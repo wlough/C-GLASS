@@ -183,6 +183,7 @@ void Centrosome::ApplyInteractions() {
     double r_bond[3];
     for (int i_dim{0}; i_dim < params_->n_dim; i_dim++) {
       r_spb[i_dim] = anchor.pos_[i_dim] - GetPosition()[i_dim];
+      // SF TODO verify below calculates center of tail rod position
       r_bond[i_dim] = anchor.pos_[i_dim] -
                       (anchor.filament_->GetTailPosition()[i_dim] +
                        0.5 * anchor.filament_->GetTailOrientation()[i_dim] *

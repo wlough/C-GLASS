@@ -22,12 +22,12 @@ void BrRod::InsertRod(std::string insertion_type, double buffer) {
     std::fill(orientation_, orientation_ + 3, 0.0);
     orientation_[n_dim_ - 1] = 1.0;
   } else if (insertion_type.compare("random_angled") == 0) {
-    position_[0]=30*cos(40*M_PI/180)-30;
-    position_[1]=30*sin(40*M_PI/180);
-    position_[2]=0;
-    orientation_[0]=-cos(40*M_PI/180);
-    orientation_[1]=-sin(40*M_PI/180);
-    orientation_[2]=0;
+    position_[0] = 30 * cos(40 * M_PI / 180) - 30;
+    position_[1] = 30 * sin(40 * M_PI / 180);
+    position_[2] = 0;
+    orientation_[0] = -cos(40 * M_PI / 180);
+    orientation_[1] = -sin(40 * M_PI / 180);
+    orientation_[2] = 0;
   } else if (insertion_type.compare("custom") != 0) {
     Logger::Error("BrRod insertion type not recognized!");
   }
@@ -50,8 +50,8 @@ void BrRod::InsertRod(std::string insertion_type, double buffer) {
    relative to rod. */
 void BrRod::Integrate() {
   // Explicit calculation of Xi.F_s
-  double fric_mat[9] = {};  // Friction matrix for filament
-  double mob_mat[9] = {};   // Mobility matrix for filament
+  double fric_mat[9] = {}; // Friction matrix for filament
+  double mob_mat[9] = {};  // Mobility matrix for filament
   // Construct mobility matrix
   for (int i = 0; i < n_dim_; ++i) {
     for (int j = i + 1; j < n_dim_; ++j) {
@@ -73,7 +73,7 @@ void BrRod::Integrate() {
 
   // Reorientation due to external torques
   double du[3];
-  cross_product(torque_, orientation_, du, 3);  // ndim=3 since torques
+  cross_product(torque_, orientation_, du, 3); // ndim=3 since torques
   for (int i = 0; i < n_dim_; ++i) {
     orientation_[i] += du[i] * delta_ / gamma_rot_;
   }
@@ -90,17 +90,23 @@ void BrRod::Integrate() {
    with std dev sqrt(2*kT*dt/gamma) where gamma is the friction
    coefficient along that direction */
 void BrRod::AddRandomDisplacement() {
-  if (zero_temperature_) return;
+  if (zero_temperature_) {
+    return;
+  }
   // Get vector(s) orthogonal to orientation
   GetBodyFrame();
   // First handle the parallel component
   double mag = rng_.RandomNormal(diffusion_par_);
-  for (int i = 0; i < n_dim_; ++i) position_[i] += mag * orientation_[i];
+  for (int i = 0; i < n_dim_; ++i) {
+    position_[i] += mag * orientation_[i];
+  }
   // Then the perpendicular component(s)
   for (int j = 0; j < n_dim_ - 1; ++j) {
     mag = rng_.RandomNormal(diffusion_perp_);
-    for (int i = 0; i < n_dim_; ++i)
+    for (int i = 0; i < n_dim_; ++i) {
       position_[i] += mag * body_frame_[n_dim_ * j + i];
+      // printf("r[%i] = %g\n", i, position_[i]);
+    }
   }
   // Handle the random orientation update after updating orientation from
   // interaction torques
@@ -114,15 +120,22 @@ void BrRod::AddRandomDisplacement() {
    random forces, and is treated as random displacement vector(s)
    orthogonal to u(t) with std dev sqrt(2*kT*dt/gamma_rot) */
 void BrRod::AddRandomReorientation() {
-  if (zero_temperature_) return;
+  // GetBodyFrame();
+  if (zero_temperature_)
+    return;
   // Now handle the random orientation update
   for (int j = 0; j < n_dim_ - 1; ++j) {
     double mag = rng_.RandomNormal(diffusion_rot_);
+    // printf("mag = %g\n", mag);
     for (int i = 0; i < n_dim_; ++i) {
       orientation_[i] += mag * body_frame_[n_dim_ * j + i];
+      // printf("u[%i] = %g\n", i, orientation_[i]);
     }
   }
   normalize_vector(orientation_, n_dim_);
+  // for (int i_dim{0}; i_dim < 3; i_dim++) {
+  //   printf("    U[%i] = %g\n", i_dim, orientation_[i_dim]);
+  // }
 }
 
 void BrRod::SetDiffusion() {

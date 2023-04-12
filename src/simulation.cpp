@@ -387,7 +387,7 @@ void Simulation::InsertSpecies(bool force_overlap, bool processing) {
           /* We are not counting boundary condition failures in insertion
            failures, since insertion failures are for packing issues */
           printf("POP\n");
-          exit(1);
+          // exit(1);
         }
         // Check if we have an overlap of objects
         else if (!force_overlap &&

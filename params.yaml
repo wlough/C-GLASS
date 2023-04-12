@@ -9,9 +9,9 @@ dynamic_timestep: false
 dynamic_timestep_ramp: 0.0001
 n_steps: 500000 # 0000
 n_steps_equil: 0
-graph_flag: false # true #true
+graph_flag: true #true
 auto_graph: true
-n_graph: 100 # 500
+n_graph: 1 # 500
 movie_flag: false
 movie_directory: images
 invert_background: true
@@ -27,21 +27,21 @@ coarse_grained_mesh_interactions: false # SF TODO explore this
 mesh_coarsening: 2
 chromosome: 
   - name: CHROMO
-    num: 0
+    num: 2
     length: 5
-    diameter: 1.5  
+    diameter: 2 
     draw_type: orientation
     zero_temperature: false
-    translational_noise: 1e-2
-    rotational_noise: 1e-7
+    translational_noise: 1e-6
+    rotational_noise: 1e-6
     color: 1.5
 centrosome: 
   - name: SPB
     filament_species_name: SPINDLE
-    insertion_type: bioriented # normal
+    insertion_type: normal # bioriented # normal change 'normal' to 'adjacent'
     draw_type: fixed
     color: 1.5
-    num: 2
+    num: 0
     num_anchors_ea: 6 # 5 
     length: 0.5
     diameter: 9.5
@@ -55,8 +55,8 @@ filament:
     insertion_type: spb_anchored
     draw_type: fixed
     color: 2
-    num: 12 # 10
-    length: 20 # 75 # 5
+    num: 0 # 12 # 10
+    length: 10 # 20 # 75 # 5
     min_length: 2
     max_length: 30 # 110  # SF TODO no upper cap in NAB -- possible in C-GLASS?
     min_bond_length: 1

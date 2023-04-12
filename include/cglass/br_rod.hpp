@@ -4,7 +4,7 @@
 #include "object.hpp"
 
 class BrRod : public Object {
- protected:
+public:
   double gamma_par_ = 0;
   double gamma_perp_ = 0;
   double gamma_rot_ = 0;
@@ -15,13 +15,13 @@ class BrRod : public Object {
   bool zero_temperature_ = false;
   void InsertRod(std::string insertion_type, double buffer = -1);
   void SetDiffusion();
-  void GetBodyFrame();
+  virtual void GetBodyFrame();
   void AddRandomDisplacement();
   void AddRandomReorientation();
   void Integrate();
 
- public:
+public:
   BrRod(unsigned long seed);
 };
 
-#endif  // _CGLASS_BR_ROD_H_
+#endif // _CGLASS_BR_ROD_H_
