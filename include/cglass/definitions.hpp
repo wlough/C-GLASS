@@ -21,7 +21,7 @@ BETTER_ENUM(potential_type, unsigned char, none, wca, soft, lj);
 BETTER_ENUM(boundary_type, unsigned char, none = 0, box = 1, sphere = 2,
             budding = 3, wall = 4);
 BETTER_ENUM(poly_state, unsigned char, grow, shrink, pause);
-BETTER_ENUM(bind_state, unsigned char, unbound, singly, doubly);
+BETTER_ENUM(bind_state, unsigned char, unbound, singly, doubly, free);
 BETTER_ENUM(obj_type, unsigned char, generic, bond, site, cortex);
 BETTER_ENUM(comp_type, unsigned char, generic, mesh, point_cover);
 BETTER_ENUM(density_type, unsigned char, linear, surface, volume);

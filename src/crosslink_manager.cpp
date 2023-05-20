@@ -227,9 +227,21 @@ void CrosslinkManager::KnockoutBind(Sphere* receptor, int winner) {
     Object* ob_pointer = bound_curr_[receptor].second[winner].first->GetCrosslinkPointer();
     Crosslink* cl_pointer = dynamic_cast<Crosslink*>(ob_pointer);
     if (!cl_pointer) {
-      Logger::Error("Dynamic cast failed, cl_ponter doesn't exist");
+      Logger::Error("Dynamic cast failed, cl_pointer doesn't exist");
     }    
 		cl_pointer->SetDoubly();
+    bound_curr_[receptor].second[winner].first->AttachObjCenter(receptor);
+  }
+
+  //Free to single bind
+  else if (bound_curr_[receptor].second[winner].second == "free to single") {
+  Logger::Info("Free to single bind");
+    Object* ob_pointer = bound_curr_[receptor].second[winner].first->GetCrosslinkPointer();
+    Crosslink* cl_pointer = dynamic_cast<Crosslink*>(ob_pointer);
+    if (!cl_pointer) {
+      Logger::Error("Dynamic cast failed, cl_ponter doesn't exist");
+    }
+    cl_pointer->SetSingly(0);
     bound_curr_[receptor].second[winner].first->AttachObjCenter(receptor);
   }
 

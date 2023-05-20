@@ -969,5 +969,7 @@ bool MinimumDistance::CheckOutsideBoundary(Object &obj) {
   r_mag += SQR(r[n_dim_ - 1] + sign * 0.5 * l * u[n_dim_ - 1] - z0);
   return (r_mag > SQR(r_boundary - 0.5 * d));
 }
-
+double MinimumDistance::GetNewRadius() {
+  return new_radius_;
+}
 #undef SMALL

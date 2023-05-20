@@ -675,6 +675,8 @@ species_base_parameters *parse_species_params(std::string sid,
       params.stationary_until = jt->second.as<int>();
       } else if (param_name.compare("concentration")==0) {
       params.concentration = jt->second.as<double>();
+      } else if (param_name.compare("use_number")==0) {
+      params.use_number = jt->second.as<bool>();
       } else if (param_name.compare("begin_with_bound_crosslinks")==0) {
       params.begin_with_bound_crosslinks = jt->second.as<int>();
       } else if (param_name.compare("begin_double_bound")==0) {
@@ -697,6 +699,8 @@ species_base_parameters *parse_species_params(std::string sid,
       params.diffusion_s = jt->second.as<double>();
       } else if (param_name.compare("diffusion_d")==0) {
       params.diffusion_d = jt->second.as<double>();
+      } else if (param_name.compare("diffusion_free")==0) {
+      params.diffusion_free = jt->second.as<double>();
       } else if (param_name.compare("energy_dep_factor")==0) {
       params.energy_dep_factor = jt->second.as<double>();
       } else if (param_name.compare("force_dep_length")==0) {
@@ -729,6 +733,12 @@ species_base_parameters *parse_species_params(std::string sid,
       params.plus_end_pausing = jt->second.as<bool>();
       } else if (param_name.compare("r_capture")==0) {
       params.r_capture = jt->second.as<double>();
+      } else if (param_name.compare("f_to_s_rate")==0) {
+      params.f_to_s_rate = jt->second.as<double>();
+      } else if (param_name.compare("f_to_s_radius")==0) {
+      params.f_to_s_radius = jt->second.as<double>();
+      } else if (param_name.compare("exist_while_unbound")==0) {
+      params.exist_while_unbound = jt->second.as<bool>();
       } else if (param_name.compare("lut_grid_num")==0) {
       params.lut_grid_num = jt->second.as<int>();
       } else if (param_name.compare("anchors")==0) {
