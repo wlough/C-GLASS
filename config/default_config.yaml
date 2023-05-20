@@ -305,6 +305,7 @@ crosslink:                          # Parameters specific to crosslinks.
                                     # Units in #/area or #/vol in 2D or 3D for free xlinks. In
                                     # #/area for grid spacing. In #/length or #/area for 2D or 3D
                                     # boundaries.
+  use_number: [false, bool]         # If set to true the concentration peramter is overwritten and crosslinkers are set by the num param instead
   begin_with_bound_crosslinks: [0, int]   # if greater than 0 the simultion begins with the specified number
                                     # of crosslinkers singly attached to microtubules
   begin_double_bound: [false, bool]  # Crosslinks from begin with_with_bound_crosslinks start double
@@ -326,6 +327,7 @@ crosslink:                          # Parameters specific to crosslinks.
   static_flag: [false, bool]        # Flag for setting one crosslinker head to be fixed in space
   diffusion_s: [0, double]          # Diffusion coefficient for singly bound crosslinks
   diffusion_d: [0, double]          # Diffusion coefficient for doubly bound crosslinks
+  diffusion_free: [0, double]       # Diffusion coefficient for crosslinks in solution
   energy_dep_factor: [0, double]    # Scalar in exponential force-dependent off-rate of doubly-
                                     # bound crosslinks when under a load.
   force_dep_length: [0, double]     # Characteristic length (x_c) used in 
@@ -356,6 +358,9 @@ crosslink:                          # Parameters specific to crosslinks.
                                     # do so will remain at the filament tip until unbinding.
   r_capture: [5, double]            # Max range allowed for singly to doubly bound crosslink.
                                     # Calculated using k_spring, rest_length. User input ignored.
+  f_to_s_rate: [0, double]          # Rate of binding from free to singly bound
+  f_to_s_radius: [1, double]        # Radius in which free crosslinks have a chance of binding to filaments
+  exist_while_unbound: [false, bool] # If true crosslinks are simulated while not bound to a filament
   lut_grid_num: [256, int]          # Number of grid points used in one dimension of the the lookup table (LUT).
                                     # Total entries go as the square of this number e.g. 256 x 256
 

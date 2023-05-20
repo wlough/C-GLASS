@@ -12,7 +12,9 @@ void CrosslinkSpecies::Init(std::string spec_name, ParamsParser &parser) {
   begin_with_bound_crosslinks_ = sparams_.begin_with_bound_crosslinks;
   xlink_concentration_ = sparams_.concentration;
   infinite_reservoir_flag_ = sparams_.infinite_reservoir_flag;
-  sparams_.num = (int)round(sparams_.concentration * space_->volume);
+  if (sparams_.use_number=false) {
+    sparams_.num = (int)round(sparams_.concentration * space_->volume);
+  }
   std::vector<std::string> bind_file = {sparams_.anchors[0].bind_file, sparams_.anchors[1].bind_file};
   
   // Create a default set of specific binding parameters
@@ -220,6 +222,32 @@ void CrosslinkSpecies::InsertCrosslinks() {
   if (sparams_.insertion_type.compare("random") == 0) {
     sparams_.static_flag = false;
     return;
+  } else if (sparams_.insertion_type.compare("free") == 0) {
+    Logger::Info("Inserting %i unbound crosslinks", sparams_.num);
+    if (space_->type != +boundary_type::sphere) {
+      Logger::Error("Tracking unbound crosslinkers not set up for current boundry type");
+    } else if (space_->type == +boundary_type::sphere) {
+      for (int i = 0; i < sparams_.num; ++i) {
+        AddMember();
+        members_.back().InsertRandom();
+
+        
+        if (params_->n_dim != 3) {
+          Logger::Error("Tracking unbound crosslinkers only set up for 3 dimensions");
+        } else {
+          double projected_pos[3] = {0};
+          double same_u[3] = {0};
+          const double *const pos = members_.back().GetPosition();
+          const double *const u = members_.back().GetOrientation();
+          for (int j = 0; j < 3; ++j) {
+            projected_pos[j] = pos[j];
+            same_u[j] = u[j];
+          }
+
+        members_.back().InsertFree(projected_pos, same_u);
+        }
+      }
+    }         
   } else if (sparams_.insertion_type.compare("centered") == 0) {
     sparams_.num = 1;
     sparams_.static_flag = true;
@@ -396,13 +424,16 @@ std::pair <Object*, int> CrosslinkSpecies::GetRandomObject() {
           case shape::rod:
             vol += (*obj)->GetLength();
             break;
-          case shape::sphere:
-            if ((*obj)->GetNAnchored()==0) {
+          case shape::sphere:{
+            std::string name = (*obj)->GetName();
+            auto bind_param_it = bind_param_map_[anchor_index].find(name);
+            if (bind_param_it->second.single_occupancy == 0 || ((*obj)->GetNAnchored()==0)) {
               vol += (*obj)->GetArea();
             }
-            break;
+          }
+          break;
           default:
-            break;
+          break;
         }
         if (vol > roll) {
           Logger::Trace("Binding free crosslink to random object: xl %d -> obj %d",
@@ -460,13 +491,17 @@ std::pair <Object*, int> CrosslinkSpecies::GetRandomObjectKnockout() {
           case shape::rod:
             vol += (*obj)->GetLength();
             break;
-          case shape::sphere:
-            if ((*obj)->GetNAnchored()==0) {
+          case shape::sphere:{
+            std::string name = (*obj)->GetName();
+            auto bind_param_it = bind_param_map_[anchor_index].find(name);
+            
+            if (bind_param_it->second.single_occupancy == 0 || (*obj)->GetNAnchored()==0) {
               vol += (*obj)->GetArea();
             }
-            break;
+          }
+          break;
           default:
-            break;
+          break;
         }
         if (vol > roll) {
          return std::make_pair(*obj, anchor_index);
@@ -541,7 +576,7 @@ void CrosslinkSpecies::UpdatePositions() {
   if (!params_->on_midstep) {
     /* First update bound crosslinks state and positions */
     UpdateBoundCrosslinks();
-    if (sparams_.no_binding == false && sparams_.no_solution_binding == false){
+    if (sparams_.no_binding == false && sparams_.no_solution_binding == false && sparams_.exist_while_unbound == false){
       /* Calculate implicit binding of crosslinks from solution */
       CalculateBindingFree();
     }

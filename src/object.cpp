@@ -153,7 +153,7 @@ void Object::DecrementNAnchored() {
     Logger::Error("n_anchored_ should not be <0");
   }
 }
-double const *const Object::GetPosition() { return position_; }
+double const *const Object::GetPosition() const { return position_; }
 double const *const Object::GetPrevPosition() { return prev_position_; }
 double const *const Object::GetPrevOrientation() { return prev_orientation_; }
 double const *const Object::GetScaledPosition() { return scaled_position_; }
@@ -168,6 +168,8 @@ double const Object::GetContactNumber() { return contact_number_; }
 bool const Object::IsInteractor() { return interacting_; }
 bool const Object::IsMesh() { return is_mesh_; }
 bool const Object::IsFixed() { return fixed_; }
+bool Object::GetOutside() { return outside_; }
+void Object::SetOutside(bool outside) { outside_ = outside; }
 bool const Object::CheckInteractorUpdate() {
   if (interactor_update_) {
     interactor_update_ = false;
