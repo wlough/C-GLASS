@@ -958,6 +958,17 @@ bool MinimumDistance::CheckOutsideBoundary(Object &obj) {
     }
     return false;
   }
+  if (space_->type == +boundary_type::sphere) {
+    for (int i = 0; i < n_dim_; ++i) {
+      r_mag += r[i] * r[i];
+    }
+    r_mag = sqrt(r_mag);
+    double dl = r_boundary / r_mag - 1;
+    new_radius_ = 2*r_boundary - r_mag;
+    // We are outside the cell if dl<0
+    return (dl<0);
+  }
+
   if (space_->type == +boundary_type::budding &&
       r[n_dim_ - 1] > space_->bud_neck_height) {
     z0 = space_->bud_height;
