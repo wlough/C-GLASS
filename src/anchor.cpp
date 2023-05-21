@@ -475,7 +475,9 @@ void Anchor::Unbind() {
   mesh_lambda_ = -1;
   active_ = false;
   reached_plus_end_ = false;
-  ClearNeighbors();
+  if (sparams_->exist_while_unbound == false) {
+    ClearNeighbors();
+  }
   ZeroForce();
   SetCompID(-1);
   std::fill(position_, position_ + 3, 0.0);
@@ -573,7 +575,7 @@ void Anchor::CalculatePolarAffinity(std::vector<double> &doubly_binding_rates) {
 }
 
 void Anchor::Draw(std::vector<graph_struct *> &graph_array) {
-  if (!bound_)
+  if ((!bound_) && (state_ != +bind_state::free))
     return;
   std::copy(scaled_position_, scaled_position_ + 3, g_.r);
   for (int i = space_->n_periodic; i < n_dim_; ++i) {
@@ -951,6 +953,7 @@ void Anchor::ReadSpec(std::fstream &ispec) {
 
 void Anchor::SetStatic(bool static_flag) { static_flag_ = static_flag; }
 void Anchor::SetState(bind_state state) { state_ = state; }
+void Anchor::SetUnbound() {bound_ = false;}
 
 const double Anchor::GetOnRate() const {
   switch (state_) {
@@ -1005,7 +1008,7 @@ const double Anchor::GetMaxVelocity() const {
     return 0;
     break;
   default:
-    Logger::Error("State of anchor is not a bind_state enum.");
+    Logger::Error("State of anchor is not a bind_state enum");
     return 0;
   }
 }
@@ -1031,7 +1034,7 @@ const double Anchor::GetDiffusionConst() const {
     return 0;
     break;
   default:
-    Logger::Error("State of anchor is not a bind_state enum.");
+    Logger::Error("State of anchor is not a bind_state enum");
     return 0;
   }
 }
