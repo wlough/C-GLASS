@@ -68,7 +68,7 @@ void Crosslink::FreeKMC () {
   double roll = rng_.RandomUniform();
   std::vector<double> prob_list;
   double total_bind_prop = 0;
-  double bind_factor = 0; 
+  double bind_factor = 0;
   const std::vector<const Sphere*>& sphere_nbr_list = anchors_[0].GetNeighborListMemSpheres();
   for (int i = 0; i < sphere_nbr_list.size(); ++i) {
     double const *const  anchor_pos = anchors_[0].GetPosition();
@@ -125,7 +125,7 @@ void Crosslink::FreeKMC () {
     }
     total_bind_prop+=prob_factor;
     prob_list.push_back(prob_factor);
-    }  
+    }
   if (total_bind_prop>=roll) {
     for (int i = 0; i < sphere_nbr_list.size(); ++i) {
       if(prob_list[i]>=roll) {
@@ -158,7 +158,7 @@ void Crosslink::FreeKMC () {
         }
         anchors_[0].AttachObjLambda(bind_obj, bind_lambda);
         SetSingly(0);
-        Logger::Info("Unbound to singly bind added for object %i", anchors_[0].GetOID());
+        Logger::Trace("Unbound to singly bind added for object %i", anchors_[0].GetOID());
         return;
       }
       else{
@@ -238,19 +238,18 @@ void Crosslink::SinglyKMC() {
       anchors_[bound_anchor_].SubtractFilEndProteins(true);
       anchors_[bound_anchor_].SetReachedPlusEnd(false);
     }
-    //In unbound crosslinkers are tracked, release crosslink instead of deleting it
+    //If unbound crosslinkers are tracked, release crosslink instead of deleting it
     if (free_flag_) {
       SetFree(bound_anchor_);
       anchors_[bound_anchor_].Unbind();
       anchors_[0].SetBound();
       anchors_[1].SetUnbound();
-      Logger::Info("Anchor Unbound");
       return;
     }
     else {
-    anchors_[bound_anchor_].Unbind();
-    SetUnbound();
-    Logger::Trace("Crosslink %i with anchor %i came unbound", GetOID(), anchors_[bound_anchor_].GetOID()); 
+      anchors_[bound_anchor_].Unbind();
+      SetUnbound();
+      Logger::Trace("Crosslink %i with anchor %i came unbound", GetOID(), anchors_[bound_anchor_].GetOID()); 
     }
   } else if (head_activate == 1) {
     // Bind unbound head
@@ -445,7 +444,7 @@ void Crosslink::ApplyTetherForces() {
 }
 
 void Crosslink::UpdateCrosslinkForces() {
-  if (!IsFree()) { 
+  if (!IsFree()) {
     /* Update anchor positions in space to calculate tether forces */
     UpdateAnchorsToMesh();
   }
@@ -499,7 +498,6 @@ void Crosslink::DiffuseFree() {;
    anchors_[0].BindToPosition(position_);
    anchors_[1].BindToPosition(position_);
   }
-  
   ZeroForce();
 }
 
@@ -729,7 +727,7 @@ void Crosslink::SetFree(bool a) {
   bound_anchor_ = 0;
 }
 
-//SetUnbound is for crossliunkers unbind and aren't being tracked while unbound 
+//SetUnbound is for crosslinkers unbind and aren't being tracked while unbound
 void Crosslink::SetUnbound() {
   state_ = bind_state::unbound;
   SetAnchorStates();
@@ -794,7 +792,7 @@ void Crosslink::ConvertSpec(std::fstream &ispec, std::fstream &otext) {
   }
   ispec.read(reinterpret_cast<char *>(&oid), sizeof(int));
   // Write out data to SpecText file otext
-  otext << is_doubly << " " << is_free << " " << diameter << " " << length << " " << position[0] << " " 
+  otext << is_doubly << " " << is_free << " " << diameter << " " << length << " " << position[0] << " "
         << position[1] << " " << position[2] << " " << orientation[0] 
         << " " << orientation[1] << " " << orientation[2] << " " << oid << std::endl;
   // Convert anchor data

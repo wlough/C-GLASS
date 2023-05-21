@@ -575,7 +575,6 @@ void Anchor::CalculatePolarAffinity(std::vector<double> &doubly_binding_rates) {
 }
 
 void Anchor::Draw(std::vector<graph_struct *> &graph_array) {
-  Logger::Info("here1");
   if ((!bound_) && (state_ != +bind_state::free))
     return;
   std::copy(scaled_position_, scaled_position_ + 3, g_.r);
@@ -584,15 +583,10 @@ void Anchor::Draw(std::vector<graph_struct *> &graph_array) {
   }
   std::copy(orientation_, orientation_ + 3, g_.u);
   g_.color = color_;
-  //if (state_==+bind_state::free) {
-  	g_.diameter = 2;
-  //} else {
-  //  g_.diameter = diameter_;
-  //}
+  g_.diameter = diameter_;
   g_.length = length_;
   g_.draw = draw_;
   graph_array.push_back(&g_);
-  Logger::Info("here2");
 }
 
 void Anchor::AttachObjRandom(Object *o) {
@@ -976,7 +970,7 @@ const double Anchor::GetOnRate() const {
     return 0;
     break;
   default:
-    Logger::Error("State of anchor is not a bind_state enum on.");
+    Logger::Error("State of anchor is not a bind_state enum.");
     return 0;
   }
 }
@@ -995,7 +989,7 @@ const double Anchor::GetOffRate() const {
     return 0;
     break;
   default:
-    Logger::Error("State of anchor is not a bind_state enum off.");
+    Logger::Error("State of anchor is not a bind_state enum.");
     return 0;
   }
 }
@@ -1014,7 +1008,7 @@ const double Anchor::GetMaxVelocity() const {
     return 0;
     break;
   default:
-    Logger::Error("State of anchor is not a bind_state enum. vel");
+    Logger::Error("State of anchor is not a bind_state enum");
     return 0;
   }
 }
@@ -1033,8 +1027,6 @@ const double Anchor::GetDiffusionConst() const {
   case +bind_state::doubly:
     return diffusion_d_;
     break;
-  case +bind_state::free:
-    Logger::Error("Anchor %i is freeee", this->GetOID());
   case +bind_state::unbound:
     // Logger::Error(
     //    "Crosslinker is unbound. Anchors cannot diffuse on objects if not "
@@ -1042,7 +1034,7 @@ const double Anchor::GetDiffusionConst() const {
     return 0;
     break;
   default:
-    Logger::Error("State of anchor is not a bind_state enum. dif %i", this->GetOID());
+    Logger::Error("State of anchor is not a bind_state enum");
     return 0;
   }
 }

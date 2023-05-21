@@ -229,9 +229,7 @@ void CrosslinkSpecies::InsertCrosslinks() {
     } else if (space_->type == +boundary_type::sphere) {
       for (int i = 0; i < sparams_.num; ++i) {
         AddMember();
-        members_.back().InsertRandom();
-
-        
+        members_.back().InsertRandom(); 
         if (params_->n_dim != 3) {
           Logger::Error("Tracking unbound crosslinkers only set up for 3 dimensions");
         } else {
@@ -243,11 +241,10 @@ void CrosslinkSpecies::InsertCrosslinks() {
             projected_pos[j] = pos[j];
             same_u[j] = u[j];
           }
-
         members_.back().InsertFree(projected_pos, same_u);
         }
       }
-    }         
+    } 
   } else if (sparams_.insertion_type.compare("centered") == 0) {
     sparams_.num = 1;
     sparams_.static_flag = true;
@@ -493,8 +490,7 @@ std::pair <Object*, int> CrosslinkSpecies::GetRandomObjectKnockout() {
             break;
           case shape::sphere:{
             std::string name = (*obj)->GetName();
-            auto bind_param_it = bind_param_map_[anchor_index].find(name);
-            
+            auto bind_param_it = bind_param_map_[anchor_index].find(name); 
             if (bind_param_it->second.single_occupancy == 0 || (*obj)->GetNAnchored()==0) {
               vol += (*obj)->GetArea();
             }
