@@ -124,6 +124,7 @@ class Anchor : public Object {
   void SetRodLambda(double l);
   void SetMeshLambda(double ml);
   void SetBound();
+  void SetUnbound();
   void Unbind();
   void AddBackBindRate();
   Sphere* GetBoundPointer();

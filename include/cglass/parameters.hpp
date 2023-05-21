@@ -163,6 +163,7 @@ template <>
 struct species_parameters<species_id::crosslink>
     : public species_base_parameters {
   double concentration = 0;
+  bool use_number = false;
   int begin_with_bound_crosslinks = 0;
   bool begin_double_bound = false;
   bool no_binding = false;
@@ -174,6 +175,7 @@ struct species_parameters<species_id::crosslink>
   bool static_flag = false;
   double diffusion_s = 0;
   double diffusion_d = 0;
+  double diffusion_free = 0;
   double energy_dep_factor = 0;
   double force_dep_length = 0;
   double polar_affinity = 1;
@@ -190,6 +192,9 @@ struct species_parameters<species_id::crosslink>
   bool minus_end_pausing = false;
   bool plus_end_pausing = false;
   double r_capture = 5;
+  double f_to_s_rate = 0;
+  double f_to_s_radius = 1;
+  bool exist_while_unbound = false;
   int lut_grid_num = 256;
   struct anchor_parameters {
     double velocity_s = 0;
