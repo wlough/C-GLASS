@@ -4,9 +4,18 @@
 ** Mesh member functions **
 **************************/
 
-Mesh::Mesh(unsigned long seed) : Composite(seed) {
+int Mesh::_next_mesh_id_ = 0;
+std::mutex Mesh::_mesh_mtx_;
+
+Mesh::Mesh(unsigned long seed) : Object(seed) {
+  InitMeshID();
   is_mesh_ = true;
   comp_type_ = comp_type::mesh;
+}
+
+void Mesh::InitMeshID() {
+  std::lock_guard<std::mutex> lk(_mesh_mtx_);
+  SetCompID(++_next_mesh_id_);
 }
 
 void Mesh::Reserve() {

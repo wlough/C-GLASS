@@ -2,13 +2,18 @@
 #define _CGLASS_MESH_H_
 
 #include "bond.hpp"
-#include "composite.hpp"
+// #include "composite.hpp"
 
 typedef std::vector<Bond>::iterator bond_iterator;
 typedef std::vector<Site>::iterator site_iterator;
 
-class Mesh : public Composite {
- protected:
+class Mesh : public Object {
+private:
+  static int _next_mesh_id_;
+  static std::mutex _mesh_mtx_;
+  void InitMeshID();
+
+protected:
   bool anchored_ = false;
   bool midstep_ = true;
   bool posits_only_ = false;
@@ -18,7 +23,7 @@ class Mesh : public Composite {
   int n_bonds_ = 0;
   int n_bonds_max_ = 0;
   std::vector<Site> sites_;
-  std::vector<Site*> site_ptrs_; // for meshes w/ sites that are species
+  std::vector<Site *> site_ptrs_; // for meshes w/ sites that are species
   std::vector<Bond> bonds_;
   double bond_length_ = -1;
   double true_length_ = -1;
@@ -26,8 +31,8 @@ class Mesh : public Composite {
   virtual void UpdateInteractors();
   void UpdateSiteOrientations();
   void RelocateMesh(double const *const new_pos, double const *const u);
-  
- public:
+
+public:
   Mesh(unsigned long seed);
   void AddRandomBondToSite(double l, int i_site);
   void AddBondToSite(double *u, double l, int i_site);
@@ -73,7 +78,7 @@ class Mesh : public Composite {
   virtual void UpdateDrTot();
   virtual double const GetDrTot();
   virtual void ZeroDrTot();
-  virtual void SetNBondsMax(int n) {n_bonds_max_ = n;}
+  virtual void SetNBondsMax(int n) { n_bonds_max_ = n; }
   virtual void SetPosition(double const *const new_pos);
   //virtual std::vector<Interaction *> *GetInteractions();
   virtual void ClearInteractions();
@@ -97,4 +102,4 @@ class Mesh : public Composite {
   static void WriteSpecTextHeader(std::fstream &otext);
 };
 
-#endif  // _CGLASS_MESH_H_
+#endif // _CGLASS_MESH_H_

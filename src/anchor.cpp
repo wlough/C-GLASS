@@ -60,22 +60,20 @@ void Anchor::SetReachedPlusEnd(bool plus_end) { reached_plus_end_ = plus_end; }
 void Anchor::UpdateAnchorPositionToMesh() {
   if (!bound_ || static_flag_)
     return;
-  if (!filament_) {
+  if (!fila_) {
     UpdateAnchorPositionToObj();
     return;
   }
 
   /* Use the mesh to determine the rod lengths. The true rod lengths fluctuate
      about this, but should be considered approximations to the ideal mesh. */
-  mesh_length_ = filament_->GetTrueLength();
+  mesh_length_ = fila_->GetTrueLength();
   /* Use current position along mesh (mesh_lambda) to determine whether the
      anchor fell off the mesh due to dynamic instability */
   if (!CheckMesh())
     return;
   // Now figure out which rod we are on in the mesh according to mesh_lambda
-  // rod_ = mesh_->GetBondAtLambda(mesh_lambda_);
-  // if (rod_->GetType() == +obj_type::bond) bond_ = dynamic_cast<Bond*>(rod_);
-  segment_ = filament_->GetBondAtLambda(mesh_lambda_);
+  segment_ = fila_->GetBondAtLambda(mesh_lambda_);
 
   // Figure out how far we are from the rod tail: bond_lambda
   if (!CalcRodLambda()) {
@@ -471,7 +469,7 @@ void Anchor::Unbind() {
     receptor_->DecrementNAnchored();
   AddBackBindRate();
   bound_ = false;
-  filament_ = nullptr;
+  fila_ = nullptr;
   segment_ = nullptr;
   receptor_ = nullptr;
   mesh_n_bonds_ = -1;
@@ -650,19 +648,13 @@ void Anchor::AttachObjLambda(Object *o, double lambda) {
   if (segment_ == nullptr) {
     Logger::Error("Object ptr passed to anchor was not referencing a bond!");
   }
-  comp_ = dynamic_cast<Composite *>(segment_->GetCompPtr());
-  if (comp_ == nullptr) {
-    Logger::Error(
-        "Object ptr passed to anchor was not referencing a composite!");
+  fila_ = dynamic_cast<Mesh *>(segment_->GetMeshPtr());
+  if (fila_ == nullptr) {
+    Logger::Error("Bond missing pointer to its filament");
   }
-  if (comp_->GetCompType() == +comp_type::mesh) {
-    filament_ = dynamic_cast<Mesh *>(segment_->GetCompPtr());
-    if (filament_ == nullptr) {
-      Logger::Error("Object ptr passed to anchor was not referencing a mesh!");
-    }
-    mesh_n_bonds_ = filament_->GetNBonds();
-    mesh_length_ = filament_->GetTrueLength();
-  }
+  mesh_n_bonds_ = fila_->GetNBonds();
+  mesh_length_ = fila_->GetTrueLength();
+
   rod_length_ = segment_->GetLength();
   bond_lambda_ = lambda;
 
@@ -695,18 +687,10 @@ void Anchor::AttachObjCenter(Object *o) {
   if (receptor_ == nullptr) {
     Logger::Error("Object ptr passed to anchor was not referencing a sphere!");
   }
-  comp_ = dynamic_cast<Composite *>(receptor_->GetCompPtr());
-  if (comp_ == nullptr) {
-    Logger::Error(
-        "Object ptr passed to anchor was not referencing a composite!");
+  fila_ = dynamic_cast<Mesh *>(segment_->GetMeshPtr());
+  if (fila_ == nullptr) {
+    Logger::Error("Bond missing pointer to its filament");
   }
-  if (comp_->GetCompType() == +comp_type::mesh) {
-    filament_ = dynamic_cast<Mesh *>(receptor_->GetCompPtr());
-    if (filament_ == nullptr) {
-      Logger::Error("Object ptr passed to anchor was not referencing a mesh!");
-    }
-  }
-
   mesh_lambda_ = -1; // not used for sites
   SetCompID(receptor_->GetCompID());
   std::copy(receptor_->GetPosition(), receptor_->GetPosition() + 3, position_);
@@ -726,20 +710,11 @@ void Anchor::AttachObjMeshLambda(Object *o, double mesh_lambda) {
   if (segment_ == nullptr) {
     Logger::Error("Object ptr passed to anchor was not referencing a bond!");
   }
-  // if (rod_->GetType() == +obj_type::bond)
-  //   bond_ = dynamic_cast<Bond *>(o);
-  comp_ = dynamic_cast<Composite *>(segment_->GetCompPtr());
-  if (comp_ == nullptr) {
-    Logger::Error(
-        "Object ptr passed to anchor was not referencing a composite!");
+  fila_ = dynamic_cast<Mesh *>(segment_->GetMeshPtr());
+  if (fila_ == nullptr) {
+    Logger::Error("Bond missing pointer to its filament");
   }
-  if (comp_->GetCompType() == +comp_type::mesh) {
-    filament_ = dynamic_cast<Mesh *>(segment_->GetCompPtr());
-    if (filament_ == nullptr) {
-      Logger::Error("Object ptr passed to anchor was not referencing a mesh!");
-    }
-  }
-  Logger::Trace("Attaching anchor %d to comp %d", GetOID(), comp_->GetCompID());
+  Logger::Trace("Attaching anchor %d to fila %d", GetOID(), fila_->GetCompID());
 
   bound_ = true;
   mesh_lambda_ = mesh_lambda;
@@ -764,19 +739,11 @@ void Anchor::AttachObjMeshCenter(Object *o) {
   if (receptor_ == nullptr) {
     Logger::Error("Object ptr passed to anchor was not referencing a sphere!");
   }
-  comp_ = dynamic_cast<Composite *>(receptor_->GetCompPtr());
-  if (comp_ == nullptr) {
-    Logger::Error(
-        "Object ptr passed to anchor was not referencing a composite!");
+  fila_ = dynamic_cast<Mesh *>(segment_->GetMeshPtr());
+  if (fila_ == nullptr) {
+    Logger::Error("Bond missing pointer to its filament");
   }
-  if (comp_->GetCompType() == +comp_type::mesh) {
-    filament_ = dynamic_cast<Mesh *>(receptor_->GetCompPtr());
-    if (filament_ == nullptr) {
-      Logger::Error("Object ptr passed to anchor was not referencing a mesh!");
-    }
-  }
-
-  Logger::Trace("Attaching anchor %d to comp %d", GetOID(), comp_->GetCompID());
+  Logger::Trace("Attaching anchor %d to fila %d", GetOID(), fila_->GetCompID());
 
   bound_ = true;
   bond_lambda_ = 0;
@@ -924,7 +891,7 @@ void Anchor::WriteSpec(std::fstream &ospec) {
     ospec.write(reinterpret_cast<char *>(&orientation_[i]), sizeof(double));
   }
   ospec.write(reinterpret_cast<char *>(&mesh_lambda_), sizeof(double));
-  int attached_comp_id = comp_ != nullptr ? comp_->GetCompID() : -1;
+  int attached_comp_id = fila_ != nullptr ? fila_->GetCompID() : -1;
   ospec.write(reinterpret_cast<char *>(&attached_comp_id), sizeof(int));
 }
 
@@ -1121,8 +1088,7 @@ bool Anchor::InducesCatastrophe() {
 bool Anchor::AttachedToFilamentLastBond() {
 
   // Check if attached to bond of a filament
-  if (!segment_ || !filament_ ||
-      (filament_->GetSID() != +species_id::filament)) {
+  if (!segment_ || !fila_ || (fila_->GetSID() != +species_id::filament)) {
     return false;
   }
   // Check if attached to last bond of filament
@@ -1174,6 +1140,6 @@ void Anchor::AddFilEndProteins() {
 
 // Depolymerize attached anchor
 void Anchor::InduceCatastrophe() {
-  Filament *fil = dynamic_cast<Filament *>(filament_);
+  Filament *fil = dynamic_cast<Filament *>(fila_);
   fil->Depolymerize();
 }

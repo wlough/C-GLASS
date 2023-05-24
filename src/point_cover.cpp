@@ -1,7 +1,7 @@
 #include "cglass/point_cover.hpp"
 #include "cglass/receptor.hpp"
 
-PointCover::PointCover(unsigned long seed) : Composite(seed) {
+PointCover::PointCover(unsigned long seed) : Object(seed) {
   comp_type_ = comp_type::point_cover;
 }
 

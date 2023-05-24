@@ -69,17 +69,9 @@ private:
 
   NeighborList neighbors_;
 
-  // SF TODO remove these
-  Composite *comp_ = nullptr;
-
-  // Retain these for walking behaviors
-  Mesh *filament_{nullptr};     // 'mesh'
-  Bond *segment_{nullptr};      // 'rod'/'bond' for continuous filaments
   Receptor *receptor_{nullptr}; // 'sphere' for discrete sites
-
-  // Bond *bond_ = nullptr;
-  // Site *site_ = nullptr;
-  // Mesh *mesh_ = nullptr;
+  Bond *segment_{nullptr};      // 'rod'/'bond' for continuous filaments
+  Mesh *fila_{nullptr};         // 'mesh'
 
   double *obj_size_ = nullptr;
   double *bind_rate_ = nullptr;

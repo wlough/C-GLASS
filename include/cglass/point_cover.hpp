@@ -1,10 +1,10 @@
 #ifndef _CGLASS_POINT_COVER_H_
 #define _CGLASS_POINT_COVER_H_
 
-#include "composite.hpp"
+#include "object.hpp"
 class Receptor;
 
-class PointCover : public Composite {
+class PointCover : public Object {
 protected:
   std::vector<Receptor *> sphere_ptrs_;
 
