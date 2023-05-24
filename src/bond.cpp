@@ -3,7 +3,10 @@
 /**************************
 ** Bond member functions **
 **************************/
-Bond::Bond(unsigned long seed) : Rod(seed) { type_ = obj_type::bond; }
+Bond::Bond(unsigned long seed) : Object(seed) {
+  type_ = obj_type::bond;
+  shape_ = shape::rod;
+}
 
 void Bond::Init(const std::string &name, Site *s1, Site *s2) {
   s1->AddBond(this, OUTGOING);
@@ -114,25 +117,17 @@ void Bond::ZeroOrientationCorrelation() {
 }
 
 /* Increment crosslink at filament end count */
-void Bond::IncrementNEndXlinks() {
-  mesh_ptr_->IncrementNEndXlinks();
-}
+void Bond::IncrementNEndXlinks() { mesh_ptr_->IncrementNEndXlinks(); }
 
 /* Decrement crosslink at filament end count */
-void Bond::DecrementNEndXlinks() {
-  mesh_ptr_->DecrementNEndXlinks();
-}
+void Bond::DecrementNEndXlinks() { mesh_ptr_->DecrementNEndXlinks(); }
 
 /* Decrease partner protein at filament end amount */
-void Bond::SubNPartners(double n_sub) {
-  mesh_ptr_->SubNPartners(n_sub);
-}
+void Bond::SubNPartners(double n_sub) { mesh_ptr_->SubNPartners(n_sub); }
 
 /* Increase partner protein at filament end amount */
-void Bond::AddNPartners(double n_add) {
-  mesh_ptr_->AddNPartners(n_add);
-}
+void Bond::AddNPartners(double n_add) { mesh_ptr_->AddNPartners(n_add); }
 
 //double const Bond::GetInteractorLength() {
-  //return length_ < 0.35 ? 0.1 : length_ - 0.25;
+//return length_ < 0.35 ? 0.1 : length_ - 0.25;
 //}

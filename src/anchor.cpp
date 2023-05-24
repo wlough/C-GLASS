@@ -37,7 +37,8 @@ void Anchor::Init(crosslink_parameters *sparams, int index) {
   changed_this_step_ = false;
 }
 
-void Anchor::SetBindParamMap(std::vector<std::map<std::string, bind_params> > *bind_param_map) {
+void Anchor::SetBindParamMap(
+    std::vector<std::map<std::string, bind_params>> *bind_param_map) {
   bind_param_map_ = bind_param_map;
 }
 
@@ -54,28 +55,27 @@ void Anchor::SetDiffusion() {
   kick_amp_d_ = sqrt(2. * diffusion_d_ * delta_);
 }
 
-void Anchor::SetReachedPlusEnd(bool plus_end) {
-  reached_plus_end_ = plus_end;
-}
+void Anchor::SetReachedPlusEnd(bool plus_end) { reached_plus_end_ = plus_end; }
 
 void Anchor::UpdateAnchorPositionToMesh() {
   if (!bound_ || static_flag_)
     return;
-  if (!mesh_) {
+  if (!filament_) {
     UpdateAnchorPositionToObj();
     return;
   }
 
   /* Use the mesh to determine the rod lengths. The true rod lengths fluctuate
      about this, but should be considered approximations to the ideal mesh. */
-  mesh_length_ = mesh_->GetTrueLength();
+  mesh_length_ = filament_->GetTrueLength();
   /* Use current position along mesh (mesh_lambda) to determine whether the
      anchor fell off the mesh due to dynamic instability */
   if (!CheckMesh())
     return;
   // Now figure out which rod we are on in the mesh according to mesh_lambda
-  rod_ = mesh_->GetBondAtLambda(mesh_lambda_);
-  if (rod_->GetType() == +obj_type::bond) bond_ = dynamic_cast<Bond*>(rod_);
+  // rod_ = mesh_->GetBondAtLambda(mesh_lambda_);
+  // if (rod_->GetType() == +obj_type::bond) bond_ = dynamic_cast<Bond*>(rod_);
+  segment_ = filament_->GetBondAtLambda(mesh_lambda_);
 
   // Figure out how far we are from the rod tail: bond_lambda
   if (!CalcRodLambda()) {
@@ -86,19 +86,18 @@ void Anchor::UpdateAnchorPositionToMesh() {
 }
 
 bool Anchor::CalcRodLambda() {
-  if (!rod_) {
+  if (!segment_) {
     Logger::Error("Attempted to calculate rod lambda when not attached to"
                   " rod!");
   }
-  bond_lambda_ = mesh_lambda_ - bond_->GetMeshLambda();
-  rod_length_ = bond_->GetLength();
+  bond_lambda_ = mesh_lambda_ - segment_->GetMeshLambda();
+  rod_length_ = segment_->GetLength();
   if (bond_lambda_ < 0) {
-    Bond *bond = bond_->GetNeighborBond(0);
+    Bond *bond = segment_->GetNeighborBond(0);
     if (bond) {
-      rod_ = bond;
-      bond_ = bond;
-      bond_lambda_ = mesh_lambda_ - bond_->GetMeshLambda();
-      rod_length_ = bond_->GetLength();
+      segment_ = bond;
+      bond_lambda_ = mesh_lambda_ - segment_->GetMeshLambda();
+      rod_length_ = segment_->GetLength();
     } else if (minus_end_pausing_) {
       bond_lambda_ = 0;
     } else {
@@ -106,12 +105,11 @@ bool Anchor::CalcRodLambda() {
       return false;
     }
   } else if (bond_lambda_ > rod_length_) {
-    Bond *bond = bond_->GetNeighborBond(1);
+    Bond *bond = segment_->GetNeighborBond(1);
     if (bond) {
-      rod_ = bond;
-      bond_ = bond;
-      bond_lambda_ = mesh_lambda_ - bond_->GetMeshLambda();
-      rod_length_ = rod_->GetLength();
+      segment_ = bond;
+      bond_lambda_ = mesh_lambda_ - segment_->GetMeshLambda();
+      rod_length_ = segment_->GetLength();
     } else if (plus_end_pausing_) {
       bond_lambda_ = rod_length_;
       if (!reached_plus_end_) {
@@ -129,7 +127,7 @@ bool Anchor::CalcRodLambda() {
         "Bond lambda out of expected range in UpdateAnchorPositionToMesh, "
         "rod_num: %d, mesh lambda: %2.8f, mesh length: %2.8f, bond lambda: "
         "%2.8f, bond length: %2.8f",
-        bond_->GetBondNumber(), mesh_lambda_, mesh_length_, bond_lambda_,
+        segment_->GetBondNumber(), mesh_lambda_, mesh_length_, bond_lambda_,
         rod_length_);
   }
   return true;
@@ -138,16 +136,17 @@ void Anchor::UpdatePosition() {
   // Currently only bound anchors diffuse/walk (no explicit unbound anchors)
   bool diffuse = GetDiffusionConst() > 0 ? true : false;
   bool walker = abs(GetMaxVelocity()) > input_tol ? true : false;
-  if (!bound_ || static_flag_ || !(rod_ || sphere_) || (!diffuse && !walker)) {
+  if (!bound_ || static_flag_ || !(segment_ || receptor_) ||
+      (!diffuse && !walker)) {
     return;
   }
   // Diffuse or walk along the mesh, updating mesh_lambda
   // If anchors are walking directy along a rod
-  if (rod_) {
+  if (segment_) {
     if (diffuse) {
       Diffuse();
-     if (!CheckMesh())
-       return;
+      if (!CheckMesh())
+        return;
     }
     if (walker) {
       Walk();
@@ -155,7 +154,7 @@ void Anchor::UpdatePosition() {
     }
   }
   //If anchors are hopping between receptors
-  if (sphere_) {
+  if (receptor_) {
     double discrete_diffusion_ = 0;
     double discrete_velocity_ = 0;
     if (diffuse) {
@@ -167,45 +166,47 @@ void Anchor::UpdatePosition() {
     }
     if (!walker) {
       DecideToStepCrosslink(discrete_diffusion_);
-    }  
+    }
   }
 }
 
-void Anchor::DecideToStepMotor(double discrete_diffusion_, double discrete_velocity_) {
+void Anchor::DecideToStepMotor(double discrete_diffusion_,
+                               double discrete_velocity_) {
   double roll = rng_.RandomUniform();
   double vel_ = discrete_velocity_;
-  double step_size_ = sphere_ -> GetStepSize();
+  double step_size_ = receptor_->GetStepSize();
   double chance_forward_ = 0;
   double chance_back_ = 0;
   double D = discrete_diffusion_;
   //See  equation 7.30 and 7.31 from "Molecular motors: thermodynamics and
   //the random walk" (Thomas et al. 2001). Equation rearranged to solve for
   //k+ and k-
-  chance_forward_ = (D/pow(step_size_,2) + 0.5*vel_/step_size_)*delta_;
-  chance_back_ = (D/pow(step_size_,2) - 0.5*vel_/step_size_)*delta_;
+  chance_forward_ = (D / pow(step_size_, 2) + 0.5 * vel_ / step_size_) * delta_;
+  chance_back_ = (D / pow(step_size_, 2) - 0.5 * vel_ / step_size_) * delta_;
 
-  if (chance_forward_>roll) {
+  if (chance_forward_ > roll) {
     PrepareToStepForward(chance_forward_);
-  }
-  else if (chance_back_>(1-roll)) {
+  } else if (chance_back_ > (1 - roll)) {
     PrepareToStepBack(chance_back_);
   }
-  if ( (chance_back_+chance_forward_) > 1) {
-    Logger::Warning("Chance of anchor, %i, hopping sites greater than one chance back %f, chance forward %f", this->GetOID(), chance_back_, chance_forward_); 
+  if ((chance_back_ + chance_forward_) > 1) {
+    Logger::Warning("Chance of anchor, %i, hopping sites greater than one "
+                    "chance back %f, chance forward %f",
+                    this->GetOID(), chance_back_, chance_forward_);
   }
 }
 
 /* Crosslinker decides if it's going to step forward, backwards, or not step*/
 void Anchor::DecideToStepCrosslink(double discrete_diffusion_) {
-  double roll = rng_.RandomUniform();  
+  double roll = rng_.RandomUniform();
   double D = discrete_diffusion_;
   double chance_forward_ = 0;
   double chance_back_ = 0;
-  double k = sparams_ -> k_spring;
-  double r_l = sparams_ -> rest_length;
+  double k = sparams_->k_spring;
+  double r_l = sparams_->rest_length;
   //Calculate the current energy
-  double energy = 0.5 * k * pow((cl_length_ - r_l), 2);   
-  double step_size_ = sphere_ -> GetStepSize();
+  double energy = 0.5 * k * pow((cl_length_ - r_l), 2);
+  double step_size_ = receptor_->GetStepSize();
   double plus_diffusion = 0;
   double minus_diffusion = 0;
 
@@ -214,10 +215,9 @@ void Anchor::DecideToStepCrosslink(double discrete_diffusion_) {
   //the plus end of the microtubule and can't diffuse towards the plus end
   if (distance_to_plus_ == -1) {
     chance_forward_ = 0;
-  }
-  else {
+  } else {
     //Calculate the energy change between current length and length at plus
-    double energy_to_plus = 0.5 * k * pow((distance_to_plus_ - r_l), 2); 
+    double energy_to_plus = 0.5 * k * pow((distance_to_plus_ - r_l), 2);
     double e_change_to_p = energy_to_plus - energy;
     //Calculate Boltz factor assuming lambda = 1/2
     double boltz_factor_p = exp(-0.5 * e_change_to_p);
@@ -226,17 +226,16 @@ void Anchor::DecideToStepCrosslink(double discrete_diffusion_) {
     //See  equation 7.30 and 7.31 from "Molecular motors: thermodynamics and
     //the random walk" (Thomas et al. 2001). Equation rearranged to solve for
     //k+ and k-
-    chance_forward_ = (plus_diffusion/pow(step_size_,2))*delta_;
-  } 
+    chance_forward_ = (plus_diffusion / pow(step_size_, 2)) * delta_;
+  }
 
   //Calculate the chance the crosslinker will diffuse toward minus end
   //If at minus end chance to duffuse further is zero
   if (distance_to_minus_ == -1) {
     chance_back_ = 0;
-  }
-  else {
+  } else {
     //Calculate the energy change between current length and length at plus
-    double energy_to_minus = 0.5 * k * pow((distance_to_minus_ - r_l), 2); 
+    double energy_to_minus = 0.5 * k * pow((distance_to_minus_ - r_l), 2);
     double e_change_to_m = energy_to_minus - energy;
     //Calculate Boltz factor assuming lambda = 1/2
     double boltz_factor_m = exp(-0.5 * e_change_to_m);
@@ -245,24 +244,25 @@ void Anchor::DecideToStepCrosslink(double discrete_diffusion_) {
     //See  equation 7.30 and 7.31 from "Molecular motors: thermodynamics and
     //the random walk" (Thomas et al. 2001). Equation rearranged to solve for
     //k+ and k-
-    chance_back_ = (minus_diffusion/pow(step_size_,2))*delta_;
-  } 
-
-  if (chance_forward_>roll) {
-    PrepareToStepForward(chance_forward_);
+    chance_back_ = (minus_diffusion / pow(step_size_, 2)) * delta_;
   }
-  else if (chance_back_>(1-roll)) {
+
+  if (chance_forward_ > roll) {
+    PrepareToStepForward(chance_forward_);
+  } else if (chance_back_ > (1 - roll)) {
     PrepareToStepBack(chance_back_);
   }
-  if ( (chance_back_+chance_forward_) > 1) {
-    Logger::Warning("Chance of anchor ,%i,hopping sites greater than one (chance back %f, chance forward %f)", this->GetOID(),chance_back_, chance_forward_);
+  if ((chance_back_ + chance_forward_) > 1) {
+    Logger::Warning("Chance of anchor ,%i,hopping sites greater than one "
+                    "(chance back %f, chance forward %f)",
+                    this->GetOID(), chance_back_, chance_forward_);
   }
 }
 
 //Add Anchor that has decided to step forward to bound_curr
 void Anchor::PrepareToStepForward(double prob) {
-  Sphere* next_receptor_ = nullptr;
-  next_receptor_ = sphere_->GetPlusNeighbor();
+  Receptor *next_receptor_ = nullptr;
+  next_receptor_ = receptor_->GetPlusNeighbor();
   bool single_occupancy = true;
   if (next_receptor_ != NULL) {
     std::string name = next_receptor_->GetName();
@@ -271,44 +271,46 @@ void Anchor::PrepareToStepForward(double prob) {
   //If receptor is trying to move to an open receptor move.
   //If null that means the receptor is on edge of filament already.
   //If NAnchored is 0, the next reeptor isn't occupied.
-  if((next_receptor_ != NULL) && (next_receptor_ -> GetNAnchored() == 0 || single_occupancy == false)){
+  if ((next_receptor_ != NULL) &&
+      (next_receptor_->GetNAnchored() == 0 || single_occupancy == false)) {
     (*bound_curr_)[next_receptor_].first.push_back(prob);
-    std::pair<Anchor*, std::string> anchor_and_bind_type;
+    std::pair<Anchor *, std::string> anchor_and_bind_type;
     anchor_and_bind_type.first = this;
     anchor_and_bind_type.second = "forward step";
     (*bound_curr_)[next_receptor_].second.push_back(anchor_and_bind_type);
     SetChangedThisStep();
-    Logger::Trace("Anchor %i, added to bound curr (Stepping Forward)", this->GetOID());
+    Logger::Trace("Anchor %i, added to bound curr (Stepping Forward)",
+                  this->GetOID());
   }
 }
 
 //Add anchor that has decided to step back to bound_curr
 void Anchor::PrepareToStepBack(double prob) {
- Sphere* last_receptor_ = nullptr;
- last_receptor_ = sphere_->GetMinusNeighbor();
- bool single_occupancy = true;
+  Receptor *last_receptor_ = nullptr;
+  last_receptor_ = receptor_->GetMinusNeighbor();
+  bool single_occupancy = true;
   if (last_receptor_ != NULL) {
-   std::string name = last_receptor_->GetName();
+    std::string name = last_receptor_->GetName();
     single_occupancy = bind_param_map_->at(index_)[name].single_occupancy;
   }
   //If receptor is trying to move to an open receptor move
   //If null that means the receptor is on edge of tube already
-  if((last_receptor_ != NULL) && (last_receptor_ -> GetNAnchored() == 0 || single_occupancy == false)){
-   (*bound_curr_)[last_receptor_].first.push_back(prob);
-   std::pair<Anchor*, std::string> anchor_and_bind_type;
-   anchor_and_bind_type.first = this;
-   anchor_and_bind_type.second = "back step";
-   (*bound_curr_)[last_receptor_].second.push_back(anchor_and_bind_type);
-   SetChangedThisStep();
-   Logger::Trace("Anchor %i, added to bound_curr (Stepping Back)", this->GetOID());
+  if ((last_receptor_ != NULL) &&
+      (last_receptor_->GetNAnchored() == 0 || single_occupancy == false)) {
+    (*bound_curr_)[last_receptor_].first.push_back(prob);
+    std::pair<Anchor *, std::string> anchor_and_bind_type;
+    anchor_and_bind_type.first = this;
+    anchor_and_bind_type.second = "back step";
+    (*bound_curr_)[last_receptor_].second.push_back(anchor_and_bind_type);
+    SetChangedThisStep();
+    Logger::Trace("Anchor %i, added to bound_curr (Stepping Back)",
+                  this->GetOID());
   }
 }
 
 //Set the distance to the plus neighbor of the other head of
 //the crosslinker
-void Anchor::SetLengthAtPlus(double distance) {
-  distance_to_plus_ = distance;
-}
+void Anchor::SetLengthAtPlus(double distance) { distance_to_plus_ = distance; }
 
 //Set the distance to the minus neighbor of the other head of
 //the crosslinker
@@ -317,28 +319,28 @@ void Anchor::SetLengthAtMinus(double distance) {
 }
 
 //Set current length of crosslink anchor is a part off
-void Anchor::SetCrosslinkLength(double cl_length) {
-  cl_length_ = cl_length;
-}
+void Anchor::SetCrosslinkLength(double cl_length) { cl_length_ = cl_length; }
 
 //Set pointer to the crosslink anchor is a part of
-void Anchor::SetCrosslinkPointer(Object* cl_pointer) {
+void Anchor::SetCrosslinkPointer(Object *cl_pointer) {
   cl_pointer_ = cl_pointer;
-  Logger::Trace("crosslink  %d pointer set for anchor %d", cl_pointer_->GetOID(), this->GetOID());
+  Logger::Trace("crosslink  %d pointer set for anchor %d",
+                cl_pointer_->GetOID(), this->GetOID());
 }
 
 //Anchor steps in the minus direction
 void Anchor::StepBack() {
-  Sphere* last_receptor_ = nullptr;
-  last_receptor_ = sphere_->GetMinusNeighbor();
+  Receptor *last_receptor_ = nullptr;
+  last_receptor_ = receptor_->GetMinusNeighbor();
   bool single_occupancy = true;
-  if (last_receptor_ != NULL) { 
-   std::string name = last_receptor_->GetName();
-    single_occupancy = bind_param_map_->at(index_)[name].single_occupancy; 
+  if (last_receptor_ != NULL) {
+    std::string name = last_receptor_->GetName();
+    single_occupancy = bind_param_map_->at(index_)[name].single_occupancy;
   }
   //If receptor is trying to move to an open receptor move
   //If null that means the receptor is on edge of filament already
-  if((last_receptor_ != NULL) && (last_receptor_ -> GetNAnchored() == 0 || single_occupancy == false)){
+  if ((last_receptor_ != NULL) &&
+      (last_receptor_->GetNAnchored() == 0 || single_occupancy == false)) {
     Unbind();
     AttachObjCenter(last_receptor_);
   }
@@ -346,8 +348,8 @@ void Anchor::StepBack() {
 
 //Anchor steps in the plus direction
 void Anchor::StepForward() {
-  Sphere* next_receptor_ = nullptr;
-  next_receptor_ = sphere_->GetPlusNeighbor();
+  Receptor *next_receptor_ = nullptr;
+  next_receptor_ = receptor_->GetPlusNeighbor();
   bool single_occupancy = true;
   if (next_receptor_ != NULL) {
     std::string name = next_receptor_->GetName();
@@ -355,7 +357,8 @@ void Anchor::StepForward() {
   }
   //If receptor is trying to move to an open receptor move
   //If null that means the receptor is on edge of tube already
-  if((next_receptor_ != NULL) && (next_receptor_ -> GetNAnchored() == 0 || single_occupancy == false)){
+  if ((next_receptor_ != NULL) &&
+      (next_receptor_->GetNAnchored() == 0 || single_occupancy == false)) {
     Unbind();
     AttachObjCenter(next_receptor_);
   }
@@ -366,19 +369,21 @@ void Anchor::ApplyAnchorForces() {
     return;
   }
   // Spheres don't calculate torque/receptors calculate torque themselves
-  if (sphere_) {
-    if (sphere_->IsFixed()) return; 
-    sphere_->AddForce(force_);
-    sphere_->AddTorque(torque_);
-  } else if (rod_) {
+  if (receptor_) {
+    if (receptor_->IsFixed())
+      return;
+    receptor_->AddForce(force_);
+    receptor_->AddTorque(torque_);
+  } else if (segment_) {
     double dlambda[3] = {0};
     for (int i = 0; i < n_dim_; ++i) {
       dlambda[i] = (bond_lambda_ - 0.5 * rod_length_) * orientation_[i];
     }
     cross_product(dlambda, force_, torque_, 3);
-    rod_->AddForce(force_);
-    rod_->AddTorque(torque_);
-  } else Logger::Error("Anchor attempted to apply forces to nullptr");
+    segment_->AddForce(force_);
+    segment_->AddTorque(torque_);
+  } else
+    Logger::Error("Anchor attempted to apply forces to nullptr");
 }
 
 void Anchor::Activate() {
@@ -413,24 +418,25 @@ void Anchor::Walk() {
 
 double Anchor::DiscreteWalk() {
   double vel = GetMaxVelocity();
-   if (force_dep_vel_flag_) {
+  if (force_dep_vel_flag_) {
     //Want oriontation of filament sphere is on, not orientation of sphere
-    double const *const rod_orientation_ = (sphere_ ->GetPCObjectForSphere()) -> GetOrientation();
+    double const *const rod_orientation_ =
+        (receptor_->GetPCObjectForSphere())->GetOrientation();
     double const force_proj =
-      step_direction_ * dot_product(n_dim_, force_, rod_orientation_);
+        step_direction_ * dot_product(n_dim_, force_, rod_orientation_);
     double fdep = 1. + (force_proj / f_stall_);
     //double const *const position = this->GetPosition();
     //Logger::Warning("rod orientation x is %f, force x is %f, for anchor %i at x location %f", rod_orientation_[0], force_proj, this->GetOID(), position[0]);
-    if (fdep >1) {
+    if (fdep > 1) {
       fdep = 1;
-    } else if (fdep<0) {
+    } else if (fdep < 0) {
       fdep = 0.;
     }
     vel *= fdep;
   }
   return vel;
 }
-    
+
 // Check that the anchor is still located on the filament mesh
 // Returns true if anchor is still on the mesh, false otherwise
 bool Anchor::CheckMesh() {
@@ -461,14 +467,13 @@ void Anchor::Unbind() {
   if (static_flag_) {
     Logger::Error("Static anchor attempted to unbind");
   }
-  if (sphere_) sphere_->DecrementNAnchored();
+  if (receptor_)
+    receptor_->DecrementNAnchored();
   AddBackBindRate();
   bound_ = false;
-  rod_ = nullptr;
-  sphere_ = nullptr;
-  comp_ = nullptr;
-  mesh_ = nullptr;
-  bond_ = nullptr;
+  filament_ = nullptr;
+  segment_ = nullptr;
+  receptor_ = nullptr;
   mesh_n_bonds_ = -1;
   rod_length_ = -1;
   bond_lambda_ = -1;
@@ -485,20 +490,26 @@ void Anchor::Unbind() {
 // Get the bind rate just for the object attached to this anchor
 double Anchor::CalcSingleBindRate() {
   double single_bind_rate = 0.0;
-  Object* o;
-  if (sphere_) o = sphere_;
-  else if (rod_) o = rod_;
+  Object *o;
+  if (receptor_)
+    o = receptor_;
+  else if (segment_)
+    o = segment_;
   // Will sometimes be called w/ unbound anchor during initialization/clearing steps
-  else return 0.0;
+  else
+    return 0.0;
   std::string name = o->GetName();
   if (bind_param_map_->at(index_)[name].single_occupancy) {
-    double obj_amount = (bind_param_map_->at(index_)[name].dens_type == +density_type::linear) 
-                        ? o->GetLength() : o->GetArea();
-    // Sum both anchor rates because during binding and unbinding the bind rate will 
+    double obj_amount =
+        (bind_param_map_->at(index_)[name].dens_type == +density_type::linear)
+            ? o->GetLength()
+            : o->GetArea();
+    // Sum both anchor rates because during binding and unbinding the bind rate will
     // increased for both floating anchors.
     for (int i = 0; i < 2; i++) {
-      single_bind_rate += bind_param_map_->at(index_)[name].k_on_s 
-                          * bind_param_map_->at(index_)[name].bind_site_density * obj_amount;
+      single_bind_rate += bind_param_map_->at(index_)[name].k_on_s *
+                          bind_param_map_->at(index_)[name].bind_site_density *
+                          obj_amount;
     }
   }
   return single_bind_rate;
@@ -509,14 +520,15 @@ void Anchor::AddBackBindRate() {
   if (use_bind_file_ && bind_rate_) {
     *bind_rate_ += CalcSingleBindRate();
   } else {
-    if (sphere_) *obj_size_ += sphere_->GetArea();
+    if (receptor_)
+      *obj_size_ += receptor_->GetArea();
   }
 }
 
 void Anchor::Diffuse() {
   // Motion from thermal kicks
   double dr = GetKickAmplitude() * rng_.RandomNormal(1);
-  bool walker = abs(GetMaxVelocity()) > input_tol ? true: false;
+  bool walker = abs(GetMaxVelocity()) > input_tol ? true : false;
 
   // Force dependence diffusion depends on the mobility (D/kBT) and the force
   // applied along the direction of the filament. Force velocity relation for
@@ -529,26 +541,28 @@ void Anchor::Diffuse() {
   // Should this also add to bond lambda?
 }
 
-double Anchor::DiscreteDiffuse() {
-  return GetDiffusionConst();
-} 
+double Anchor::DiscreteDiffuse() { return GetDiffusionConst(); }
 
 void Anchor::UpdateAnchorPositionToObj() {
-  if (rod_) {
-    if (rod_->IsFixed()) return;
-    double const *const rod_position = rod_->GetPosition();
-    double const *const rod_orientation = rod_->GetOrientation();
+  if (segment_) {
+    if (segment_->IsFixed())
+      return;
+    double const *const rod_position = segment_->GetPosition();
+    double const *const rod_orientation = segment_->GetOrientation();
     for (int i = 0; i < n_dim_; ++i) {
       orientation_[i] = rod_orientation[i];
       position_[i] = rod_position[i] -
                      (0.5 * rod_length_ - bond_lambda_) * rod_orientation[i];
     }
-  } else if (sphere_) {
-    if (sphere_->IsFixed()) return;
+  } else if (receptor_) {
+    if (receptor_->IsFixed())
+      return;
     /* When attached to sphere, position is just the sphere position */
-    std::copy(sphere_->GetPosition(), sphere_->GetPosition() + n_dim_, position_);
+    std::copy(receptor_->GetPosition(), receptor_->GetPosition() + n_dim_,
+              position_);
   } else {
-    Logger::Error("Anchor tried to change position but wasn't bound to sphere_ or rod_.");
+    Logger::Error(
+        "Anchor tried to change position but wasn't bound to sphere_ or rod_.");
   }
   UpdatePeriodic();
 }
@@ -556,14 +570,20 @@ void Anchor::UpdateAnchorPositionToObj() {
 /*Creates Vector that has different binding rates for parallel and anti-parallel
  * bonds*/
 void Anchor::CalculatePolarAffinity(std::vector<double> &doubly_binding_rates) {
-  double orientation[3]; 
-  if (rod_) std::copy(rod_->GetOrientation(), rod_->GetOrientation() + 3, orientation);
-  else if (sphere_) std::copy(sphere_->GetOrientation(), sphere_->GetOrientation() + 3, orientation);
+  double orientation[3];
+  if (segment_)
+    std::copy(segment_->GetOrientation(), segment_->GetOrientation() + 3,
+              orientation);
+  else if (receptor_)
+    std::copy(receptor_->GetOrientation(), receptor_->GetOrientation() + 3,
+              orientation);
   else
-    Logger::Error("Rod and sphere are nullptr in Anchor::CalculatePolarAffinity"); 
+    Logger::Error(
+        "Rod and sphere are nullptr in Anchor::CalculatePolarAffinity");
   for (int i = 0; i < doubly_binding_rates.size(); ++i) {
     Object *obj = neighbors_.GetNeighbor(i);
-    if (obj->GetShape() == +shape::sphere) continue;
+    if (obj->GetShape() == +shape::sphere)
+      continue;
     double const *const i_orientation = obj->GetOrientation();
     double alignment = dot_product(n_dim_, orientation, i_orientation);
     if (alignment < 0) {
@@ -589,58 +609,61 @@ void Anchor::Draw(std::vector<graph_struct *> &graph_array) {
 
 void Anchor::AttachObjRandom(Object *o) {
   switch (o->GetShape()) {
-    case shape::rod: {
-      double length = o->GetLength();
-      double lambda = length * rng_.RandomUniform();
-      AttachObjLambda(o, lambda);
-      break;
-    }
-    case shape::sphere: {
-      // Automatically let spheres have occupancy 1 if no bind file is used.
-      if (!use_bind_file_) {
-        if (o->GetNAnchored() > 0) {
-          Logger::Error("Xlink tried to bind to already occupied sphere!");
-        }
-        *obj_size_ -= o->GetArea();
+  case shape::rod: {
+    double length = o->GetLength();
+    double lambda = length * rng_.RandomUniform();
+    AttachObjLambda(o, lambda);
+    break;
+  }
+  case shape::sphere: {
+    // Automatically let spheres have occupancy 1 if no bind file is used.
+    if (!use_bind_file_) {
+      if (o->GetNAnchored() > 0) {
+        Logger::Error("Xlink tried to bind to already occupied sphere!");
       }
-      AttachObjCenter(o); 
-      break;
+      *obj_size_ -= o->GetArea();
     }
-    default: {
-      Logger::Error("Crosslink binding to %s type objects not yet implemented in" 
-                    " Anchor::AttachObjRandom", o->GetType()._to_string());
-    }
+    AttachObjCenter(o);
+    break;
+  }
+  default: {
+    Logger::Error("Crosslink binding to %s type objects not yet implemented in"
+                  " Anchor::AttachObjRandom",
+                  o->GetType()._to_string());
+  }
   }
   if (use_bind_file_ && bind_rate_) {
     *bind_rate_ -= CalcSingleBindRate();
   }
 }
-    
+
 void Anchor::AttachObjLambda(Object *o, double lambda) {
   if (o->GetShape() != +shape::rod) {
-    Logger::Error(
-        "Crosslink binding to %s objects not implemented in "
-        "AttachObjLambda.", o->GetShape()._to_string());
+    Logger::Error("Crosslink binding to %s objects not implemented in "
+                  "AttachObjLambda.",
+                  o->GetShape()._to_string());
   }
-  if (use_bind_file_) SetRatesFromBindFile(o->GetName());
-  rod_ = dynamic_cast<Rod *>(o);
-  bond_ = dynamic_cast<Bond *>(o);
-  if (bond_ == nullptr) {
+  if (use_bind_file_)
+    SetRatesFromBindFile(o->GetName());
+  // rod_ = dynamic_cast<Rod *>(o);
+  segment_ = dynamic_cast<Bond *>(o);
+  if (segment_ == nullptr) {
     Logger::Error("Object ptr passed to anchor was not referencing a bond!");
   }
-  comp_ = dynamic_cast<Composite *>(rod_->GetCompPtr());
+  comp_ = dynamic_cast<Composite *>(segment_->GetCompPtr());
   if (comp_ == nullptr) {
-    Logger::Error("Object ptr passed to anchor was not referencing a composite!");
+    Logger::Error(
+        "Object ptr passed to anchor was not referencing a composite!");
   }
   if (comp_->GetCompType() == +comp_type::mesh) {
-    mesh_ = dynamic_cast<Mesh *>(rod_->GetCompPtr());
-    if (mesh_ == nullptr) {
+    filament_ = dynamic_cast<Mesh *>(segment_->GetCompPtr());
+    if (filament_ == nullptr) {
       Logger::Error("Object ptr passed to anchor was not referencing a mesh!");
     }
-    mesh_n_bonds_ = mesh_->GetNBonds();
-    mesh_length_ = mesh_->GetTrueLength();
+    mesh_n_bonds_ = filament_->GetNBonds();
+    mesh_length_ = filament_->GetTrueLength();
   }
-  rod_length_ = rod_->GetLength();
+  rod_length_ = segment_->GetLength();
   bond_lambda_ = lambda;
 
   if (bond_lambda_ < 0 || bond_lambda_ > rod_length_) {
@@ -651,8 +674,8 @@ void Anchor::AttachObjLambda(Object *o, double lambda) {
   }
 
   /* Distance anchor is relative to entire mesh length */
-  mesh_lambda_ = bond_->GetMeshLambda() + bond_lambda_;
-  SetCompID(rod_->GetCompID());
+  mesh_lambda_ = segment_->GetMeshLambda() + bond_lambda_;
+  SetCompID(segment_->GetCompID());
   UpdateAnchorPositionToObj();
   ZeroDrTot();
   bound_ = true;
@@ -662,31 +685,33 @@ void Anchor::AttachObjLambda(Object *o, double lambda) {
  * surface area, but binding places crosslinks in center regardless. */
 void Anchor::AttachObjCenter(Object *o) {
   o->IncrementNAnchored();
-  if (use_bind_file_) SetRatesFromBindFile(o->GetName());
+  if (use_bind_file_)
+    SetRatesFromBindFile(o->GetName());
   if (o->GetShape() != +shape::sphere) {
-    Logger::Error(
-        "Crosslink binding to non-sphere objects not implemented in "
-        "AttachObjCenter.");
+    Logger::Error("Crosslink binding to non-sphere objects not implemented in "
+                  "AttachObjCenter.");
   }
-  sphere_ = dynamic_cast<Sphere *>(o);
-  if (sphere_ == nullptr) {
+  receptor_ = dynamic_cast<Receptor *>(o);
+  if (receptor_ == nullptr) {
     Logger::Error("Object ptr passed to anchor was not referencing a sphere!");
   }
-  comp_ = dynamic_cast<Composite *>(sphere_->GetCompPtr());
+  comp_ = dynamic_cast<Composite *>(receptor_->GetCompPtr());
   if (comp_ == nullptr) {
-    Logger::Error("Object ptr passed to anchor was not referencing a composite!");
+    Logger::Error(
+        "Object ptr passed to anchor was not referencing a composite!");
   }
   if (comp_->GetCompType() == +comp_type::mesh) {
-    mesh_ = dynamic_cast<Mesh *>(sphere_->GetCompPtr());
-    if (mesh_ == nullptr) {
+    filament_ = dynamic_cast<Mesh *>(receptor_->GetCompPtr());
+    if (filament_ == nullptr) {
       Logger::Error("Object ptr passed to anchor was not referencing a mesh!");
     }
   }
 
   mesh_lambda_ = -1; // not used for sites
-  SetCompID(sphere_->GetCompID());
-  std::copy(sphere_->GetPosition(), sphere_->GetPosition() + 3, position_); 
-  std::copy(sphere_->GetOrientation(), sphere_->GetOrientation() + 3, orientation_);
+  SetCompID(receptor_->GetCompID());
+  std::copy(receptor_->GetPosition(), receptor_->GetPosition() + 3, position_);
+  std::copy(receptor_->GetOrientation(), receptor_->GetOrientation() + 3,
+            orientation_);
   UpdatePeriodic();
   ZeroDrTot();
   bound_ = true;
@@ -694,23 +719,23 @@ void Anchor::AttachObjCenter(Object *o) {
 
 void Anchor::AttachObjMeshLambda(Object *o, double mesh_lambda) {
   if (o->GetShape() != +shape::rod) {
-    Logger::Error(
-        "Crosslink binding to non-rod objects not allowed in "
-        "AttachObjMeshLambda.");
+    Logger::Error("Crosslink binding to non-rod objects not allowed in "
+                  "AttachObjMeshLambda.");
   }
-  rod_ = dynamic_cast<Rod *>(o);
-  bond_ = dynamic_cast<Bond *>(o);
-  if (bond_ == nullptr) {
+  segment_ = dynamic_cast<Bond *>(o);
+  if (segment_ == nullptr) {
     Logger::Error("Object ptr passed to anchor was not referencing a bond!");
   }
-  if (rod_->GetType() == +obj_type::bond) bond_ = dynamic_cast<Bond *>(o);
-  comp_ = dynamic_cast<Composite *>(rod_->GetCompPtr());
+  // if (rod_->GetType() == +obj_type::bond)
+  //   bond_ = dynamic_cast<Bond *>(o);
+  comp_ = dynamic_cast<Composite *>(segment_->GetCompPtr());
   if (comp_ == nullptr) {
-    Logger::Error("Object ptr passed to anchor was not referencing a composite!");
+    Logger::Error(
+        "Object ptr passed to anchor was not referencing a composite!");
   }
   if (comp_->GetCompType() == +comp_type::mesh) {
-    mesh_ = dynamic_cast<Mesh *>(rod_->GetCompPtr());
-    if (mesh_ == nullptr) {
+    filament_ = dynamic_cast<Mesh *>(segment_->GetCompPtr());
+    if (filament_ == nullptr) {
       Logger::Error("Object ptr passed to anchor was not referencing a mesh!");
     }
   }
@@ -725,38 +750,38 @@ void Anchor::AttachObjMeshLambda(Object *o, double mesh_lambda) {
         "Updating anchor to mesh from checkpoint resulted in an unbound "
         "anchor");
   }
-  SetCompID(rod_->GetCompID());
+  SetCompID(segment_->GetCompID());
   ZeroDrTot();
 }
 
 void Anchor::AttachObjMeshCenter(Object *o) {
   o->IncrementNAnchored();
   if (o->GetType() != +obj_type::site) {
-    Logger::Error(
-        "Crosslink binding to non-bond objects not allowed in "
-        "AttachObjMeshCenter.");
+    Logger::Error("Crosslink binding to non-bond objects not allowed in "
+                  "AttachObjMeshCenter.");
   }
-  sphere_ = dynamic_cast<Sphere *>(o);
-  if (sphere_ == nullptr) {
+  receptor_ = dynamic_cast<Receptor *>(o);
+  if (receptor_ == nullptr) {
     Logger::Error("Object ptr passed to anchor was not referencing a sphere!");
   }
-  comp_ = dynamic_cast<Composite *>(sphere_->GetCompPtr());
+  comp_ = dynamic_cast<Composite *>(receptor_->GetCompPtr());
   if (comp_ == nullptr) {
-    Logger::Error("Object ptr passed to anchor was not referencing a composite!");
+    Logger::Error(
+        "Object ptr passed to anchor was not referencing a composite!");
   }
   if (comp_->GetCompType() == +comp_type::mesh) {
-    mesh_ = dynamic_cast<Mesh *>(sphere_->GetCompPtr());
-    if (mesh_ == nullptr) {
+    filament_ = dynamic_cast<Mesh *>(receptor_->GetCompPtr());
+    if (filament_ == nullptr) {
       Logger::Error("Object ptr passed to anchor was not referencing a mesh!");
     }
   }
-  
+
   Logger::Trace("Attaching anchor %d to comp %d", GetOID(), comp_->GetCompID());
 
   bound_ = true;
   bond_lambda_ = 0;
   mesh_n_bonds_ = -1;
-  SetCompID(sphere_->GetCompID());
+  SetCompID(receptor_->GetCompID());
   ZeroDrTot();
 }
 
@@ -775,40 +800,41 @@ void Anchor::BindToPosition(double *bind_pos) {
   UpdatePeriodic();
 }
 
-Sphere* Anchor::GetBoundPointer() {
-  if (sphere_) {
-    return sphere_;
-  }
-  else {
+Receptor *Anchor::GetBoundPointer() {
+  if (receptor_) {
+    return receptor_;
+  } else {
     Logger::Error("GetBoundPointer only set up for spheres/receptors");
     return nullptr;
   }
 }
 
 bool Anchor::IsBound() { return bound_; }
- 
+
 bool Anchor::IsBoundToSphere() {
-  if (sphere_) {
+  if (receptor_) {
     return true;
-  }
-  else {
+  } else {
     return false;
-  } 
+  }
 }
- 
+
 int const Anchor::GetBoundOID() {
-  if (sphere_) return sphere_->GetOID();
-  else if (rod_) return rod_->GetOID();
-  else return -1;
+  if (receptor_)
+    return receptor_->GetOID();
+  else if (segment_)
+    return segment_->GetOID();
+  else
+    return -1;
 }
 
 //Get ID for point cover anchor is on
 int Anchor::GetPCID() {
-  if (sphere_) {
-    return (sphere_ ->GetPCObjectForSphere()) -> GetOID();
+  if (receptor_) {
+    return (receptor_->GetPCObjectForSphere())->GetOID();
   } else {
     Logger::Error("Tried to get PC ID for a non-receptor");
-    return 0; 
+    return 0;
   }
 }
 
@@ -818,24 +844,22 @@ int Anchor::GetPCID() {
 void Anchor::SetBound() { bound_ = true; }
 
 //Set pointer to map that contains the binding events from this step
-//Pointer is set so it can be added to within anchor.cpp 
-void Anchor::SetBoundCurr(std::map<Sphere *, std::pair<std::vector<double>, std::vector<std::pair<Anchor*, std::string> > > > *bound_curr) {
+//Pointer is set so it can be added to within anchor.cpp
+void Anchor::SetBoundCurr(
+    std::map<Receptor *,
+             std::pair<std::vector<double>,
+                       std::vector<std::pair<Anchor *, std::string>>>>
+        *bound_curr) {
   bound_curr_ = bound_curr;
 }
 
 //Set if this anchor bound this step, unbinding events won't happen on the same turn
-void Anchor::SetChangedThisStep() {
-  changed_this_step_ = true;
-}
+void Anchor::SetChangedThisStep() { changed_this_step_ = true; }
 
 //Set changed this step back to false
-void Anchor::ResetChangedThisStep() {
-  changed_this_step_ = false;
-}
+void Anchor::ResetChangedThisStep() { changed_this_step_ = false; }
 
-bool Anchor::GetChangedThisStep() {
-  return changed_this_step_;
-}
+bool Anchor::GetChangedThisStep() { return changed_this_step_; }
 
 void Anchor::AddNeighbor(Object *neighbor) { neighbors_.AddNeighbor(neighbor); }
 
@@ -845,11 +869,11 @@ const Object *const *Anchor::GetNeighborListMem() {
   return neighbors_.GetNeighborListMem();
 }
 
-const std::vector<const Sphere*>& Anchor::GetNeighborListMemSpheres() {
+const std::vector<const Receptor *> &Anchor::GetNeighborListMemSpheres() {
   return neighbors_.GetNeighborListMemSpheres();
 }
 
-const std::vector<const Rod*> &Anchor::GetNeighborListMemRods() {
+const std::vector<const Bond *> &Anchor::GetNeighborListMemRods() {
   return neighbors_.GetNeighborListMemRods();
 }
 
@@ -857,35 +881,37 @@ Object *Anchor::GetNeighbor(int i_neighbor) {
   return neighbors_.GetNeighbor(i_neighbor);
 }
 
-Sphere *Anchor::GetSphereNeighbor(int i_neighbor) {
+Receptor *Anchor::GetSphereNeighbor(int i_neighbor) {
   return neighbors_.GetSphereNeighbor(i_neighbor);
 }
 
-//Get how far the anchor's receptor is on the filament (currently only set up for parallel and antiparallel) 
+//Get how far the anchor's receptor is on the filament (currently only set up for parallel and antiparallel)
 double Anchor::GetRecS() {
-  if (sphere_) {    
-    double const *const rod_orientation_ = (sphere_ ->GetPCObjectForSphere()) -> GetOrientation();
-    if (rod_orientation_[0]>0) {
-      return sphere_ -> GetSphereS();
-    }
-    else {
-      double s = sphere_-> GetSphereS();
+  if (receptor_) {
+    double const *const rod_orientation_ =
+        (receptor_->GetPCObjectForSphere())->GetOrientation();
+    if (rod_orientation_[0] > 0) {
+      return receptor_->GetSphereS();
+    } else {
+      double s = receptor_->GetSphereS();
       return -s;
     }
   } else {
-    Logger::Error("Anchor is not attatched to Sphere");
-  return 0;
+    Logger::Error("Anchor is not attatched to Receptor");
+    return 0;
   }
 }
 
-Rod *Anchor::GetRodNeighbor(int i_neighbor) {
+Bond *Anchor::GetRodNeighbor(int i_neighbor) {
   return neighbors_.GetRodNeighbor(i_neighbor);
 }
 const int Anchor::GetNNeighbors() const { return neighbors_.NNeighbors(); }
-const int Anchor::GetNNeighborsRod() const { return neighbors_.NNeighborsRod(); }
-const int Anchor::GetNNeighborsSphere() const { return neighbors_.NNeighborsSphere(); }
-
-
+const int Anchor::GetNNeighborsRod() const {
+  return neighbors_.NNeighborsRod();
+}
+const int Anchor::GetNNeighborsSphere() const {
+  return neighbors_.NNeighborsSphere();
+}
 
 void Anchor::WriteSpec(std::fstream &ospec) {
   ospec.write(reinterpret_cast<char *>(&bound_), sizeof(bool));
@@ -926,9 +952,10 @@ void Anchor::ConvertSpec(std::fstream &ispec, std::fstream &otext) {
   }
   ispec.read(reinterpret_cast<char *>(&mesh_lambda), sizeof(double));
   ispec.read(reinterpret_cast<char *>(&comp_id), sizeof(int));
-  otext << bound << " " << active << " " << static_flag << " " << position[0] << " " 
-        << position[1] << " " << position[2] << " " << orientation[0] << " " << orientation[1] 
-        << " " << orientation[2] << " " << mesh_lambda << " " << comp_id << std::endl;
+  otext << bound << " " << active << " " << static_flag << " " << position[0]
+        << " " << position[1] << " " << position[2] << " " << orientation[0]
+        << " " << orientation[1] << " " << orientation[2] << " " << mesh_lambda
+        << " " << comp_id << std::endl;
 }
 
 void Anchor::ReadSpec(std::fstream &ispec) {
@@ -1011,7 +1038,7 @@ const double Anchor::GetMaxVelocity() const {
 }
 
 //Returns whether anchor is walker or not
-bool Anchor::IsWalker () { 
+bool Anchor::IsWalker() {
   bool walker = abs(GetMaxVelocity()) > input_tol ? true : false;
   return walker;
 }
@@ -1056,34 +1083,37 @@ const double Anchor::GetKickAmplitude() const {
   }
 }
 
-const double* const Anchor::GetObjSize() {
-  if (!obj_size_) Logger::Warning("Anchor passed nullptr obj_size");
+const double *const Anchor::GetObjSize() {
+  if (!obj_size_)
+    Logger::Warning("Anchor passed nullptr obj_size");
   return obj_size_;
 }
 
-void Anchor::SetObjSize(double* obj_size) {
-  if (!obj_size) Logger::Error("Anchor received nullptr obj_size");
+void Anchor::SetObjSize(double *obj_size) {
+  if (!obj_size)
+    Logger::Error("Anchor received nullptr obj_size");
   obj_size_ = obj_size;
 }
 
-const double* const Anchor::GetBindRate() {
-  if (!bind_rate_) Logger::Warning("Anchor passed nullptr bind_rate");
+const double *const Anchor::GetBindRate() {
+  if (!bind_rate_)
+    Logger::Warning("Anchor passed nullptr bind_rate");
   return bind_rate_;
 }
 
-void Anchor::SetBindRate(double* bind_rate) {
-  if (!bind_rate) Logger::Warning("Anchor received nullptr bind_rate");
+void Anchor::SetBindRate(double *bind_rate) {
+  if (!bind_rate)
+    Logger::Warning("Anchor received nullptr bind_rate");
   bind_rate_ = bind_rate;
 }
 
-const double Anchor::GetKonS() const {
-  return k_on_s_;
-}
+const double Anchor::GetKonS() const { return k_on_s_; }
 
 // Returns true if the anchor is a catastrophe-inducer (it is bound
 // to a receptor that had the induce_catastrophe flag checked)
 bool Anchor::InducesCatastrophe() {
-  if (!sphere_ || !(sphere_->InducesCatastrophe())) return false;
+  if (!receptor_ || !(receptor_->InducesCatastrophe()))
+    return false;
   return true;
 }
 
@@ -1091,35 +1121,37 @@ bool Anchor::InducesCatastrophe() {
 bool Anchor::AttachedToFilamentLastBond() {
 
   // Check if attached to bond of a filament
-  if (!rod_ || !bond_ || !mesh_ || (mesh_->GetSID() != +species_id::filament)) {
+  if (!segment_ || !filament_ ||
+      (filament_->GetSID() != +species_id::filament)) {
     return false;
   }
   // Check if attached to last bond of filament
-  Bond *bond = bond_->GetNeighborBond(1);
-  if (bond) return false;
+  Bond *bond = segment_->GetNeighborBond(1);
+  if (bond)
+    return false;
   return true;
 }
 
 // Returns true if anchor is attached to a RigidFilament or Filament last bond.
-bool Anchor::GetReachedPlusEnd() {
-  return reached_plus_end_;
-}
+bool Anchor::GetReachedPlusEnd() { return reached_plus_end_; }
 
 /* Decrement xlink and neighbor end count if anchor dettached from singly bound filament end */
 void Anchor::SubtractFilEndProteins(bool singly) {
   if (use_bind_file_) {
-    if (bind_param_map_->at(index_)[bond_->GetName()].use_partner) {
-      bond_->DecrementNEndXlinks();
+    if (bind_param_map_->at(index_)[segment_->GetName()].use_partner) {
+      segment_->DecrementNEndXlinks();
       if (singly) {
-        bond_->SubNPartners(bind_param_map_->at(index_)[bond_->GetName()].partner_on_s);
+        segment_->SubNPartners(
+            bind_param_map_->at(index_)[segment_->GetName()].partner_on_s);
       } else {
-        bond_->SubNPartners(bind_param_map_->at(index_)[bond_->GetName()].partner_on_d);
+        segment_->SubNPartners(
+            bind_param_map_->at(index_)[segment_->GetName()].partner_on_d);
       }
     }
   } else {
     if (use_partner_) {
-      bond_->DecrementNEndXlinks();
-      bond_->SubNPartners(partner_on_s_);
+      segment_->DecrementNEndXlinks();
+      segment_->SubNPartners(partner_on_s_);
     }
   }
 }
@@ -1127,20 +1159,21 @@ void Anchor::SubtractFilEndProteins(bool singly) {
 /* Decrement xlink and neighbor end count if anchor dettached from doubly bound filament end */
 void Anchor::AddFilEndProteins() {
   if (use_bind_file_) {
-    if (bind_param_map_->at(index_)[bond_->GetName()].use_partner) {
-      bond_->IncrementNEndXlinks();
-      bond_->AddNPartners(bind_param_map_->at(index_)[bond_->GetName()].partner_on_s);
+    if (bind_param_map_->at(index_)[segment_->GetName()].use_partner) {
+      segment_->IncrementNEndXlinks();
+      segment_->AddNPartners(
+          bind_param_map_->at(index_)[segment_->GetName()].partner_on_s);
     }
   } else {
     if (use_partner_) {
-      bond_->IncrementNEndXlinks();
-      bond_->AddNPartners(partner_on_s_);
+      segment_->IncrementNEndXlinks();
+      segment_->AddNPartners(partner_on_s_);
     }
   }
 }
 
 // Depolymerize attached anchor
 void Anchor::InduceCatastrophe() {
-  Filament* fil = dynamic_cast<Filament*>(mesh_);
+  Filament *fil = dynamic_cast<Filament *>(filament_);
   fil->Depolymerize();
 }

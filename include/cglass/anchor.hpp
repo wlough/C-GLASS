@@ -3,6 +3,7 @@
 
 #include "filament.hpp"
 #include "neighbor_list.hpp"
+#include "receptor.hpp"
 
 struct bind_params {
   bool use_partner;
@@ -20,7 +21,7 @@ struct bind_params {
 /* Class for bound crosslink heads (called anchors). Tracks and updates its
    absolute position in space and relative position to its bound object. */
 class Anchor : public Object {
- private:
+private:
   bool bound_;
   bool static_flag_;
   bool active_;
@@ -48,9 +49,11 @@ class Anchor : public Object {
   double partner_on_d_;
   double distance_to_plus_;
   double distance_to_minus_;
-  std::map<Sphere *, std::pair<std::vector<double>, std::vector<std::pair<Anchor*, std::string> > > > *bound_curr_ = nullptr;
+  std::map<Receptor *, std::pair<std::vector<double>,
+                                 std::vector<std::pair<Anchor *, std::string>>>>
+      *bound_curr_ = nullptr;
   double cl_length_;
-  Object* cl_pointer_ = nullptr;
+  Object *cl_pointer_ = nullptr;
   double k_off_s_;
   double k_off_d_;
   double polar_affinity_;
@@ -58,7 +61,7 @@ class Anchor : public Object {
   double force_dep_vel_flag_;
   bool use_bind_file_;
   bool reached_plus_end_ = false;
-  std::vector<std::map<std::string, bind_params> > *bind_param_map_ = nullptr;
+  std::vector<std::map<std::string, bind_params>> *bind_param_map_ = nullptr;
 
   double input_tol = 1e-8; // Tolerance for comparing inputs to 0
 
@@ -66,13 +69,17 @@ class Anchor : public Object {
 
   NeighborList neighbors_;
 
-  Rod *rod_ = nullptr;
-  Sphere *sphere_ = nullptr;
+  // SF TODO remove these
   Composite *comp_ = nullptr;
 
   // Retain these for walking behaviors
-  Bond *bond_ = nullptr;
-  Mesh *mesh_ = nullptr;
+  Mesh *filament_{nullptr};     // 'mesh'
+  Bond *segment_{nullptr};      // 'rod'/'bond' for continuous filaments
+  Receptor *receptor_{nullptr}; // 'sphere' for discrete sites
+
+  // Bond *bond_ = nullptr;
+  // Site *site_ = nullptr;
+  // Mesh *mesh_ = nullptr;
 
   double *obj_size_ = nullptr;
   double *bind_rate_ = nullptr;
@@ -92,16 +99,20 @@ class Anchor : public Object {
   void PrepareToStepBack(double prop);
   void PrepareToStepForward(double prop);
 
- public:
+public:
   void SetLengthAtPlus(double distance_);
   void SetLengthAtMinus(double distance_);
   void SetCrosslinkLength(double cl_length);
-  void SetCrosslinkPointer(Object* cl_pointer);
-  Object* GetCrosslinkPointer() {return cl_pointer_;}
-  void SetBoundCurr(std::map<Sphere *, std::pair<std::vector<double>, std::vector<std::pair<Anchor*, std::string> > > > *bound_curr);
+  void SetCrosslinkPointer(Object *cl_pointer);
+  Object *GetCrosslinkPointer() { return cl_pointer_; }
+  void SetBoundCurr(
+      std::map<Receptor *,
+               std::pair<std::vector<double>,
+                         std::vector<std::pair<Anchor *, std::string>>>>
+          *bound_curr);
   Anchor(unsigned long seed);
   void Init(crosslink_parameters *sparams, int index);
-  void SetBindParamMap(std::vector<std::map<std::string, bind_params> >*);
+  void SetBindParamMap(std::vector<std::map<std::string, bind_params>> *);
   bool IsBound();
   bool IsBoundToSphere();
   void UpdatePosition();
@@ -126,14 +137,14 @@ class Anchor : public Object {
   void SetBound();
   void Unbind();
   void AddBackBindRate();
-  Sphere* GetBoundPointer();
+  Receptor *GetBoundPointer();
   int const GetBoundOID();
   void Draw(std::vector<graph_struct *> &graph_array);
   void AddNeighbor(Object *neighbor);
   void ClearNeighbors();
   const Object *const *GetNeighborListMem();
-  const std::vector<const Rod*>& GetNeighborListMemRods();
-  const std::vector<const Sphere*>& GetNeighborListMemSpheres();
+  const std::vector<const Bond *> &GetNeighborListMemRods();
+  const std::vector<const Receptor *> &GetNeighborListMemSpheres();
   void WriteSpec(std::fstream &ospec);
   void ReadSpec(std::fstream &ispec);
   void SetRatesFromBindFile(const std::string &name);
@@ -144,10 +155,10 @@ class Anchor : public Object {
   double const GetMeshLambda();
   double const GetBondLambda();
   Object *GetNeighbor(int i_neighbor);
-  Sphere *GetSphereNeighbor(int i_neighbor);
+  Receptor *GetSphereNeighbor(int i_neighbor);
   double GetRecS();
   int GetPCID();
-  Rod *GetRodNeighbor(int i_neighbor);
+  Bond *GetRodNeighbor(int i_neighbor);
   const int GetNNeighbors() const;
   const int GetNNeighborsSphere() const;
   const int GetNNeighborsRod() const;
@@ -159,10 +170,10 @@ class Anchor : public Object {
   const double GetKickAmplitude() const;
   const double GetKonS() const;
   const double GetLinearBindSiteDensity() const;
-  const double* const GetObjSize();
-  void SetObjSize(double* obj_size);
-  const double* const GetBindRate();
-  void SetBindRate(double* bind_rate);
+  const double *const GetObjSize();
+  void SetObjSize(double *obj_size);
+  const double *const GetBindRate();
+  void SetBindRate(double *bind_rate);
   void SetReachedPlusEnd(bool plus_end);
   bool GetReachedPlusEnd();
   double CalcSingleBindRate();

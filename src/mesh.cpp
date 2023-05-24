@@ -164,6 +164,7 @@ void Mesh::RelocateMesh(double const *const new_pos, double const *const u) {
   }
   for (int i = 0; i < n_sites_; ++i) {
     sites_[i].SetPosition(position_);
+    // SF TODO: check that this duplicate index isnt causing any fuckery
     for (int i = 0; i < n_dim_; ++i) {
       // FIXME ? This would leave the position of mesh at the last site location
       // which seems wrong.
@@ -528,9 +529,11 @@ void Mesh::ConvertSpec(std::fstream &ispec, std::fstream &otext) {
   ispec.read(reinterpret_cast<char *>(&length), sizeof(double));
   ispec.read(reinterpret_cast<char *>(&bond_length), sizeof(double));
   ispec.read(reinterpret_cast<char *>(&nsites), sizeof(int));
-  otext << diameter << " " << length << " " << bond_length << " " << nsites << std::endl;
+  otext << diameter << " " << length << " " << bond_length << " " << nsites
+        << std::endl;
   Site::WriteSpecTextHeader(otext);
-  for (int i = 0; i < nsites; i++) Site::ConvertSpec(ispec, otext);
+  for (int i = 0; i < nsites; i++)
+    Site::ConvertSpec(ispec, otext);
 }
 
 void Mesh::ReadCheckpoint(std::fstream &ip) {

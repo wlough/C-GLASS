@@ -22,17 +22,17 @@ private:
   bool update_;
   std::vector<CrosslinkSpecies *> xlink_species_;
   std::vector<Object *> *objs_;
-  std::map<Sphere *, std::pair<std::vector<double>,
-                               std::vector<std::pair<Anchor *, std::string>>>>
+  std::map<Receptor *, std::pair<std::vector<double>,
+                                 std::vector<std::pair<Anchor *, std::string>>>>
       bound_curr_;
   std::map<std::string, CrosslinkSpecies *> species_map_;
   SpaceBase *space_;
   Tracker *tracker_ = nullptr;
   bool global_check_for_cross = false;
   bool same_microtubules = true;
-  void KnockoutBind(Sphere *receptor, int winner);
+  void KnockoutBind(Receptor *receptor, int winner);
   RNG *rng_;
-  std::vector<std::pair<CrosslinkSpecies *, Sphere *>> cl_to_add_this_step_;
+  std::vector<std::pair<CrosslinkSpecies *, Receptor *>> cl_to_add_this_step_;
   void AddKnockoutCrosslinks();
 
 public:

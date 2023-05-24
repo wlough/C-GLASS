@@ -71,6 +71,7 @@ public:
   double const *const GetHeadPosition() {
     return sites_[n_sites_ - 1].GetPosition();
   }
+  // SF TODO: add tail stuff
   void SetConstrainVec(const double *constrain_vec) {
     std::copy(constrain_vec, constrain_vec + 3, constrain_vec_);
   }

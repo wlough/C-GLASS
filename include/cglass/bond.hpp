@@ -1,12 +1,12 @@
 #ifndef _CGLASS_BOND_H_
 #define _CGLASS_BOND_H_
 
+// #include "rod.hpp"
 #include "site.hpp"
-#include "rod.hpp"
 
 // Bonds, ie graph edges
-class Bond : public Rod {
- protected:
+class Bond : public Object {
+protected:
   Site *sites_[2];
   int bond_number_ = 0;
   double dr_[3];
@@ -17,9 +17,9 @@ class Bond : public Rod {
   double orientation_0_[3];
   Object *mesh_ptr_;
 
- public:
+public:
   Bond(unsigned long seed);
-  void Init(const std::string& name, Site *s1, Site *s2);
+  void Init(const std::string &name, Site *s1, Site *s2);
   void ReInit();
   void Report();
   void ReportSites();
@@ -50,4 +50,4 @@ class Bond : public Rod {
   const double GetMeshLambda() const { return mesh_lambda_; }
 };
 
-#endif  // _CGLASS_BOND_H_
+#endif // _CGLASS_BOND_H_

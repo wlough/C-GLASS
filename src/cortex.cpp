@@ -1,4 +1,5 @@
 #include "cglass/cortex.hpp"
+#include "cglass/receptor.hpp"
 
 Cortex::Cortex(unsigned long seed) : PointCover(seed) {
   type_ = obj_type::cortex;
@@ -11,5 +12,3 @@ void Cortex::UpdateInteractors() {
     interactors_.push_back(*it);
   }
 }
-
-

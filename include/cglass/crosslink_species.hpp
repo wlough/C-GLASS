@@ -30,8 +30,8 @@ private:
   Tracker *tracker_ = nullptr;
   LookupTable lut_;
   std::vector<Object *> *objs_;
-  std::map<Sphere *, std::pair<std::vector<double>,
-                               std::vector<std::pair<Anchor *, std::string>>>>
+  std::map<Receptor *, std::pair<std::vector<double>,
+                                 std::vector<std::pair<Anchor *, std::string>>>>
       *bound_curr_;
 
   // use a map of species names to binding parameters to
@@ -63,7 +63,7 @@ public:
   void InitInteractionEnvironment(
       std::vector<Object *> *objs, double *obj_size, Tracker *tracker,
       bool *update,
-      std::map<Sphere *,
+      std::map<Receptor *,
                std::pair<std::vector<double>,
                          std::vector<std::pair<Anchor *, std::string>>>>
           *bound_curr);
@@ -79,7 +79,7 @@ public:
   void BindCrosslinkObj(Object *obj);
   void AddNeighborToAnchor(Object *anchor, Object *neighbor);
   void AddMember();
-  void KnockoutBind(Sphere *receptor);
+  void KnockoutBind(Receptor *receptor);
   void InsertAttachedCrosslinksSpecies(
       std::vector<std::vector<Object *>> receptor_list);
   void GetAnchorInteractors(std::vector<Object *> &ixors);

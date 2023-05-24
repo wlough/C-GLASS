@@ -38,12 +38,15 @@ void Crosslink::Init(crosslink_parameters *sparams) {
                 anchors_[0].GetOID(), anchors_[1].GetOID());
 }
 
-void Crosslink::InitInteractionEnvironment(LookupTable *lut, Tracker *tracker, 
-                                           std::map<Sphere *, std::pair<std::vector<double>, 
-                                           std::vector<std::pair<Anchor*, std::string> > > > *bound_curr) { 
+void Crosslink::InitInteractionEnvironment(
+    LookupTable *lut, Tracker *tracker,
+    std::map<Receptor *,
+             std::pair<std::vector<double>,
+                       std::vector<std::pair<Anchor *, std::string>>>>
+        *bound_curr) {
   lut_ = lut;
   tracker_ = tracker;
-  bound_curr_ = bound_curr; 
+  bound_curr_ = bound_curr;
   anchors_[0].SetBoundCurr(bound_curr);
   anchors_[1].SetBoundCurr(bound_curr);
 }
@@ -76,9 +79,10 @@ void Crosslink::SinglyKMC() {
   int n_neighbors_rod = anchors_[bound_anchor_].GetNNeighborsRod();
   int n_neighbors_sphere = anchors_[bound_anchor_].GetNNeighborsSphere();
   int n_neighbors = n_neighbors_rod + n_neighbors_sphere;
- 
+
   /* Initialize KMC calculation */
-  KMC<Rod, Sphere> kmc_bind(anchors_[bound_anchor_].pos, n_neighbors_rod, n_neighbors_sphere, delta_, lut_);
+  KMC<Bond, Receptor> kmc_bind(anchors_[bound_anchor_].pos, n_neighbors_rod,
+                               n_neighbors_sphere, delta_, lut_);
 
   /* Initialize periodic boundary conditions */
   kmc_bind.SetPBCs(n_dim_, space_->n_periodic, space_->unit_cell);
@@ -86,46 +90,55 @@ void Crosslink::SinglyKMC() {
   /* Calculate probability to bind */
   double kmc_bind_prob = 0;
   std::vector<double> bind_factors(n_neighbors);
-  const std::vector<const Rod*>& rod_nbr_list = anchors_[bound_anchor_].GetNeighborListMemRods();
-  const std::vector<const Sphere*>& sphere_nbr_list = anchors_[bound_anchor_].GetNeighborListMemSpheres();
+  const std::vector<const Bond *> &rod_nbr_list =
+      anchors_[bound_anchor_].GetNeighborListMemRods();
+  const std::vector<const Receptor *> &sphere_nbr_list =
+      anchors_[bound_anchor_].GetNeighborListMemSpheres();
   if (use_bind_file_) {
     for (int i = 0; i < rod_nbr_list.size(); ++i) {
       std::string name = rod_nbr_list[i]->GetName();
-      bind_factors[i] = bind_param_map_->at((int)!bound_anchor_)[name].k_on_d
-                        * bind_param_map_->at((int)!bound_anchor_)[name].bind_site_density;
+      bind_factors[i] =
+          bind_param_map_->at((int)!bound_anchor_)[name].k_on_d *
+          bind_param_map_->at((int)!bound_anchor_)[name].bind_site_density;
     }
     for (int i = 0; i < sphere_nbr_list.size(); ++i) {
       std::string name = sphere_nbr_list[i]->GetName();
       bind_factors[rod_nbr_list.size() + i] =
-               bind_param_map_->at((int)!bound_anchor_)[name].k_on_d
-               * bind_param_map_->at((int)!bound_anchor_)[name].bind_site_density;
+          bind_param_map_->at((int)!bound_anchor_)[name].k_on_d *
+          bind_param_map_->at((int)!bound_anchor_)[name].bind_site_density;
     }
   } else {
-  double bind_factor_rod = anchors_[(int)!bound_anchor_].GetOnRate() * bind_site_density_;
-  double bind_factor_sphere = anchors_[(int)!bound_anchor_].GetOnRate() * bind_site_density_;
+    double bind_factor_rod =
+        anchors_[(int)!bound_anchor_].GetOnRate() * bind_site_density_;
+    double bind_factor_sphere =
+        anchors_[(int)!bound_anchor_].GetOnRate() * bind_site_density_;
 
-  /* Fill vector of bind factors with rod factors, then sphere factors */
-    std::fill(bind_factors.begin(), bind_factors.begin() + n_neighbors_rod, bind_factor_rod);
-    std::fill(bind_factors.begin() + n_neighbors_rod, bind_factors.end(), bind_factor_sphere);
+    /* Fill vector of bind factors with rod factors, then sphere factors */
+    std::fill(bind_factors.begin(), bind_factors.begin() + n_neighbors_rod,
+              bind_factor_rod);
+    std::fill(bind_factors.begin() + n_neighbors_rod, bind_factors.end(),
+              bind_factor_sphere);
   }
- 
+
   if (n_neighbors > 0) {
     if (!static_flag_ && polar_affinity_ != 1.0) {
       anchors_[bound_anchor_].CalculatePolarAffinity(bind_factors);
     }
     /* Use auto-filter populated with 1's for every neighbor.
     We already guarantee uniqueness, so we won't overcount. */
-    kmc_bind.LUCalcTotProbsSD(anchors_[bound_anchor_].GetNeighborListMemRods(), 
-                              anchors_[bound_anchor_].GetNeighborListMemSpheres(), 
-                              anchors_[bound_anchor_].GetBoundOID(), bind_factors); 
+    kmc_bind.LUCalcTotProbsSD(
+        anchors_[bound_anchor_].GetNeighborListMemRods(),
+        anchors_[bound_anchor_].GetNeighborListMemSpheres(),
+        anchors_[bound_anchor_].GetBoundOID(), bind_factors);
     kmc_bind_prob = kmc_bind.getTotProb();
     tracker_->TrackSD(kmc_bind_prob);
-  } 
+  }
   // Find out whether we bind, unbind, or neither.
   int head_activate = choose_kmc_double(unbind_prob, kmc_bind_prob, roll);
-  
+
   // Change status of activated head
-  if (head_activate == 0 && anchors_[bound_anchor_].GetChangedThisStep()==false) {
+  if (head_activate == 0 &&
+      anchors_[bound_anchor_].GetChangedThisStep() == false) {
     // Unbind bound head
     // Track unbinding
     tracker_->UnbindSU();
@@ -135,8 +148,9 @@ void Crosslink::SinglyKMC() {
     }
     anchors_[bound_anchor_].Unbind();
     SetUnbound();
-    Logger::Trace("Crosslink %i with anchor %i came unbound", GetOID(), anchors_[bound_anchor_].GetOID()); 
-  
+    Logger::Trace("Crosslink %i with anchor %i came unbound", GetOID(),
+                  anchors_[bound_anchor_].GetOID());
+
   } else if (head_activate == 1) {
     // Bind unbound head
     // Track binding
@@ -156,7 +170,7 @@ void Crosslink::SinglyKMC() {
       anchors_[bound_anchor_].SetReachedPlusEnd(false);
     }
     if (i_bind < n_neighbors_rod) {
-      Rod *bind_obj = anchors_[bound_anchor_].GetRodNeighbor(i_bind);
+      Bond *bind_obj = anchors_[bound_anchor_].GetRodNeighbor(i_bind);
       double obj_length = bind_obj->GetLength();
       /* KMC returns bind_lambda to be with respect to center of rod. We want 
       it to be specified from the tail of the rod to be consistent */
@@ -171,20 +185,22 @@ void Crosslink::SinglyKMC() {
       anchors_[(int)!bound_anchor_].AttachObjLambda(bind_obj, bind_lambda);
       SetDoubly();
       Logger::Trace("Crosslink %d became doubly bound to obj %d", GetOID(),
-                  bind_obj->GetOID());
+                    bind_obj->GetOID());
     } else {
-      Sphere *bind_obj = anchors_[bound_anchor_].GetSphereNeighbor(i_bind - n_neighbors_rod);
+      Receptor *bind_obj =
+          anchors_[bound_anchor_].GetSphereNeighbor(i_bind - n_neighbors_rod);
       (*bound_curr_)[bind_obj].first.push_back(kmc_bind.getProb(i_bind));
-      std::pair<Anchor*, std::string> anchor_and_bind_type;
+      std::pair<Anchor *, std::string> anchor_and_bind_type;
       anchors_[(int)!bound_anchor_].SetCrosslinkPointer(this);
       anchor_and_bind_type.first = &anchors_[(int)!bound_anchor_];
       anchor_and_bind_type.second = "single to double";
       //Add anchor to bound_curr, will be deciding if it binds during knockout
       (*bound_curr_)[bind_obj].second.push_back(anchor_and_bind_type);
-      Logger::Trace("Crosslink %d, with anchor %d, became doubly bound to obj %d", GetOID(), anchors_[(int)!bound_anchor_].GetOID(),
-                  bind_obj->GetOID());
+      Logger::Trace(
+          "Crosslink %d, with anchor %d, became doubly bound to obj %d",
+          GetOID(), anchors_[(int)!bound_anchor_].GetOID(), bind_obj->GetOID());
       //If crosslinkers can't cross check if newly bound crosslinker is crossing
-      if (sparams_ -> cant_cross == true) {
+      if (sparams_->cant_cross == true) {
         check_for_cross = true;
         last_bound_ = (int)!bound_anchor_;
         if (*global_check_for_cross_ == true) {
@@ -197,11 +213,9 @@ void Crosslink::SinglyKMC() {
   }
 }
 
-//If a crosslinker was bound during this step it is flaged to check to see if 
+//If a crosslinker was bound during this step it is flaged to check to see if
 //it is crossing another crosslinker
-bool Crosslink::ReturnCheckForCross() {
-  return check_for_cross;
-}
+bool Crosslink::ReturnCheckForCross() { return check_for_cross; }
 
 //After a crosslinker is checked if its crossing set check_for_cross back to false
 void Crosslink::SetCheckForCross() {
@@ -209,28 +223,27 @@ void Crosslink::SetCheckForCross() {
   *global_check_for_cross_ = false;
 }
 
-void Crosslink::SetGlobalCheckForCross(bool* global_check_for_cross){
+void Crosslink::SetGlobalCheckForCross(bool *global_check_for_cross) {
   global_check_for_cross_ = global_check_for_cross;
 }
 
-//Get index of most recently bound anchor (if crosslinker unbinds do to crosslinking 
+//Get index of most recently bound anchor (if crosslinker unbinds do to crosslinking
 //most recently bound anchor needs to unbind)
-int Crosslink::GetLastBound() {
-  return last_bound_;
-}
+int Crosslink::GetLastBound() { return last_bound_; }
 
 //Unbind anchor if unbinding is due to crosslinkers crossing
 void Crosslink::UnbindCrossing() {
-  Logger::Trace("Crosslinker %f came unbound because it was crossing another crosslinker", GetOID());
+  Logger::Trace(
+      "Crosslinker %f came unbound because it was crossing another crosslinker",
+      GetOID());
   int head_activate = last_bound_;
   ClearNeighbors();
   UpdateXlinkState();
-  tracker_ -> UnbindDS();
+  tracker_->UnbindDS();
   anchors_[head_activate].Unbind();
   SetSingly((int)!head_activate);
   SetCheckForCross();
 }
-  
 
 /* Perform kinetic monte carlo step of protein with 2 heads of protein
  * object attached. */
@@ -249,7 +262,8 @@ void Crosslink::DoublyKMC() {
   }
   std::vector<double> unbind_prob;
   for (int i = 0; i < 2; i++) {
-    unbind_prob.push_back(anchors_[i].GetOffRate() * delta_ * exp(e_dep + f_dep));
+    unbind_prob.push_back(anchors_[i].GetOffRate() * delta_ *
+                          exp(e_dep + f_dep));
   }
   tracker_->TrackDS(unbind_prob[0]); // Richelle modify to track full prob
   double roll = rng_.RandomUniform();
@@ -261,7 +275,8 @@ void Crosslink::DoublyKMC() {
     // one head can unbind during a time step.
     head_activate = choose_kmc_double(unbind_prob[0], unbind_prob[1], roll);
   }
-  if (head_activate > -1 && anchors_[head_activate].GetChangedThisStep() == false) {
+  if (head_activate > -1 &&
+      anchors_[head_activate].GetChangedThisStep() == false) {
     tracker_->UnbindDS();
     Logger::Trace("Doubly-bound crosslink %d came unbound from %d", GetOID(),
                   anchors_[head_activate].GetBoundOID());
@@ -299,10 +314,10 @@ std::vector<double> Crosslink::GetAnchorS() {
 //Get the IDs of the filaments that the receptors the anchors are connected to are connected to
 std::vector<int> Crosslink::GetReceptorPCIDs() {
   std::vector<int> rec_ids_;
-  rec_ids_.push_back(anchors_[0].GetPCID());  
-  rec_ids_.push_back(anchors_[1].GetPCID()); 
+  rec_ids_.push_back(anchors_[0].GetPCID());
+  rec_ids_.push_back(anchors_[1].GetPCID());
   return rec_ids_;
-} 
+}
 
 void Crosslink::ClearNeighbors() { anchors_[bound_anchor_].ClearNeighbors(); }
 
@@ -313,7 +328,7 @@ void Crosslink::UpdateAnchorsToMesh() {
 
 void Crosslink::UpdateAnchorPositions() {
   if (!sparams_->stationary_flag) {
-    anchors_[0].UpdatePosition();   
+    anchors_[0].UpdatePosition();
     anchors_[1].UpdatePosition();
   }
 }
@@ -339,7 +354,7 @@ void Crosslink::UpdateCrosslinkPositions() {
   UpdateAnchorPositions();
   /* Check if an anchor became unbound do to diffusion, etc */
   UpdateXlinkState();
-  if (sparams_->no_binding == false){
+  if (sparams_->no_binding == false) {
     /* Check for binding/unbinding events using KMC */
     CalculateBinding();
   }
@@ -393,12 +408,13 @@ void Crosslink::CalculateTetherForces() {
   anchors_[0].AddForce(force_);
   anchors_[1].SubForce(force_);
 
-  //If anchors are double bound and hopping between receptors then we need to calculate 
+  //If anchors are double bound and hopping between receptors then we need to calculate
   //the energy to the neighboring sites to determine hopping rates
-  if ((anchors_[0].IsBoundToSphere() == true) && (anchors_[1].IsBoundToSphere() == true)) {
-    Sphere* sphere_zero_ = anchors_[0].GetBoundPointer();
-    Sphere* sphere_one_ = anchors_[1].GetBoundPointer();
- 
+  if ((anchors_[0].IsBoundToSphere() == true) &&
+      (anchors_[1].IsBoundToSphere() == true)) {
+    Receptor *sphere_zero_ = anchors_[0].GetBoundPointer();
+    Receptor *sphere_one_ = anchors_[1].GetBoundPointer();
+
     //Calculate current length of crosslinker
     Interaction ix_zo(sphere_zero_, sphere_one_);
     MinimumDistance mindist_zo;
@@ -410,30 +426,28 @@ void Crosslink::CalculateTetherForces() {
     if (anchors_[1].IsWalker() == false) {
       anchors_[1].SetCrosslinkLength(length_zo_);
     }
-    
-    if(anchors_[1].IsWalker() == false) {
+
+    if (anchors_[1].IsWalker() == false) {
       //receptor in plus direction of anchor zero
-      Sphere* one_plus_n_ = sphere_one_ -> GetPlusNeighbor();
-      Sphere* one_minus_n_ = sphere_one_ -> GetMinusNeighbor();
+      Receptor *one_plus_n_ = sphere_one_->GetPlusNeighbor();
+      Receptor *one_minus_n_ = sphere_one_->GetMinusNeighbor();
 
       //If anchor is at plus end of microtubule it won't have a plus neighbor
       if (one_plus_n_ == nullptr) {
         anchors_[1].SetLengthAtPlus(-1);
-      }
-      else {
+      } else {
         //Get length between anchor zero and plus neighbor of anchor one
         Interaction ix_zp(sphere_zero_, one_plus_n_);
         MinimumDistance mindist_zp;
         mindist_zp.ObjectObject(ix_zp);
         double length_zp_ = sqrt(ix_zp.dr_mag2);
-        anchors_[1].SetLengthAtPlus(length_zp_);  
+        anchors_[1].SetLengthAtPlus(length_zp_);
       }
 
       //If anchor is at minus end of microtubule it won't have a plus neighbor
       if (one_minus_n_ == nullptr) {
         anchors_[1].SetLengthAtMinus(-1);
-      }
-      else { 
+      } else {
         //Get length between anchor zero and minus neighbor of anchor one
         Interaction ix_zm(sphere_zero_, one_minus_n_);
         MinimumDistance mindist_zm;
@@ -441,69 +455,71 @@ void Crosslink::CalculateTetherForces() {
         double length_zm_ = sqrt(ix_zm.dr_mag2);
         anchors_[1].SetLengthAtMinus(length_zm_);
       }
-   }
+    }
 
-   if (anchors_[0].IsWalker() == false) {
-     Sphere* zero_plus_n_ = sphere_zero_ -> GetPlusNeighbor();
-     Sphere* zero_minus_n_ = sphere_zero_ -> GetMinusNeighbor();
+    if (anchors_[0].IsWalker() == false) {
+      Receptor *zero_plus_n_ = sphere_zero_->GetPlusNeighbor();
+      Receptor *zero_minus_n_ = sphere_zero_->GetMinusNeighbor();
 
-     //If anchor is at plus end of microtubule it won't have a plus neighbor
-     if (zero_plus_n_ == nullptr) {
-       anchors_[0].SetLengthAtPlus(-1);
-     }
+      //If anchor is at plus end of microtubule it won't have a plus neighbor
+      if (zero_plus_n_ == nullptr) {
+        anchors_[0].SetLengthAtPlus(-1);
+      }
 
-     else { 
+      else {
 
-       //Get length between anchor one and plus neighbor of anchor zero
-       Interaction ix_op(sphere_one_, zero_plus_n_);
-       MinimumDistance mindist_op;
-       mindist_op.ObjectObject(ix_op);
-       double length_op_ = sqrt(ix_op.dr_mag2); 
-       anchors_[0].SetLengthAtPlus(length_op_);
+        //Get length between anchor one and plus neighbor of anchor zero
+        Interaction ix_op(sphere_one_, zero_plus_n_);
+        MinimumDistance mindist_op;
+        mindist_op.ObjectObject(ix_op);
+        double length_op_ = sqrt(ix_op.dr_mag2);
+        anchors_[0].SetLengthAtPlus(length_op_);
       }
       //If anchor is at plus end of microtubule it won't have a plus neighbor
       if (zero_minus_n_ == nullptr) {
         anchors_[0].SetLengthAtMinus(-1);
-      }
-      else {  
+      } else {
         //Get length between anchor one and minus neighbor of anchor zero
         Interaction ix_om(sphere_one_, zero_minus_n_);
         MinimumDistance mindist_om;
         mindist_om.ObjectObject(ix_om);
-        double length_om_ = sqrt(ix_om.dr_mag2); 
+        double length_om_ = sqrt(ix_om.dr_mag2);
         anchors_[0].SetLengthAtMinus(length_om_);
       }
     }
   }
   // If one anchor induces catastrophe and the other is attached to a filament, depolymerize
   // attached filament.
-  if (anchors_[0].InducesCatastrophe() && anchors_[1].AttachedToFilamentLastBond()) {
+  if (anchors_[0].InducesCatastrophe() &&
+      anchors_[1].AttachedToFilamentLastBond()) {
     anchors_[1].InduceCatastrophe();
-  } else if (anchors_[1].InducesCatastrophe() && anchors_[0].AttachedToFilamentLastBond()) {
+  } else if (anchors_[1].InducesCatastrophe() &&
+             anchors_[0].AttachedToFilamentLastBond()) {
     anchors_[0].InduceCatastrophe();
   }
-  
+
   // Update xlink's position (for drawing)
   UpdatePeriodic();
 }
 
 /* Attach a crosslink anchor to object in a random fashion */
-void Crosslink::AttachObjRandom(std::pair<Object*, int> obj_index) {
+void Crosslink::AttachObjRandom(std::pair<Object *, int> obj_index) {
   /* Attaching to random obj implies first anchor binding from solution, so
    * this crosslink should be new and should not be singly or doubly bound */
-  if ((obj_index.first->GetShape() == +shape::rod) || (obj_index.first->GetShape() == +shape::sphere)) {
+  if ((obj_index.first->GetShape() == +shape::rod) ||
+      (obj_index.first->GetShape() == +shape::sphere)) {
     int roll = rng_.RandomUniform();
     bound_anchor_ = obj_index.second;
     anchors_[obj_index.second].AttachObjRandom(obj_index.first);
     SetCompID(obj_index.first->GetCompID());
   } else {
-    Logger::Error("Crosslink binding to %s shaped objects not yet implemented.", obj_index.first->GetShape()._to_string());
+    Logger::Error("Crosslink binding to %s shaped objects not yet implemented.",
+                  obj_index.first->GetShape()._to_string());
   }
 }
 
-
 /* Attach a crosslink anchor to object in a random fashion */
-void Crosslink::AttachSphere(std::pair<Sphere*, int> obj_index) {
+void Crosslink::AttachSphere(std::pair<Receptor *, int> obj_index) {
   /* Attaching to random obj implies first anchor binding from solution, so
    * this crosslink should be new and should not be singly or doubly bound */
   if (obj_index.first->GetShape() == +shape::sphere) {
@@ -511,13 +527,14 @@ void Crosslink::AttachSphere(std::pair<Sphere*, int> obj_index) {
     anchors_[obj_index.second].AttachObjRandom(obj_index.first);
     SetCompID(obj_index.first->GetCompID());
   } else {
-    Logger::Error("Crosslink binding to %s shaped objects not yet implemented.", obj_index.first->GetShape()._to_string());
+    Logger::Error("Crosslink binding to %s shaped objects not yet implemented.",
+                  obj_index.first->GetShape()._to_string());
   }
 }
 
 //Attatch crosslinker connected to two receptors, only used when crosslinkers
 //start doubly bound
-void Crosslink::DoublyCenter(Object* receptor_one, Object* receptor_two) {
+void Crosslink::DoublyCenter(Object *receptor_one, Object *receptor_two) {
   anchors_[0].AttachObjCenter(receptor_one);
   SetCompID(receptor_one->GetCompID());
   anchors_[1].AttachObjCenter(receptor_two);
@@ -618,9 +635,10 @@ void Crosslink::ConvertSpec(std::fstream &ispec, std::fstream &otext) {
   }
   ispec.read(reinterpret_cast<char *>(&oid), sizeof(int));
   // Write out data to SpecText file otext
-  otext << is_doubly << " " << diameter << " " << length << " " << position[0] << " " 
-        << position[1] << " " << position[2] << " " << orientation[0] 
-        << " " << orientation[1] << " " << orientation[2] << " " << oid << std::endl;
+  otext << is_doubly << " " << diameter << " " << length << " " << position[0]
+        << " " << position[1] << " " << position[2] << " " << orientation[0]
+        << " " << orientation[1] << " " << orientation[2] << " " << oid
+        << std::endl;
   // Convert anchor data
   Anchor::WriteSpecTextHeader(otext);
   for (int i = 0; i < 2; ++i) {
@@ -700,28 +718,32 @@ void Crosslink::InsertAt(double const *const new_pos, double const *const u) {
   SetSingly(bound_anchor_);
 }
 
-void Crosslink::SetBindParamMap(std::vector<std::map<std::string, bind_params> > *bind_param_map) {
+void Crosslink::SetBindParamMap(
+    std::vector<std::map<std::string, bind_params>> *bind_param_map) {
   bind_param_map_ = bind_param_map;
   anchors_[0].SetBindParamMap(bind_param_map_);
   anchors_[1].SetBindParamMap(bind_param_map_);
 }
 
 void Crosslink::SetObjSize(double *obj_size) {
-  if (!obj_size) Logger::Error("Crosslink received nullptr obj_size");
+  if (!obj_size)
+    Logger::Error("Crosslink received nullptr obj_size");
   obj_size_ = obj_size;
   anchors_[0].SetObjSize(obj_size);
   anchors_[1].SetObjSize(obj_size);
 }
 
 void Crosslink::SetBindRate(double *bind_rate) {
-  if (!bind_rate) Logger::Warning("Crosslink received nullptr bind_rate");
+  if (!bind_rate)
+    Logger::Warning("Crosslink received nullptr bind_rate");
   bind_rate_ = bind_rate;
   anchors_[0].SetBindRate(bind_rate);
   anchors_[1].SetBindRate(bind_rate);
 }
 
-const double* const Crosslink::GetObjSize() {
-  if (!obj_size_) Logger::Warning("Crosslink sent nullptr obj_size");
+const double *const Crosslink::GetObjSize() {
+  if (!obj_size_)
+    Logger::Warning("Crosslink sent nullptr obj_size");
   return obj_size_;
 }
 

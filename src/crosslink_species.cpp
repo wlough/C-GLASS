@@ -130,8 +130,9 @@ void CrosslinkSpecies::AddMember() {
 void CrosslinkSpecies::InitInteractionEnvironment(
     std::vector<Object *> *objs, double *obj_size, Tracker *tracker,
     bool *update,
-    std::map<Sphere *, std::pair<std::vector<double>,
-                                 std::vector<std::pair<Anchor *, std::string>>>>
+    std::map<Receptor *,
+             std::pair<std::vector<double>,
+                       std::vector<std::pair<Anchor *, std::string>>>>
         *bound_curr) {
   objs_ = objs;
   obj_size_ = obj_size;
@@ -530,7 +531,7 @@ void CrosslinkSpecies::BindCrosslink() {
   std::pair<Object *, int> RandomObj = GetRandomObjectKnockout();
   //If binding to sphere, at to knockout
   if (RandomObj.first->GetShape() == +shape::sphere) {
-    Sphere *RandomSphere = dynamic_cast<Sphere *>(RandomObj.first);
+    Receptor *RandomSphere = dynamic_cast<Receptor *>(RandomObj.first);
     (*bound_curr_)[RandomSphere].first.push_back(random_obj_probability_);
     std::pair<Anchor *, std::string> anchor_and_bind_type;
     anchor_and_bind_type.first = nullptr;
@@ -546,9 +547,9 @@ void CrosslinkSpecies::BindCrosslink() {
 }
 
 //Bind during knockout
-void CrosslinkSpecies::KnockoutBind(Sphere *receptor) {
+void CrosslinkSpecies::KnockoutBind(Receptor *receptor) {
   AddMember();
-  std::pair<Sphere *, int> Receptor_pair;
+  std::pair<Receptor *, int> Receptor_pair;
   //receptor to bind to
   Receptor_pair.first = receptor;
   //anchor 0
