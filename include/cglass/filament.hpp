@@ -31,7 +31,8 @@ private:
   int cluster_ = 0;
   int prev_cluster_ = 0;
   int n_end_xlinks_ = 0; // number of xlinks at filament plus-end
-  double n_end_partners_ = 0; // number of partner proteins (ex dynactin) at plus-end
+  double n_end_partners_ =
+      0; // number of partner proteins (ex dynactin) at plus-end
   double min_length_ = 0;
   double max_length_ = 1000;
   double max_bond_length_ = 4;
@@ -119,7 +120,6 @@ public:
   virtual void Integrate();
   virtual void Draw(std::vector<graph_struct *> &graph_array);
   virtual void UpdatePosition();
-  double const GetLength() { return length_; }
   double const GetDriving() { return driving_factor_; }
   double const GetPersistenceLength() { return bending_stiffness_; }
   void Reserve();
@@ -137,13 +137,7 @@ public:
   void GetNematicOrder(double *nematic_order_tensor);
   void GetPolarOrder(double *polar_order_vector);
   double GetTipZ() { return sites_[n_sites_ - 1].GetOrientation()[n_dim_ - 1]; }
-  double const *const GetHeadPosition() {
-    return sites_[n_sites_ - 1].GetPosition();
-  }
-  double const *const GetTailPosition() { return sites_[0].GetPosition(); }
-  double const *const GetTailOrientation() {
-    return sites_[0].GetOrientation();
-  }
+
   const int GetPrevCluster() const { return prev_cluster_; }
   const int GetCluster() const { return cluster_; }
   void AssignCluster(int cluster) { cluster_ = cluster; }
@@ -152,8 +146,7 @@ public:
     cluster_ = 0;
   }
   void GetErrorRates(std::vector<int> &rates);
-  void AddTorqueTail(double *t) { bonds_[0].AddTorque(t); }
-  void AddForceTail(double *f) { sites_[0].AddForce(f); }
+
   void WritePosit(std::fstream &oposit);
   void ReadPosit(std::fstream &iposit);
   void WriteSpec(std::fstream &ospec);

@@ -78,6 +78,12 @@ void RigidFilament::InsertRigidFilament(std::string insertion_type,
     SetPosition(bonds_.back().GetPosition());
     SetOrientation(bonds_.back().GetOrientation());
     UpdateBondPositions();
+  } else if (insertion_type.compare("spb_anchored") == 0) {
+    // temp. copied from rando/custom insertion type
+    AddRandomBondAnywhere(length_, diameter_);
+    SetPosition(bonds_.back().GetPosition());
+    SetOrientation(bonds_.back().GetOrientation());
+    UpdateBondPositions();
   } else {
     Logger::Error("Rigid Filament insertion type not recognized!");
   }
@@ -152,8 +158,8 @@ void RigidFilament::Integrate() {
   //With constrain_to_move_in_y on filaments don't roate and only diffuse in
   //the y direction
   if (!zero_temperature_ && constrain_to_move_in_y_) {
-     //Add the random displacement dr(t)
-     AddRandomYDisplacement();
+    //Add the random displacement dr(t)
+    AddRandomYDisplacement();
   }
 
   UpdatePeriodic();
@@ -179,12 +185,12 @@ void RigidFilament::AddRandomDisplacement() {
     for (int i = 0; i < n_dim_; ++i)
       position_[i] += mag * body_frame_[n_dim_ * j + i];
   }
-  
+
   // Handle the random orientation update after updating orientation from
   // interaction torques
 }
 
-//With constrain_to_move_in_y on filaments only diffuse in the y 
+//With constrain_to_move_in_y on filaments only diffuse in the y
 //direction and don't rotate
 void RigidFilament::AddRandomYDisplacement() {
   double mag = rng_.RandomNormal(diffusion_par_);
@@ -260,13 +266,13 @@ double const RigidFilament::GetVolume() {
 }
 
 void RigidFilament::UpdatePosition() {
-  if (!constrain_to_move_in_y_){
+  if (!constrain_to_move_in_y_) {
     ApplyForcesTorques();
-  }
-  else {
+  } else {
     ApplyForcesTorquesYOnly();
   }
-  if (!params_->on_midstep && !sparams_->stationary_flag && (sparams_->stationary_until)<eq_steps_count_)
+  if (!params_->on_midstep && !sparams_->stationary_flag &&
+      (sparams_->stationary_until) < eq_steps_count_)
     Integrate();
   eq_steps_count_++;
 }
@@ -324,11 +330,10 @@ void RigidFilament::ApplyForcesTorques() {
 void RigidFilament::ApplyForcesTorquesYOnly() {
   const double *force = bonds_.back().GetForce();
   for (int i = 0; i < 3; ++i) {
-    if (i==1){
+    if (i == 1) {
       force_[i] += force[1];
-    }
-    else {
-      force_[i]=0;
+    } else {
+      force_[i] = 0;
     }
     torque_[i] = 0;
   }

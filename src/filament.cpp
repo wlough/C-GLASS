@@ -234,7 +234,7 @@ void Filament::InsertFirstBond() {
     }
     InitSiteAt(position_, diameter_);
     AddBondToTip(orientation_, bond_length_);
-  } else {
+  } else if (sparams_->insertion_type.compare("spb_anchored") == 0) {
     // SF TODO: ensure this only occurs for spb_anchored insert type
     for (int i_dim{0}; i_dim < params_->n_dim; i_dim++) {
       position_[i_dim] = -length_ / 2.0 * orientation_[i_dim];
@@ -245,6 +245,8 @@ void Filament::InsertFirstBond() {
     // Assume custom arrangement for now
     InitSiteAt(position_, diameter_);
     AddBondToTip(orientation_, bond_length_);
+  } else {
+    Logger::Error("Filament insertion type not recognized!");
   }
 }
 

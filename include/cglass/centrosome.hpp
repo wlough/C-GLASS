@@ -6,7 +6,8 @@
 // #include "receptor.hpp"
 #include <armadillo>
 
-class Filament;
+// class Filament;
+class Mesh;
 class CentrosomeSpecies;
 
 struct AnchorSite {
@@ -17,7 +18,7 @@ struct AnchorSite {
   double pos_rel_[3];
   double u_[3];
   double u_rel_[3];
-  Filament *filament_;
+  Mesh *filament_;
   graph_struct g_;
 };
 

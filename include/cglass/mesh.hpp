@@ -2,7 +2,6 @@
 #define _CGLASS_MESH_H_
 
 #include "bond.hpp"
-// #include "composite.hpp"
 
 typedef std::vector<Bond>::iterator bond_iterator;
 typedef std::vector<Site>::iterator site_iterator;
@@ -95,6 +94,18 @@ public:
   virtual const bool CheckInteractorUpdate();
   virtual const double GetLambdaAtBond(int bond_oid);
   virtual const double GetTrueLength() const;
+
+  // experimental stuff added by ya boi Shane
+  double const GetLength() { return length_; }
+  double const *const GetHeadPosition() {
+    return sites_[n_sites_ - 1].GetPosition();
+  }
+  double const *const GetTailPosition() { return sites_[0].GetPosition(); }
+  double const *const GetTailOrientation() {
+    return sites_[0].GetOrientation();
+  }
+  void AddTorqueTail(double *t) { bonds_[0].AddTorque(t); }
+  void AddForceTail(double *f) { sites_[0].AddForce(f); }
 
   // Convert binary data to text. Static to avoid needing to istantiate
   // species members.

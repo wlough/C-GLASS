@@ -1,6 +1,7 @@
 #include "cglass/centrosome_species.hpp"
 #include "cglass/crosslink_species.hpp"
 #include "cglass/filament_species.hpp"
+#include "cglass/rigid_filament_species.hpp"
 
 // TODO: add overlap detection, wca potential between centros
 
@@ -77,29 +78,18 @@ void CentrosomeSpecies::AddMember() {
   QuaternionFromRotationMatrix(q_[i_spb], A_[i_spb]);
 }
 
-void CentrosomeSpecies::AnchorFilaments(FilamentSpecies *filas,
-                                        CrosslinkSpecies *teths) {
+void CentrosomeSpecies::AnchorFilaments(SpeciesBase *filas, bool flexible) {
 
   int n_filaments{filas->GetNMembers()};
   if (n_filaments != GetNMembers() * sparams_.num_anchors_ea) {
-    printf("oh no\n");
+    printf("Error: mis-match between SPB anchor and filament number. \n");
     exit(1);
   }
-
-  // need to:
-  // Create tether (AddMember())
-  // Insert it proper
-  // Bind one head to SPB
-  // Insert filament
-  // Bind other to filament
-  // printf("no 1\n");
-  // printf("FOUND SPB tethers - '%s'\n", teths->GetSpeciesName().c_str());
-  // printf("no 2\n");
 
   // SF TODO: generalize this for more than 1 SPB / anchor lol
   size_t i_spb{0};
   for (int i_fila{0}; i_fila < filas->GetNMembers(); i_fila++) {
-    Filament *fil{dynamic_cast<Filament *>(filas->GetMember(i_fila))};
+    Mesh *fil{dynamic_cast<Mesh *>(filas->GetMember(i_fila))};
     // SF TODO baaaaaaaaaaaaad
     int i_anchor{i_fila < sparams_.num_anchors_ea
                      ? i_fila
@@ -124,15 +114,22 @@ void CentrosomeSpecies::AnchorFilaments(FilamentSpecies *filas,
       printf("%g = %g + %g\n", new_pos[i_dim], anchor_pos[i_dim],
              0.5 * fil->GetLength() * anchor_u[i_dim]);
     }
-    fil->InsertAt(new_pos, anchor_u);
+    if (flexible) {
+      dynamic_cast<Filament *>(fil)->InsertAt(new_pos, anchor_u);
+    } else {
+      dynamic_cast<RigidFilament *>(fil)->InsertAt(new_pos, anchor_u);
+      printf("DING\n");
+    }
     for (int i_dim{0}; i_dim < params_->n_dim; i_dim++) {
       printf("(%g)\n", fil->GetTailPosition()[i_dim]);
     }
-    fil->UpdatePosition();
-    // teths->AddMember();
-    // teths->GetMember(0)->InsertAt(new_pos, anchor_u);
+    if (flexible) {
+      dynamic_cast<Filament *>(fil)->UpdatePosition();
+    } else {
+      dynamic_cast<RigidFilament *>(fil)->UpdatePosition();
+      printf("DONG\n");
+    }
     members_[i_spb].anchors_[i_anchor].filament_ = fil;
-    // fil->SetOrientation(u);
   }
 
   // int i_fila{0};

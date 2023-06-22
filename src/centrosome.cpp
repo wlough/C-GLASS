@@ -140,6 +140,9 @@ void Centrosome::Init(centrosome_parameters *sparams) {
 
 void Centrosome::Draw(std::vector<graph_struct *> &graph_array) {
   for (auto &&anch : anchors_) {
+    if (anch.filament_ == nullptr) {
+      continue;
+    }
     double u[3] = {0.0, 0.0, 0.0};
     double r_teth{0.0};
     for (int i{0}; i < n_dim_; ++i) {

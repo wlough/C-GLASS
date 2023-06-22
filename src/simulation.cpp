@@ -333,11 +333,11 @@ void Simulation::InsertSpecies(bool force_overlap, bool processing) {
   // SF: this is probably bad lol
   CentrosomeSpecies *centrosomes{nullptr};
   std::string filament_species_name;
-  // SF: first, scan thru species to find SPB-associated filamentspecies
+  // SF: first, scan thru species to find SPB-associated filament species
   for (auto spec{species_.begin()}; spec != species_.end(); ++spec) {
     if ((*spec)->GetSID() == +species_id::centrosome) {
       if (centrosomes != nullptr) {
-        printf("WOAH 2 in InsertSpecies()\n");
+        printf("Error: support multiple centrosome species at this time.'\n");
         exit(1);
       }
       centrosomes = dynamic_cast<CentrosomeSpecies *>((*spec));
@@ -346,16 +346,31 @@ void Simulation::InsertSpecies(bool force_overlap, bool processing) {
     }
   }
   // SF: next, pick out SPB filament species and store ptr
+  // SF: must be a better way -- auto lambda function? templates?
   FilamentSpecies *filaments{nullptr};
+  RigidFilamentSpecies *rigid_filaments{nullptr};
+
   for (auto spec = species_.begin(); spec != species_.end(); ++spec) {
-    if ((*spec)->GetSID() == +species_id::filament) {
-      if ((*spec)->GetSpeciesName().compare(filament_species_name) == 0) {
-        if (filaments != nullptr) {
-          printf("WOAH in InsertSpecies()\n");
-          exit(1);
+    if ((*spec)->GetSpeciesName().compare(filament_species_name) == 0) {
+      if ((*spec)->GetSID() == +species_id::filament) {
+        if ((*spec)->GetNInsert() > 0) {
+          if (filaments != nullptr or rigid_filaments != nullptr) {
+            printf("Error: only one filament species can be named 'Spindle'\n");
+            exit(1);
+          }
+          filaments = dynamic_cast<FilamentSpecies *>((*spec));
+          printf("FOUND filaments - '%s'\n", (*spec)->GetSpeciesName().c_str());
         }
-        filaments = dynamic_cast<FilamentSpecies *>((*spec));
-        printf("FOUND filaments - '%s'\n", (*spec)->GetSpeciesName().c_str());
+      } else if ((*spec)->GetSID() == +species_id::rigid_filament) {
+        if ((*spec)->GetNInsert() > 0) {
+          if (filaments != nullptr or rigid_filaments != nullptr) {
+            printf("Error: only one filament species can be named 'Spindle'\n");
+            exit(1);
+          }
+          rigid_filaments = dynamic_cast<RigidFilamentSpecies *>((*spec));
+          printf("FOUND <<RIGID>> filaments - '%s'\n",
+                 (*spec)->GetSpeciesName().c_str());
+        }
       }
     }
     // Check for random insertion
@@ -508,9 +523,15 @@ void Simulation::InsertSpecies(bool force_overlap, bool processing) {
     }
   }
   // SF: next, get SPB crosslink species from interaction manager
-  if (centrosomes != nullptr and filaments != nullptr) {
-    printf("Anchoring filaments to SPBs\n");
-    centrosomes->AnchorFilaments(filaments, nullptr);
+  if (centrosomes != nullptr) {
+    if (filaments != nullptr) {
+      printf("Anchoring filaments to SPBs\n");
+      centrosomes->AnchorFilaments(filaments, true);
+    }
+    if (rigid_filaments != nullptr) {
+      printf("Anchoring rigid filaments to SPBs\n");
+      centrosomes->AnchorFilaments(rigid_filaments, false);
+    }
   }
 
   /* Initialize static crosslink positions */
@@ -529,6 +550,7 @@ void Simulation::InsertSpecies(bool force_overlap, bool processing) {
   ix_mgr_.CheckUpdateObjects(); // Forces update as well
   //}
   ix_mgr_.InsertAttachedCrosslinks(receptor_list_);
+  // Add SPBs to interaction manager if they exist w/ associated filaments
   if (centrosomes != nullptr and filaments != nullptr) {
     ix_mgr_.SetSPBs(centrosomes);
   }

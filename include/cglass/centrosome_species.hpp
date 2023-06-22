@@ -5,7 +5,7 @@
 #include "species.hpp"
 
 class FilamentSpecies;
-class CrosslinkSpecies;
+class RigidFilamentSpecies;
 
 class CentrosomeSpecies : public Species<Centrosome, species_id::centrosome> {
 
@@ -31,12 +31,12 @@ public:
   std::string GetFilamentSpeciesName() {
     return sparams_.filament_species_name;
   }
-  void AnchorFilaments(FilamentSpecies *filas, CrosslinkSpecies *teths);
+
+  void AnchorFilaments(SpeciesBase *filas, bool flexible);
 
   void UpdatePositions();
 
   void ApplyInteractions() {
-
     // SF TODO put calculations from UpdatePositions() here?
     for (auto &&centro : members_) {
       centro.ApplyInteractions();

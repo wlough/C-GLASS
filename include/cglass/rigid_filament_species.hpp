@@ -18,6 +18,14 @@ public:
 
   void AddMember();
 
+  void ArrangeMembers() {
+    if (GetInsertionType().compare("spb_anchored") == 0) {
+      return;
+    } else {
+      Species::ArrangeMembers();
+    }
+  }
+
   void Reserve();
   void UpdatePositions();
   void CustomInsert();
