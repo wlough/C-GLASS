@@ -121,6 +121,10 @@
   default_config["crosslink"]["anchors"][1]["velocity_s"] = "0";
   default_config["crosslink"]["anchors"][0]["velocity_d"] = "0";
   default_config["crosslink"]["anchors"][1]["velocity_d"] = "0";
+  default_config["crosslink"]["anchors"][0]["diffusion_s"] = "-1";
+  default_config["crosslink"]["anchors"][1]["diffusion_s"] = "-1";
+  default_config["crosslink"]["anchors"][0]["diffusion_d"] = "-1";
+  default_config["crosslink"]["anchors"][1]["diffusion_d"] = "-1";
   default_config["crosslink"]["anchors"][0]["color"] = "0";
   default_config["crosslink"]["anchors"][1]["color"] = "0";
   default_config["crosslink"]["anchors"][0]["bind_file"] = "none";

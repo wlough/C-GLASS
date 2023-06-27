@@ -199,6 +199,8 @@ struct species_parameters<species_id::crosslink>
   struct anchor_parameters {
     double velocity_s = 0;
     double velocity_d = 0;
+    double diffusion_s = -1;
+    double diffusion_d = -1;
     double color = 0;
     std::string bind_file = "none";
     bool use_partner = false;

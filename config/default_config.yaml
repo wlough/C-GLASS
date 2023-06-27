@@ -367,6 +367,12 @@ crosslink:                          # Parameters specific to crosslinks.
   anchors:
     velocity_s: [0, double]           # Bound crosslink head velocities when walkers are singly bound.
     velocity_d: [0, double]           # Bound crosslink head velocities when walkers are doubly bound.
+    diffusion_s: [-1, double]         # Diffusion coefficient for singly bound crosslinks, use to give
+                                      # heads separate diffusion constants.
+                                      # If not changed from -1 crosslinker diffusion parameter is used instead.
+    diffusion_d: [-1, double]         # Diffusion coefficient for doubly bound crosslinks, use to give
+                                      # heads separate diffusion constants.
+                                      # If not changed from -1 crosslinker diffusion parameter is used instead.
     color: [0, double]                # Anchor color
     bind_file: [none, string]         # File of species crosslink can bind to, and binding rates. If none, bind to
     use_partner: [false, bool]        # Load/unload partner protein- determines dynamic instability
