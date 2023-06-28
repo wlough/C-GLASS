@@ -762,6 +762,16 @@ species_base_parameters *parse_species_params(std::string sid,
               if (jt->second.size() < 2 || !jt->second[(int)!i]["velocity_d"]) {
                  params.anchors[(int)!i].velocity_d = params.anchors[i].velocity_d;
               }
+            } else if (sub_param_name.compare("diffusion_s")==0) {
+              params.anchors[i].diffusion_s = kt->second.as<double>();
+              if (jt->second.size() < 2 || !jt->second[(int)!i]["diffusion_s"]) {
+                 params.anchors[(int)!i].diffusion_s = params.anchors[i].diffusion_s;
+              }
+            } else if (sub_param_name.compare("diffusion_d")==0) {
+              params.anchors[i].diffusion_d = kt->second.as<double>();
+              if (jt->second.size() < 2 || !jt->second[(int)!i]["diffusion_d"]) {
+                 params.anchors[(int)!i].diffusion_d = params.anchors[i].diffusion_d;
+              }
             } else if (sub_param_name.compare("color")==0) {
               params.anchors[i].color = kt->second.as<double>();
               if (jt->second.size() < 2 || !jt->second[(int)!i]["color"]) {

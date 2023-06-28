@@ -12,7 +12,7 @@ void CrosslinkSpecies::Init(std::string spec_name, ParamsParser &parser) {
   begin_with_bound_crosslinks_ = sparams_.begin_with_bound_crosslinks;
   xlink_concentration_ = sparams_.concentration;
   infinite_reservoir_flag_ = sparams_.infinite_reservoir_flag;
-  if (sparams_.use_number=false) {
+  if (sparams_.use_number==false) {
     sparams_.num = (int)round(sparams_.concentration * space_->volume);
   }
   std::vector<std::string> bind_file = {sparams_.anchors[0].bind_file, sparams_.anchors[1].bind_file};

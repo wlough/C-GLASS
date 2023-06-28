@@ -17,8 +17,18 @@ void Anchor::Init(crosslink_parameters *sparams, int index) {
       (sparams_->step_direction == 0 ? 0 : SIGNOF(sparams_->step_direction));
   max_velocity_s_ = sparams->anchors[index_].velocity_s;
   max_velocity_d_ = sparams->anchors[index_].velocity_d;
-  diffusion_s_ = sparams->diffusion_s;
-  diffusion_d_ = sparams->diffusion_d;
+  //If anchor parameters are not set and at their default values use the crosslinker diffusion.
+  //If anchor parameters are set use the anchor parameters. 
+  if (sparams_->anchors[index_].diffusion_s == -1) {
+    diffusion_s_ = sparams->diffusion_s;
+  } else {
+    diffusion_s_ = sparams_->anchors[index_].diffusion_s;
+  }
+  if (sparams_->anchors[index_].diffusion_d == -1) {
+    diffusion_d_ = sparams->diffusion_d;
+  } else {
+    diffusion_d_ = sparams_->anchors[index_].diffusion_d;
+  }
   use_partner_ = sparams_->anchors[index_].use_partner;
   k_on_s_ = sparams_->anchors[index_].k_on_s;
   partner_on_s_ = sparams_->anchors[index_].partner_on_s;
