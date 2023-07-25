@@ -68,8 +68,9 @@ void Receptor::UpdatePosition() {
   if (params_->on_midstep || sparams_->stationary_flag)
     return;
   // Check that the PointCover is associated with a species
+  std::string edge_ = sparams_->on_edge;
   if (pc_species_) {
-    pc_species_->CalcPCPosition(i_, s_, position_);
+    pc_species_->CalcPCPosition(i_, s_, position_, edge_);
   }
   // Rescale position for periodic BC's
   UpdatePeriodic();

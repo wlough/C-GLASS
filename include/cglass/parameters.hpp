@@ -222,6 +222,7 @@ struct species_parameters<species_id::receptor>
   std::string component = "cortex";
   double concentration = -1;
   bool induce_catastrophe = false;
+  std::string on_edge = "no";
 };
 typedef species_parameters<species_id::receptor> receptor_parameters;
 

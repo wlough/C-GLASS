@@ -39,7 +39,7 @@ class FilamentSpecies : public Species<Filament, species_id::filament> {
   void UpdatePositions();
   void CleanUp();
   virtual const double GetSpecLength() const;
-  virtual void CalcPCPosition(int i, double s, double* pos);
+  virtual void CalcPCPosition(int i, double s, double* pos, std::string edge);
   // Redundant for filaments.
   virtual void CenteredOrientedArrangement() {}
 

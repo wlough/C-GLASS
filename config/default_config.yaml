@@ -387,3 +387,5 @@ receptor:
   component: [cortex, string]       # The mesh object that holds receptor sites
   concentration: [-1, double]       # Number of receptors per unit area (3D) or length (2D) of component
   induce_catastrophe: [false, bool] # Induce catastrophe when xlinked to filament
+  on_edge: [no, string]             # Receptors are on edge instead of middle of filaments. Only set up for
+                                    # rigid filaments that don't rotate. Options are no, top, or bottom.

@@ -180,6 +180,7 @@
   default_config["receptor"]["component"] = "cortex";
   default_config["receptor"]["concentration"] = "-1";
   default_config["receptor"]["induce_catastrophe"] = "false";
+  default_config["receptor"]["on_edge"] = "no";
   default_config["seed"] = "7859459105545";
   default_config["n_runs"] = "1";
   default_config["n_random"] = "1";

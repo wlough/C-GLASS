@@ -283,9 +283,18 @@ int Object::GetCount() { return 1; }
 void Object::GetInteractors(std::vector<Object *> &ix) {
   ix.insert(ix.end(), interactors_.begin(), interactors_.end());
 }
-void Object::CalcPCPosition(double s, double* pos) {
+void Object::CalcPCPosition(double s, double* pos, std::string edge) {
   for (int j = 0; j < n_dim_; ++j) {
     pos[j] = position_[j] + orientation_[j]*s;
+  }
+  if (edge=="no") {
+    return;
+  }
+  if (edge=="top") {
+    pos[1]+=0.5 * diameter_;
+  }
+  if (edge=="bottom") {
+    pos[1]-=0.5 * diameter_;
   }
 }
 double const *const Object::GetInteractorPosition() { return GetPosition(); }
