@@ -103,7 +103,7 @@ public:
   virtual double const GetVolume() { return 0; }
   virtual PointCover* GetPC() { return nullptr; }
   virtual Object* GetMember(int i) { return nullptr; }
-  virtual void CalcPCPosition(int, double, double*) {}
+  virtual void CalcPCPosition(int, double, double*, std::string) {}
   virtual double const GetDrMax() { return 0; }
   virtual void ZeroDrTot() {}
   virtual void CustomInsert() {}

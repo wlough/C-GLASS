@@ -56,6 +56,7 @@ void ReceptorSpecies::AddMember() {
   pc_->AddSpherePtr(&(members_.back()));
   double pos[3] =  {0,0,0};
   double u[3] = {1,0,0};
+  std::string edge_=sparams_.on_edge;
   if (sparams_.insertion_type.compare("random") == 0) {
     if (!pc_species_) {
       rng_.RandomBoundaryCoordinate(space_, pos);
@@ -63,7 +64,7 @@ void ReceptorSpecies::AddMember() {
       // TO-DO: make more efficient for non-rod objects
       s_ = 2 * smax_ * (rng_.RandomUniform()-0.5);
       i_ = rng_.RandomInt(n_members_pc_);
-      pc_species_->CalcPCPosition(i_, s_, pos);
+      pc_species_->CalcPCPosition(i_, s_, pos, edge_);
       members_.back().SetLocations(i_, s_);
       members_.back().SetPCObject(pc_species_->GetMember(i_));
       //PC object seperatly for sphere class
@@ -81,7 +82,7 @@ void ReceptorSpecies::AddMember() {
         }
         s_ = s0_;
       }
-      pc_species_->CalcPCPosition(i_, s_, pos);
+      pc_species_->CalcPCPosition(i_, s_,pos ,edge_);
       members_.back().SetLocations(i_, s_);
       members_.back().SetPCObject(pc_species_->GetMember(i_));
       members_.back().SetPCObjectForSphere(pc_species_->GetMember(i_));

@@ -859,6 +859,8 @@ species_base_parameters *parse_species_params(std::string sid,
       params.concentration = jt->second.as<double>();
       } else if (param_name.compare("induce_catastrophe")==0) {
       params.induce_catastrophe = jt->second.as<bool>();
+      } else if (param_name.compare("on_edge")==0) {
+      params.on_edge = jt->second.as<std::string>();
       } else {
         Logger::Warning("Unrecognized %s parameter: '%s'", sid.c_str(), param_name.c_str());
       }

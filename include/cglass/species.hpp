@@ -58,8 +58,8 @@ public:
 
   /* Calculate the position of a PointCover site (i refers to the member index,
   and s is the length along the member object). pos holds return position. */
-  virtual void CalcPCPosition(int i, double s, double* pos) { 
-    members_[i].CalcPCPosition(s, pos);
+  virtual void CalcPCPosition(int i, double s, double* pos, std::string edge) {
+    members_[i].CalcPCPosition(s, pos, edge);
   }
   virtual Object* GetMember(int i) { 
     return &members_[i];
