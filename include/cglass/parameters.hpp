@@ -21,6 +21,7 @@ template <unsigned char S> struct species_parameters {
   int n_spec = 100;
   bool stationary_flag = false;
   int stationary_until = -1;
+  bool output_force_file = false;
   virtual ~species_parameters() {}
 };
 

@@ -468,6 +468,11 @@ void Object::WritePosit(std::fstream &oposit) {
   oposit.write(reinterpret_cast<char *>(&length_), sizeof(length_));
 }
 
+void Object::WriteForce(std::fstream &force_file) {
+  for (auto &frc_file : force_)
+    force_file.write(reinterpret_cast<char *>(&frc_file), sizeof(frc_file));
+}
+
 void Object::ReadPosit(std::fstream &iposit) {
   if (iposit.eof())
     return;

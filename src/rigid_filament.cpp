@@ -28,6 +28,9 @@ void RigidFilament::Init(rigid_filament_parameters *sparams) {
   Reserve();
   InsertRigidFilament(sparams_->insertion_type, -1);
   SetDiffusion();
+  //if (sparams_->output_force_file==true) {
+  //  OpenForceFile();
+  //}
 }
 
 /* Returns number of bonds to initialize */
@@ -392,6 +395,23 @@ void RigidFilament::ScalePosition() {
 
 void RigidFilament::ReportAll() {}
 
+//void RigidFilament::OpenForceFile() {
+//  Logger::Trace("Opening force file for rigid filament");
+//  std::string sid_str = sid_._to_string();
+//  std::string force_file_name =
+//      std::string("run_name") + "_" + sid_str + "_" + "rig" + ".force";
+//  force_file_.open(force_file_name, std::ios::out | std::ios::binary);
+//  if (!force_file_.is_open()) {
+//    Logger::Error("Output file %s did not open", force_file_name.c_str());
+//  }
+//  int n_force = sparams_->n_spec;
+//  int n_steps = params_->n_steps;
+//  double delta = params_->delta;
+//  force_file_.write(reinterpret_cast<char *>(&n_force), sizeof(int));
+  //force_file_.write(reinterpret_cast<char *>(&n_posit), sizeof(int));
+//  force_file_.write(reinterpret_cast<char *>(&delta), sizeof(double));
+//}
+
 void RigidFilament::WriteSpec(std::fstream &ospec) {
   Logger::Trace("Writing rigid filament specs, object id: %d", GetOID());
   Mesh::WriteSpec(ospec);
@@ -421,6 +441,14 @@ void RigidFilament::WritePosit(std::fstream &oposit) {
   oposit.write(reinterpret_cast<char *>(&length_), sizeof(length_));
   auto comp_id = GetCompID();
   oposit.write(reinterpret_cast<char *>(&comp_id), sizeof(comp_id));
+}
+
+void RigidFilament::WriteForce(std::fstream &force_file) {
+  UpdatePeriodic();
+  if (sparams_->output_force_file==true){
+    for (auto &frc : force_)
+     force_file.write(reinterpret_cast<char *>(&frc), sizeof(frc));
+  }
 }
 
 /* double[3] avg_pos

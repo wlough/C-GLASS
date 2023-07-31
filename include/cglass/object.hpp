@@ -175,6 +175,7 @@ public:
   // I/O functions
   virtual void Report();
   virtual void WritePosit(std::fstream &oposit);
+  virtual void WriteForce(std::fstream &frc_file);
   virtual void ReadPosit(std::fstream &iposit);
   virtual void WriteSpec(std::fstream &ospec);
   virtual void ReadSpec(std::fstream &ispec);

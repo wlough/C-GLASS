@@ -19,6 +19,7 @@ class Simulation {
   double cpu_init_time_;
   std::string run_name_;
   std::vector<std::string> posit_files_;
+  std::vector<std::string> force_file_;
   std::vector<std::vector<Object *>> receptor_list_;
   int tube_count = 0;
   OutputManager output_mgr_;

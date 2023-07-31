@@ -134,6 +134,8 @@ species:                             # Shared parameters used for all species.
   stationary_flag: [false, bool]     # If true, members will not move regardless of forces on them.
   stationary_until: [-1, int]        # Species wont move until specified time step, overwritten by
                                      # stationary flag, currently only implemented for rigid/flexable filaments
+  output_force_file: [false, bool]   # If set to true an output file will be created that records the force.
+                                     # Sampling rate matchs n_spec. 
 
 rigid_filament:
   max_length: [500, double]          # maximum filament length. also used for dynamic instability.

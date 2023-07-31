@@ -26,6 +26,22 @@ void SpeciesBase::InitPositFile(std::string run_name) {
   oposit_file_.write(reinterpret_cast<char *>(&delta), sizeof(double));
 }
 
+void SpeciesBase::InitForceFile(std::string run_name) {
+  std::string sid_str = sid_._to_string();
+  std::string force_file_name =
+      run_name + "_" + sid_str + "_" + GetSpeciesName() + ".force";
+  force_file_.open(force_file_name, std::ios::out | std::ios::binary);
+  if (!force_file_.is_open()) {
+    Logger::Error("Output file %s did not open", force_file_name.c_str());
+  }
+  int n_force = GetNPosit();
+  int n_steps = params_->n_steps;
+  double delta = params_->delta;
+  force_file_.write(reinterpret_cast<char *>(&n_steps), sizeof(int));
+  force_file_.write(reinterpret_cast<char *>(&n_force), sizeof(int));
+  force_file_.write(reinterpret_cast<char *>(&delta), sizeof(double));
+}
+
 void SpeciesBase::InitPositFileInput(std::string run_name) {
   std::string sid_str = sid_._to_string();
   std::string posit_file_name =
@@ -176,6 +192,8 @@ void SpeciesBase::InitOutputFiles(std::string run_name) {
                 GetSpeciesName().c_str());
   if (GetPositFlag())
     InitPositFile(run_name);
+  if (GetForceFlag())
+    InitForceFile(run_name);
   if (GetSpecFlag())
     InitSpecFile(run_name);
   if (GetCheckpointFlag())
@@ -234,5 +252,7 @@ void SpeciesBase::CloseFiles() {
     ispec_file_.close();
   if (ospec_text_file_.is_open())
     ospec_file_.close();
+  if (force_file_.is_open())
+    force_file_.close();
   // FinalizeAnalysis();
 }
