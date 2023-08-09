@@ -75,6 +75,7 @@ public:
     std::copy(constrain_vec, constrain_vec + 3, constrain_vec_);
   }
   void WritePosit(std::fstream &oposit);
+  void WriteForce(std::fstream &frc_file);
   void ReadPosit(std::fstream &iposit);
   void WriteSpec(std::fstream &ospec);
   void ReadSpec(std::fstream &ispec);

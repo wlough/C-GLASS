@@ -423,6 +423,13 @@ void RigidFilament::WritePosit(std::fstream &oposit) {
   oposit.write(reinterpret_cast<char *>(&comp_id), sizeof(comp_id));
 }
 
+void RigidFilament::WriteForce(std::fstream &force_file) {
+  UpdatePeriodic();
+  for (auto &frc : force_){
+   force_file.write(reinterpret_cast<char *>(&frc), sizeof(frc));
+  }
+}
+
 /* double[3] avg_pos
    double[3] avg_scaled_pos
    double[3] avg_orientation

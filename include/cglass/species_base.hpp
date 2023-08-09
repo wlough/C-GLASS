@@ -22,6 +22,7 @@ protected:
   std::fstream ospec_text_file_;
   std::fstream ospec_file_;
   std::fstream ispec_file_;
+  std::fstream force_file_;
   std::string checkpoint_file_;
   std::vector<std::string> spec_file_names_;
 
@@ -60,6 +61,7 @@ public:
   virtual int const GetNSpec() const { return -1; }
   virtual int const GetNCheckpoint() const { return params_->n_checkpoint; }
   virtual bool const GetPositFlag() const { return false; }
+  virtual bool const GetForceFlag() const { return false; }
   virtual bool const GetSpecFlag() const { return false; }
   virtual bool const IsStationary() const { return false; }
   virtual bool const GetCheckpointFlag() const {
@@ -71,6 +73,7 @@ public:
   virtual int GetCount() const { return 0; }
   virtual void WriteOutputs(std::string run_name) {}
   virtual void WritePosits() {}
+  virtual void WriteForces() {}
   virtual void WriteSpecs() {}
   virtual void WriteCheckpoints() {}
   virtual void ReadSpecs() {}
@@ -84,6 +87,7 @@ public:
   virtual void InitOutputFiles(std::string run_name);
   virtual void InitConvertFiles(std::string run_name);
   virtual void InitPositFile(std::string run_name);
+  virtual void InitForceFile(std::string run_name);
   virtual void InitSpecFile(std::string run_name);
   virtual void InitConvertSpecFile(std::string run_name);
   virtual void InitPositFileInput(std::string run_name);

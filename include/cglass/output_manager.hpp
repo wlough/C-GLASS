@@ -7,6 +7,7 @@
 template <class T> class OutputManagerBase {
 private:
   bool posit_flag_ = false;
+  bool output_force_file_ = false;
   bool spec_flag_ = false;
   bool checkpoint_flag_ = false;
   bool thermo_flag_ = false;
@@ -27,6 +28,7 @@ private:
   std::vector<T *> *species_;
   SpaceBase *space_;
   void WritePosits();
+  void WriteForces();
   void WriteSpecs();
   void WriteCheckpoints();
   virtual void WriteThermo();
@@ -105,6 +107,12 @@ void OutputManagerBase<T>::Init(system_parameters *params,
         n_posit_ = (*it)->GetNPosit();
       }
     }
+    if ((*it)->GetForceFlag()) {
+      output_force_file_ = true;
+      if ((*it)->GetNPosit() < n_posit_) {
+        n_posit_ = (*it)->GetNPosit();
+      }
+    }
     if ((*it)->GetSpecFlag()) {
       spec_flag_ = true;
       if ((*it)->GetNSpec() < n_spec_) {
@@ -123,6 +131,9 @@ void OutputManagerBase<T>::Init(system_parameters *params,
 template <class T> void OutputManagerBase<T>::WriteOutputs() {
   if (posit_flag_ && (params_->i_step % (inv_step_fact_*n_posit_) == 0)) {
     WritePosits();
+  }
+  if (output_force_file_ && (params_->i_step % (inv_step_fact_*n_posit_) == 0)) {
+    WriteForces();
   }
   if (spec_flag_ && params_->i_step != params_->prev_step && 
      (params_->i_step % (inv_step_fact_*n_spec_) == 0)) {
@@ -147,6 +158,16 @@ template <class T> void OutputManagerBase<T>::WritePosits() {
         params_->i_step != params_->prev_step &&
         params_->i_step % (inv_step_fact_*(*spec)->GetNPosit()) == 0) {
       (*spec)->WritePosits();
+    }
+  }
+}
+
+template <class T> void OutputManagerBase<T>::WriteForces() {
+  for (auto spec = species_->begin(); spec != species_->end(); ++spec) {
+    if ((*spec)->GetForceFlag() &&
+        params_->i_step != params_->prev_step &&
+        params_->i_step % (inv_step_fact_*(*spec)->GetNPosit()) == 0) {
+      (*spec)->WriteForces();
     }
   }
 }
@@ -257,6 +278,12 @@ template <class T> void OutputManagerBase<T>::WriteReduce() {
         params_->i_step % (inv_step_fact_ * reduce_factor_ * 
         (*spec)->GetNPosit()) == 0) {
       (*spec)->WritePosits();
+    }
+    if ((*spec)->GetForceFlag() &&
+        params_->i_step != params_->prev_step &&
+        params_->i_step % (inv_step_fact_ * reduce_factor_ *
+        (*spec)->GetNPosit()) == 0) {
+      (*spec)->WriteForces();
     }
     if (!posits_only_ && (*spec)->GetSpecFlag() &&
         params_->i_step != params_->prev_step &&

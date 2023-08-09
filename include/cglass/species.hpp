@@ -51,6 +51,7 @@ public:
   virtual const int GetNPosit() const { return sparams_.n_posit; }
   virtual const int GetNSpec() const { return sparams_.n_spec; }
   virtual const bool GetPositFlag() const { return sparams_.posit_flag; }
+  virtual const bool GetForceFlag() const { return sparams_.output_force_file; }
   virtual const bool GetSpecFlag() const { return sparams_.spec_flag; }
   virtual const bool IsStationary() const { return sparams_.stationary_flag; }
   virtual const std::string GetSpeciesName() const { return sparams_.name; }
@@ -84,6 +85,7 @@ public:
   virtual void Report();
   virtual int GetCount();
   virtual void WritePosits();
+  virtual void WriteForces();
   virtual void WriteSpecs();
   virtual void WriteCheckpoints();
   virtual void ReadPosits();
@@ -285,6 +287,13 @@ template <typename T, unsigned char S> void Species<T, S>::WritePosits() {
   oposit_file_.write(reinterpret_cast<char *>(&size), sizeof(int));
   for (auto it = members_.begin(); it != members_.end(); ++it)
     it->WritePosit(oposit_file_);
+}
+
+template <typename T, unsigned char S> void Species<T, S>::WriteForces() {
+  int size = members_.size();
+  force_file_.write(reinterpret_cast<char *>(&size), sizeof(int));
+  for (auto it = members_.begin(); it != members_.end(); ++it)
+    it->WriteForce(force_file_);
 }
 
 template <typename T, unsigned char S> void Species<T, S>::WriteSpecs() {
