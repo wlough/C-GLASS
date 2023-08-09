@@ -32,6 +32,8 @@ system_parameters parse_system_params(YAML::Node &node) {
     params.n_steps = it->second.as<int>();
     } else if (param_name.compare("i_step")==0) {
     params.i_step = it->second.as<int>();
+    } else if (param_name.compare("t_step")==0) {
+    params.t_step = it->second.as<double>();
     } else if (param_name.compare("on_midstep")==0) {
     params.on_midstep = it->second.as<bool>();
     } else if (param_name.compare("prev_step")==0) {
@@ -278,6 +280,12 @@ species_base_parameters *parse_species_params(std::string sid,
       params.packing_fraction = jt->second.as<double>();
       } else if (param_name.compare("n_equil")==0) {
       params.n_equil = jt->second.as<int>();
+      } else if (param_name.compare("forced_slide_speed")==0) {
+      params.forced_slide_speed = jt->second.as<double>();
+      } else if (param_name.compare("slide_start_time")==0) {
+      params.slide_start_time = jt->second.as<double>();
+      } else if (param_name.compare("slide_end_point")==0) {
+      params.slide_end_point = jt->second.as<double>();
       } else {
         Logger::Warning("Unrecognized %s parameter: '%s'", sid.c_str(), param_name.c_str());
       }

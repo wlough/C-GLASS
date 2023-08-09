@@ -269,6 +269,22 @@ void RigidFilament::UpdatePosition() {
   if (!params_->on_midstep && !sparams_->stationary_flag && (sparams_->stationary_until)<eq_steps_count_)
     Integrate();
   eq_steps_count_++;
+
+  //Filament will slide if sliding speed isn't 0, slide_start time is surpassed, and filament hasn't reached the end point
+  //Seperate if statements are there to use different inequality signs depending on slide direction.
+  bool should_slide = false;
+  if (sparams_->forced_slide_speed == 0)
+    should_slide = false;
+  else if (sparams_->forced_slide_speed<=0)
+    should_slide = (params_->t_step > sparams_->slide_start_time && position_[0] > sparams_->slide_end_point && !params_->on_midstep);
+  else if (sparams_->forced_slide_speed>=0)
+    should_slide = (params_->t_step > sparams_->slide_start_time && position_[0] < sparams_->slide_end_point && !params_->on_midstep);
+  if (should_slide == true) {
+    position_[0] += (sparams_->forced_slide_speed)*params_->delta;
+    UpdatePeriodic();
+    UpdateSitePositions();
+    UpdateBondPositions();
+  }
 }
 
 void RigidFilament::GetNematicOrder(double *nematic_order_tensor) {

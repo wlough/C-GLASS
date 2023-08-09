@@ -36,6 +36,9 @@ struct species_parameters<species_id::rigid_filament>
   bool constrain_to_move_in_y = false;
   double packing_fraction = -1;
   int n_equil = 0;
+  double forced_slide_speed = 0;
+  double slide_start_time = 0;
+  double slide_end_point = 0;
 };
 typedef species_parameters<species_id::rigid_filament> rigid_filament_parameters;
 
@@ -238,6 +241,7 @@ struct system_parameters {
   double system_radius = 100;
   int n_steps = 1000000;
   int i_step = 0;
+  double t_step = 0;
   bool on_midstep = false;
   int prev_step = 0;
   double delta = 0.001;
