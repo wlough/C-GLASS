@@ -21,6 +21,9 @@
   default_config["rigid_filament"]["constrain_to_move_in_y"] = "false";
   default_config["rigid_filament"]["packing_fraction"] = "-1";
   default_config["rigid_filament"]["n_equil"] = "0";
+  default_config["rigid_filament"]["forced_slide_speed"] = "0";
+  default_config["rigid_filament"]["slide_start_time"] = "0";
+  default_config["rigid_filament"]["slide_end_point"] = "0";
   default_config["filament"]["packing_fraction"] = "-1";
   default_config["filament"]["persistence_length"] = "400";
   default_config["filament"]["perlen_ratio"] = "-1";
@@ -192,6 +195,7 @@
   default_config["system_radius"] = "100";
   default_config["n_steps"] = "1000000";
   default_config["i_step"] = "0";
+  default_config["t_step"] = "0";
   default_config["on_midstep"] = "false";
   default_config["prev_step"] = "0";
   default_config["delta"] = "0.001";

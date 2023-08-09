@@ -15,6 +15,7 @@ boundary : [0, int]                  # 0: No boundary condition constraints.
 system_radius : [100, double]        # Sets system volume. 1D system length is 2 x system_radius.
 n_steps : [1000000, int]             # Number of steps to run simulation before completion.
 i_step: [0, int]                     # Internal parameter used for tracking simulation iteration.
+t_step: [0, double]                     # Internal parameter used for tracking simulation time.
 on_midstep: [false, bool]               # Internal parameter, whether current step is midstep.
 prev_step: [0, int]                  # Internal parameter, previous simulation iteration.
 delta : [0.001, double]              # Simulation time duration between each simulation step.
@@ -149,6 +150,9 @@ rigid_filament:
   packing_fraction: [-1, double]    # if num > 0, and packing fraction > 0, filaments are inserted
   #                                  # until the ratio filament to system volumes match this value.
   n_equil: [0, int]                 # internal filament parameter used for shuffling.
+  forced_slide_speed: [0, double]   # If forced slide speed is set filaments moves at the set fixed speed in the
+  slide_start_time: [0, double]     # x direction starting at slide_start_time until their centers reach
+  slide_end_point: [0, double]      # slide_end_point
 
 filament:                            # Parameters unique to filament class of objects.
   packing_fraction: [-1, double]    # if num > 0, and packing fraction > 0, filaments are inserted
