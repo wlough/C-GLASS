@@ -281,7 +281,7 @@ template <class T> void OutputManagerBase<T>::WriteReduce() {
     }
     if ((*spec)->GetForceFlag() &&
         params_->i_step != params_->prev_step &&
-        params_->i_step % (inv_step_fact_ * reduce_factor_ * 
+        params_->i_step % (inv_step_fact_ * reduce_factor_ *
         (*spec)->GetNPosit()) == 0) {
       (*spec)->WriteForces();
     }

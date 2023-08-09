@@ -67,7 +67,6 @@ public:
     return clen;
   }
   void WritePosit(std::fstream &oposit);
-  void WriteForce(std::fstream &frc_file);
   void ReadPosit(std::fstream &iposit);
   void WriteSpec(std::fstream &ospec);
   void ReadSpec(std::fstream &ispec);

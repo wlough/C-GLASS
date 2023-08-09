@@ -4,11 +4,10 @@
 #include "exponential_dist.hpp"
 #include "flory_schulz.hpp"
 #include "mesh.hpp"
-#include <fstream>
 
 class RigidFilament : public Mesh {
 private:
-  rigid_filament_parameters *sparams_; 
+  rigid_filament_parameters *sparams_;
   double gamma_par_ = 0;
   double gamma_perp_ = 0;
   double gamma_rot_ = 0;
@@ -34,7 +33,6 @@ private:
 
   void UpdateSitePositions();
 
-  void OpenForceFile();
   void ApplyForcesTorques();
   void ApplyForcesTorquesYOnly();
   void ApplyInteractionForces();
