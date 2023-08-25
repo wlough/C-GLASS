@@ -610,6 +610,9 @@ void Simulation::GetGraphicsStructure() {
   for (auto it = species_.begin(); it != species_.end(); ++it) {
     (*it)->Draw(graph_array_);
   }
+  if (space_.boundary_ == +boundary_type::mesh) {
+    space_.s.mesh_.Draw(graph_array_);
+  }
   /* Visualize interaction forces, crosslinks, etc */
   ix_mgr_.DrawInteractions(graph_array_);
 }

@@ -859,7 +859,43 @@ void Graphics::Draw3d() {
   glfwSwapBuffers(window_);
 }
 
+// SAF TODO: incorporate triangle mesh drawing here
 void Graphics::DrawBoundary() {
+  if (boundary_ == +boundary_type::mesh) {
+    // glDisable(GL_LIGHTING);
+    // glDisable(GL_CULL_FACE);
+    for (int i_tri{0}; i_tri < space_->mesh_.tris_.size(); i_tri++) {
+      Triangle *tri{&space_->mesh_.tris_[i_tri]};
+      // glBegin(GL_TRIANGLES);
+      // glVertex3f(tri->vrts_[0]->pos_[0], tri->vrts_[0]->pos_[1],
+      //            tri->vrts_[0]->pos_[2]);
+      // glVertex3f(tri->vrts_[1]->pos_[0], tri->vrts_[1]->pos_[1],
+      //            tri->vrts_[1]->pos_[2]);
+      // glVertex3f(tri->vrts_[2]->pos_[0], tri->vrts_[2]->pos_[1],
+      //            tri->vrts_[2]->pos_[2]);
+      // glEnd();
+      glBegin(GL_LINES);
+      // node 0 to node 1
+      glVertex3f(tri->vrts_[0]->pos_[0], tri->vrts_[0]->pos_[1],
+                 tri->vrts_[0]->pos_[2]);
+      glVertex3f(tri->vrts_[1]->pos_[0], tri->vrts_[1]->pos_[1],
+                 tri->vrts_[1]->pos_[2]);
+      // node 1 to node 2
+      glVertex3f(tri->vrts_[1]->pos_[0], tri->vrts_[1]->pos_[1],
+                 tri->vrts_[1]->pos_[2]);
+      glVertex3f(tri->vrts_[2]->pos_[0], tri->vrts_[2]->pos_[1],
+                 tri->vrts_[2]->pos_[2]);
+      // node 2 to node 0
+      glVertex3f(tri->vrts_[2]->pos_[0], tri->vrts_[2]->pos_[1],
+                 tri->vrts_[2]->pos_[2]);
+      glVertex3f(tri->vrts_[0]->pos_[0], tri->vrts_[0]->pos_[1],
+                 tri->vrts_[0]->pos_[2]);
+      glEnd();
+    }
+    // for (int i_tri{0}; i_tri < space_->mesh_.tris_.size(); i_tri++) {
+    //   Triangle *tri{&space_->mesh_.tris_[i_tri]};
+    // }
+  }
   if (boundary_ == +boundary_type::none)
     return;
   glUseProgram(0);
@@ -882,6 +918,9 @@ void Graphics::DrawBoundary() {
     DrawBox();
   else if (boundary_ == +boundary_type::budding)
     DrawBudding();
+  else if (boundary_ == +boundary_type::mesh) {
+    DrawMesh();
+  }
 }
 
 void Graphics::DrawWireSphere(double r, int lats, int longs) {

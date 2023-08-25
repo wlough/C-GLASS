@@ -2,8 +2,8 @@ seed: 114222003020845
 run_name: testino
 n_dim: 3
 n_periodic: 0
-boundary: 2
-system_radius: 15 # 55
+boundary: 5
+system_radius: 15
 delta: 2.5e-5
 dynamic_timestep: false
 dynamic_timestep_ramp: 0.0001
@@ -41,7 +41,7 @@ centrosome:
     insertion_type: bioriented # normal change 'normal' to 'adjacent'
     draw_type: fixed
     color: 1.5
-    num: 2
+    num: 0 # 2
     num_anchors_ea: 6 # 5 
     length: 0.5
     diameter: 9.5
@@ -51,17 +51,17 @@ centrosome:
     wall_ne: 24.615
     wall_kr: 9999 # 9999 # 999.99
 rigid_filament:
-  - name: SPINDLE
+  - name: SPANDLE
    # draw_type: orientation
     insertion_type: spb_anchored
-    num: 12
+    num: 0 #12
     length: 20
 filament:
-  - name: SPANDLE
-    insertion_type: random # spb_anchored
+  - name: SPINDLE
+    insertion_type: spb_anchored
     draw_type: fixed
     color: 2
-    num: 0 # 12 # 12 #5 # 10
+    num:  0 # 12 # 12 #5 # 10
     length: 20 # 75 # 5
     min_length: 2
     max_length: 30 # 110  # SF TODO no upper cap in NAB -- possible in C-GLASS?

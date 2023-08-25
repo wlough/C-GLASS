@@ -6,11 +6,13 @@
 #include <math.h>
 
 class Space {
+public:
+  boundary_type boundary_;
+
 private:
   // geometric data
   int n_dim_ = -1;
   int n_periodic_ = -1;
-  boundary_type boundary_;
   std::string boundary_type_string_;
   double radius_ = 0;
   double volume_ = 0;
@@ -43,7 +45,11 @@ private:
   double mu_[9];               // scaling matrix for constant pressure
 
   system_parameters *params_;
+
+public:
   SpaceBase s;
+
+private:
   void InitUnitCell();
   void InitSpaceStruct();
   void CalculateVolume();
