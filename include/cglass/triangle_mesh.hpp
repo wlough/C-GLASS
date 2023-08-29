@@ -17,7 +17,7 @@ struct Vertex {
     pos_[0] = x;
     pos_[1] = y;
     pos_[2] = z;
-    g_ = {{0, 0, 0}, {0, 0, 0}, 0, 0, 0, draw_type::orientation};
+    g_ = {{x, y, z}, {0, 0, 0}, 0, 1.0, M_PI, draw_type::orientation};
   }
 };
 
@@ -44,17 +44,15 @@ private:
   int numVrt_ = -1;
   int numTri_ = -1;
 
-  std::vector<std::vector<int>> indVert_;
-
   std::vector<Vertex> verts_;
-  //   std::vector<Edge> edges_;
 
 public:
   std::vector<Triangle> tris_;
 
 private:
   void MakeIcosahedron();
-  void MakeIcosphere();
+  //   void MakeIcosphere();
+  void DivideFaces();
   void ProjectToUnitSphere();
 
 public:
