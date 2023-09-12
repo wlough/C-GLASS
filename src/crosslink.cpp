@@ -97,7 +97,7 @@ void Crosslink::FreeKMC () {
     }
     double perp_distance = sqrt(perp_distance_sq);
     double prob_factor = 0;
-    double bind_radius=sparams_->f_to_s_radius*.5;
+    double bind_radius=sparams_->f_to_s_radius;
     //Calculate chance to bind if rod is within bind radius of crosslink, currently only set up for rods parallel to the xaxis like in the protrusion simulations
     if (perp_distance <= bind_radius) {
       //Don't bind if past the edges of the rod
