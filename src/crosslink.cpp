@@ -107,20 +107,20 @@ void Crosslink::FreeKMC () {
       //Binding to interior section of rod
       else if (anchor_pos[0]>=(rod_pos[0]-.5*obj_length+bind_radius) || anchor_pos[0]<=(rod_pos[0]+.5*obj_length+bind_radius) ) {
         double length_in_sphere=2*sqrt(SQR(bind_radius)-SQR(perp_distance));
-        prob_factor=length_in_sphere*sparams_->f_to_s_rate*delta_;
+        prob_factor=length_in_sphere*sparams_->f_to_s_rate*bind_site_density_*delta_;
       }
       //Binding where the crosslink is at the edge of the rod
       else if (anchor_pos[0]<=(rod_pos[0]-.5*obj_length+bind_radius) || anchor_pos[0]>=(rod_pos[0]-.5*obj_length-bind_radius) ) {
         double sphere_rod_int=anchor_pos[0]+sqrt(SQR(bind_radius)-SQR(perp_distance));
         double end_of_rod=rod_pos[0]-bind_radius;
         double length_in_sphere=sphere_rod_int-end_of_rod;
-        prob_factor=length_in_sphere*sparams_->f_to_s_rate*delta_;
+        prob_factor=length_in_sphere*sparams_->f_to_s_rate*bind_site_density_*delta_;
       }
       else if (anchor_pos[0]>=(rod_pos[0]+.5*obj_length-bind_radius) || anchor_pos[0]<=(rod_pos[0]+.5*obj_length+bind_radius) ) {
         double sphere_rod_int=anchor_pos[0]-sqrt(SQR(bind_radius)-SQR(perp_distance));
         double end_of_rod=rod_pos[0]+bind_radius;
         double length_in_sphere=end_of_rod-sphere_rod_int;
-        prob_factor=length_in_sphere*sparams_->f_to_s_rate*delta_;
+        prob_factor=length_in_sphere*sparams_->f_to_s_rate*bind_site_density_*delta_;
       }
     }
     total_bind_prop+=prob_factor;
