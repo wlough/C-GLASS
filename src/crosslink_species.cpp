@@ -224,9 +224,9 @@ void CrosslinkSpecies::InsertCrosslinks() {
     return;
   } else if (sparams_.insertion_type.compare("free") == 0) {
     Logger::Info("Inserting %i unbound crosslinks", sparams_.num);
-    if (space_->type != +boundary_type::sphere) {
-      Logger::Error("Tracking unbound crosslinkers not set up for current boundry type");
-    } else if (space_->type == +boundary_type::sphere) {
+if (space_->type != +boundary_type::sphere  && space_->type != +boundary_type::protrusion) {
+    Logger::Error("Tracking unbound crosslinkers not set up for current boundry type");
+    } else if (space_->type == +boundary_type::sphere || space_->type == +boundary_type::protrusion) {
       for (int i = 0; i < sparams_.num; ++i) {
         AddMember();
         members_.back().InsertRandom(); 
@@ -262,7 +262,7 @@ void CrosslinkSpecies::InsertCrosslinks() {
           space_->type == +boundary_type::box) {
         sparams_.num = (int)round(4 * space_->radius * space_->radius *
                                   xlink_concentration_);
-      } else if (space_->type == +boundary_type::sphere) {
+      } else if (space_->type == +boundary_type::sphere || space_->type == +boundary_type::protrusion) {
         sparams_.num = (int)round(M_PI * space_->radius * space_->radius *
                                   xlink_concentration_);
       } else if (space_->type == +boundary_type::budding) {

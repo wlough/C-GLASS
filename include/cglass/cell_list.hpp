@@ -22,7 +22,7 @@ private:
 
 public:
   CellList() {}
-  static void Init(int n_dim, int n_periodic, double system_radius);
+  static void Init(int n_dim, int n_periodic, double system_radius, bool turn_off_cell_list);
   static void SetMinCellLength(double l);
   static double GetCellLength();
   void MakePairs(std::vector<Interaction> &pair_list);

@@ -13,6 +13,17 @@ double SpaceBase::BoundaryArea() const{
         return 4 * M_PI * SQR(radius);
       }
     } 
+    //Protrusion currently set to have same area of sphere
+    //for simulations with protrusions this is only used to
+    //decide object number from concentration
+    case +boundary_type::protrusion: {
+      Logger::Info("Passing through for protrusion");
+      if (n_dim == 2) {
+        return 2.0 * M_PI * radius;
+      } else {
+        return 4 * M_PI * SQR(radius);
+      }
+    }
     case +boundary_type::box: {
       if (n_dim == 2) {
         return 8.0 * radius;

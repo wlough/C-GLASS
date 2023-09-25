@@ -782,6 +782,17 @@ void Graphics::DrawBoundary() {
     DrawBox();
   else if (boundary_ == +boundary_type::budding)
     DrawBudding();
+  else if (boundary_ == +boundary_type::protrusion) {
+    glDisable(GL_LIGHTING);
+    glDisable(GL_CULL_FACE);
+    if (n_dim_ == 2){
+      Logger::Error("Protrusion not set up for 2d");
+    }
+    if (n_dim_ == 3){
+      DrawWireSphere(0.5 * unit_cell_[0], 16, 16);
+      DrawWireCylinder(0.5 * unit_cell_[0], space_->pro_radius, space_->pro_length);
+    }
+  }
 }
 
 void Graphics::DrawWireSphere(double r, int lats, int longs) {
@@ -811,6 +822,33 @@ void Graphics::DrawWireSphere(double r, int lats, int longs) {
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
   glEnable(GL_LIGHTING);
   glEnable(GL_CULL_FACE);
+}
+
+void Graphics::DrawWireCylinder(double start, double r, double length) {
+  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+  glLineWidth(1.0);
+  int spacing = 2;
+  int lats = length/spacing;
+  int longs = 8;
+  for (int i = 0; i <= lats; i++) {
+    double lat0 = ((double)(-i*spacing));
+    double z0 = lat0;
+    double zr0 = 1;
+    double lat1 = ((double)(-i/3));
+    double z1 = r * lat1;
+    double zr1 = 1;
+    glBegin(GL_QUAD_STRIP);
+    for (int j = 0; j <= longs; j++) {
+      double lng = 2 * M_PI * (double)(j - 1) / longs;
+      double x = r * cos(lng);
+      double y = r * sin(lng);
+      glNormal3f(z0-start, y * zr0, x * zr0);
+      glVertex3f(z0-start, y * zr0, x * zr0);
+      glNormal3f(z1-start, y * zr1, x * zr1);
+      glVertex3f(z1-start, y * zr1, x * zr1);
+    }
+    glEnd();
+  }
 }
 
 void Graphics::DrawLoop() {

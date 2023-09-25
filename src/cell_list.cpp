@@ -15,8 +15,12 @@ void CellList::SetMinCellLength(double l) {
 }
 double CellList::GetCellLength() { return _cell_length_; }
 
-void CellList::Init(int n_dim, int n_periodic, double system_radius) {
-  _n_cells_1d_ = (int)floor(2 * system_radius / _min_cell_length_);
+void CellList::Init(int n_dim, int n_periodic, double system_radius, bool turn_off_cell_list) {
+  if (turn_off_cell_list == true) {
+    _n_cells_1d_ = 1;
+  } else {
+    _n_cells_1d_ = (int)floor(2 * system_radius / _min_cell_length_);
+  }
   _no_init_ = false;
 #ifdef TRACE
   if (_n_cells_1d_ > 20) {

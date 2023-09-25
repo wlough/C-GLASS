@@ -12,9 +12,11 @@ private:
   static double boundary_cut2_;
   static SpaceBase *space_;
   double new_radius_;
+  double new_x_value_;
 
 public:
   double GetNewRadius();
+  double GetNewXValue();
   void PointPoint(double const *const r1, double const *const s1,
                   double const *const r2, double const *const s2, double *dr,
                   double *dr_mag2, double *midpoint);

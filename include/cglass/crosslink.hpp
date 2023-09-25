@@ -46,6 +46,7 @@ private:
   void FreeKMC();
   void SinglyKMC();
   void DoublyKMC();
+  void ReflectAtBoundary();
   void UpdateAnchorsToMesh();
   void UpdateAnchorPositions();
   void UpdateXlinkState();

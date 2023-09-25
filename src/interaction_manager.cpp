@@ -39,7 +39,7 @@ void InteractionManager::InitInteractions() {
   potentials_.InitPotentials(params_);
   CellList::SetMinCellLength(sqrt(potentials_.GetRCut2()));
 
-  CellList::Init(params_->n_dim, params_->n_periodic, params_->system_radius);
+  CellList::Init(params_->n_dim, params_->n_periodic, params_->system_radius, params_->turn_off_cell_list);
   Logger::Info("Constructing cell list data structure");
   clist_.BuildCellList();
 

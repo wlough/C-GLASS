@@ -260,6 +260,10 @@ struct system_parameters {
   bool time_analysis = false;
   double bud_height = 680;
   double bud_radius = 300;
+  double protrusion_radius = 2;
+  double protrusion_length = 80;
+  double protrusion_growth_speed = 0;
+  double start_protrusion_growth = 0;
   double lj_epsilon = 1;
   double wca_eps = 1;
   double wca_sig = 1;
@@ -289,6 +293,7 @@ struct system_parameters {
   bool static_particle_number = false;
   bool checkpoint_from_spec = false;
   std::string potential = "wca";
+  bool reflect_at_boundary = false;
   double soft_potential_mag = 10;
   double soft_potential_mag_target = -1;
   bool like_like_interactions = true;
@@ -309,6 +314,7 @@ struct system_parameters {
   bool knockout_xlink = false;
   bool no_midstep = false;
   bool single_occupancy = true;
+  bool turn_off_cell_list = false;
 };
 
 #endif // _CGLASS_PARAMETERS_H_

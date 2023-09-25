@@ -136,6 +136,10 @@ void Simulation::Integrate() {
   for (auto it = species_.begin(); it != species_.end(); ++it) {
     (*it)->UpdatePositions();
   }
+  //If using protrusion boundry, and protrusion has started growth
+  if (params_.boundary == 5 && time_ > params_.start_protrusion_growth) {
+    space_.GrowProtrusion();
+  }
 }
 
 /* Calculate interaction forces between all objects if necessary. */
