@@ -70,6 +70,14 @@ system_parameters parse_system_params(YAML::Node &node) {
     params.bud_height = it->second.as<double>();
     } else if (param_name.compare("bud_radius")==0) {
     params.bud_radius = it->second.as<double>();
+    } else if (param_name.compare("protrusion_radius")==0) {
+    params.protrusion_radius = it->second.as<double>();
+    } else if (param_name.compare("protrusion_length")==0) {
+    params.protrusion_length = it->second.as<double>();
+    } else if (param_name.compare("protrusion_growth_speed")==0) {
+    params.protrusion_growth_speed = it->second.as<double>();
+    } else if (param_name.compare("start_protrusion_growth")==0) {
+    params.start_protrusion_growth = it->second.as<double>();
     } else if (param_name.compare("lj_epsilon")==0) {
     params.lj_epsilon = it->second.as<double>();
     } else if (param_name.compare("wca_eps")==0) {
@@ -128,6 +136,8 @@ system_parameters parse_system_params(YAML::Node &node) {
     params.checkpoint_from_spec = it->second.as<bool>();
     } else if (param_name.compare("potential")==0) {
     params.potential = it->second.as<std::string>();
+    } else if (param_name.compare("reflect_at_boundary")==0) {
+    params.reflect_at_boundary = it->second.as<bool>();
     } else if (param_name.compare("soft_potential_mag")==0) {
     params.soft_potential_mag = it->second.as<double>();
     } else if (param_name.compare("soft_potential_mag_target")==0) {
@@ -168,6 +178,8 @@ system_parameters parse_system_params(YAML::Node &node) {
     params.no_midstep = it->second.as<bool>();
     } else if (param_name.compare("single_occupancy")==0) {
     params.single_occupancy = it->second.as<bool>();
+    } else if (param_name.compare("turn_off_cell_list")==0) {
+    params.turn_off_cell_list = it->second.as<bool>();
     } else {
       Logger::Warning("Unrecognized parameter '%s'", param_name.c_str());
     }

@@ -127,6 +127,7 @@ class Graphics {
   void Draw2dBudding();  // Draws budding boundary
   void Draw3dBudding();  // Draws budding boundary
   void DrawSpheros();    // draw spherocylinders (3d)
+  void DrawWireCylinder(double center, double radius, double length); //Draw cylinder, used for protrusion boundary
   void
   DrawDiscorectangles();  // draw solid discorectangles (2d spherocylinders)
   void UpdateWindow();    // update window parameters in case of resize

@@ -214,6 +214,10 @@
   default_config["time_analysis"] = "false";
   default_config["bud_height"] = "680";
   default_config["bud_radius"] = "300";
+  default_config["protrusion_radius"] = "2";
+  default_config["protrusion_length"] = "80";
+  default_config["protrusion_growth_speed"] = "0";
+  default_config["start_protrusion_growth"] = "0";
   default_config["lj_epsilon"] = "1";
   default_config["wca_eps"] = "1";
   default_config["wca_sig"] = "1";
@@ -243,6 +247,7 @@
   default_config["static_particle_number"] = "false";
   default_config["checkpoint_from_spec"] = "false";
   default_config["potential"] = "wca";
+  default_config["reflect_at_boundary"] = "false";
   default_config["soft_potential_mag"] = "10";
   default_config["soft_potential_mag_target"] = "-1";
   default_config["like_like_interactions"] = "true";
@@ -263,3 +268,4 @@
   default_config["knockout_xlink"] = "false";
   default_config["no_midstep"] = "false";
   default_config["single_occupancy"] = "true";
+  default_config["turn_off_cell_list"] = "false";

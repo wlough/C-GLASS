@@ -28,6 +28,11 @@ private:
   double neck_radius_ = 0; // radius of opening between mother-daughter cells
   double v_ratio_ = 0;     // percentage daughter cell volume to total volume
 
+  //protrusion_data
+  double pro_radius_ = 0;
+  double pro_length_ = 0;
+  double pro_start_ = 0;
+
   // statistical data
   bool constant_pressure_ = false;
   bool constant_volume_ = false;
@@ -60,6 +65,7 @@ public:
   void UpdateSpace();
   void ConstantPressure();
   void ConstantVolume();
+  void GrowProtrusion();
   SpaceBase *GetSpaceBase();
   bool GetUpdate() { return update_; }
 };

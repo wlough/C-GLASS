@@ -18,6 +18,9 @@ public:
   double bud_height;
   double bud_neck_radius;
   double bud_neck_height;
+  double pro_radius; //protrusion radius
+  double pro_length; //protrusion length
+  double pro_start; //x coordinate where protrusion meets sphere
   double *unit_cell;
   double *unit_cell_inv;  // inverse unit cell
   double *a;              // direct lattice vector

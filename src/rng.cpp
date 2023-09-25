@@ -79,6 +79,13 @@ void RNG::RandomCoordinate(const SpaceBase *const s, double *vec,
         vec[i] *= mag;
       }
       break;
+    case +boundary_type::protrusion:  // protrusion boundry has crosslinkers inserted into sphereical section
+      RandomUnitVector(n_dim, vec);
+      mag = pow( gsl_rng_uniform_pos(rng_), .3333333 ) * (R - buffer);
+      for (int i = 0; i < n_dim; ++i) {
+        vec[i] *= mag;
+      }
+      break;
     // budding yeast boundary type
     case +boundary_type::budding:  // budding
     {
@@ -144,6 +151,13 @@ void RNG::RandomBoundaryCoordinate(const SpaceBase *const s, double *vec) {
       break;
     }
     case boundary_type::sphere: {
+      RandomUnitVector(n_dim, vec);
+      for (int i = 0; i < n_dim; ++i) {
+        vec[i] *= R;
+      }
+      break;
+    }
+    case boundary_type::protrusion: {
       RandomUnitVector(n_dim, vec);
       for (int i = 0; i < n_dim; ++i) {
         vec[i] *= R;

@@ -12,6 +12,8 @@ boundary : [0, int]                  # 0: No boundary condition constraints.
                                      # 1: Box-like boundary condition.
                                      # 2: Spherical BC with radius of system_radius.
                                      # 3: Budding-yeast BC with mother and daughter cell.
+                                     # 4: Wall like boundary condition
+                                     # 5: Protrusion type boundary condition
 system_radius : [100, double]        # Sets system volume. 1D system length is 2 x system_radius.
 n_steps : [1000000, int]             # Number of steps to run simulation before completion.
 i_step: [0, int]                     # Internal parameter used for tracking simulation iteration.
@@ -35,6 +37,10 @@ movie_directory : [frames, string]   # Directory to output graphics bitmaps
 time_analysis : [false, bool]        # Generate output file with simulation runtime data
 bud_height : [680, double]           # center separation of mother and daughter cells
 bud_radius : [300, double]           # radius of daughter cell
+protrusion_radius: [2, double]      # Radius of protrusion when using protrusion boundary type
+protrusion_length: [80, double]      # Final length of protrusion when using protrusion boundary type
+protrusion_growth_speed: [0, double] # Growth speed of protrsuion when using protrusion boundary type
+start_protrusion_growth: [0, double] # Time when protrusion starts growing when using protrusion growth type
 lj_epsilon: [1, double]              # Energy scaling factor for Lennard-Jones potential
 wca_eps: [1, double]                 # Energy scaling factor for WCA potential
 wca_sig: [1, double]                 # Distance scaling factor for WCA potential
@@ -75,6 +81,8 @@ static_particle_number: [false, bool] # Tells interaction engine that particle n
                                       # change, circumventing certain book-keeping functions.
 checkpoint_from_spec: [false, bool]  # Generate a checkpoint file from an existing spec file.
 potential: [wca, string]             # Specifies interaction potential between all particles.
+reflect_at_boundary: [false, bool]   # If true particles outside the set boundary are relfected back inside,
+                                     # only set up for sphere and protrusion boundaries
 soft_potential_mag: [10, double]     # Energy scaling parameter for GEM-8 potential.
 soft_potential_mag_target: [-1, double] # If >= 0, rescales GEM-8 energy to meet target in 
                                         # n_steps_target steps.
@@ -106,6 +114,7 @@ knockout_xlink: [false, bool]        # Use knockout algorithm to limit occupancy
 no_midstep: [false, bool]            # Specify the simulation is not using a mid step algorithm 
 single_occupancy: [true, bool]       # when set to false the sites can be occupied by multiple crosslinkers
                                      # not yet set up to be false with binding/unbinding on
+turn_off_cell_list: [false, bool]    # If set to true there will only be one cell.
 
 species:                             # Shared parameters used for all species.
   name: [species, string]            # Label given to species (e.g. microtubule, kinesin, etc)

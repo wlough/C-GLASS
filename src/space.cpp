@@ -74,6 +74,9 @@ void Space::Init(system_parameters *params) {
     case 4:
       boundary_ = boundary_type::wall;
       break;
+    case 5:
+      boundary_ = boundary_type::protrusion;
+      break;
     default:
       Logger::Error("Boundary type %d not recognized!", params_->boundary);
   }
@@ -143,6 +146,16 @@ void Space::UpdateSpace() {
   UpdateUnitCell();
   UpdateVolume();
   UpdateSpaceStruct();
+}
+
+void Space::GrowProtrusion() {
+  if (boundary_ != +boundary_type::protrusion)
+    Logger::Error("Protrusion tried to grow when boundary wasn't set to protrusion");
+    //If protrsuion hasn't reached its final length
+    if (pro_length_<params_->protrusion_length) {
+      pro_length_ += .5*(params_->protrusion_growth_speed)*params_->delta;
+      s.pro_length = pro_length_;
+   }
 }
 
 /* XXX Only works for periodic boundary conditions so far, need to add volume
@@ -319,6 +332,17 @@ void Space::CalculateVolume() {
       break;
     default:
       break;
+    //Treat protrusion the same as sphere, just using this volume
+    //to determine initial crosslink number
+    case 5:
+      v_ratio_ = 0;
+      neck_height_ = 0;
+      neck_radius_ = 0;
+      if (n_dim_ == 2)
+        volume_ = M_PI * SQR(radius_);
+      else
+        volume_ = 4.0 / 3.0 * M_PI * CUBE(radius_);
+      break;
   }
 }
 
@@ -334,6 +358,22 @@ void Space::InitSpaceStruct() {
     s.bud_neck_height = neck_height_;
   } else {
     s.bud = false;
+  }
+  if (boundary_ == +boundary_type::protrusion) {
+    pro_radius_ = params_->protrusion_radius;
+    //x coordinate where protrusion connects to sphere
+    pro_start_ = -sqrt(SQR(params_->system_radius) - SQR(pro_radius_));
+    //Start with protrusion at full length
+    if (params_->protrusion_growth_speed == 0) {
+      pro_length_ = params_->protrusion_length;
+    //Grow protrusion to full length
+    } else {
+      pro_length_ = 0;
+    }
+    Logger::Info("Protusion radius set to %f, length set to %f", pro_radius_, pro_length_);
+    s.pro_radius = pro_radius_;
+    s.pro_start = pro_start_;
+    s.pro_length = pro_length_;
   }
   s.unit_cell = unit_cell_;
   s.unit_cell_inv = unit_cell_inv_;

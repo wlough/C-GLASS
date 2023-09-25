@@ -299,6 +299,7 @@ void Crosslink::SinglyKMC() {
                   bind_obj->GetOID());
       //If crosslinkers can't cross check if newly bound crosslinker is crossing
       if (sparams_ -> cant_cross == true) {
+        Logger::Error("cant cross flag needs repairing");
         check_for_cross = true;
         last_bound_ = (int)!bound_anchor_;
         if (*global_check_for_cross_ == true) {
@@ -381,7 +382,7 @@ void Crosslink::DoublyKMC() {
                   anchors_[head_activate].GetBoundOID());
     anchors_[head_activate].Unbind();
     SetSingly((int)!head_activate);
-    SetCheckForCross();
+    //SetCheckForCross();
   }
 }
 
@@ -478,29 +479,55 @@ void Crosslink::DiffuseFree() {;
     double dr = free_diffuse_kick_ * rng_.RandomNormal(1);
     position_[i]+=dr;
   }
-  //Check is crosslinker is outside of the simulation boundry
-  MinimumDistance mindist;
-  //If inside
-  bool outside = mindist.CheckOutsideBoundary(*this);
-  if (outside == false) {
+  if (params_->reflect_at_boundary == true) {
+    ReflectAtBoundary();
+  }
+  //ZeroForce();
+  //Move anchors to new position
   anchors_[0].BindToPosition(position_);
   anchors_[1].BindToPosition(position_);
-  }
-  //If outside
-  //Get new radius inside boundry
-  else {
-   //Scale position to new position inside boundry
-   double new_radius = mindist.GetNewRadius();
-   double radius_ratio = new_radius/(sqrt( SQR(position_[1]) + SQR(position_[2])+ SQR(position_[0])) );
-   position_[1] = position_[1]*radius_ratio;
-   position_[2] = position_[2]*radius_ratio;
-   position_[0] = position_[0]*radius_ratio;
-   anchors_[0].BindToPosition(position_);
-   anchors_[1].BindToPosition(position_);
-  }
-  ZeroForce();
 }
 
+void Crosslink::ReflectAtBoundary() {
+  if (space_->type != +boundary_type::sphere && space_->type != +boundary_type::protrusion){
+    Logger::Error("Reflecting boundary only set up sphere and protrusion boundaries");
+  }
+  //Check is crosslinker is outside of the simulation boundry
+  MinimumDistance mindist;
+  bool outside = mindist.CheckOutsideBoundary(*this);
+  if (outside == true) {
+    double new_radius = mindist.GetNewRadius();
+    if (space_->type == +boundary_type::sphere) {
+      //Scale position to new position inside boundry
+      double new_radius = mindist.GetNewRadius();
+      double radius_ratio = new_radius/(sqrt( SQR(position_[1]) + SQR(position_[2])+ SQR(position_[0])) );
+      position_[1] = position_[1]*radius_ratio;
+      position_[2] = position_[2]*radius_ratio;
+      position_[0] = position_[0]*radius_ratio;
+    } else if (space_->type == +boundary_type::protrusion){
+      double new_radius = mindist.GetNewRadius();
+      double pro_start = space_->pro_start; //x coordinate where the protrusion starts
+      //If past the end of the cylinder
+      if (position_[0] < (pro_start-space_->pro_length)) {
+        double new_x = mindist.GetNewXValue();
+        position_[0] = new_x;
+      }
+      //If radially outside the protrusion section
+      else if (position_[0] < pro_start) {
+        double radius_ratio = new_radius/(sqrt( SQR(position_[1]) + SQR(position_[2])) );
+        position_[1] = position_[1]*radius_ratio;
+        position_[2] = position_[2]*radius_ratio;
+      }
+      //If inside the sphere section
+      else {
+        double radius_ratio = new_radius/(sqrt( SQR(position_[1]) + SQR(position_[2])+ SQR(position_[0])) );
+        position_[1] = position_[1]*radius_ratio;
+        position_[2] = position_[2]*radius_ratio;
+        position_[0] = position_[0]*radius_ratio;
+      }
+    }
+  }
+}
 
 /* This function ensures that singly-bound crosslinks have anchor[0] bound and
    anchor[1] unbound. */
