@@ -1,4 +1,5 @@
 #include "cglass/filament_curvature_cluster_analysis.hpp"
+#include "cglass/space_base.hpp"
 
 int Cluster::n_dim_ = -1;
 double *Cluster::curvature_radii_ = nullptr;
@@ -161,7 +162,8 @@ void CurvatureClusterAnalysis::InitAnalysis() {
   InitLabels();
 }
 void CurvatureClusterAnalysis::RunAnalysis() {
-  if ((params_->i_step) < ((sparams_->n_equil)*(params_->no_midstep?1:2))) {
+  if ((params_->i_step) <
+      ((sparams_->n_equil) * (params_->no_midstep ? 1 : 2))) {
     return;
   }
   double dr[3] = {0};

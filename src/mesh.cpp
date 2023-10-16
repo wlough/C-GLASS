@@ -1,4 +1,5 @@
 #include "cglass/mesh.hpp"
+#include "cglass/space_base.hpp"
 
 /**************************
 ** Mesh member functions **

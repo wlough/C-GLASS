@@ -14,17 +14,8 @@ void CentrosomeSpecies::Init(std::string spec_name, ParamsParser &parser) {
   if (GetNInsert() <= 0) {
     return;
   }
-  // std::string filament_species_name = sparams_.filament_species_name;
-  // printf("filament species name: %s\n", filament_species_name.c_str());
-  // // First, store filament parameters to later pass to each individual centrosome
-  // species_base_parameters *sparams{parser.GetNewSpeciesParameters(
-  //     species_id::filament, filament_species_name)};
-  // fparams_ = *dynamic_cast<filament_parameters *>(sparams);
-  // delete sparams;
-
   // NAB uses 'anchor' to refer to SPBs. Anchors are unique objects in C-GLASS tho (FIXME)
   int n_anchors{GetNInsert()};
-  // TODO make sure you delete these in deconstructor
   // All of the new rotation information for this class
   q_ = new arma::vec4[n_anchors];
   A_ = new arma::mat33[n_anchors];

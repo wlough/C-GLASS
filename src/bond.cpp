@@ -1,4 +1,5 @@
 #include "cglass/bond.hpp"
+#include "cglass/space_base.hpp"
 
 /**************************
 ** Bond member functions **

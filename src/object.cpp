@@ -1,4 +1,5 @@
 #include "cglass/object.hpp"
+#include "cglass/space_base.hpp"
 
 Object::Object(unsigned long seed) : rng_(seed) {
   // Initialize object ID, guaranteeing thread safety
@@ -139,14 +140,14 @@ void Object::ZeroPolarOrder() {
   polar_order_ = 0;
 }
 void Object::SetInteractor(bool ix) { interacting_ = ix; }
-void Object::IncrementNAnchored() { 
+void Object::IncrementNAnchored() {
   n_anchored_++;
   Logger::Trace("Object %d was incremented", GetOID());
-  if (n_anchored_ > 1 && params_ -> single_occupancy == true) {
+  if (n_anchored_ > 1 && params_->single_occupancy == true) {
     Logger::Error("n_anchored_ should not be >1");
-  } 
+  }
 }
-void Object::DecrementNAnchored() { 
+void Object::DecrementNAnchored() {
   n_anchored_--;
   Logger::Trace("Object %d was decremented", GetOID());
   if (n_anchored_ < 0) {
@@ -179,10 +180,10 @@ void Object::HasOverlap(bool overlap) { has_overlap_ = overlap; }
 int const Object::GetNAnchored() { return n_anchored_; }
 int const Object::GetCompID() const { return comp_id_; }
 void Object::SetCompID(int cid) { comp_id_ = cid; }
-void Object::SetCompPtr(Object* comp) { comp_ptr_ = comp; }
+void Object::SetCompPtr(Object *comp) { comp_ptr_ = comp; }
 void Object::SetOID(int oid) { oid_ = oid; }
 void Object::ToggleIsMesh() { is_mesh_ = !is_mesh_; }
-const std::string& Object::GetName() const { return name_; }
+const std::string &Object::GetName() const { return name_; }
 shape const Object::GetShape() { return shape_; }
 obj_type const Object::GetType() { return type_; }
 comp_type const Object::GetCompType() { return comp_type_; }
@@ -281,9 +282,9 @@ int Object::GetCount() { return 1; }
 void Object::GetInteractors(std::vector<Object *> &ix) {
   ix.insert(ix.end(), interactors_.begin(), interactors_.end());
 }
-void Object::CalcPCPosition(double s, double* pos) {
+void Object::CalcPCPosition(double s, double *pos) {
   for (int j = 0; j < n_dim_; ++j) {
-    pos[j] = position_[j] + orientation_[j]*s;
+    pos[j] = position_[j] + orientation_[j] * s;
   }
 }
 double const *const Object::GetInteractorPosition() { return GetPosition(); }
@@ -332,8 +333,7 @@ double const Object::GetArea() {
     if (length_ == 0) {
       return M_PI * diameter_ * diameter_;
     } else {
-      return M_PI * diameter_ * diameter_ +
-             M_PI * length_ * diameter_;
+      return M_PI * diameter_ * diameter_ + M_PI * length_ * diameter_;
     }
     return -1;
   }
@@ -488,10 +488,11 @@ void Object::ConvertPosit(std::fstream &iposit, std::fstream &otext) {
     iposit.read(reinterpret_cast<char *>(&u), sizeof(u));
   iposit.read(reinterpret_cast<char *>(&diameter), sizeof(diameter));
   iposit.read(reinterpret_cast<char *>(&length), sizeof(length));
-  otext << position[0] << " " << position[1] << " " << position[2] << " " 
+  otext << position[0] << " " << position[1] << " " << position[2] << " "
         << scaled_position[0] << " " << scaled_position[1] << " "
-        << scaled_position[2] << " " << orientation[0] << " " << orientation[1] 
-        << " " << orientation[2] << " " << diameter << " " << length << std::endl;
+        << scaled_position[2] << " " << orientation[0] << " " << orientation[1]
+        << " " << orientation[2] << " " << diameter << " " << length
+        << std::endl;
 }
 void Object::WriteSpec(std::fstream &ospec) { WritePosit(ospec); }
 void Object::ReadSpec(std::fstream &ispec) { ReadPosit(ispec); }

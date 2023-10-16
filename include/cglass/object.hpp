@@ -3,8 +3,12 @@
 
 #include "auxiliary.hpp"
 #include "interaction.hpp"
+#include "parameters.hpp"
 #include "rng.hpp"
 #include <mutex>
+#include <vector>
+
+class SpaceBase;
 
 class Object {
 private:
@@ -103,7 +107,7 @@ public:
   obj_type const GetType();
   comp_type const GetCompType();
   shape const GetShape();
-  const std::string& GetName() const;
+  const std::string &GetName() const;
   const int GetOID() const;
   const int GetCompID() const;
   const double *const GetPosition();
@@ -129,7 +133,7 @@ public:
   void HasOverlap(bool overlap);
   void SetOID(int oid);
   void SetCompID(int cid);
-  void SetCompPtr(Object* comp);
+  void SetCompPtr(Object *comp);
 
   // Virtual functions
   virtual void Init(species_base_parameters *sparams) {}
@@ -161,7 +165,7 @@ public:
   virtual void ApplyInteractions();
   virtual void FlagDuplicateInteractions();
   virtual void GetInteractions(std::vector<object_interaction> &ixs);
-  virtual void CalcPCPosition(double s, double* pos);
+  virtual void CalcPCPosition(double s, double *pos);
   virtual void ClearInteractions();
   virtual void Cleanup();
   virtual void IncrementNEndXlinks() {}

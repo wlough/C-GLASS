@@ -1,4 +1,5 @@
 #include "cglass/br_bead.hpp"
+#include "cglass/space_base.hpp"
 
 BrBead::BrBead(unsigned long seed) : Object(seed) {
   SetSID(species_id::br_bead);
@@ -25,7 +26,8 @@ void BrBead::Init(br_bead_parameters *sparams) {
   }
   if (sparams_->highlight_handedness) {
     draw_ = draw_type::fixed;
-    color_ = (chiral_handedness_ > 0 ? sparams_->color : sparams_->color + M_PI);
+    color_ =
+        (chiral_handedness_ > 0 ? sparams_->color : sparams_->color + M_PI);
   }
   driving_torque_ = sparams_->driving_torque;
   SetDiffusion();
@@ -82,7 +84,7 @@ void BrBead::ApplyForcesTorques() {
       } else {
         double kicks[3] = {0};
         rng_.RandomUnitVector(n_dim_, kicks);
-        for (int i=0; i<n_dim_; ++i) {
+        for (int i = 0; i < n_dim_; ++i) {
           torque_[i] += diffusion_rot_ * kicks[i];
         }
       }
@@ -104,17 +106,17 @@ void BrBead::ApplyForcesTorques() {
       double cp[3] = {0, 0, 0};
       double align_t = alignment_torque_;
       if (ix->second) {
-        const double * const u = ix->first->obj2->GetOrientation();
+        const double *const u = ix->first->obj2->GetOrientation();
         cross_product(orientation_, u, cp, n_dim_);
         int sign = SIGNOF(cp[2]);
-        align_t *= sign*0.5*(1 - dot_product(n_dim_, u, orientation_));
+        align_t *= sign * 0.5 * (1 - dot_product(n_dim_, u, orientation_));
       } else {
-        const double * const u = ix->first->obj1->GetOrientation();
+        const double *const u = ix->first->obj1->GetOrientation();
         cross_product(orientation_, u, cp, n_dim_);
         int sign = SIGNOF(cp[2]);
-        align_t *= sign*0.5*(1 - dot_product(n_dim_, u, orientation_));
+        align_t *= sign * 0.5 * (1 - dot_product(n_dim_, u, orientation_));
       }
-      cp[2] = align_t/dr2;
+      cp[2] = align_t / dr2;
       AddTorque(cp);
     }
   }
@@ -170,7 +172,7 @@ void BrBead::GetInteractors(std::vector<Object *> &ix) { ix.push_back(this); }
 void BrBead::Draw(std::vector<graph_struct *> &graph_array) {
   if (draw_arrow_) {
     if (draw_ == +draw_type::orientation) {
-      g_.color = atan2(orientation_[1], orientation_[0]); 
+      g_.color = atan2(orientation_[1], orientation_[0]);
     } else {
       g_.color = color_;
     }
@@ -183,18 +185,18 @@ void BrBead::Draw(std::vector<graph_struct *> &graph_array) {
     }
     std::copy(orientation_, orientation_ + 3, g_.u);
     std::copy(orientation_, orientation_ + 3, g2_.u);
-    double theta = 0.1*M_PI;
+    double theta = 0.1 * M_PI;
     rotate_vector(g_.u, orientation_, theta, 2);
     rotate_vector(g2_.u, orientation_, -theta, 2);
-    g_.diameter = 0.5*diameter_;
-    g2_.diameter = 0.5*diameter_;
+    g_.diameter = 0.5 * diameter_;
+    g2_.diameter = 0.5 * diameter_;
     g_.length = diameter_;
     g2_.length = diameter_;
     g_.draw = draw_type::fixed;
     g2_.draw = draw_type::fixed;
-    for (int i=0; i<space_->n_periodic; ++i) {
-      g_.r[i] -= 0.3*g_.length*g_.u[i]/space_->radius;
-      g2_.r[i] -= 0.3*g2_.length*g2_.u[i]/space_->radius;
+    for (int i = 0; i < space_->n_periodic; ++i) {
+      g_.r[i] -= 0.3 * g_.length * g_.u[i] / space_->radius;
+      g2_.r[i] -= 0.3 * g2_.length * g2_.u[i] / space_->radius;
       g_.r[i] -= NINT(g_.r[i]);
       g2_.r[i] -= NINT(g2_.r[i]);
     }
@@ -232,9 +234,9 @@ void BrBead::ConvertSpec(std::fstream &ispec, std::fstream &otext) {
   ispec.read(reinterpret_cast<char *>(&diameter), sizeof(diameter));
   ispec.read(reinterpret_cast<char *>(&length), sizeof(length));
   ispec.read(reinterpret_cast<char *>(&chiral_handedness), sizeof(int));
-  otext << position[0] << " " << position[1] << " " << position[2] << " " 
+  otext << position[0] << " " << position[1] << " " << position[2] << " "
         << scaled_position[0] << " " << scaled_position[1] << " "
-        << scaled_position[2] << " " << orientation[0] << " " << orientation[1] 
+        << scaled_position[2] << " " << orientation[0] << " " << orientation[1]
         << " " << orientation[2] << " " << diameter << " " << length << " "
         << chiral_handedness << std::endl;
 }
@@ -244,8 +246,7 @@ void BrBead::ReadSpec(std::fstream &ispec) {
   ispec.read(reinterpret_cast<char *>(&chiral_handedness_), sizeof(int));
   if (sparams_->highlight_handedness) {
     draw_ = draw_type::fixed;
-    color_ = (chiral_handedness_ > 0 ? sparams_->color : sparams_->color + M_PI);
+    color_ =
+        (chiral_handedness_ > 0 ? sparams_->color : sparams_->color + M_PI);
   }
 }
-
-

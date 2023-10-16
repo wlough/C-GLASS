@@ -23,6 +23,15 @@ protected:
 
 public:
   CentrosomeSpecies(unsigned long seed);
+  ~CentrosomeSpecies() {
+    delete q_;
+    delete A_;
+    delete mu_tb_;
+    delete mu_rb_;
+    delete sqrt_mu_tb_;
+    delete sqrt_mu_rb_;
+    delete bsub_;
+  }
   void Init(std::string spec_name, ParamsParser &parser);
   void PopMember();
   void AddMember();

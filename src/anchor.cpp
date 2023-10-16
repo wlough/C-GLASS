@@ -1,4 +1,5 @@
 #include "cglass/anchor.hpp"
+#include "cglass/space_base.hpp"
 
 Anchor::Anchor(unsigned long seed) : Object(seed) {
   SetSID(species_id::crosslink);

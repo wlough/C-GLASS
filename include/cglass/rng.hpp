@@ -3,13 +3,14 @@
 
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_rng.h>
-#include "auxiliary.hpp"
+
+class SpaceBase;
 
 class RNG {
- private:
+private:
   gsl_rng *rng_;
 
- public:
+public:
   RNG(unsigned long seed);
   ~RNG();
   RNG(const RNG &that) : RNG(that.GetSeed()) {}
@@ -19,7 +20,7 @@ class RNG {
   const long RandomInt(const long n);
   const double RandomNormal(const double sigma);
   void RandomUnitVector(const int n_dim, double *vec);
-  void RandomBoundaryCoordinate( const SpaceBase *const s, double *vec); 
+  void RandomBoundaryCoordinate(const SpaceBase *const s, double *vec);
   void RandomCoordinate(const SpaceBase *const s, double *vec,
                         const double buffer = 0);
   unsigned long GetSeed() const;
@@ -34,4 +35,4 @@ void RNG::Shuffle(T *array, size_t size) {
   gsl_ran_shuffle(rng_, array, size, sizeof(T));
 }
 
-#endif  // _CGLASS_RNG_H_
+#endif // _CGLASS_RNG_H_

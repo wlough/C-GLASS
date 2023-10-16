@@ -529,7 +529,7 @@ void Simulation::InsertSpecies(bool force_overlap, bool processing) {
       centrosomes->AnchorFilaments(filaments, true);
     }
     if (rigid_filaments != nullptr) {
-      printf("Anchoring rigid filaments to SPBs\n");
+      printf("Anchoring <<RIGID>> filaments to SPBs\n");
       centrosomes->AnchorFilaments(rigid_filaments, false);
     }
   }
@@ -766,8 +766,8 @@ void Simulation::RunProcessing(run_options run_opts) {
         }
       }
     }
-    Draw(run_opts.single_frame);
-    output_mgr_.ReadInputs();
+    // Draw(run_opts.single_frame);
+    // output_mgr_.ReadInputs();
     ix_mgr_.ReadInputs();
   }
   Draw(run_opts.single_frame);

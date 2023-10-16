@@ -6,7 +6,6 @@ size_t Centrosome::i_spb_ = 0;
 
 Centrosome::Centrosome(unsigned long seed) : Object(seed) {
   SetSID(species_id::centrosome);
-  // FIXME anchors and filament insertion when??
   printf("NEW centrosome\n");
 }
 

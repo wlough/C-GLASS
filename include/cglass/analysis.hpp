@@ -3,6 +3,8 @@
 
 #include "auxiliary.hpp"
 
+class SpaceBase;
+
 class AnalysisBase {
 private:
   std::string analysis_name_ = "unnamed";
@@ -35,7 +37,8 @@ public:
   virtual void Draw(std::vector<graph_struct *> &graph_array) {}
 };
 
-template <typename T, unsigned char S> class Analysis : public AnalysisBase {
+template <typename T, unsigned char S>
+class Analysis : public AnalysisBase {
 protected:
   std::vector<T> *members_;
   species_parameters<S> *sparams_;

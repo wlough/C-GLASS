@@ -1,4 +1,5 @@
 #include "cglass/minimum_distance.hpp"
+#include "cglass/space_base.hpp"
 
 #define SMALL 1.0e-12
 
@@ -658,7 +659,8 @@ void MinimumDistance::CarrierLines(const double *r_1, const double *s_1,
 }
 
 void MinimumDistance::PointSphereBC(double const *const r, double *dr,
-                                    double *dr_mag2, bool &outside, double buffer) {
+                                    double *dr_mag2, bool &outside,
+                                    double buffer) {
   double r_mag = 0;
   for (int i = 0; i < n_dim_; ++i) {
     r_mag += r[i] * r[i];
@@ -666,7 +668,7 @@ void MinimumDistance::PointSphereBC(double const *const r, double *dr,
   r_mag = sqrt(r_mag);
   double dl = space_->radius / r_mag - 1;
   // We are outside the cell if dl<0
-  outside = (dl<0);
+  outside = (dl < 0);
   for (int i = 0; i < n_dim_; ++i) {
     dr[i] = dl * r[i];
   }
@@ -677,7 +679,7 @@ void MinimumDistance::PointSphereBC(double const *const r, double *dr,
 }
 void MinimumDistance::SpheroWallBC(double const *const r, double const *const s,
                                    double const *const u, double const length,
-                                   double *dr, double *dr_mag2, bool& outside,
+                                   double *dr, double *dr_mag2, bool &outside,
                                    double *r_contact, double buffer) {
   /* For a spherocylinder with spherical BCs, the minimum distance will
      always be at one of the endpoints */
@@ -716,12 +718,12 @@ void MinimumDistance::SpheroWallBC(double const *const r, double const *const s,
   sign = (s[0] > 0 ? 1 : -1);
   dr[0] -= sign * ABS(r_min[0] - r[0]);
   // We are outside the cell if we are to the left of wall.
-  outside = (dr[0]<0);
+  outside = (dr[0] < 0);
   *dr_mag2 = dr[0] * dr[0];
 }
 
 void MinimumDistance::PointWallBC(double const *const r, double const *const s,
-                                  double *dr, double *dr_mag2, bool& outside, 
+                                  double *dr, double *dr_mag2, bool &outside,
                                   double buffer) {
   /* Check which site is closest to the boundary. If the sphero is on the right
      side of the box, check if the orientation is toward or away from the box,
@@ -740,7 +742,7 @@ void MinimumDistance::PointWallBC(double const *const r, double const *const s,
   }
 
   // We are outside the cell if we are to the left of wall.
-  outside = (dr[0]<0);
+  outside = (dr[0] < 0);
   *dr_mag2 = 0.0;
   for (int i = 0; i < n_dim_; ++i) {
     *dr_mag2 += SQR(dr[i]);
@@ -749,7 +751,7 @@ void MinimumDistance::PointWallBC(double const *const r, double const *const s,
 
 void MinimumDistance::SpheroSphereBC(double const *const r,
                                      double const *const u, double const length,
-                                     double *dr, double *dr_mag2, bool& outside,
+                                     double *dr, double *dr_mag2, bool &outside,
                                      double *r_contact, double buffer) {
   /* For a spherocylinder with spherical BCs, the minimum distance will
      always be at one of the endpoints */
@@ -772,7 +774,7 @@ void MinimumDistance::SpheroSphereBC(double const *const r,
   r_mag = sqrt(r_mag);
   double dl = space_->radius / r_mag - 1;
   // We are outside the cell if dl<0
-  outside = (dl<0);
+  outside = (dl < 0);
   for (int i = 0; i < n_dim_; ++i) {
     dr[i] = dl * r_min[i];
   }
@@ -783,7 +785,8 @@ void MinimumDistance::SpheroSphereBC(double const *const r,
 }
 
 void MinimumDistance::PointBuddingBC(double const *const r, double *dr,
-                                     double *dr_mag2, bool& outside, double buffer) {
+                                     double *dr_mag2, bool &outside,
+                                     double buffer) {
   // First see which cell (mother or daughter) we are primarily located in
   bool in_mother = (r[n_dim_ - 1] < space_->bud_neck_height);
   /* There are two regions in which the cusp of the bud neck is always the
@@ -845,7 +848,7 @@ void MinimumDistance::PointBuddingBC(double const *const r, double *dr,
     *dr_mag2 = 0;
     double dl = r_cell / r_mag - 1;
     // We are outside the cell if dl<0
-    outside = (dl<0);
+    outside = (dl < 0);
     for (int i = 0; i < n_dim_ - 1; ++i) {
       dr[i] = dl * r[i];
       *dr_mag2 += SQR(dr[i]);
@@ -858,7 +861,7 @@ void MinimumDistance::PointBuddingBC(double const *const r, double *dr,
 void MinimumDistance::SpheroBuddingBC(double const *const r,
                                       double const *const u,
                                       double const length, double *dr,
-                                      double *dr_mag2, bool& outside, 
+                                      double *dr_mag2, bool &outside,
                                       double *r_contact, double buffer) {
   /* For spherocylinders, there are two distinct cases we want to consider:
      whether both end sites are above or below the bud neck in the same cell,

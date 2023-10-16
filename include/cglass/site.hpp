@@ -21,6 +21,11 @@ protected:
 
 public:
   Site(unsigned long seed);
+  void SetPositionXYZ(double x, double y, double z) {
+    position_[0] = x;
+    position_[1] = y;
+    position_[2] = z;
+  }
   void AddBond(Bond *bond, directed_type dir);
   void Report();
   void ReportBonds();

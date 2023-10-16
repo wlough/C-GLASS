@@ -1,4 +1,5 @@
 #include "cglass/crosslink.hpp"
+#include "cglass/space_base.hpp"
 #include <iostream>
 
 Crosslink::Crosslink(unsigned long seed) : Object(seed) {

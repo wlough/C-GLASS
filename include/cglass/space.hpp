@@ -3,6 +3,7 @@
 
 #include "auxiliary.hpp"
 #include "macros.hpp"
+#include "space_base.hpp"
 #include <math.h>
 
 class Space {
