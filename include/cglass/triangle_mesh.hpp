@@ -13,11 +13,10 @@ struct Vertex : public Site {
   int seed{0};
   double pos_[3];
 
-  int i_tri_ = 0;
-  Triangle *tris_[6]; // triangles this vertex is a part of
-  int i_neighb_ = 0;
+  int n_tris_ = 0;
+  Triangle *tris_[10]; // triangles this vertex is a part of
+  int n_neighbs_ = 0;
   std::vector<Vertex *> neighbs_;
-  std::vector<bool> neighb_int_;
 
   Vertex() : Site(seed) {
     pos_[0] = pos[1] = pos[2] = 0;
@@ -44,6 +43,9 @@ struct Vertex : public Site {
 };
 
 struct Triangle {
+  double area;
+  double nhat_[3];
+
   Vertex *vrts_[3]; // verteces that compose this triangle
   Triangle *neighbs_[3];
   graph_struct g_;
@@ -57,7 +59,15 @@ struct Triangle {
 class TriMesh {
 
 private:
-  RNG rng_;
+  // params for radial force
+  double kappa_B_{0.0};
+  double l_max_{0.0};
+  double l_min_{0.0};
+  double l_c0_{0.0};
+  double l_c1_{0.0};
+  // params for bending force
+  double kappa_{0.0};
+  RNG rng_; // SF TODO link with system RNG
 
 public:
   std::vector<Vertex> vrts_;

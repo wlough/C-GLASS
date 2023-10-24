@@ -766,8 +766,8 @@ void Simulation::RunProcessing(run_options run_opts) {
         }
       }
     }
-    // Draw(run_opts.single_frame);
-    // output_mgr_.ReadInputs();
+    Draw(run_opts.single_frame);
+    output_mgr_.ReadInputs();
     ix_mgr_.ReadInputs();
   }
   Draw(run_opts.single_frame);

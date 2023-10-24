@@ -2,16 +2,16 @@ seed: 114222003020845
 run_name: testino
 n_dim: 3
 n_periodic: 0
-boundary: 2
+boundary: 5
 system_radius: 15
 delta: 2.5e-5
 dynamic_timestep: false
 dynamic_timestep_ramp: 0.0001
-n_steps: 5000 # 000
+n_steps: 50000000 # 000
 n_steps_equil: 0
-graph_flag: false #true
-auto_graph: false # true
-n_graph: 10
+graph_flag: true
+auto_graph: true
+n_graph: 1
 movie_flag: false
 movie_directory: images
 invert_background: true
@@ -63,7 +63,7 @@ filament:
     insertion_type: random # spb_anchored
     draw_type: fixed
     color: 2
-    num: 12 #5 # 10
+    num: 0 #12 #5 # 10
     length: 20 # 75 # 5
     min_length: 2
     max_length: 30 # 110  # SF TODO no upper cap in NAB -- possible in C-GLASS?

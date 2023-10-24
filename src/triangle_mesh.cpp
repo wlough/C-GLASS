@@ -3,9 +3,16 @@
 // todo lol fix seed
 TriMesh::TriMesh() : rng_(0) {
 
-  return; // need to ensure this isn't initialized without proper boundary type
+  // return; // need to ensure this isn't initialized without proper boundary type
 
+  // fix these got dang parameters and put em in the yaml file
   double R_SYS{15};
+  kappa_B_ = 1.0;
+  l_max_ = 6.0;
+  l_min_ = 2.0;
+  l_c0_ = 5.0;
+  l_c1_ = 3.0;
+
   vrts_.reserve(1280);
   tris_.reserve(1280);
   MakeIcosahedron(); // 20 triangle faces initially
@@ -15,108 +22,105 @@ TriMesh::TriMesh() : rng_(0) {
   ProjectToUnitSphere();
   for (auto &&vrt : vrts_) {
     vrt.neighbs_.resize(6);
-    vrt.neighb_int_.resize(6);
+    // vrt.neighb_int_.resize(6);
   }
   UpdateNeighbors();
   size_t n_flawed{0};
   size_t n_gucci{0};
   for (auto &&vrt : vrts_) {
-    if (vrt.i_neighb_ != 6) {
+    if (vrt.n_neighbs_ != 6) {
       n_flawed++;
-    } else if (vrt.i_neighb_ == 6) {
+    } else if (vrt.n_neighbs_ == 6) {
       n_gucci++;
     } else {
       printf("ummm?? in TRIANGLE MESH INIT\n");
       exit(1);
     }
   }
-  printf("%zu vrts (%zu flawed; %zu good)\n", vrts_.size(), n_flawed, n_gucci);
+  printf("%zu vrts (%zu flawed; %zu ideal)\n", vrts_.size(), n_flawed, n_gucci);
 }
 
 void TriMesh::UpdateNeighbors() {
 
   // Reset storage of neighb and triangle ptrs in each vertex
   for (auto &&vrt : vrts_) {
-    vrt.i_tri_ = 0;
-    vrt.i_neighb_ = 0;
+    vrt.n_tris_ = 0;
+    vrt.n_neighbs_ = 0;
   }
   // Update triangle ptrs stored by each vertex
   for (auto &&tri : tris_) {
-    tri.vrts_[0]->tris_[tri.vrts_[0]->i_tri_++] = &tri;
-    tri.vrts_[1]->tris_[tri.vrts_[1]->i_tri_++] = &tri;
-    tri.vrts_[2]->tris_[tri.vrts_[2]->i_tri_++] = &tri;
-  }
-  // verify
-  for (auto &&vrt : vrts_) {
-    // for a defect-free mesh, all points should incorporate 6 triangles
-    // mAYBE? i dont really know
-    printf("I compose %i triangles!\n", vrt.i_tri_);
+    tri.vrts_[0]->tris_[tri.vrts_[0]->n_tris_++] = &tri;
+    tri.vrts_[1]->tris_[tri.vrts_[1]->n_tris_++] = &tri;
+    tri.vrts_[2]->tris_[tri.vrts_[2]->n_tris_++] = &tri;
   }
   // Update vertex neighbors held by each vertex
   for (auto &&vrt : vrts_) {
     // Each triangle we are a part of will contain 2 neighbors
-    for (int i_tri{0}; i_tri < vrt.i_tri_; i_tri++) {
+    for (int i_tri{0}; i_tri < vrt.n_tris_; i_tri++) {
       Triangle *tri{vrt.tris_[i_tri]};
       // Add all points that are not ourselves or duplicated vertices
       for (int i{0}; i < 3; i++) {
         if (*tri->vrts_[i] != vrt) {
-          printf("NOT EQUAL\n");
+          // printf("NOT EQUAL\n");
           bool duplicate{false};
-          for (int i_neighb{0}; i_neighb < vrt.i_neighb_; i_neighb++) {
+          for (int i_neighb{0}; i_neighb < vrt.n_neighbs_; i_neighb++) {
             if (tri->vrts_[i] == vrt.neighbs_[i_neighb])
               duplicate = true;
           }
           if (!duplicate) {
-            vrt.neighbs_[vrt.i_neighb_++] = tri->vrts_[i];
-            printf("ADDED\n");
-          } else {
-            printf("DUPLICATE IGNORED\n");
+            vrt.neighbs_[vrt.n_neighbs_++] = tri->vrts_[i];
+            // printf("ADDED\n");
           }
-        } else if (*tri->vrts_[i] == vrt) {
-          printf("EQUAL\n");
+          // else {
+          // printf("DUPLICATE IGNORED\n");
+          // }
         }
+        // else if (*tri->vrts_[i] == vrt) {
+        // printf("EQUAL\n");
+        // }
       }
     }
-    printf("%i neighbors from %i triangles\n\n", vrt.i_neighb_, vrt.i_tri_);
+    // printf("%i neighbors from %i triangles\n\n", vrt.n_neighbs_, vrt.n_tris_);
   }
-
-  /*
-  return;
-  for (auto &&tri : tris_) {
-    double l1{0.0};
-    double l2{0.0};
-    double l3{0.0};
-    for (int i_dim{0}; i_dim < 3; i_dim++) {
-      l1 += SQR(tri.vrts_[0]->pos_[i_dim] - tri.vrts_[1]->pos_[i_dim]);
-      l2 += SQR(tri.vrts_[1]->pos_[i_dim] - tri.vrts_[2]->pos_[i_dim]);
-      l3 += SQR(tri.vrts_[0]->pos_[i_dim] - tri.vrts_[2]->pos_[i_dim]);
-    }
-    l1 = sqrt(l1);
-    l2 = sqrt(l2);
-    l3 = sqrt(l3);
-  }
+  // rearrange all neighbor lists to order them ring-wise
   for (auto &&vrt : vrts_) {
-    int i_neighb{0};
-    for (auto &&neighb : vrts_) {
-      double dist{0.0};
-      for (int i{0}; i < 3; i++) {
-        dist += SQR(vrt.pos_[i] - neighb.pos_[i]);
-      }
-      dist = sqrt(dist);
-      if (dist == 0.0) {
-        continue;
-      }
-      if (dist < 5.0) {
-        if (i_neighb > 6) {
-          printf("MESH IRREGULARITY\n");
-          // exit(1);
+    Vertex *neighbs_ordered[vrt.n_neighbs_];
+    neighbs_ordered[0] = vrt.neighbs_[0];
+    for (int i_neighb{0}; i_neighb < vrt.n_neighbs_ - 1; i_neighb++) {
+      Vertex *current_entry{neighbs_ordered[i_neighb]};
+      bool found{false};
+      // the next node in the ring order will be a neighbor of current entry
+      for (int j_neighb{0}; j_neighb < current_entry->n_neighbs_; j_neighb++) {
+        if (found) {
+          break;
         }
-        vrt.neighbs_[i_neighb++] = &neighb;
-        // printf("%i\n", i_neighb);
+        Vertex *entry_neighb{current_entry->neighbs_[j_neighb]};
+        for (int k_neighb{0}; k_neighb < vrt.n_neighbs_; k_neighb++) {
+          Vertex *this_entry{vrt.neighbs_[k_neighb]};
+          if (entry_neighb == this_entry) {
+            if (this_entry != current_entry and this_entry != &vrt) {
+              if (i_neighb == 0) {
+                neighbs_ordered[i_neighb + 1] = this_entry;
+                found = true;
+                break;
+              } else if (this_entry != neighbs_ordered[i_neighb - 1]) {
+                neighbs_ordered[i_neighb + 1] = this_entry;
+                found = true;
+                break;
+              }
+            }
+          }
+        }
+      }
+      if (!found) {
+        printf("whut\n");
+        exit(1);
       }
     }
+    for (int i_neighb{0}; i_neighb < vrt.n_neighbs_; i_neighb++) {
+      vrt.neighbs_[i_neighb] = neighbs_ordered[i_neighb];
+    }
   }
-  */
 }
 
 void TriMesh::ProjectToUnitSphere() {
@@ -263,17 +267,23 @@ void TriMesh::Draw(std::vector<graph_struct *> &graph_array) {
 
 void TriMesh::UpdatePositions() {
 
-  // sum forces over all vertices
+  // SF TODO all calculations are currently done redundantly
+  // SF TODO i.e., we do not take advtange of newton's 3rd law
+  // SF TODO once validated, increase computational efficiency by addressing this
+
+  // zero forces out first
   for (auto &&vrt : vrts_) {
     vrt.ZeroForce();
-    for (int i_neighb{0}; i_neighb < vrt.i_neighb_; i_neighb++) {
-      vrt.neighb_int_[i_neighb] = true;
+  }
+  // sum forces over all vertices -- radial tether attraction/repulsion
+  for (auto &&vrt : vrts_) {
+    for (int i_neighb{0}; i_neighb < vrt.n_neighbs_; i_neighb++) {
+      // vrt.neighb_int_[i_neighb] = true;
       Vertex *neighb{vrt.neighbs_[i_neighb]};
       if (neighb == nullptr) {
         printf("what in TriMesh::UpdatePosition()\n");
         exit(1);
       }
-
       double rhat[3];
       double rmag{0.0};
       for (int i{0}; i < 3; i++) {
@@ -281,20 +291,93 @@ void TriMesh::UpdatePositions() {
         rmag += SQR(rhat[i]);
       }
       rmag = sqrt(rmag);
-      double fmag{0.01 * SQR(rmag - 4.5)};
+      // free movement within a certain range
+      if (rmag <= l_c0_ and rmag >= l_c1_) {
+        // printf("%g < %g < %g\n", l_c1_, rmag, l_c0_);
+        continue;
+      }
+      double fmag{0.0};
+      // attraction
+      if (rmag > l_c0_) {
+        fmag = (1 / (l_max_ - rmag)) *
+               (SQR(1.0 / (rmag - l_c1_)) - (1.0 / (l_max_ - rmag))) *
+               exp(1.0 / (rmag - l_c1_));
+      }
+      // repulsion
+      if (rmag < l_c1_) {
+        fmag = (1.0 / (rmag - l_min_)) *
+               ((1.0 / (rmag - l_min_)) - SQR(1.0 / (l_c0_ - rmag))) *
+               exp(1.0 / (l_c0_ - rmag));
+      }
+      fmag *= kappa_B_;
       double f[3];
       for (int i{0}; i < 3; i++) {
         rhat[i] = rhat[i] / rmag;
-        f[i] = -1 * fmag * rhat[i];
+        f[i] = fmag * rhat[i];
       }
       vrt.AddForce(f);
-      neighb->SubForce(f);
+      // neighb->SubForce(f);
+    }
+  }
+  // sum forces over all vertices -- discrete bending forces
+  for (auto &&vrt : vrts_) {
+    //scan over all neighbs
+    for (int i_neighb{0}; i_neighb < vrt.n_neighbs_; i_neighb++) {
+      // this assumes neighbors are ordered in a ring
+      // (this assumption is incorrect lol)
+      int i_plus{i_neighb == (vrt.n_neighbs_ - 1) ? 0 : i_neighb + 1};
+      int i_minus{i_neighb == 0 ? vrt.n_neighbs_ - 1 : i_neighb - 1};
+      Vertex *neighb{vrt.neighbs_[i_neighb]};
+      Vertex *neighb_plus{vrt.neighbs_[i_plus]};
+      Vertex *neighb_minus{vrt.neighbs_[i_minus]};
+      double r_ij[3];
+      double r_ij_plus[3];
+      double r_ij_minus[3];
+      for (int i_dim{0}; i_dim < 3; i_dim++) {
+        r_ij[i_dim] = vrt.pos_[i_dim] - neighb->pos_[i_dim];
+        r_ij_plus[i_dim] = vrt.pos_[i_dim] - neighb_plus->pos_[i_dim];
+        r_ij_minus[i_dim] = vrt.pos_[i_dim] - neighb_minus->pos_[i_dim];
+      }
+      // the edge l_ij = r_ij connects two triangles, get unit normal of each
+      double rhat[3];
+      double nhat_a[3];
+      double nhat_b[3];
+      cross_product(r_ij_minus, r_ij, nhat_a, 3);
+      cross_product(r_ij, r_ij_plus, nhat_b, 3);
+      // normalize these jonnies
+      double rmag{0.0};
+      double norm_a{0.0};
+      double norm_b{0.0};
+      for (int i_dim{0}; i_dim < 3; i_dim++) {
+        rmag += SQR(r_ij[i_dim]);
+        norm_a += SQR(nhat_a[i_dim]);
+        norm_b += SQR(nhat_b[i_dim]);
+      }
+      rmag = sqrt(rmag);
+      norm_a = sqrt(norm_a);
+      norm_b = sqrt(norm_b);
+      for (int i_dim{0}; i_dim < 3; i_dim++) {
+        rhat[i_dim] = r_ij[i_dim] / rmag;
+        nhat_a[i_dim] = nhat_a[i_dim] / norm_a;
+        nhat_b[i_dim] = nhat_b[i_dim] / norm_b;
+      }
+      // calculate individual variables used in force expression
+      double l_ij{rmag};
+      // printf("%g\n", l_ij);
+      double nhat_cross[3];
+      cross_product(nhat_a, nhat_b, nhat_cross, 3);
+      double theta{acos(dot_product(3, nhat_a, nhat_b))};
+      // printf("theta = %g\n", (M_PI - theta) * 180.0 / M_PI);
+      double phi_ij{M_PI - atan2(dot_product(3, rhat, nhat_cross),
+                                 dot_product(3, nhat_a, nhat_b))};
+
+      // printf("phi_ij = %g deg\n\n", phi_ij * 180.0 / M_PI);
     }
   }
   // apply displacements
   for (int i_vrt{0}; i_vrt < vrts_.size(); i_vrt++) {
     //Expected diffusion length of the crosslink in the solution in delta
-    double sigma_d = sqrt(2.0 * 0.0005 * 0.0131);
+    double sigma_d = sqrt(2.0 * 0.005 * 0.0131);
     //Distance actually diffused
     double dr[3] = {0.0, 0.0, 0.0};
     //Previous and final location of the crosslink
@@ -304,9 +387,12 @@ void TriMesh::UpdatePositions() {
     for (int i = 0; i < 3; ++i) {
       dr[i] = rng_.RandomNormal(sigma_d);
       double f = vrts_[i_vrt].GetForce()[i];
-      r_final[i] = r_prev[i] + dr[i] + 0.00001 * f;
+      // if (f > 100) {
+      //   printf("%g\n", f);
+      // }
+      // SF TODO add gamma and timestep for them proper fiziks
+      r_final[i] = r_prev[i] + dr[i] + 0.00005 * f;
     }
     vrts_[i_vrt].SetPos(r_final);
-    // vrts_[i_vrt].SetPositionXYZ(r_final[0], r_final[1], r_final[2]);
   }
 }
