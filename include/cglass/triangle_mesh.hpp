@@ -59,6 +59,8 @@ struct Triangle {
 class TriMesh {
 
 private:
+  double l_avg_{0.0};
+
   // params for radial force
   double kappa_B_{0.0};
   double l_max_{0.0};
@@ -67,6 +69,9 @@ private:
   double l_c1_{0.0};
   // params for bending force
   double kappa_{0.0};
+  // params for area force
+  double kappa_l_{0.0};
+  double A_prime_{0.0};
   RNG rng_; // SF TODO link with system RNG
 
 public:

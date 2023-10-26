@@ -7,19 +7,12 @@ TriMesh::TriMesh() : rng_(0) {
 
   // fix these got dang parameters and put em in the yaml file
   double R_SYS{15};
-  kappa_ = 10.0;
-  kappa_B_ = 10.0;
-  // l_max_ = 20;
-  // l_min_ = 9;
-  // l_c0_ = 19;
-  // l_c1_ = 18;
-  l_max_ = 6;
-  l_min_ = 3;
-  l_c0_ = 4.7;
-  l_c1_ = 4.3;
+  kappa_B_ = 1.0; // radial
+  kappa_ = 10.0;  // bending
+  kappa_l_ = 1.0; // area
 
-  vrts_.reserve(1280);
   tris_.reserve(1280);
+  vrts_.reserve(1.5 * 1280);
   MakeIcosahedron(); // 20 triangle faces initially
   DivideFaces();     // 80 triangles
   DivideFaces();     // 320
@@ -43,6 +36,58 @@ TriMesh::TriMesh() : rng_(0) {
     }
   }
   printf("%zu vrts (%zu flawed; %zu ideal)\n", vrts_.size(), n_flawed, n_gucci);
+
+  // SF TODO sloppy hack; fix
+  double l_sum{0.0};
+  double A_sum{0.0};
+  size_t n_entries{0};
+  for (auto const &tri : tris_) {
+    double l1{0.0};
+    double l2{0.0};
+    double l3{0.0};
+    for (int i_dim{0}; i_dim < 3; i_dim++) {
+      l1 += SQR(tri.vrts_[0]->pos_[i_dim] - tri.vrts_[1]->pos_[i_dim]);
+      l2 += SQR(tri.vrts_[0]->pos_[i_dim] - tri.vrts_[2]->pos_[i_dim]);
+      l3 += SQR(tri.vrts_[1]->pos_[i_dim] - tri.vrts_[2]->pos_[i_dim]);
+    }
+    l1 = sqrt(l1);
+    l2 = sqrt(l2);
+    l3 = sqrt(l3);
+    l_sum += l1;
+    l_sum += l2;
+    l_sum += l3;
+    double s{0.5 * (l1 + l2 + l3)};
+    A_sum += sqrt(s * (s - l1) * (s - l2) * (s - l3));
+    n_entries += 3;
+  }
+  l_avg_ = l_sum / n_entries;
+  A_prime_ = A_sum / (n_entries / 3);
+  printf("A_prime = %g\n", A_prime_);
+  // also calculate std_err of mean to check for bugs
+  double var{0.0};
+  for (auto const &tri : tris_) {
+    double l1{0.0};
+    double l2{0.0};
+    double l3{0.0};
+    for (int i_dim{0}; i_dim < 3; i_dim++) {
+      l1 += SQR(tri.vrts_[0]->pos_[i_dim] - tri.vrts_[1]->pos_[i_dim]);
+      l2 += SQR(tri.vrts_[0]->pos_[i_dim] - tri.vrts_[2]->pos_[i_dim]);
+      l3 += SQR(tri.vrts_[1]->pos_[i_dim] - tri.vrts_[2]->pos_[i_dim]);
+    }
+    var += SQR(l_avg_ - sqrt(l1));
+    var += SQR(l_avg_ - sqrt(l2));
+    var += SQR(l_avg_ - sqrt(l3));
+    // n_entries += 3;
+  }
+  var = sqrt(var / n_entries);
+  printf("l_avg = %g +/- %g\n", l_avg_, var);
+  if (var < 0.05 * l_avg_) {
+    var = 0.05 * l_avg_;
+  }
+  l_c0_ = l_avg_ + var;
+  l_c1_ = l_avg_ - var;
+  l_max_ = 1.25 * l_avg_;
+  l_min_ = 0.75 * l_avg_;
 }
 
 void TriMesh::UpdateNeighbors() {
@@ -485,6 +530,7 @@ void TriMesh::UpdatePositions() {
     // then we can use these weights to find vector forces
     double coeff{sum_num / sum_den};
     double f_bend[3] = {0.0, 0.0, 0.0};
+    double f_area[3] = {0.0, 0.0, 0.0};
     for (int i_neighb{0}; i_neighb < vrt.n_neighbs_; i_neighb++) {
       // this assumes neighbors are ordered in a ring
       // (this assumption is incorrect lol)
@@ -584,18 +630,40 @@ void TriMesh::UpdatePositions() {
         f_bend[i_dim] -= SQR(coeff) * SQR(l_ij) /
                          (SQR(l_ij_plus) * SQR(sin(theta_2))) * perp_b[i_dim];
       }
+      // force from area conservation
+      // (only add contribution from fwd neighbor)
+      double area_force_vec[3];
+      // cross product order intentionally reversed cuz dir of r_jj+ is wrong
+      cross_product(r_jj_plus, nhat_b, area_force_vec, 3);
+      // get current area of triangle
+      double s{0.5 * (l_ij + l_jj_plus + l_ij_plus)};
+      double A{sqrt(s * (s - l_ij) * (s - l_jj_plus) * (s - l_ij_plus))};
+      double f_area_mag{-0.25 * kappa_l_ * (A - A_prime_) / A_prime_};
+      for (int i_dim{0}; i_dim < 3; i_dim++) {
+        f_area[i_dim] = f_area_mag * area_force_vec[i_dim];
+      }
     }
     for (int i_dim{0}; i_dim < 3; i_dim++) {
       f_bend[i_dim] *= kappa_;
     }
     // finally, add the force
     vrt.AddForce(f_bend);
+    vrt.AddForce(f_area);
   }
   // for (int i_entry{0}; i_entry < observed_thetas.size(); i_entry++) {
   //   printf("angle %.4g observed %i times\n",
   //          observed_thetas[i_entry] * 180 / M_PI, observed_counts[i_entry]);
   // }
   // printf("\n");
+  // sum forces over all vertices -- area conservation
+  for (auto &&vrt : vrts_) {
+    // each triangle we are part of will be affected by area changes
+    for (int i_tri{0}; i_tri < vrt.n_tris_; i_tri++) {
+      Vertex *a{vrt.tris_[i_tri]->vrts_[0]};
+      Vertex *b{vrt.tris_[i_tri]->vrts_[1]};
+      Vertex *c{vrt.tris_[i_tri]->vrts_[2]};
+    }
+  }
   // apply displacements
   for (int i_vrt{0}; i_vrt < vrts_.size(); i_vrt++) {
     //Expected diffusion length of the crosslink in the solution in delta

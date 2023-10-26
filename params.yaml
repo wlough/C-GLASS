@@ -11,7 +11,7 @@ n_steps: 50000000 # 000
 n_steps_equil: 0
 graph_flag: true
 auto_graph: true
-n_graph: 1
+n_graph: 10
 movie_flag: false
 movie_directory: images
 invert_background: true
