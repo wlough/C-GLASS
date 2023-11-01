@@ -7,9 +7,9 @@ TriMesh::TriMesh() : rng_(0) {
 
   // fix these got dang parameters and put em in the yaml file
   double R_SYS{15};
-  kappa_B_ = 1.0; // radial
-  kappa_ = 10.0;  // bending
-  kappa_l_ = 1.0; // area
+  kappa_B_ = 80.0; // radial
+  kappa_ = 20;     // bending
+  kappa_l_ = 1.0;  // area
 
   tris_.reserve(1280);
   vrts_.reserve(1.5 * 1280);
@@ -62,7 +62,6 @@ TriMesh::TriMesh() : rng_(0) {
   }
   l_avg_ = l_sum / n_entries;
   A_prime_ = A_sum / (n_entries / 3);
-  printf("A_prime = %g\n", A_prime_);
   // also calculate std_err of mean to check for bugs
   double var{0.0};
   for (auto const &tri : tris_) {
@@ -81,13 +80,18 @@ TriMesh::TriMesh() : rng_(0) {
   }
   var = sqrt(var / n_entries);
   printf("l_avg = %g +/- %g\n", l_avg_, var);
+  printf("A_prime = %g\n", A_prime_);
   if (var < 0.05 * l_avg_) {
     var = 0.05 * l_avg_;
   }
-  l_c0_ = l_avg_ + var;
-  l_c1_ = l_avg_ - var;
-  l_max_ = 1.25 * l_avg_;
-  l_min_ = 0.75 * l_avg_;
+  // l_c0_ = l_avg_ + var;
+  // l_c1_ = l_avg_ - var;
+  // l_max_ = 1.25 * l_avg_;
+  // l_min_ = 0.75 * l_avg_;
+  l_c0_ = 1.15 * l_avg_;
+  l_c1_ = 0.85 * l_avg_;
+  l_max_ = 1.33 * l_avg_;
+  l_min_ = 0.67 * l_avg_;
 }
 
 void TriMesh::UpdateNeighbors() {
@@ -409,16 +413,20 @@ void TriMesh::UpdatePositions() {
     }
   }
   // sum forces over all vertices -- discrete bending forces
-  std::vector<double> observed_thetas;
-  std::vector<int> observed_counts;
   for (auto &&vrt : vrts_) {
-    //scan over all neighbs
-    // first we need to construct weights (sums over all neighbs)
-    double sum_num{0.0};
-    double sum_den{0.0};
+    double sum_lsqT{0.0};    // scalar
+    double sum_del_lsqT[3];  // vec; scalar in each dim
+    double sum_rT[3];        // vec; scalr in each dim
+    double sum_del_rT[3][3]; // tensor; vec. in each dim
+    for (int i_dim{0}; i_dim < 3; i_dim++) {
+      sum_rT[i_dim] = 0.0;
+      sum_del_lsqT[i_dim] = 0.0;
+      for (int j_dim{0}; j_dim < 3; j_dim++) {
+        sum_del_rT[i_dim][j_dim] = 0.0;
+      }
+    }
     for (int i_neighb{0}; i_neighb < vrt.n_neighbs_; i_neighb++) {
-      // this assumes neighbors are ordered in a ring
-      // (this assumption is incorrect lol)
+      // this assumes neighbors are ordered in a ring with + oriented ccw
       int i_plus{i_neighb == (vrt.n_neighbs_ - 1) ? 0 : i_neighb + 1};
       int i_minus{i_neighb == 0 ? vrt.n_neighbs_ - 1 : i_neighb - 1};
       Vertex *neighb{vrt.neighbs_[i_neighb]};
@@ -436,99 +444,63 @@ void TriMesh::UpdatePositions() {
         r_jj_plus[i_dim] = neighb->pos_[i_dim] - neighb_plus->pos_[i_dim];
         r_jj_minus[i_dim] = neighb->pos_[i_dim] - neighb_minus->pos_[i_dim];
       }
-      // the edge l_ij = r_ij connects two triangles, get unit normal of each
-      double n_a[3];
-      double n_b[3];
-      cross_product(r_ij_minus, r_ij, n_a, 3);
-      cross_product(r_ij, r_ij_plus, n_b, 3);
-      // normalize these jonnies
+      // the edge l_ij = |r_ij| connects two triangles, get length of each
       double l_ij{0.0};
       double l_ij_plus{0.0};
       double l_ij_minus{0.0};
       double l_jj_plus{0.0};
       double l_jj_minus{0.0};
-      double norm_a{0.0};
-      double norm_b{0.0};
       for (int i_dim{0}; i_dim < 3; i_dim++) {
         l_ij += SQR(r_ij[i_dim]);
         l_ij_plus += SQR(r_ij_plus[i_dim]);
         l_ij_minus += SQR(r_ij_minus[i_dim]);
         l_jj_plus += SQR(r_jj_plus[i_dim]);
         l_jj_minus += SQR(r_jj_minus[i_dim]);
-        norm_a += SQR(n_a[i_dim]);
-        norm_b += SQR(n_b[i_dim]);
       }
       l_ij = sqrt(l_ij);
       l_ij_plus = sqrt(l_ij_plus);
       l_ij_minus = sqrt(l_ij_minus);
       l_jj_plus = sqrt(l_jj_plus);
       l_jj_minus = sqrt(l_jj_minus);
-      norm_a = sqrt(norm_a);
-      norm_b = sqrt(norm_b);
-      double rhat[3];
-      double nhat_a[3];
-      double nhat_b[3];
+      double chi_minus{dot_product(3, r_ij_minus, r_jj_minus) /
+                       (l_ij_minus * l_jj_minus)};
+      double chi_plus{dot_product(3, r_ij_plus, r_jj_plus) /
+                      (l_ij_plus * l_jj_plus)};
+      double T_ij{chi_minus / sqrt(1 - SQR(chi_minus)) +
+                  chi_plus / sqrt(1 - SQR(chi_plus))};
+      double grad_lsq[3];
+      double grad_chi_plus[3];
+      double grad_chi_minus[3];
+      double grad_T[3];
+      //some bullshit
       for (int i_dim{0}; i_dim < 3; i_dim++) {
-        rhat[i_dim] = r_ij[i_dim] / l_ij;
-        nhat_a[i_dim] = n_a[i_dim] / norm_a;
-        nhat_b[i_dim] = n_b[i_dim] / norm_b;
+        grad_lsq[i_dim] = 2 * r_ij[i_dim];
+        grad_chi_plus[i_dim] =
+            (1 / (l_ij_plus * l_jj_plus)) *
+            (r_jj_plus[i_dim] -
+             (l_jj_plus / l_ij_plus) * chi_plus * r_ij_plus[i_dim]);
+        grad_chi_minus[i_dim] =
+            (1 / (l_ij_minus * l_jj_minus)) *
+            (r_jj_minus[i_dim] -
+             (l_jj_minus / l_ij_minus) * chi_minus * r_ij_minus[i_dim]);
+        grad_T[i_dim] =
+            std::pow((1 - SQR(chi_plus)), -3 / 2) * grad_chi_plus[i_dim] +
+            std::pow((1 - SQR(chi_minus)), -3 / 2) * grad_chi_minus[i_dim];
       }
-      // calculate individual variables used in force expression
-      // printf("%g\n", l_ij);
-      double n_cross[3];
-      cross_product(n_a, n_b, n_cross, 3);
-      // double theta{acos(dot_product(3, nhat_a, nhat_b) / (norm_a * norm_b))};
-      // double phi_ij{M_PI - atan2(dot_product(3, r_ij, nhat_cross),
-      //                            dot_product(3, nhat_a, nhat_b))};
-      // SF TODO validate this; should be good tho
-      double phi_ij{atan2(dot_product(3, r_ij, n_cross),
-                          l_ij * dot_product(3, n_a, n_b))};
-      double alpha{acos((SQR(l_ij) + SQR(l_jj_minus) - SQR(l_ij_minus)) /
-                        (2 * l_ij * l_jj_minus))};
-      double beta{acos((SQR(l_ij) + SQR(l_jj_plus) - SQR(l_ij_plus)) /
-                       (2 * l_ij * l_jj_plus))};
-      // printf("alpha: %g | beta %g\n", alpha * 180 / M_PI, beta * 180 / M_PI);
-      double theta_1{acos((SQR(l_ij_minus) + SQR(l_jj_minus) - SQR(l_ij)) /
-                          (2 * l_ij_minus * l_jj_minus))};
-      double theta_2{acos((SQR(l_ij_plus) + SQR(l_jj_plus) - SQR(l_ij)) /
-                          (2 * l_ij_plus * l_jj_plus))};
-
-      sum_num += l_ij * phi_ij;
-      sum_den += SQR(l_ij) *
-                 (cos(theta_1) / sin(theta_1) + cos(theta_2) / sin(theta_2));
-      // printf("theta 1: %g | theta 2: %g\n", theta_1 * 180 / M_PI,
-      //        theta_2 * 180 / M_PI);
-      // double leftover_1{acos((SQR(l_ij_minus) + SQR(l_ij) - SQR(l_jj_minus)) /
-      //                        (2 * l_ij_minus * l_ij))};
-      // double leftover_2{acos((SQR(l_ij_plus) + SQR(l_ij) - SQR(l_jj_plus)) /
-      //                        (2 * l_ij_plus * l_ij))};
-      // printf("%g vs %g | %g vs %g\n", leftover_1, M_PI - alpha - theta_1,
-      //        leftover_2, M_PI - beta - theta_2);
-      // printf("\n");
-      // if (observed_thetas.empty()) {
-      //   observed_thetas.push_back(theta);
-      //   observed_counts.push_back(1);
-      // } else {
-      //   bool already_seen{false};
-      //   double epsilon{1e-6}; // precision level we care about
-      //   for (int i_entry{0}; i_entry < observed_thetas.size(); i_entry++) {
-      //     double entry{observed_thetas[i_entry]};
-      //     if (std::fabs(theta - entry) < epsilon) {
-      //       already_seen = true;
-      //       observed_counts[i_entry]++;
-      //     }
-      //   }
-      //   if (!already_seen) {
-      //     observed_thetas.push_back(theta);
-      //     observed_counts.push_back(1);
-      //   }
-      // }
-      // printf("(%i- vs %i-faced vertex)\n", vrt.n_neighbs_, neighb->n_neighbs_);
-      // printf("theta = %g\n", theta * 180.0 / M_PI);
-      // printf("phi_ij = %g deg\n\n", phi_ij * 180.0 / M_PI);
+      sum_lsqT += SQR(l_ij) * T_ij;
+      for (int i_dim{0}; i_dim < 3; i_dim++) {
+        sum_rT[i_dim] += r_ij[i_dim] * T_ij;
+        sum_del_lsqT[i_dim] +=
+            (T_ij * grad_lsq[i_dim] + SQR(l_ij) * grad_T[i_dim]);
+        for (int j_dim{0}; j_dim < 3; j_dim++) {
+          sum_del_rT[i_dim][j_dim] += r_ij[j_dim] * grad_T[i_dim];
+          if (i_dim == j_dim) {
+            sum_del_rT[i_dim][j_dim] += T_ij;
+          }
+        }
+      }
     }
     // then we can use these weights to find vector forces
-    double coeff{sum_num / sum_den};
     double f_bend[3] = {0.0, 0.0, 0.0};
     double f_area[3] = {0.0, 0.0, 0.0};
     for (int i_neighb{0}; i_neighb < vrt.n_neighbs_; i_neighb++) {
@@ -552,17 +524,14 @@ void TriMesh::UpdatePositions() {
         r_jj_minus[i_dim] = neighb->pos_[i_dim] - neighb_minus->pos_[i_dim];
       }
       // the edge l_ij = r_ij connects two triangles, get unit normal of each
-      double n_a[3];
-      double n_b[3];
-      cross_product(r_ij_minus, r_ij, n_a, 3);
-      cross_product(r_ij, r_ij_plus, n_b, 3);
       // normalize these jonnies
+      double n_b[3];
+      cross_product(r_ij, r_ij_plus, n_b, 3);
       double l_ij{0.0};
       double l_ij_plus{0.0};
       double l_ij_minus{0.0};
       double l_jj_plus{0.0};
       double l_jj_minus{0.0};
-      double norm_a{0.0};
       double norm_b{0.0};
       for (int i_dim{0}; i_dim < 3; i_dim++) {
         l_ij += SQR(r_ij[i_dim]);
@@ -570,7 +539,6 @@ void TriMesh::UpdatePositions() {
         l_ij_minus += SQR(r_ij_minus[i_dim]);
         l_jj_plus += SQR(r_jj_plus[i_dim]);
         l_jj_minus += SQR(r_jj_minus[i_dim]);
-        norm_a += SQR(n_a[i_dim]);
         norm_b += SQR(n_b[i_dim]);
       }
       l_ij = sqrt(l_ij);
@@ -578,75 +546,62 @@ void TriMesh::UpdatePositions() {
       l_ij_minus = sqrt(l_ij_minus);
       l_jj_plus = sqrt(l_jj_plus);
       l_jj_minus = sqrt(l_jj_minus);
-      norm_a = sqrt(norm_a);
       norm_b = sqrt(norm_b);
-      double rhat[3];
-      double nhat_a[3];
-      double nhat_b[3];
+      double chi_plus{dot_product(3, r_ij_minus, r_jj_minus) /
+                      (l_ij_minus * l_jj_minus)};
+      double chi_minus{dot_product(3, r_ij_plus, r_jj_plus) /
+                       (l_ij_plus * l_jj_plus)};
+      double T_ij{chi_minus / sqrt(1 - SQR(chi_minus)) +
+                  chi_plus / sqrt(1 - SQR(chi_plus))};
+      double grad_lsq[3];
+      double grad_chi_plus[3];
+      double grad_chi_minus[3];
+      double grad_T[3];
+      //some bullshit
       for (int i_dim{0}; i_dim < 3; i_dim++) {
-        rhat[i_dim] = r_ij[i_dim] / l_ij;
-        nhat_a[i_dim] = n_a[i_dim] / norm_a;
-        nhat_b[i_dim] = n_b[i_dim] / norm_b;
+        grad_lsq[i_dim] = 2 * r_ij[i_dim];
+        grad_chi_plus[i_dim] =
+            (1 / (l_ij_plus * l_jj_plus)) *
+            (r_jj_plus[i_dim] -
+             (l_jj_plus / l_ij_plus) * chi_plus * r_ij_plus[i_dim]);
+        grad_chi_minus[i_dim] =
+            (1 / (l_ij_minus * l_jj_minus)) *
+            (r_jj_minus[i_dim] -
+             (l_jj_minus / l_ij_minus) * chi_minus * r_ij_minus[i_dim]);
+        grad_T[i_dim] =
+            std::pow((1 - SQR(chi_plus)), -1.5) * grad_chi_plus[i_dim] +
+            std::pow((1 - SQR(chi_minus)), -1.5) * grad_chi_minus[i_dim];
       }
-      // calculate individual variables used in force expression
-      // printf("%g\n", l_ij);
-      double n_cross[3];
-      cross_product(n_a, n_b, n_cross, 3);
-      // double theta{acos(dot_product(3, nhat_a, nhat_b) / (norm_a * norm_b))};
-      // double phi_ij{M_PI - atan2(dot_product(3, r_ij, nhat_cross),
-      //                            dot_product(3, nhat_a, nhat_b))};
-      // SF TODO validate this; should be good tho
-      double phi_ij{atan2(dot_product(3, r_ij, n_cross),
-                          l_ij * dot_product(3, n_a, n_b))};
-      double alpha{acos((SQR(l_ij) + SQR(l_jj_minus) - SQR(l_ij_minus)) /
-                        (2 * l_ij * l_jj_minus))};
-      double beta{acos((SQR(l_ij) + SQR(l_jj_plus) - SQR(l_ij_plus)) /
-                       (2 * l_ij * l_jj_plus))};
-      // printf("alpha: %g | beta %g\n", alpha * 180 / M_PI, beta * 180 / M_PI);
-      double theta_1{acos((SQR(l_ij_minus) + SQR(l_jj_minus) - SQR(l_ij)) /
-                          (2 * l_ij_minus * l_jj_minus))};
-      double theta_2{acos((SQR(l_ij_plus) + SQR(l_jj_plus) - SQR(l_ij)) /
-                          (2 * l_ij_plus * l_jj_plus))};
-      double T{(cos(theta_1) / sin(theta_1)) + (cos(theta_2) / sin(theta_2))};
-      // square of sums, not sum of
-      // radial component of force first
       for (int i_dim{0}; i_dim < 3; i_dim++) {
-        f_bend[i_dim] += 2 * coeff * phi_ij * rhat[i_dim];
-        f_bend[i_dim] -= 2 * SQR(coeff) * l_ij * T;
+        f_bend[i_dim] += 2 * dot_product(3, sum_rT, sum_rT) / SQR(sum_lsqT) *
+                         sum_del_lsqT[i_dim];
+        f_bend[i_dim] -=
+            4 * dot_product(3, sum_rT, sum_del_rT[i_dim]) / sum_lsqT;
       }
-      // normal components
-      for (int i_dim{0}; i_dim < 3; i_dim++) {
-        f_bend[i_dim] += 2 * coeff * cos(alpha) / sin(alpha) * nhat_a[i_dim];
-        f_bend[i_dim] += 2 * coeff * cos(beta) / sin(beta) * nhat_b[i_dim];
-      }
-      // perp components
-      double perp_a[3];
-      double perp_b[3];
-      cross_product(nhat_a, r_ij_minus, perp_a, 3);
-      cross_product(nhat_b, r_ij_plus, perp_b, 3);
-      for (int i_dim{0}; i_dim < 3; i_dim++) {
-        f_bend[i_dim] += SQR(coeff) * SQR(l_ij) /
-                         (SQR(l_ij_minus) * SQR(sin(theta_1))) * perp_a[i_dim];
-        f_bend[i_dim] -= SQR(coeff) * SQR(l_ij) /
-                         (SQR(l_ij_plus) * SQR(sin(theta_2))) * perp_b[i_dim];
-      }
+
       // force from area conservation
       // (only add contribution from fwd neighbor)
       double area_force_vec[3];
       // cross product order intentionally reversed cuz dir of r_jj+ is wrong
+      double nhat_b[3];
+      for (int i_dim{0}; i_dim < 3; i_dim++) {
+        nhat_b[i_dim] = n_b[i_dim] / norm_b;
+      }
       cross_product(r_jj_plus, nhat_b, area_force_vec, 3);
       // get current area of triangle
       double s{0.5 * (l_ij + l_jj_plus + l_ij_plus)};
       double A{sqrt(s * (s - l_ij) * (s - l_jj_plus) * (s - l_ij_plus))};
       double f_area_mag{-0.25 * kappa_l_ * (A - A_prime_) / A_prime_};
       for (int i_dim{0}; i_dim < 3; i_dim++) {
-        f_area[i_dim] = f_area_mag * area_force_vec[i_dim];
+        f_area[i_dim] += f_area_mag * area_force_vec[i_dim];
       }
     }
     for (int i_dim{0}; i_dim < 3; i_dim++) {
       f_bend[i_dim] *= kappa_;
     }
     // finally, add the force
+    // printf("f_bend = <%g, %g, %g>\n", f_bend[0], f_bend[1], f_bend[2]);
+    // printf("f_area = <%g, %g, %g>\n\n", f_area[0], f_area[1], f_area[2]);
     vrt.AddForce(f_bend);
     vrt.AddForce(f_area);
   }
@@ -655,15 +610,6 @@ void TriMesh::UpdatePositions() {
   //          observed_thetas[i_entry] * 180 / M_PI, observed_counts[i_entry]);
   // }
   // printf("\n");
-  // sum forces over all vertices -- area conservation
-  for (auto &&vrt : vrts_) {
-    // each triangle we are part of will be affected by area changes
-    for (int i_tri{0}; i_tri < vrt.n_tris_; i_tri++) {
-      Vertex *a{vrt.tris_[i_tri]->vrts_[0]};
-      Vertex *b{vrt.tris_[i_tri]->vrts_[1]};
-      Vertex *c{vrt.tris_[i_tri]->vrts_[2]};
-    }
-  }
   // apply displacements
   for (int i_vrt{0}; i_vrt < vrts_.size(); i_vrt++) {
     //Expected diffusion length of the crosslink in the solution in delta
