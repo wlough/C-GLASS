@@ -6,22 +6,40 @@ TriMesh::TriMesh() : rng_(0) {
   // return; // need to ensure this isn't initialized without proper boundary type
 
   // fix these got dang parameters and put em in the yaml file
-  double R_SYS{15};
-  kappa_B_ = 80.0; // radial
-  kappa_ = 20;     // bending
-  kappa_l_ = 1.0;  // area
+  r_sys_ = 15;
+  kappa_B_ = 80;  //8.0;   // 80.0; // radial
+  kappa_ = 20;    //2;       // bending
+  kappa_l_ = 1.0; //100.0; // 10;   // area
 
-  tris_.reserve(1280);
-  vrts_.reserve(1.5 * 1280);
+  tris_.reserve(5040);
+  vrts_.reserve(1.5 * 5040);
   MakeIcosahedron(); // 20 triangle faces initially
   DivideFaces();     // 80 triangles
-  DivideFaces();     // 320
+  // DivideFaces();     // 320
   // DivideFaces();     // 1280
+  // DivideFaces();     // 5040
   ProjectToUnitSphere();
   for (auto &&vrt : vrts_) {
     vrt.neighbs_.resize(6);
-    // vrt.neighb_int_.resize(6);
   }
+  /*
+  UpdateNeighbors();
+  // try shufflin them vertices
+  printf("%zu\n", vrts_.size());
+  int i_vertices[vrts_.size()];
+  Vertex scratch[vrts_.size()];
+  for (int i_vrt{0}; i_vrt < vrts_.size(); i_vrt++) {
+    scratch[i_vrt] = vrts_[i_vrt];
+    i_vertices[i_vrt] = i_vrt;
+  }
+  // SF this completely obliterates everything -- why??
+  rng_.Shuffle(i_vertices, vrts_.size());
+  for (int i_vrt{0}; i_vrt < vrts_.size(); i_vrt++) {
+    vrts_[i_vrt] = scratch[i_vertices[i_vrt]];
+  }
+  */
+
+  // apparently the above shuffle destroys triangle ptrs??
   UpdateNeighbors();
   size_t n_flawed{0};
   size_t n_gucci{0};
@@ -61,7 +79,7 @@ TriMesh::TriMesh() : rng_(0) {
     n_entries += 3;
   }
   l_avg_ = l_sum / n_entries;
-  A_prime_ = A_sum / (n_entries / 3);
+  A_prime_ = 0.75 * A_sum / (n_entries / 3);
   // also calculate std_err of mean to check for bugs
   double var{0.0};
   for (auto const &tri : tris_) {
@@ -92,6 +110,10 @@ TriMesh::TriMesh() : rng_(0) {
   l_c1_ = 0.85 * l_avg_;
   l_max_ = 1.33 * l_avg_;
   l_min_ = 0.67 * l_avg_;
+
+  for (auto &&vrt : vrts_) {
+    vrt.SetDiameter(0.1);
+  }
 }
 
 void TriMesh::UpdateNeighbors() {
@@ -139,7 +161,6 @@ void TriMesh::UpdateNeighbors() {
     // printf("%i neighbors from %i triangles\n\n", vrt.n_neighbs_, vrt.n_tris_);
   }
   // rearrange all neighbor lists to order them in a counterclockwise ring
-  // SF TODO: need to arrange in counter-clockwise ring order
   for (auto &&vrt : vrts_) {
     Vertex *neighbs_ordered[vrt.n_neighbs_]; // list to be ordered in ccw ring
     neighbs_ordered[0] = vrt.neighbs_[0];    // use 1st entry as starting point
@@ -157,6 +178,7 @@ void TriMesh::UpdateNeighbors() {
           break;
         }
         Vertex *entry_neighb{current_entry->neighbs_[j_neighb]};
+        // check if entry_neighb is also part of vrt's neighbor list
         for (int k_neighb{0}; k_neighb < vrt.n_neighbs_; k_neighb++) {
           Vertex *this_entry{vrt.neighbs_[k_neighb]};
           if (entry_neighb == this_entry) {
@@ -169,8 +191,11 @@ void TriMesh::UpdateNeighbors() {
             cross_product(r_ij, r_ik, nhat, 3);
             // if nhat is antiparallel with vertex position, its pointing inwards
             if (dot_product(3, vrt.pos_, nhat) == 0.0) {
+              printf("ya dun goofed\n");
+              exit(1);
             }
             if (dot_product(3, vrt.pos_, nhat) < 0.0) {
+              // printf("this aint it cuz\n");
               continue;
             }
             if (this_entry != current_entry and this_entry != &vrt) {
@@ -182,6 +207,9 @@ void TriMesh::UpdateNeighbors() {
                 neighbs_ordered[i_neighb + 1] = this_entry;
                 found = true;
                 break;
+              } else {
+                printf("this should never happen\n");
+                exit(1);
               }
             }
           }
@@ -199,7 +227,6 @@ void TriMesh::UpdateNeighbors() {
 }
 
 void TriMesh::ProjectToUnitSphere() {
-  double R_SYS{15.0};
   // p much just normalization i believe
   for (auto &&vrt : vrts_) {
     // const double *old_pos{vrt.GetPosition()};
@@ -211,7 +238,7 @@ void TriMesh::ProjectToUnitSphere() {
     double new_pos[3];
     for (int i_dim{0}; i_dim < 3; i_dim++) {
       double val{vrt.pos_[i_dim]};
-      new_pos[i_dim] = R_SYS * val / norm;
+      new_pos[i_dim] = r_sys_ * val / norm;
       // printf("%g = %g * %g / %g\n", new_pos[i_dim], R_SYS, val, norm);
     }
     vrt.SetPos(new_pos);
@@ -414,17 +441,7 @@ void TriMesh::UpdatePositions() {
   }
   // sum forces over all vertices -- discrete bending forces
   for (auto &&vrt : vrts_) {
-    double sum_lsqT{0.0};    // scalar
-    double sum_del_lsqT[3];  // vec; scalar in each dim
-    double sum_rT[3];        // vec; scalr in each dim
-    double sum_del_rT[3][3]; // tensor; vec. in each dim
-    for (int i_dim{0}; i_dim < 3; i_dim++) {
-      sum_rT[i_dim] = 0.0;
-      sum_del_lsqT[i_dim] = 0.0;
-      for (int j_dim{0}; j_dim < 3; j_dim++) {
-        sum_del_rT[i_dim][j_dim] = 0.0;
-      }
-    }
+    vrt.ZeroSums();
     for (int i_neighb{0}; i_neighb < vrt.n_neighbs_; i_neighb++) {
       // this assumes neighbors are ordered in a ring with + oriented ccw
       int i_plus{i_neighb == (vrt.n_neighbs_ - 1) ? 0 : i_neighb + 1};
@@ -466,8 +483,8 @@ void TriMesh::UpdatePositions() {
                        (l_ij_minus * l_jj_minus)};
       double chi_plus{dot_product(3, r_ij_plus, r_jj_plus) /
                       (l_ij_plus * l_jj_plus)};
-      double T_ij{chi_minus / sqrt(1 - SQR(chi_minus)) +
-                  chi_plus / sqrt(1 - SQR(chi_plus))};
+      double T_ij{(chi_minus / sqrt(1.0 - SQR(chi_minus))) +
+                  (chi_plus / sqrt(1.0 - SQR(chi_plus)))};
       double grad_lsq[3];
       double grad_chi_plus[3];
       double grad_chi_minus[3];
@@ -476,26 +493,26 @@ void TriMesh::UpdatePositions() {
       for (int i_dim{0}; i_dim < 3; i_dim++) {
         grad_lsq[i_dim] = 2 * r_ij[i_dim];
         grad_chi_plus[i_dim] =
-            (1 / (l_ij_plus * l_jj_plus)) *
+            (1.0 / (l_ij_plus * l_jj_plus)) *
             (r_jj_plus[i_dim] -
              (l_jj_plus / l_ij_plus) * chi_plus * r_ij_plus[i_dim]);
         grad_chi_minus[i_dim] =
-            (1 / (l_ij_minus * l_jj_minus)) *
+            (1.0 / (l_ij_minus * l_jj_minus)) *
             (r_jj_minus[i_dim] -
              (l_jj_minus / l_ij_minus) * chi_minus * r_ij_minus[i_dim]);
         grad_T[i_dim] =
-            std::pow((1 - SQR(chi_plus)), -3 / 2) * grad_chi_plus[i_dim] +
-            std::pow((1 - SQR(chi_minus)), -3 / 2) * grad_chi_minus[i_dim];
+            grad_chi_plus[i_dim] / std::pow((1.0 - SQR(chi_plus)), 1.5) +
+            grad_chi_minus[i_dim] / std::pow((1.0 - SQR(chi_minus)), 1.5);
       }
-      sum_lsqT += SQR(l_ij) * T_ij;
+      vrt.sum_lsqT_ += SQR(l_ij) * T_ij;
       for (int i_dim{0}; i_dim < 3; i_dim++) {
-        sum_rT[i_dim] += r_ij[i_dim] * T_ij;
-        sum_del_lsqT[i_dim] +=
+        vrt.sum_rT_[i_dim] += r_ij[i_dim] * T_ij;
+        vrt.sum_del_lsqT_[i_dim] +=
             (T_ij * grad_lsq[i_dim] + SQR(l_ij) * grad_T[i_dim]);
         for (int j_dim{0}; j_dim < 3; j_dim++) {
-          sum_del_rT[i_dim][j_dim] += r_ij[j_dim] * grad_T[i_dim];
+          vrt.sum_del_rT_[i_dim][j_dim] += r_ij[j_dim] * grad_T[i_dim];
           if (i_dim == j_dim) {
-            sum_del_rT[i_dim][j_dim] += T_ij;
+            vrt.sum_del_rT_[i_dim][j_dim] += T_ij;
           }
         }
       }
@@ -503,9 +520,15 @@ void TriMesh::UpdatePositions() {
     // then we can use these weights to find vector forces
     double f_bend[3] = {0.0, 0.0, 0.0};
     double f_area[3] = {0.0, 0.0, 0.0};
+    for (int i_dim{0}; i_dim < 3; i_dim++) {
+      f_bend[i_dim] += 2 * dot_product(3, vrt.sum_rT_, vrt.sum_rT_) /
+                       SQR(vrt.sum_lsqT_) * vrt.sum_del_lsqT_[i_dim];
+      f_bend[i_dim] -= 4 * dot_product(3, vrt.sum_rT_, vrt.sum_del_rT_[i_dim]) /
+                       vrt.sum_lsqT_;
+      f_bend[i_dim] *= kappa_;
+    }
     for (int i_neighb{0}; i_neighb < vrt.n_neighbs_; i_neighb++) {
-      // this assumes neighbors are ordered in a ring
-      // (this assumption is incorrect lol)
+      // this assumes neighbors are ordered in a ring with + oriented ccw
       int i_plus{i_neighb == (vrt.n_neighbs_ - 1) ? 0 : i_neighb + 1};
       int i_minus{i_neighb == 0 ? vrt.n_neighbs_ - 1 : i_neighb - 1};
       Vertex *neighb{vrt.neighbs_[i_neighb]};
@@ -523,8 +546,7 @@ void TriMesh::UpdatePositions() {
         r_jj_plus[i_dim] = neighb->pos_[i_dim] - neighb_plus->pos_[i_dim];
         r_jj_minus[i_dim] = neighb->pos_[i_dim] - neighb_minus->pos_[i_dim];
       }
-      // the edge l_ij = r_ij connects two triangles, get unit normal of each
-      // normalize these jonnies
+      // the edge l_ij = |r_ij| connects two triangles, get length of each
       double n_b[3];
       cross_product(r_ij, r_ij_plus, n_b, 3);
       double l_ij{0.0};
@@ -547,38 +569,6 @@ void TriMesh::UpdatePositions() {
       l_jj_plus = sqrt(l_jj_plus);
       l_jj_minus = sqrt(l_jj_minus);
       norm_b = sqrt(norm_b);
-      double chi_plus{dot_product(3, r_ij_minus, r_jj_minus) /
-                      (l_ij_minus * l_jj_minus)};
-      double chi_minus{dot_product(3, r_ij_plus, r_jj_plus) /
-                       (l_ij_plus * l_jj_plus)};
-      double T_ij{chi_minus / sqrt(1 - SQR(chi_minus)) +
-                  chi_plus / sqrt(1 - SQR(chi_plus))};
-      double grad_lsq[3];
-      double grad_chi_plus[3];
-      double grad_chi_minus[3];
-      double grad_T[3];
-      //some bullshit
-      for (int i_dim{0}; i_dim < 3; i_dim++) {
-        grad_lsq[i_dim] = 2 * r_ij[i_dim];
-        grad_chi_plus[i_dim] =
-            (1 / (l_ij_plus * l_jj_plus)) *
-            (r_jj_plus[i_dim] -
-             (l_jj_plus / l_ij_plus) * chi_plus * r_ij_plus[i_dim]);
-        grad_chi_minus[i_dim] =
-            (1 / (l_ij_minus * l_jj_minus)) *
-            (r_jj_minus[i_dim] -
-             (l_jj_minus / l_ij_minus) * chi_minus * r_ij_minus[i_dim]);
-        grad_T[i_dim] =
-            std::pow((1 - SQR(chi_plus)), -1.5) * grad_chi_plus[i_dim] +
-            std::pow((1 - SQR(chi_minus)), -1.5) * grad_chi_minus[i_dim];
-      }
-      for (int i_dim{0}; i_dim < 3; i_dim++) {
-        f_bend[i_dim] += 2 * dot_product(3, sum_rT, sum_rT) / SQR(sum_lsqT) *
-                         sum_del_lsqT[i_dim];
-        f_bend[i_dim] -=
-            4 * dot_product(3, sum_rT, sum_del_rT[i_dim]) / sum_lsqT;
-      }
-
       // force from area conservation
       // (only add contribution from fwd neighbor)
       double area_force_vec[3];
@@ -595,9 +585,6 @@ void TriMesh::UpdatePositions() {
       for (int i_dim{0}; i_dim < 3; i_dim++) {
         f_area[i_dim] += f_area_mag * area_force_vec[i_dim];
       }
-    }
-    for (int i_dim{0}; i_dim < 3; i_dim++) {
-      f_bend[i_dim] *= kappa_;
     }
     // finally, add the force
     // printf("f_bend = <%g, %g, %g>\n", f_bend[0], f_bend[1], f_bend[2]);
@@ -628,6 +615,10 @@ void TriMesh::UpdatePositions() {
       // }
       // SF TODO add gamma and timestep for them proper fiziks
       r_final[i] = r_prev[i] + dr[i] + 0.00005 * f;
+    }
+    if (i_vrt == 1) {
+      // r_final[1] += l_avg_ / 25;
+      // printf("r_final[1] = %g\n", r_final[1]);
     }
     vrts_[i_vrt].SetPos(r_final);
   }

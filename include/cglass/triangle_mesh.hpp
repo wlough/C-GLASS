@@ -18,8 +18,18 @@ struct Vertex : public Site {
   int n_neighbs_ = 0;
   std::vector<Vertex *> neighbs_;
 
+  // radial tether force jawn
+  double fmag_[3]; // per neighb
+  double rhat_[3]; // per neighb
+  // bend energy jawn -- summed over all dem neighbs
+  double sum_lsqT_;         // scalar
+  double sum_del_lsqT_[3];  // vec; scalar in each dim
+  double sum_rT_[3];        // vec; scalr in each dim
+  double sum_del_rT_[3][3]; // tensor; vec. in each dim
+  // area conservation energy jawn
+
   Vertex() : Site(seed) {
-    pos_[0] = pos[1] = pos[2] = 0;
+    pos_[0] = pos_[1] = pos_[2] = 0;
     Site::SetPositionXYZ(0, 0, 0);
   }
   Vertex(double x, double y, double z) : Site(seed) {
@@ -40,15 +50,24 @@ struct Vertex : public Site {
     pos_[1] = position_[1] = new_pos[1];
     pos_[2] = position_[2] = new_pos[2];
   }
+  void ZeroSums() {
+    sum_lsqT_ = 0.0;
+    for (int i_dim{0}; i_dim < 3; i_dim++) {
+      sum_rT_[i_dim] = 0.0;
+      sum_del_lsqT_[i_dim] = 0.0;
+      for (int j_dim{0}; j_dim < 3; j_dim++) {
+        sum_del_rT_[i_dim][j_dim] = 0.0;
+      }
+    }
+  }
 };
 
 struct Triangle {
-  double area;
+  double area_;
   double nhat_[3];
 
   Vertex *vrts_[3]; // verteces that compose this triangle
   Triangle *neighbs_[3];
-  graph_struct g_;
   Triangle(Vertex *v1, Vertex *v2, Vertex *v3) {
     vrts_[0] = v1;
     vrts_[1] = v2;
@@ -59,6 +78,8 @@ struct Triangle {
 class TriMesh {
 
 private:
+  double r_sys_{0.0};
+
   double l_avg_{0.0};
 
   // params for radial force

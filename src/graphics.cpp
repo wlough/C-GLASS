@@ -853,36 +853,51 @@ void Graphics::DrawSpheros() {
 void Graphics::Draw3d() {
   KeyInteraction();
   UpdateWindow();
+  DrawBoundary();
   DrawSPBs();
   DrawSpheros();
-  DrawBoundary();
   // DrawText();
   glfwSwapBuffers(window_);
 }
 
 // SAF TODO: incorporate triangle mesh drawing here
 void Graphics::DrawBoundary() {
+  if (boundary_ == +boundary_type::none)
+    return;
+
+  glUseProgram(0);
+  GLfloat color[4] = {0.5, 0.5, 0.5, 1.0};
+  glColor4fv(color);
   if (boundary_ == +boundary_type::mesh) {
     // DrawWireSphere(0.5 * unit_cell_[0], 16, 16);
 
-    // glDisable(GL_LIGHTING);
-    // glDisable(GL_CULL_FACE);
+    glDisable(GL_LIGHTING);
+    glDisable(GL_CULL_FACE);
+    // glEnable(GL_POLYGON_SMOOTH);
     glShadeModel(GL_FLAT);
     // printf("%zu\n", space_->mesh_.tris_.size());
     // for (int i_tri{0}; i_tri < space_->mesh_.tris_.size(); i_tri++) {
     // printf("%i\n", i_tri);
-    // glBegin(GL_TRIANGLES);
-    glBegin(GL_LINES);
+    int i_tri{0};
     for (auto &&tri : space_->mesh_.tris_) {
       // Triangle *tri{&space_->mesh_.tris_[i_tri]};
+      double val{double(i_tri++) / space_->mesh_.tris_.size()};
+      glBegin(GL_TRIANGLES);
+      glColor3f(val, val, val);
+      glVertex3f(tri.vrts_[0]->pos_[0], tri.vrts_[0]->pos_[1],
+                 tri.vrts_[0]->pos_[2]);
+      glColor3f(val, val, val);
+      // glColor3f(0.5f, 0.5f, 0.5f);
+      glVertex3f(tri.vrts_[2]->pos_[0], tri.vrts_[2]->pos_[1],
+                 tri.vrts_[2]->pos_[2]);
+      glColor3f(val, val, val);
+      // glColor3f(0.5f, 0.5f, 0.5f);
+      glVertex3f(tri.vrts_[1]->pos_[0], tri.vrts_[1]->pos_[1],
+                 tri.vrts_[1]->pos_[2]);
+      glEnd();
+      // glFlush();
 
-      // glVertex3f(tri.vrts_[0]->pos_[0], tri.vrts_[0]->pos_[1],
-      //            tri.vrts_[0]->pos_[2]);
-      // glVertex3f(tri.vrts_[1]->pos_[0], tri.vrts_[1]->pos_[1],
-      //            tri.vrts_[1]->pos_[2]);
-      // glVertex3f(tri.vrts_[2]->pos_[0], tri.vrts_[2]->pos_[1],
-      //            tri.vrts_[2]->pos_[2]);
-
+      glBegin(GL_LINES);
       // node 0 to node 1
       glVertex3f(tri.vrts_[0]->pos_[0], tri.vrts_[0]->pos_[1],
                  tri.vrts_[0]->pos_[2]);
@@ -898,32 +913,25 @@ void Graphics::DrawBoundary() {
                  tri.vrts_[2]->pos_[2]);
       glVertex3f(tri.vrts_[0]->pos_[0], tri.vrts_[0]->pos_[1],
                  tri.vrts_[0]->pos_[2]);
-      // glEnd();
+      glEnd();
       // printf("l1: %g\n",
-      //        sqrt(SQR(tri->vrts_[0]->pos_[0] - tri->vrts_[1]->pos_[0]) +
-      //             SQR(tri->vrts_[0]->pos_[1] - tri->vrts_[1]->pos_[1]) +
-      //             SQR(tri->vrts_[0]->pos_[2] - tri->vrts_[1]->pos_[2])));
+      //        sqrt(SQR(tri.vrts_[0]->pos_[0] - tri.vrts_[1]->pos_[0]) +
+      //             SQR(tri.vrts_[0]->pos_[1] - tri.vrts_[1]->pos_[1]) +
+      //             SQR(tri.vrts_[0]->pos_[2] - tri.vrts_[1]->pos_[2])));
       // printf("l2: %g\n",
-      //        sqrt(SQR(tri->vrts_[2]->pos_[0] - tri->vrts_[1]->pos_[0]) +
-      //             SQR(tri->vrts_[2]->pos_[1] - tri->vrts_[1]->pos_[1]) +
-      //             SQR(tri->vrts_[2]->pos_[2] - tri->vrts_[1]->pos_[2])));
+      //        sqrt(SQR(tri.vrts_[2]->pos_[0] - tri.vrts_[1]->pos_[0]) +
+      //             SQR(tri.vrts_[2]->pos_[1] - tri.vrts_[1]->pos_[1]) +
+      //             SQR(tri.vrts_[2]->pos_[2] - tri.vrts_[1]->pos_[2])));
       // printf("l3: %g\n\n",
-      //  sqrt(SQR(tri->vrts_[0]->pos_[0] - tri->vrts_[2]->pos_[0]) +
-      // SQR(tri->vrts_[0]->pos_[1] - tri->vrts_[2]->pos_[1]) +
-      // SQR(tri->vrts_[0]->pos_[2] - tri->vrts_[2]->pos_[2])));
+      //        sqrt(SQR(tri.vrts_[0]->pos_[0] - tri.vrts_[2]->pos_[0]) +
+      //             SQR(tri.vrts_[0]->pos_[1] - tri.vrts_[2]->pos_[1]) +
+      //             SQR(tri.vrts_[0]->pos_[2] - tri.vrts_[2]->pos_[2])));
     }
-    glEnd();
     // for (int i_tri{0}; i_tri < space_->mesh_.tris_.size(); i_tri++) {
     //   Triangle *tri{&space_->mesh_.tris_[i_tri]};
     // }
   }
   // exit(1);
-  if (boundary_ == +boundary_type::none)
-    return;
-  glUseProgram(0);
-
-  GLfloat color[4] = {0.5, 0.5, 0.5, 1.0};
-  glColor4fv(color);
   if (boundary_ == +boundary_type::sphere) {
     glDisable(GL_LIGHTING);
     glDisable(GL_CULL_FACE);
@@ -941,7 +949,7 @@ void Graphics::DrawBoundary() {
   else if (boundary_ == +boundary_type::budding)
     DrawBudding();
   else if (boundary_ == +boundary_type::mesh) {
-    DrawMesh();
+    // DrawMesh();
   }
 }
 
