@@ -6,18 +6,19 @@ TriMesh::TriMesh() : rng_(0) {
   // return; // need to ensure this isn't initialized without proper boundary type
 
   // fix these got dang parameters and put em in the yaml file
-  r_sys_ = 15;
-  kappa_B_ = 80;  //8.0;   // 80.0; // radial
-  kappa_ = 20;    //2;       // bending
-  kappa_l_ = 1.0; //100.0; // 10;   // area
+  r_sys_ = 320;
+  kappa_B_ = 80.0; // radial
+  kappa_ = 20;     // bending
+  kappa_l_ = 10;   // area
 
-  tris_.reserve(5040);
-  vrts_.reserve(1.5 * 5040);
+  tris_.reserve(20480);
+  vrts_.reserve(1.5 * 20480);
   MakeIcosahedron(); // 20 triangle faces initially
   DivideFaces();     // 80 triangles
-  // DivideFaces();     // 320
-  // DivideFaces();     // 1280
-  // DivideFaces();     // 5040
+  DivideFaces();     // 320
+  DivideFaces();     // 1280
+  DivideFaces();     // 5120
+  DivideFaces();     // 20480
   ProjectToUnitSphere();
   for (auto &&vrt : vrts_) {
     vrt.neighbs_.resize(6);
@@ -79,7 +80,7 @@ TriMesh::TriMesh() : rng_(0) {
     n_entries += 3;
   }
   l_avg_ = l_sum / n_entries;
-  A_prime_ = 0.75 * A_sum / (n_entries / 3);
+  A_prime_ = A_sum / (n_entries / 3);
   // also calculate std_err of mean to check for bugs
   double var{0.0};
   for (auto const &tri : tris_) {
@@ -106,10 +107,10 @@ TriMesh::TriMesh() : rng_(0) {
   // l_c1_ = l_avg_ - var;
   // l_max_ = 1.25 * l_avg_;
   // l_min_ = 0.75 * l_avg_;
-  l_c0_ = 1.15 * l_avg_;
-  l_c1_ = 0.85 * l_avg_;
-  l_max_ = 1.33 * l_avg_;
-  l_min_ = 0.67 * l_avg_;
+  l_c0_ = 1.2 * l_avg_;
+  l_c1_ = 0.8 * l_avg_;
+  l_max_ = 1.4 * l_avg_;
+  l_min_ = 0.6 * l_avg_;
 
   for (auto &&vrt : vrts_) {
     vrt.SetDiameter(0.1);
@@ -296,6 +297,58 @@ void TriMesh::MakeIcosahedron() {
   tris_.emplace_back(&vrts_[10], &vrts_[8], &vrts_[4]);
 }
 
+// Minimum distance from segment to a polygon
+// INPUT
+// (x, y, z) line segment
+// tri triangle mesh
+// RETURN: triangle number in mesh
+// OUTPUT
+// t fractional distance along segment
+// (xRot, yRot) rotated coordinates of point on triangle mesh
+// dist distance of closest approach
+// rcontact lab frame coordinates of closest point of approach on
+//     polygon
+int TriMesh::SegmentToPolygon(double xStart, double yStart, double zStart,
+                              double xEnd, double yEnd, double zEnd, double *t,
+                              double *xRot, double *yRot, double *dist,
+                              double *rcontact) {
+
+  // Set dist to something large
+  int itriang = 0;
+  *dist = 1e10;
+  // for (int itri = 0; itri < tri->numTriang; ++itri) {
+  for (int itri{0}; itri < tris_.size(); itri++) {
+    double tt, txRot, tyRot, tdist;
+    tris_[itri].MinDist_Segment(xStart, yStart, zStart, xEnd, yEnd, zEnd, &tt,
+                                &txRot, &tyRot, &tdist);
+    // segment_to_triangle(xStart, yStart, zStart, xEnd, yEnd, zEnd, tri, itri,
+    //                     &tt, &txRot, &tyRot, &tdist);
+    if (tdist < *dist) {
+      *dist = tdist;
+      *t = tt;
+      *xRot = txRot;
+      *yRot = tyRot;
+      itriang = itri;
+    }
+  }
+
+  // sf todo
+  /*
+  // undo the rotation
+  double xPrime =
+      *xRot * cosBeta[itriang] + triZrot[itriang] * sinBeta[itriang];
+  rcontact[0] = xPrime * cosGamma[itriang] + *yRot * sinGamma[itriang];
+  rcontact[1] = -xPrime * sinGamma[itriang] + *yRot * cosGamma[itriang];
+  rcontact[2] =
+      -(*xRot) * sinBeta[itriang] + triZrot[itriang] * cosBeta[itriang];
+  //std::cout << "Contact (" << rcontact[0] << ", "
+  //                         << rcontact[1] << ", "
+  //                         << rcontact[2] << ")\n";
+  */
+
+  return itriang;
+}
+
 void TriMesh::DivideFaces() {
 
   std::vector<Triangle> new_faces;
@@ -377,9 +430,45 @@ void TriMesh::DivideFaces() {
   tris_ = new_faces;
 }
 
+// Finds the minimum distance from a rod to a polygon described in the triangle mesh
+// OUTPUTS
+// rmin: minimum r vector from point on rod to point on polygon
+// rminmag2: squared minimum distance
+// rcontact: lab coordinate of contact point on polygon
+// mu: distance along rod for contact
+void TriMesh::MinDist_Sphero(double *r_1, double *s_1, double *u_1,
+                             double length_1, double *rmin, double *rminmag2,
+                             double *rcontact, double *mu) {
+
+  size_t n_dim{3};
+  double r1[3] = {0.0};
+  double r2[3] = {0.0};
+  double t, dist;
+  double xRot, yRot;
+
+  // Convert to the tirangle mesh representation
+  for (int i = 0; i < n_dim; ++i) {
+    r1[i] = r_1[i] - 0.5 * length_1 * u_1[i];
+    r2[i] = r_1[i] + 0.5 * length_1 * u_1[i];
+  }
+
+  // Run the other version
+  int itri = SegmentToPolygon(r1[0], r1[1], r1[2], r2[0], r2[1], r2[2], &t,
+                              &xRot, &yRot, &dist, rcontact);
+  // Convert to what we need
+  *rminmag2 = dist * dist;
+  *mu = (t - 0.5) * length_1;
+  for (int i = 0; i < n_dim; ++i) {
+    rmin[i] = rcontact[i] - (r_1[i] + *mu * u_1[i]);
+  }
+}
+
 void TriMesh::Draw(std::vector<graph_struct *> &graph_array) {
 
-  UpdatePositions();
+  // lmfao
+  for (int i_counter{0}; i_counter < 100; i_counter++) {
+    UpdatePositions();
+  }
   for (int i_vrt{0}; i_vrt < vrts_.size(); i_vrt++) {
     vrts_[i_vrt].Draw(graph_array);
   }
@@ -610,14 +699,11 @@ void TriMesh::UpdatePositions() {
     for (int i = 0; i < 3; ++i) {
       dr[i] = rng_.RandomNormal(sigma_d);
       double f = vrts_[i_vrt].GetForce()[i];
-      // if (f > 100) {
-      //   printf("%g\n", f);
-      // }
       // SF TODO add gamma and timestep for them proper fiziks
-      r_final[i] = r_prev[i] + dr[i] + 0.00005 * f;
+      r_final[i] = r_prev[i] + dr[i] + 0.01 * f;
     }
     if (i_vrt == 1) {
-      // r_final[1] += l_avg_ / 25;
+      // r_final[1] += l_avg_ / 100;
       // printf("r_final[1] = %g\n", r_final[1]);
     }
     vrts_[i_vrt].SetPos(r_final);

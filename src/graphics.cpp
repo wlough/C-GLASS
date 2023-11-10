@@ -873,7 +873,7 @@ void Graphics::DrawBoundary() {
 
     glDisable(GL_LIGHTING);
     glDisable(GL_CULL_FACE);
-    // glEnable(GL_POLYGON_SMOOTH);
+    glEnable(GL_POLYGON_SMOOTH);
     glShadeModel(GL_FLAT);
     // printf("%zu\n", space_->mesh_.tris_.size());
     // for (int i_tri{0}; i_tri < space_->mesh_.tris_.size(); i_tri++) {
@@ -883,14 +883,12 @@ void Graphics::DrawBoundary() {
       // Triangle *tri{&space_->mesh_.tris_[i_tri]};
       double val{double(i_tri++) / space_->mesh_.tris_.size()};
       glBegin(GL_TRIANGLES);
-      glColor3f(val, val, val);
+      glColor3f(tri.color_[0] / 255, tri.color_[1] / 255, tri.color_[2] / 255);
       glVertex3f(tri.vrts_[0]->pos_[0], tri.vrts_[0]->pos_[1],
                  tri.vrts_[0]->pos_[2]);
-      glColor3f(val, val, val);
       // glColor3f(0.5f, 0.5f, 0.5f);
       glVertex3f(tri.vrts_[2]->pos_[0], tri.vrts_[2]->pos_[1],
                  tri.vrts_[2]->pos_[2]);
-      glColor3f(val, val, val);
       // glColor3f(0.5f, 0.5f, 0.5f);
       glVertex3f(tri.vrts_[1]->pos_[0], tri.vrts_[1]->pos_[1],
                  tri.vrts_[1]->pos_[2]);
