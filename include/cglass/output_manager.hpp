@@ -4,7 +4,8 @@
 #include "parse_flags.hpp"
 #include "species.hpp"
 
-template <class T> class OutputManagerBase {
+template <class T>
+class OutputManagerBase {
 private:
   bool posit_flag_ = false;
   bool spec_flag_ = false;
@@ -120,57 +121,60 @@ void OutputManagerBase<T>::Init(system_parameters *params,
   }
 }
 
-template <class T> void OutputManagerBase<T>::WriteOutputs() {
-  if (posit_flag_ && (params_->i_step % (inv_step_fact_*n_posit_) == 0)) {
+template <class T>
+void OutputManagerBase<T>::WriteOutputs() {
+  if (posit_flag_ && (params_->i_step % (inv_step_fact_ * n_posit_) == 0)) {
     WritePosits();
   }
-  if (spec_flag_ && params_->i_step != params_->prev_step && 
-     (params_->i_step % (inv_step_fact_*n_spec_) == 0)) {
+  if (spec_flag_ && params_->i_step != params_->prev_step &&
+      (params_->i_step % (inv_step_fact_ * n_spec_) == 0)) {
     Logger::Debug("Writing spec files");
     WriteSpecs();
   }
-  if (checkpoint_flag_ && params_->i_step != params_->prev_step && 
-     (params_->i_step % (inv_step_fact_*n_checkpoint_) == 0)) {
+  if (checkpoint_flag_ && params_->i_step != params_->prev_step &&
+      (params_->i_step % (inv_step_fact_ * n_checkpoint_) == 0)) {
     Logger::Debug("Writing checkpoint files");
     WriteCheckpoints();
   }
-  if (thermo_flag_ && params_->i_step != params_->prev_step && 
-     (params_->i_step % (inv_step_fact_*n_thermo_) == 0)) {
+  if (thermo_flag_ && params_->i_step != params_->prev_step &&
+      (params_->i_step % (inv_step_fact_ * n_thermo_) == 0)) {
     Logger::Debug("Writing thermo file");
     WriteThermo();
   }
 }
 
-template <class T> void OutputManagerBase<T>::WritePosits() {
+template <class T>
+void OutputManagerBase<T>::WritePosits() {
   for (auto spec = species_->begin(); spec != species_->end(); ++spec) {
-    if ((*spec)->GetPositFlag() &&
-        params_->i_step != params_->prev_step &&
-        params_->i_step % (inv_step_fact_*(*spec)->GetNPosit()) == 0) {
+    if ((*spec)->GetPositFlag() && params_->i_step != params_->prev_step &&
+        params_->i_step % (inv_step_fact_ * (*spec)->GetNPosit()) == 0) {
       (*spec)->WritePosits();
     }
   }
 }
 
-template <class T> void OutputManagerBase<T>::WriteSpecs() {
+template <class T>
+void OutputManagerBase<T>::WriteSpecs() {
   for (auto spec = species_->begin(); spec != species_->end(); ++spec) {
-    if ((*spec)->GetSpecFlag() && params_->i_step != params_->prev_step 
-       && params_->i_step % (inv_step_fact_*(*spec)->GetNSpec()) == 0) {
+    if ((*spec)->GetSpecFlag() && params_->i_step != params_->prev_step &&
+        params_->i_step % (inv_step_fact_ * (*spec)->GetNSpec()) == 0) {
       (*spec)->WriteSpecs();
     }
   }
 }
 
-template <class T> void OutputManagerBase<T>::WriteCheckpoints() {
+template <class T>
+void OutputManagerBase<T>::WriteCheckpoints() {
   for (auto spec = species_->begin(); spec != species_->end(); ++spec) {
-    if ((*spec)->GetCheckpointFlag() &&
-        params_->i_step != params_->prev_step &&
-        params_->i_step % (inv_step_fact_*(*spec)->GetNCheckpoint()) == 0) {
+    if ((*spec)->GetCheckpointFlag() && params_->i_step != params_->prev_step &&
+        params_->i_step % (inv_step_fact_ * (*spec)->GetNCheckpoint()) == 0) {
       (*spec)->WriteCheckpoints();
     }
   }
 }
 
-template <class T> void OutputManagerBase<T>::InitThermo(std::string fname) {
+template <class T>
+void OutputManagerBase<T>::InitThermo(std::string fname) {
   fname.append(".thermo");
   othermo_file_.open(fname, std::ios::out | std::ios::binary);
   if (!othermo_file_.is_open()) {
@@ -184,7 +188,8 @@ template <class T> void OutputManagerBase<T>::InitThermo(std::string fname) {
   othermo_file_.write(reinterpret_cast<char *>(&(params_->n_dim)), sizeof(int));
 }
 
-template <class T> void OutputManagerBase<T>::WriteThermo() {
+template <class T>
+void OutputManagerBase<T>::WriteThermo() {
   for (int i = 0; i < 9; ++i) {
     othermo_file_.write(reinterpret_cast<char *>(&(space_->unit_cell[i])),
                         sizeof(double));
@@ -199,7 +204,8 @@ template <class T> void OutputManagerBase<T>::WriteThermo() {
                       sizeof(double));
 }
 
-template <class T> void OutputManagerBase<T>::ReadThermo() {
+template <class T>
+void OutputManagerBase<T>::ReadThermo() {
   for (int i = 0; i < 9; ++i) {
     ithermo_file_.read(reinterpret_cast<char *>(&(space_->unit_cell[i])),
                        sizeof(double));
@@ -214,64 +220,75 @@ template <class T> void OutputManagerBase<T>::ReadThermo() {
                      sizeof(double));
 }
 
-template <class T> void OutputManagerBase<T>::ReadInputs() {
+template <class T>
+void OutputManagerBase<T>::ReadInputs() {
   // if ( params_->i_step % n_posit_ != 0 && params_->i_step % n_spec_ != 0) {
   // return;
   //}
+  printf("  ReadInputs!\n");
   for (auto spec = species_->begin(); spec != species_->end(); ++spec) {
+    printf("    checking species %s\n", (*spec)->GetSpeciesName().c_str());
     if (posits_only_ && (*spec)->GetPositFlag() &&
         params_->i_step != params_->prev_step &&
-        params_->i_step % (inv_step_fact_*(*spec)->GetNPosit()) == 0) {
+        params_->i_step % (inv_step_fact_ * (*spec)->GetNPosit()) == 0) {
       (*spec)->ReadPosits();
+      printf("      posit\n");
     }
     // In the case that we only want to consider posits, but we only have spec
     // files, use specs to read average positions
     else if (posits_only_ && !(*spec)->GetPositFlag() &&
-             (*spec)->GetSpecFlag() &&
-             params_->i_step != params_->prev_step &&
-             params_->i_step % (inv_step_fact_*(*spec)->GetNSpec()) == 0) {
+             (*spec)->GetSpecFlag() && params_->i_step != params_->prev_step &&
+             params_->i_step % (inv_step_fact_ * (*spec)->GetNSpec()) == 0) {
+      printf("      posit from spec\n");
       (*spec)->ReadPositsFromSpecs();
     } else if (!posits_only_ && (*spec)->GetSpecFlag() &&
-             params_->i_step != params_->prev_step &&
-               params_->i_step % (inv_step_fact_*(*spec)->GetNSpec()) == 0) {
+               //  params_->i_step != params_->prev_step &&
+               params_->i_step % (inv_step_fact_ * (*spec)->GetNSpec()) == 0) {
+      printf("      spec (%i)\n", (*spec)->GetNSpec());
       (*spec)->ReadSpecs();
-      if (params_->checkpoint_from_spec && params_->i_step %
-          (inv_step_fact_*(*spec)->GetNCheckpoint()) == 0 &&
+      if (params_->checkpoint_from_spec &&
+          params_->i_step % (inv_step_fact_ * (*spec)->GetNCheckpoint()) == 0 &&
           params_->i_step != params_->prev_step) {
+        printf("      writing checkpoint\n");
         (*spec)->WriteCheckpoints();
       }
     }
   }
   if (thermo_flag_) {
+    printf("  ReadThermo!\n");
     ReadThermo();
   }
   if (reduce_flag_) {
+    printf("  WriteReduce!\n");
     WriteReduce();
   }
 }
 
-template <class T> void OutputManagerBase<T>::WriteReduce() {
+template <class T>
+void OutputManagerBase<T>::WriteReduce() {
   for (auto spec = species_->begin(); spec != species_->end(); ++spec) {
-    if ((*spec)->GetPositFlag() &&
-        params_->i_step != params_->prev_step &&
-        params_->i_step % (inv_step_fact_ * reduce_factor_ * 
-        (*spec)->GetNPosit()) == 0) {
+    if ((*spec)->GetPositFlag() && params_->i_step != params_->prev_step &&
+        params_->i_step %
+                (inv_step_fact_ * reduce_factor_ * (*spec)->GetNPosit()) ==
+            0) {
       (*spec)->WritePosits();
     }
     if (!posits_only_ && (*spec)->GetSpecFlag() &&
         params_->i_step != params_->prev_step &&
-        params_->i_step % (inv_step_fact_ * reduce_factor_ 
-        * (*spec)->GetNSpec()) == 0) {
+        params_->i_step %
+                (inv_step_fact_ * reduce_factor_ * (*spec)->GetNSpec()) ==
+            0) {
       (*spec)->WriteSpecs();
     }
   }
-  if (thermo_flag_ && params_->i_step != params_->prev_step 
-     && params_->i_step % (inv_step_fact_ * reduce_factor_ * n_thermo_) == 0) {
+  if (thermo_flag_ && params_->i_step != params_->prev_step &&
+      params_->i_step % (inv_step_fact_ * reduce_factor_ * n_thermo_) == 0) {
     WriteThermo();
   }
 }
 
-template <class T> void OutputManagerBase<T>::Close() {
+template <class T>
+void OutputManagerBase<T>::Close() {
   for (auto spec = species_->begin(); spec != species_->end(); ++spec) {
     (*spec)->CloseFiles();
   }
@@ -286,23 +303,24 @@ template <class T> void OutputManagerBase<T>::Close() {
   }
 }
 
-template <class T> void OutputManagerBase<T>::WriteTime() {
+template <class T>
+void OutputManagerBase<T>::WriteTime() {
   std::string fname = run_name_;
   fname.append(".time");
   time_file_.open(fname, std::ios::out);
   time_file_ << "i_step n_steps delta\n";
-  time_file_ << step_fact_*(params_->i_step) << " " << params_->n_steps << " "
+  time_file_ << step_fact_ * (params_->i_step) << " " << params_->n_steps << " "
              << params_->delta << "\n";
   time_file_.close();
 }
 
-
 /* Convert all existing spec files into txt files */
-template <class T> void OutputManagerBase<T>::Convert() {
+template <class T>
+void OutputManagerBase<T>::Convert() {
   for (auto spec = species_->begin(); spec != species_->end(); ++spec) {
     if ((*spec)->GetSpecFlag() && (*spec)->GetSpecValid() &&
-             params_->i_step != params_->prev_step &&
-             params_->i_step % (inv_step_fact_*(*spec)->GetNSpec()) == 0) {
+        params_->i_step != params_->prev_step &&
+        params_->i_step % (inv_step_fact_ * (*spec)->GetNSpec()) == 0) {
       (*spec)->ConvertSpecs(params_->i_step * params_->delta * step_fact_);
     }
   }

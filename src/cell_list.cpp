@@ -68,11 +68,15 @@ void CellList::Init(int n_dim, int n_periodic, double system_radius) {
 void CellList::BuildCellList() {
   Logger::Trace("Building cell list");
   AllocateCells();
+  printf("done alloc\n");
   LabelCells();
+  printf("done label\n");
   ClearCellObjects();
+  printf("done clear\n");
   /* Build with redundant neighbor pairs for fast overlap checking of new
      objects added to cell list */
   AssignCellNeighbors(true);
+  printf("done assignment\n");
 }
 
 void CellList::AllocateCells() {
@@ -91,7 +95,8 @@ void CellList::AllocateCells() {
 }
 
 void CellList::Clear() {
-  if (_no_init_) return;
+  if (_no_init_)
+    return;
   _n_cells_1d_ = -1;
   _no_init_ = true;
   ClearCellObjects();
@@ -218,10 +223,12 @@ void CellList::AssignCellNeighbors(bool redundancy) {
     Logger::Debug("Assigning cell list neighbors");
   }
   int third_dim = (_n_dim_ == 3 ? _n_cells_1d_ : 1);
+  printf("lims: <%i, %i, %i>\n", third_dim, _n_cells_1d_, _n_cells_1d_);
   // Loop through all cells in cell list
   for (int z = 0; z < third_dim; ++z) {
     for (int y = 0; y < _n_cells_1d_; ++y) {
       for (int x = 0; x < _n_cells_1d_; ++x) {
+        // printf("<%i, %i, %i>\n", z, y, x);
         Cell &c = cell_[x][y][z];
         int z_begin = (redundancy && _n_dim_ == 3 ? z - 1 : z);
         int z_end = (_n_dim_ == 3 ? z + 2 : z + 1);

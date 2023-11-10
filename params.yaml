@@ -3,7 +3,7 @@ run_name: testino
 n_dim: 3
 n_periodic: 0
 boundary: 5
-system_radius: 15
+system_radius: 320
 delta: 2.5e-5
 dynamic_timestep: false
 dynamic_timestep_ramp: 0.0001
@@ -25,6 +25,14 @@ n_checkpoint: 1000
 remove_duplicate_interactions: false   # SF TODO explore this
 coarse_grained_mesh_interactions: false # SF TODO explore this
 mesh_coarsening: 2
+# triangulated_mesh: 
+#   - name: MEMBRANE 
+#     init_shape: sphere
+#     init_divisions: 3 
+#     k_teth: 80
+#     k_bend: 20
+#     k_area: 1
+#     gamma: 1
 chromosome: 
   - name: CHROMO
     num: 0

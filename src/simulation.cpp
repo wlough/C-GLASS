@@ -8,6 +8,8 @@ void Simulation::Run(YAML::Node sim_params) {
   // Parse simulation parameters
   parser_.Init(sim_params);
   // Initialize simulation data structures
+  // SF TODO: set min cell length in triangulated membrane
+  CellList::SetMinCellLength(100);
   InitSimulation();
   // Begin simulation
   RunSimulation();
@@ -729,12 +731,15 @@ void Simulation::RunProcessing(run_options run_opts) {
 
   for (i_step_ = 1; i_step_ <= (params_.n_steps * inv_step_fact_); ++i_step_) {
     params_.i_step = i_step_;
+    printf("step %zu\n", i_step_);
     time_ = params_.i_step * params_.delta * step_fact_;
     PrintComplete();
     if (early_exit) {
+      printf("  exited early\n");
       break;
     }
     if (run_opts.convert) {
+      printf(" convert - CONT\n");
       // Convert all spec files to text files
       output_mgr_.Convert();
       ix_mgr_.Convert();
@@ -742,15 +747,18 @@ void Simulation::RunProcessing(run_options run_opts) {
     }
     if (run_opts.analysis_flag &&
         params_.i_step >= (inv_step_fact_ * params_.n_steps_equil)) {
+      printf("  analysis\n");
       bool struct_update = false;
       /* Check if we are running any species analysis to determine whether we
        * run structure analysis */
       for (auto it = species_.begin(); it != species_.end(); ++it) {
+        printf("checkin species %s\n", (*it)->GetSpeciesName().c_str());
         if (((*it)->GetPositFlag() &&
              params_.i_step % (inv_step_fact_ * (*it)->GetNPosit()) == 0) ||
             ((*it)->GetSpecFlag() &&
              params_.i_step % (inv_step_fact_ * (*it)->GetNSpec()) == 0)) {
           struct_update = true;
+          printf("  struct update??\n");
           break;
         }
       }
@@ -767,7 +775,9 @@ void Simulation::RunProcessing(run_options run_opts) {
       }
     }
     Draw(run_opts.single_frame);
+    printf("wat\n");
     output_mgr_.ReadInputs();
+    printf("kilowatts\n");
     ix_mgr_.ReadInputs();
   }
   Draw(run_opts.single_frame);

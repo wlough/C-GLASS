@@ -42,6 +42,7 @@ void InteractionManager::InitInteractions() {
   CellList::Init(params_->n_dim, params_->n_periodic, params_->system_radius);
   Logger::Info("Constructing cell list data structure");
   clist_.BuildCellList();
+  printf("done cell list\n");
 
   dr_update_ = 0.25 * CellList::GetCellLength() * CellList::GetCellLength();
   MinimumDistance::Init(space_, 2 * dr_update_);

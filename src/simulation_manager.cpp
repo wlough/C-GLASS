@@ -104,7 +104,7 @@ void SimulationManager::RunManager() {
     // simulation.
     return;
   } else if (run_opts_.analysis_flag || run_opts_.make_movie ||
-             run_opts_.graphics_flag || run_opts_.reduce_flag || 
+             run_opts_.graphics_flag || run_opts_.reduce_flag ||
              run_opts_.convert) {
     // Process the output files associated with the param file
     ProcessOutputs();
@@ -185,7 +185,8 @@ void SimulationManager::LoadDefaultParams() {
           } else if (jt->second.IsSequence()) {
             // Save in anchor/subspecies parameters
             for (size_t i = 0; i < jt->second.size(); ++i) {
-              for (YAML::const_iterator kt = jt->second[i].begin(); kt != jt->second[i].end(); ++kt) {
+              for (YAML::const_iterator kt = jt->second[i].begin();
+                   kt != jt->second[i].end(); ++kt) {
                 if (i > 1) {
                   Logger::Error("Only two default anchor parameters allowed!");
                 }
@@ -196,14 +197,17 @@ void SimulationManager::LoadDefaultParams() {
                   pnode_[param_name][sub_param].push_back(jt->second[i]);
                 }
                 if ((pnode_[param_name][sub_param].size() == 1)) {
-                  pnode_[param_name][sub_param].push_back(pnode_[param_name][sub_param][0]);
+                  pnode_[param_name][sub_param].push_back(
+                      pnode_[param_name][sub_param][0]);
                 }
                 // Copy specific anchor params to second anchor if there are two listed
                 if (!pnode_[param_name][sub_param][i][sub_sub_param]) {
                   if (pnode_[param_name][sub_param][(int)!i][sub_sub_param]) {
-                    pnode_[param_name][sub_param][i][sub_sub_param] = pnode_[param_name][sub_param][!i][sub_sub_param];
+                    pnode_[param_name][sub_param][i][sub_sub_param] =
+                        pnode_[param_name][sub_param][!i][sub_sub_param];
                   } else {
-                    pnode_[param_name][sub_param][i][sub_sub_param] = default_config[param_name][sub_param][i][sub_sub_param];
+                    pnode_[param_name][sub_param][i][sub_sub_param] =
+                        default_config[param_name][sub_param][i][sub_sub_param];
                   }
                 }
               }
@@ -374,7 +378,7 @@ void SimulationManager::GenerateParameters() {
       j_var = n_var_ / (k_var * s);
       i_var = 0;
       for (int j = 0; j < j_var; ++j) {
-        for (int i_param = 1; i_param < s+1; ++i_param) {
+        for (int i_param = 1; i_param < s + 1; ++i_param) {
           for (int k = 0; k < k_var; ++k) {
             pvector_[i_var++][it->first] = it->second[i_param];
           }
@@ -390,7 +394,7 @@ void SimulationManager::GenerateParameters() {
           j_var = n_var_ / (k_var * s);
           i_var = 0;
           for (int j = 0; j < j_var; ++j) {
-            for (int i_param = 1; i_param < s+1; ++i_param) {
+            for (int i_param = 1; i_param < s + 1; ++i_param) {
               for (int k = 0; k < k_var; ++k) {
                 pvector_[i_var++][it->first][jt->first] = jt->second[i_param];
               }
@@ -413,7 +417,7 @@ void SimulationManager::GenerateParameters() {
             j_var = n_var_ / (k_var * s);
             i_var = 0;
             for (int j = 0; j < j_var; ++j) {
-              for (int i_param = 1; i_param < s+1; ++i_param) {
+              for (int i_param = 1; i_param < s + 1; ++i_param) {
                 for (int k = 0; k < k_var; ++k) {
                   pvector_[i_var++][it->first][sub][jt->first] =
                       jt->second[i_param];
@@ -562,8 +566,10 @@ void SimulationManager::WriteParams() {
    those parameters.
    *************************************/
 void SimulationManager::RunSimulations() {
+  int i_counter{0};
   for (std::vector<std::string>::iterator it = pfiles_.begin();
        it != pfiles_.end(); ++it) {
+    printf("sim #%i launched\n", ++i_counter);
     // ParseParams(*it);
     sim_ = new Simulation;
     sim_->Run(YAML::LoadFile(*it));
