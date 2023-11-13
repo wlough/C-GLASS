@@ -30,7 +30,7 @@ public:
   boundary_type type;
   double BoundaryArea() const;
   // triangle mesh data
-  TriMesh mesh_;
+  // TriMesh mesh_;
 };
 
 #endif

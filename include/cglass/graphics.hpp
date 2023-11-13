@@ -5,6 +5,7 @@
 
 #include "auxiliary.hpp"
 #include "cglass/centrosome.hpp"
+#include "cglass/triangle_mesh.hpp"
 #include <GL/glew.h>
 #include <GL/glu.h>
 #include <GLFW/glfw3.h>
@@ -81,6 +82,7 @@ public:
   GraphicsPrimitive spherocylinder_; // actual spherocylinder
   // GraphicsText text_;
 
+  TriMesh *membrane_;
   std::vector<Centrosome *> spbs_;
   GLUquadricObj *qobj_;
 

@@ -167,6 +167,20 @@ system_parameters parse_system_params(YAML::Node &node) {
       params.no_midstep = it->second.as<bool>();
     } else if (param_name.compare("single_occupancy") == 0) {
       params.single_occupancy = it->second.as<bool>();
+    } else if (param_name.compare("mesh_membrane") == 0) {
+      params.mesh_membrane = it->second.as<bool>();
+    } else if (param_name.compare("mesh_kB") == 0) {
+      params.mesh_kB = it->second.as<double>();
+    } else if (param_name.compare("mesh_k") == 0) {
+      params.mesh_k = it->second.as<double>();
+    } else if (param_name.compare("mesh_kl") == 0) {
+      params.mesh_kl = it->second.as<double>();
+    } else if (param_name.compare("n_subdivisions") == 0) {
+      params.n_subdivisions = it->second.as<size_t>();
+    } else if (param_name.compare("node_gamma") == 0) {
+      params.node_gamma = it->second.as<double>();
+    } else if (param_name.compare("node_diameter") == 0) {
+      params.node_diameter = it->second.as<double>();
     } else {
       Logger::Warning("Unrecognized parameter '%s'", param_name.c_str());
     }

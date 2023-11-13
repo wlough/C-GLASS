@@ -323,6 +323,13 @@ struct system_parameters {
   bool knockout_xlink = false;
   bool no_midstep = false;
   bool single_occupancy = true;
+  bool mesh_membrane = false;
+  double mesh_kB = 0.0;
+  double mesh_k = 0.0;
+  double mesh_kl = 0.0;
+  size_t n_subdivisions = 0;
+  double node_diameter = 0.0;
+  double node_gamma = 0.0;
 };
 
 #endif // _CGLASS_PARAMETERS_H_

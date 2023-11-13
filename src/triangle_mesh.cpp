@@ -1,24 +1,29 @@
 #include <cglass/triangle_mesh.hpp>
 
 // todo lol fix seed
-TriMesh::TriMesh() : rng_(0) {
 
+void TriMesh::Init(system_parameters *params) {
+  // TriMesh::TriMesh() : rng_(0) {
+
+  params_ = params;
+  long seed{params == nullptr ? 0 : params_->seed};
+  rng_ = new RNG(seed);
   // return; // need to ensure this isn't initialized without proper boundary type
 
   // fix these got dang parameters and put em in the yaml file
-  r_sys_ = 320;
-  kappa_B_ = 80.0; // radial
-  kappa_ = 20;     // bending
-  kappa_l_ = 10;   // area
+  r_sys_ = params->system_radius;
+  kappa_B_ = params->mesh_kB;
+  kappa_ = params->mesh_k;
+  kappa_l_ = params->mesh_kl;
+  gamma_ = params->node_gamma;
 
   tris_.reserve(20480);
   vrts_.reserve(1.5 * 20480);
   MakeIcosahedron(); // 20 triangle faces initially
-  DivideFaces();     // 80 triangles
-  DivideFaces();     // 320
-  DivideFaces();     // 1280
-  DivideFaces();     // 5120
-  DivideFaces();     // 20480
+  // 80 -> 320 -> 1280 -> 5120 -> 20480 -> etc triangles
+  for (int i_divide{0}; i_divide < params_->n_subdivisions; i_divide++) {
+    DivideFaces(); // 80 triangles
+  }
   ProjectToUnitSphere();
   for (auto &&vrt : vrts_) {
     vrt.neighbs_.resize(6);
@@ -113,7 +118,7 @@ TriMesh::TriMesh() : rng_(0) {
   l_min_ = 0.6 * l_avg_;
 
   for (auto &&vrt : vrts_) {
-    vrt.SetDiameter(0.1);
+    vrt.SetDiameter(params_->node_diameter);
   }
 }
 
@@ -690,6 +695,7 @@ void TriMesh::UpdatePositions() {
   for (int i_vrt{0}; i_vrt < vrts_.size(); i_vrt++) {
     //Expected diffusion length of the crosslink in the solution in delta
     double sigma_d = sqrt(2.0 * 0.005 * 0.0131);
+    double sigma_vel{sqrt(2 * gamma_)}; // kbT = 1??
     //Distance actually diffused
     double dr[3] = {0.0, 0.0, 0.0};
     //Previous and final location of the crosslink
@@ -697,15 +703,17 @@ void TriMesh::UpdatePositions() {
     double r_final[3];
     //Update position of the crosslink
     for (int i = 0; i < 3; ++i) {
-      dr[i] = rng_.RandomNormal(sigma_d);
+      dr[i] = rng_->RandomNormal(sigma_d);
       double f = vrts_[i_vrt].GetForce()[i];
       // SF TODO add gamma and timestep for them proper fiziks
-      r_final[i] = r_prev[i] + dr[i] + 0.01 * f;
+      dr[i] =
+          (vrts_[i_vrt].GetForce()[i] + rng_->RandomNormal(sigma_vel)) / gamma_;
+      r_final[i] = r_prev[i] + dr[i];
     }
-    if (i_vrt == 1) {
-      // r_final[1] += l_avg_ / 100;
-      // printf("r_final[1] = %g\n", r_final[1]);
-    }
+    // if (i_vrt == 1) {
+    //   r_final[1] += l_avg_ / 100;
+    // printf("r_final[1] = %g\n", r_final[1]);
+    // }
     vrts_[i_vrt].SetPos(r_final);
   }
 }

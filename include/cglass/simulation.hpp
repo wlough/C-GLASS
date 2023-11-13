@@ -7,7 +7,7 @@
 #include "space.hpp"
 
 class Simulation {
- private:
+private:
   UNIT_TEST
   int i_step_ = 0;
   double step_fact_;
@@ -32,8 +32,9 @@ class Simulation {
   Graphics graphics_;
 #endif
   Space space_;
+  TriMesh membrane_;
   std::vector<SpeciesBase *> species_;
-  Cortex *cortex_;
+  Cortex *cortex_; // sf todo get rid of this?
   Tracker tracker_;
   void InitSimulation();
   void InitObjects();
@@ -61,10 +62,10 @@ class Simulation {
   void InitGraphics();
   void InitProcessing(run_options run_opts);
 
- public:
+public:
   Simulation() {}
   void Run(YAML::Node sim_params);
   void ProcessOutputs(YAML::Node sim_params, run_options run_opts);
 };
 
-#endif  // _CGLASS_SIMULATION_H_
+#endif // _CGLASS_SIMULATION_H_

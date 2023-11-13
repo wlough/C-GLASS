@@ -18,15 +18,11 @@ struct Vertex : public Site {
   int n_neighbs_ = 0;
   std::vector<Vertex *> neighbs_;
 
-  // radial tether force jawn
-  double fmag_[3]; // per neighb
-  double rhat_[3]; // per neighb
   // bend energy jawn -- summed over all dem neighbs
   double sum_lsqT_;         // scalar
   double sum_del_lsqT_[3];  // vec; scalar in each dim
   double sum_rT_[3];        // vec; scalr in each dim
   double sum_del_rT_[3][3]; // tensor; vec. in each dim
-  // area conservation energy jawn
 
   Vertex() : Site(seed) {
     pos_[0] = pos_[1] = pos_[2] = 0;
@@ -456,9 +452,10 @@ struct Triangle {
 class TriMesh {
 
 private:
+  system_parameters *params_{nullptr};
   double r_sys_{0.0};
-
   double l_avg_{0.0};
+  double gamma_{0.0};
 
   // params for radial force
   double kappa_B_{0.0};
@@ -471,7 +468,7 @@ private:
   // params for area force
   double kappa_l_{0.0};
   double A_prime_{0.0};
-  RNG rng_; // SF TODO link with system RNG
+  RNG *rng_; // SF TODO link with system RNG
 
 public:
   std::vector<Vertex> vrts_;
@@ -488,7 +485,8 @@ private:
                        double *yRot, double *dist, double *rcontact);
 
 public:
-  TriMesh();
+  TriMesh() {}
+  void Init(system_parameters *params);
   void MinDist_Sphero(double *r_1, double *s_1, double *u_1, double length_1,
                       double *rmin, double *rminmag2, double *rcontact,
                       double *mu);

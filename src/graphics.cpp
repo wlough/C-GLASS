@@ -335,7 +335,7 @@ void Graphics::Init3dWindow() {
   cFar_ = 2.0 * a_perp_max;   // clipping plane far
   cxAngle_ = cyAngle_ = 0;    // plane angles
 
-  windx_ = windy_ = 400; // window size in pixels
+  windx_ = windy_ = 1000; // window size in pixels
 
   { // Make dummy window so we can get GL extensions
     glfwWindowHint(GLFW_VISIBLE, GL_FALSE);
@@ -879,9 +879,9 @@ void Graphics::DrawBoundary() {
     // for (int i_tri{0}; i_tri < space_->mesh_.tris_.size(); i_tri++) {
     // printf("%i\n", i_tri);
     int i_tri{0};
-    for (auto &&tri : space_->mesh_.tris_) {
+    for (auto &&tri : membrane_->tris_) {
       // Triangle *tri{&space_->mesh_.tris_[i_tri]};
-      double val{double(i_tri++) / space_->mesh_.tris_.size()};
+      double val{double(i_tri++) / membrane_->tris_.size()};
       glBegin(GL_TRIANGLES);
       glColor3f(tri.color_[0] / 255, tri.color_[1] / 255, tri.color_[2] / 255);
       glVertex3f(tri.vrts_[0]->pos_[0], tri.vrts_[0]->pos_[1],

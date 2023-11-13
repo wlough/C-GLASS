@@ -3,7 +3,7 @@ run_name: testino
 n_dim: 3
 n_periodic: 0
 boundary: 5
-system_radius: 320
+system_radius: 300
 delta: 2.5e-5
 dynamic_timestep: false
 dynamic_timestep_ramp: 0.0001
@@ -24,7 +24,14 @@ checkpoint_flag: false
 n_checkpoint: 1000
 remove_duplicate_interactions: false   # SF TODO explore this
 coarse_grained_mesh_interactions: false # SF TODO explore this
-mesh_coarsening: 2
+mesh_coarsening: 2 # SF this is not related to the below bool/params lol sry
+mesh_membrane: true
+n_subdivisions: 5
+mesh_kB: 1
+mesh_k: 1
+mesh_kl: 1
+node_gamma: 1000
+node_diameter: 0.0
 # triangulated_mesh: 
 #   - name: MEMBRANE 
 #     init_shape: sphere

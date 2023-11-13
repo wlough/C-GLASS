@@ -213,6 +213,10 @@ void Simulation::InitSimulation() {
   space_.Init(&params_);
   InitObjects();
   cortex_ = new Cortex(rng_->GetSeed());
+  if (params_.mesh_membrane) {
+    printf("initializating triangular mesh membrane\n");
+    membrane_.Init(&params_);
+  }
   ix_mgr_.Init(&params_, &species_, space_.GetSpaceBase(), cortex_, &tracker_);
   InitSpecies();
   ix_mgr_.InitInteractions();
@@ -223,6 +227,9 @@ void Simulation::InitSimulation() {
   if (params_.graph_flag) {
     InitGraphics();
 #ifndef NOGRAPH
+    if (params_.mesh_membrane) {
+      graphics_.membrane_ = &membrane_;
+    }
     // SF FIXME make this less bad
     for (auto spec = species_.begin(); spec != species_.end(); spec++) {
       if ((*spec)->GetSID() == +species_id::centrosome) {
@@ -612,8 +619,8 @@ void Simulation::GetGraphicsStructure() {
   for (auto it = species_.begin(); it != species_.end(); ++it) {
     (*it)->Draw(graph_array_);
   }
-  if (space_.boundary_ == +boundary_type::mesh) {
-    space_.s.mesh_.Draw(graph_array_);
+  if (space_.boundary_ == +boundary_type::mesh and params_.mesh_membrane) {
+    membrane_.Draw(graph_array_);
   }
   /* Visualize interaction forces, crosslinks, etc */
   ix_mgr_.DrawInteractions(graph_array_);
