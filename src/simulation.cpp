@@ -9,7 +9,7 @@ void Simulation::Run(YAML::Node sim_params) {
   parser_.Init(sim_params);
   // Initialize simulation data structures
   // SF TODO: set min cell length in triangulated membrane
-  CellList::SetMinCellLength(100);
+  // CellList::SetMinCellLength(100);
   InitSimulation();
   // Begin simulation
   RunSimulation();
@@ -53,6 +53,10 @@ void Simulation::RunSimulation() {
     ZeroForces();
     /* Calculate forces between objects in system */
     Interact();
+    // printf("step %i\n", i_step_);
+    if (params_.mesh_membrane) {
+      membrane_.UpdatePositions();
+    }
     /*Decrease or increase timestep depending on size of forces and torques 
       on objects. Timestep remains the same if equal to initial timestep. */
     if (params_.dynamic_timestep && ix_mgr_.CheckDynamicTimestep()) {
@@ -618,9 +622,6 @@ void Simulation::GetGraphicsStructure() {
   graph_array_.clear();
   for (auto it = species_.begin(); it != species_.end(); ++it) {
     (*it)->Draw(graph_array_);
-  }
-  if (space_.boundary_ == +boundary_type::mesh and params_.mesh_membrane) {
-    membrane_.Draw(graph_array_);
   }
   /* Visualize interaction forces, crosslinks, etc */
   ix_mgr_.DrawInteractions(graph_array_);

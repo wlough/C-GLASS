@@ -5,46 +5,42 @@
 void TriMesh::Init(system_parameters *params) {
   // TriMesh::TriMesh() : rng_(0) {
 
+  // SF temp before integrating with output_manager
+  std::string filename{params->run_name + "_membrane_forces.file"};
+  forces_ = fopen(filename.c_str(), "w");
+  if (forces_ == nullptr) {
+    printf("aw hell naw\n");
+    exit(1);
+  } else {
+    file_open_ = true;
+  }
+
   params_ = params;
   long seed{params == nullptr ? 0 : params_->seed};
   rng_ = new RNG(seed);
-  // return; // need to ensure this isn't initialized without proper boundary type
 
-  // fix these got dang parameters and put em in the yaml file
   r_sys_ = params->system_radius;
   kappa_B_ = params->mesh_kB;
   kappa_ = params->mesh_k;
   kappa_l_ = params->mesh_kl;
   gamma_ = params->node_gamma;
 
-  tris_.reserve(20480);
-  vrts_.reserve(1.5 * 20480);
+  size_t n_faces{size_t(20 * std::pow(4, params_->n_subdivisions))};
+  printf("%zu faces expected\n", n_faces);
+
+  tris_.reserve(n_faces);
+  vrts_.reserve(n_faces);
   MakeIcosahedron(); // 20 triangle faces initially
-  // 80 -> 320 -> 1280 -> 5120 -> 20480 -> etc triangles
+  // 80 -> 320 -> 1,280 -> 5,120 -> 20,480 -> 81,920 -> 327,680 -> 1,310,720 faces
+  printf("%zu VRTS TOTAL\n", vrts_.size());
   for (int i_divide{0}; i_divide < params_->n_subdivisions; i_divide++) {
     DivideFaces(); // 80 triangles
+    printf("%zu VRTS TOTAL\n", vrts_.size());
   }
   ProjectToUnitSphere();
   for (auto &&vrt : vrts_) {
     vrt.neighbs_.resize(6);
   }
-  /*
-  UpdateNeighbors();
-  // try shufflin them vertices
-  printf("%zu\n", vrts_.size());
-  int i_vertices[vrts_.size()];
-  Vertex scratch[vrts_.size()];
-  for (int i_vrt{0}; i_vrt < vrts_.size(); i_vrt++) {
-    scratch[i_vrt] = vrts_[i_vrt];
-    i_vertices[i_vrt] = i_vrt;
-  }
-  // SF this completely obliterates everything -- why??
-  rng_.Shuffle(i_vertices, vrts_.size());
-  for (int i_vrt{0}; i_vrt < vrts_.size(); i_vrt++) {
-    vrts_[i_vrt] = scratch[i_vertices[i_vrt]];
-  }
-  */
-
   // apparently the above shuffle destroys triangle ptrs??
   UpdateNeighbors();
   size_t n_flawed{0};
@@ -65,6 +61,8 @@ void TriMesh::Init(system_parameters *params) {
   double l_sum{0.0};
   double A_sum{0.0};
   size_t n_entries{0};
+  size_t n_good{0};
+  size_t n_bad{0};
   for (auto const &tri : tris_) {
     double l1{0.0};
     double l2{0.0};
@@ -77,6 +75,21 @@ void TriMesh::Init(system_parameters *params) {
     l1 = sqrt(l1);
     l2 = sqrt(l2);
     l3 = sqrt(l3);
+    if (l1 < 1) {
+      n_good++;
+    } else {
+      n_bad++;
+    }
+    if (l2 < 1) {
+      n_good++;
+    } else {
+      n_bad++;
+    }
+    if (l3 < 1) {
+      n_good++;
+    } else {
+      n_bad++;
+    }
     l_sum += l1;
     l_sum += l2;
     l_sum += l3;
@@ -86,6 +99,7 @@ void TriMesh::Init(system_parameters *params) {
   }
   l_avg_ = l_sum / n_entries;
   A_prime_ = A_sum / (n_entries / 3);
+  printf("%zu good lengths; %zu bad\n", n_good, n_bad);
   // also calculate std_err of mean to check for bugs
   double var{0.0};
   for (auto const &tri : tris_) {
@@ -105,6 +119,7 @@ void TriMesh::Init(system_parameters *params) {
   var = sqrt(var / n_entries);
   printf("l_avg = %g +/- %g\n", l_avg_, var);
   printf("A_prime = %g\n", A_prime_);
+  printf("A_calc = %g\n", 4 * M_PI * SQR(r_sys_) / tris_.size());
   if (var < 0.05 * l_avg_) {
     var = 0.05 * l_avg_;
   }
@@ -245,7 +260,6 @@ void TriMesh::ProjectToUnitSphere() {
     for (int i_dim{0}; i_dim < 3; i_dim++) {
       double val{vrt.pos_[i_dim]};
       new_pos[i_dim] = r_sys_ * val / norm;
-      // printf("%g = %g * %g / %g\n", new_pos[i_dim], R_SYS, val, norm);
     }
     vrt.SetPos(new_pos);
   }
@@ -255,10 +269,9 @@ void TriMesh::MakeIcosahedron() {
 
   printf("initializing icosahedron (20 triangles; 12 points)\n");
   // sf todo update system radius from params
-  double r_sys{15.0};
   double phi = (1.0f + sqrt(5.0f)) * 0.5f; // golden ratio
-  double a = r_sys * 1.0f;
-  double b = r_sys * 1.0f / phi;
+  double a = r_sys_ * 1.0f;
+  double b = r_sys_ * 1.0f / phi;
   // add vertices
   vrts_.emplace_back(0.0, b, -a);
   vrts_.emplace_back(b, a, 0.0);
@@ -300,6 +313,27 @@ void TriMesh::MakeIcosahedron() {
   tris_.emplace_back(&vrts_[7], &vrts_[10], &vrts_[6]);
   tris_.emplace_back(&vrts_[5], &vrts_[11], &vrts_[4]);
   tris_.emplace_back(&vrts_[10], &vrts_[8], &vrts_[4]);
+  double l_sum{0.0};
+  size_t n_entries{0};
+
+  for (auto const &tri : tris_) {
+    double l1{0.0};
+    double l2{0.0};
+    double l3{0.0};
+    for (int i_dim{0}; i_dim < 3; i_dim++) {
+      l1 += SQR(tri.vrts_[0]->pos_[i_dim] - tri.vrts_[1]->pos_[i_dim]);
+      l2 += SQR(tri.vrts_[0]->pos_[i_dim] - tri.vrts_[2]->pos_[i_dim]);
+      l3 += SQR(tri.vrts_[1]->pos_[i_dim] - tri.vrts_[2]->pos_[i_dim]);
+    }
+    l1 = sqrt(l1);
+    l2 = sqrt(l2);
+    l3 = sqrt(l3);
+    l_sum += l1;
+    l_sum += l2;
+    l_sum += l3;
+    n_entries += 3;
+  }
+  printf("edge length is %g (alt)\n", l_sum / n_entries);
 }
 
 // Minimum distance from segment to a polygon
@@ -470,13 +504,10 @@ void TriMesh::MinDist_Sphero(double *r_1, double *s_1, double *u_1,
 
 void TriMesh::Draw(std::vector<graph_struct *> &graph_array) {
 
-  // lmfao
-  for (int i_counter{0}; i_counter < 100; i_counter++) {
-    UpdatePositions();
-  }
-  for (int i_vrt{0}; i_vrt < vrts_.size(); i_vrt++) {
-    vrts_[i_vrt].Draw(graph_array);
-  }
+  return;
+  // for (int i_vrt{0}; i_vrt < vrts_.size(); i_vrt++) {
+  //   vrts_[i_vrt].Draw(graph_array);
+  // }
 }
 
 void TriMesh::UpdatePositions() {
@@ -489,6 +520,21 @@ void TriMesh::UpdatePositions() {
   for (auto &&vrt : vrts_) {
     vrt.ZeroForce();
   }
+  double f_teth_flaw{0.0};
+  size_t n_teth_flaw{0};
+  double f_bend_flaw{0.0};
+  size_t n_bend_flaw{0};
+  double f_area_flaw{0.0};
+  size_t n_area_flaw{0};
+  double f_teth_good{0.0};
+  size_t n_teth_good{0};
+  double f_bend_good{0.0};
+  size_t n_bend_good{0};
+  double f_area_good{0.0};
+  size_t n_area_good{0};
+
+  double l_edge_avg{0.0};
+  size_t n_edges{0};
   // sum forces over all vertices -- radial tether attraction/repulsion
   for (auto &&vrt : vrts_) {
     for (int i_neighb{0}; i_neighb < vrt.n_neighbs_; i_neighb++) {
@@ -505,6 +551,8 @@ void TriMesh::UpdatePositions() {
         rmag += SQR(rhat[i]);
       }
       rmag = sqrt(rmag);
+      l_edge_avg += rmag;
+      n_edges++;
       // free movement within a certain range
       if (rmag <= l_c0_ and rmag >= l_c1_) {
         // printf("%g < %g < %g\n", l_c1_, rmag, l_c0_);
@@ -530,10 +578,20 @@ void TriMesh::UpdatePositions() {
         f[i] = fmag * rhat[i];
       }
       vrt.AddForce(f);
-      // neighb->SubForce(f);
+      if (vrt.n_neighbs_ == 5) {
+        f_teth_flaw += fmag;
+        n_teth_flaw++;
+      } else if (vrt.n_neighbs_ == 6) {
+        f_teth_good += fmag;
+        n_teth_good++;
+      } else {
+        printf("what [1]\n");
+        exit(1);
+      }
     }
   }
   // sum forces over all vertices -- discrete bending forces
+  // printf("avg edge length is %g\n", avg_edge_length / n_edges);
   for (auto &&vrt : vrts_) {
     vrt.ZeroSums();
     for (int i_neighb{0}; i_neighb < vrt.n_neighbs_; i_neighb++) {
@@ -685,6 +743,26 @@ void TriMesh::UpdatePositions() {
     // printf("f_area = <%g, %g, %g>\n\n", f_area[0], f_area[1], f_area[2]);
     vrt.AddForce(f_bend);
     vrt.AddForce(f_area);
+    double fmag_bend{0.0};
+    double fmag_area{0.0};
+    for (int i_dim{0}; i_dim < 3; i_dim++) {
+      fmag_bend += SQR(f_bend[i_dim]);
+      fmag_area += SQR(f_area[i_dim]);
+    }
+    if (vrt.n_neighbs_ == 5) {
+      f_bend_flaw += sqrt(fmag_bend);
+      f_area_flaw += sqrt(fmag_area);
+      n_bend_flaw++;
+      n_area_flaw++;
+    } else if (vrt.n_neighbs_ == 6) {
+      f_bend_good += sqrt(fmag_bend);
+      f_area_good += sqrt(fmag_area);
+      n_bend_good++;
+      n_area_good++;
+    } else {
+      printf("what [1]\n");
+      exit(1);
+    }
   }
   // for (int i_entry{0}; i_entry < observed_thetas.size(); i_entry++) {
   //   printf("angle %.4g observed %i times\n",
@@ -694,8 +772,7 @@ void TriMesh::UpdatePositions() {
   // apply displacements
   for (int i_vrt{0}; i_vrt < vrts_.size(); i_vrt++) {
     //Expected diffusion length of the crosslink in the solution in delta
-    double sigma_d = sqrt(2.0 * 0.005 * 0.0131);
-    double sigma_vel{sqrt(2 * gamma_)}; // kbT = 1??
+    double sigma{sqrt(2 * params_->delta / gamma_)}; // kbT = 1??
     //Distance actually diffused
     double dr[3] = {0.0, 0.0, 0.0};
     //Previous and final location of the crosslink
@@ -703,11 +780,10 @@ void TriMesh::UpdatePositions() {
     double r_final[3];
     //Update position of the crosslink
     for (int i = 0; i < 3; ++i) {
-      dr[i] = rng_->RandomNormal(sigma_d);
-      double f = vrts_[i_vrt].GetForce()[i];
-      // SF TODO add gamma and timestep for them proper fiziks
-      dr[i] =
-          (vrts_[i_vrt].GetForce()[i] + rng_->RandomNormal(sigma_vel)) / gamma_;
+      // you forgot the timestep you IDJEET
+      double vel{vrts_[i_vrt].GetForce()[i] / gamma_};
+      double noise{rng_->RandomNormal(sigma)};
+      dr[i] = vel * params_->delta + noise;
       r_final[i] = r_prev[i] + dr[i];
     }
     // if (i_vrt == 1) {
@@ -716,4 +792,27 @@ void TriMesh::UpdatePositions() {
     // }
     vrts_[i_vrt].SetPos(r_final);
   }
+  double f_avg_good[3] = {f_teth_good / n_teth_good, f_bend_good / n_bend_good,
+                          f_area_good / n_area_good};
+  double f_avg_flaw[3] = {f_teth_flaw / n_teth_flaw, f_bend_flaw / n_bend_flaw,
+                          f_area_flaw / n_area_flaw};
+
+  // SF temp before integrating into output_manager
+  if (n_datapoints < 10000) {
+    int n_written_good = fwrite(f_avg_good, sizeof(double), 3, forces_);
+    int n_written_flaw = fwrite(f_avg_flaw, sizeof(double), 3, forces_);
+    // if (n_written != 1) {
+    //   printf("%i\n", n_written);
+    //   exit(1);
+    // }
+    // printf("counter is %i\n", n_datapoints);
+    n_datapoints++;
+    // exit(1);
+  } else if (file_open_) {
+    file_open_ = false;
+    printf("done!\n");
+    fclose(forces_);
+    // exit(1);
+  }
+  // printf("writing forces\n");
 }

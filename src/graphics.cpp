@@ -747,6 +747,7 @@ void Graphics::DrawSpheros() {
 
   GLfloat color[4] = {0.0, 0.0, 1.0, 1.0}; // default bond color
   // for (int i_bond = 0; i_bond < n_spheros; ++i_bond) {
+  // printf("%zu to draw\n", graph_array_->size());
   for (auto it = graph_array_->begin(); it != graph_array_->end(); ++it) {
     /* Determine phi rotation angle, amount to rotate about y. */
     double phi = acos((*it)->u[2]);
@@ -869,33 +870,41 @@ void Graphics::DrawBoundary() {
   GLfloat color[4] = {0.5, 0.5, 0.5, 1.0};
   glColor4fv(color);
   if (boundary_ == +boundary_type::mesh) {
-    // DrawWireSphere(0.5 * unit_cell_[0], 16, 16);
+    // glDisable(GL_LIGHTING);
+    // glDisable(GL_CULL_FACE);
+    // /* Fixme: I'm not drawing anything */
+    // // Turn on wireframe mode
+    // if (n_dim_ == 2)
+    //   // DrawWireSphere(0.5*unit_cell_[0], 3, 32);
+    //   DrawWireSphere(0.5 * unit_cell_[0], 32, 32);
+    // if (n_dim_ == 3)
+    //   DrawWireSphere(0.5 * unit_cell_[0], 16, 16);
+    // return;
 
     glDisable(GL_LIGHTING);
     glDisable(GL_CULL_FACE);
-    glEnable(GL_POLYGON_SMOOTH);
-    glShadeModel(GL_FLAT);
-    // printf("%zu\n", space_->mesh_.tris_.size());
-    // for (int i_tri{0}; i_tri < space_->mesh_.tris_.size(); i_tri++) {
-    // printf("%i\n", i_tri);
-    int i_tri{0};
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glLineWidth(1.0);
+    // glDisable(GL_LIGHTING);
+    // glDisable(GL_CULL_FACE);
+    // glEnable(GL_POLYGON_SMOOTH);
+    // glShadeModel(GL_FLAT);
+    glBegin(GL_LINES);
     for (auto &&tri : membrane_->tris_) {
-      // Triangle *tri{&space_->mesh_.tris_[i_tri]};
-      double val{double(i_tri++) / membrane_->tris_.size()};
-      glBegin(GL_TRIANGLES);
-      glColor3f(tri.color_[0] / 255, tri.color_[1] / 255, tri.color_[2] / 255);
-      glVertex3f(tri.vrts_[0]->pos_[0], tri.vrts_[0]->pos_[1],
-                 tri.vrts_[0]->pos_[2]);
-      // glColor3f(0.5f, 0.5f, 0.5f);
-      glVertex3f(tri.vrts_[2]->pos_[0], tri.vrts_[2]->pos_[1],
-                 tri.vrts_[2]->pos_[2]);
-      // glColor3f(0.5f, 0.5f, 0.5f);
-      glVertex3f(tri.vrts_[1]->pos_[0], tri.vrts_[1]->pos_[1],
-                 tri.vrts_[1]->pos_[2]);
-      glEnd();
+      // glBegin(GL_TRIANGLES);
+      // glColor3f(tri.color_[0] / 255, tri.color_[1] / 255, tri.color_[2] / 255);
+      // glVertex3f(tri.vrts_[0]->pos_[0], tri.vrts_[0]->pos_[1],
+      //            tri.vrts_[0]->pos_[2]);
+      // // glColor3f(0.5f, 0.5f, 0.5f);
+      // glVertex3f(tri.vrts_[2]->pos_[0], tri.vrts_[2]->pos_[1],
+      //            tri.vrts_[2]->pos_[2]);
+      // // glColor3f(0.5f, 0.5f, 0.5f);
+      // glVertex3f(tri.vrts_[1]->pos_[0], tri.vrts_[1]->pos_[1],
+      //            tri.vrts_[1]->pos_[2]);
+      // glEnd();
       // glFlush();
 
-      glBegin(GL_LINES);
+      // glBegin(GL_LINES);
       // node 0 to node 1
       glVertex3f(tri.vrts_[0]->pos_[0], tri.vrts_[0]->pos_[1],
                  tri.vrts_[0]->pos_[2]);
@@ -911,7 +920,7 @@ void Graphics::DrawBoundary() {
                  tri.vrts_[2]->pos_[2]);
       glVertex3f(tri.vrts_[0]->pos_[0], tri.vrts_[0]->pos_[1],
                  tri.vrts_[0]->pos_[2]);
-      glEnd();
+      // glEnd();
       // printf("l1: %g\n",
       //        sqrt(SQR(tri.vrts_[0]->pos_[0] - tri.vrts_[1]->pos_[0]) +
       //             SQR(tri.vrts_[0]->pos_[1] - tri.vrts_[1]->pos_[1]) +
@@ -925,15 +934,14 @@ void Graphics::DrawBoundary() {
       //             SQR(tri.vrts_[0]->pos_[1] - tri.vrts_[2]->pos_[1]) +
       //             SQR(tri.vrts_[0]->pos_[2] - tri.vrts_[2]->pos_[2])));
     }
-    // for (int i_tri{0}; i_tri < space_->mesh_.tris_.size(); i_tri++) {
-    //   Triangle *tri{&space_->mesh_.tris_[i_tri]};
-    // }
+    glEnd();
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    glEnable(GL_LIGHTING);
+    glEnable(GL_CULL_FACE);
   }
-  // exit(1);
   if (boundary_ == +boundary_type::sphere) {
     glDisable(GL_LIGHTING);
     glDisable(GL_CULL_FACE);
-
     /* Fixme: I'm not drawing anything */
     // Turn on wireframe mode
     if (n_dim_ == 2)

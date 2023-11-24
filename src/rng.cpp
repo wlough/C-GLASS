@@ -73,6 +73,7 @@ void RNG::RandomCoordinate(const SpaceBase *const s, double *vec,
     }
     break;
   // spherical boundary
+  case +boundary_type::mesh:   // SF for now, just copy spherical boundary
   case +boundary_type::sphere: // sphere
     RandomUnitVector(n_dim, vec);
     mag = gsl_rng_uniform_pos(rng_) * (R - buffer);

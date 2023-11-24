@@ -452,6 +452,9 @@ struct Triangle {
 class TriMesh {
 
 private:
+  size_t n_datapoints{0};
+  bool file_open_{false};
+  FILE *forces_{nullptr};
   system_parameters *params_{nullptr};
   double r_sys_{0.0};
   double l_avg_{0.0};
@@ -492,6 +495,7 @@ public:
                       double *mu);
   void Draw(std::vector<graph_struct *> &graph_array);
   void UpdatePositions();
+  void WriteOutputs();
 };
 
 #endif
