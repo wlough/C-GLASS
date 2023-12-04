@@ -76,6 +76,7 @@ void Space::Init(system_parameters *params) {
     break;
   case 5:
     boundary_ = boundary_type::mesh;
+    params->mesh_membrane = true;
     printf("initializing mesh boundary\n");
     break;
   default:

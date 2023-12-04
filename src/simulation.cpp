@@ -9,7 +9,7 @@ void Simulation::Run(YAML::Node sim_params) {
   parser_.Init(sim_params);
   // Initialize simulation data structures
   // SF TODO: set min cell length in triangulated membrane
-  // CellList::SetMinCellLength(100);
+  CellList::SetMinCellLength(100);
   InitSimulation();
   // Begin simulation
   RunSimulation();
@@ -248,6 +248,20 @@ void Simulation::InitSimulation() {
   }
   params_.i_step = 0;
   WriteOutputs();
+  // SF TODO cleanup
+  if (params_.mesh_membrane) {
+    printf("Addng neighbors to mesh mebrane\n");
+    for (auto spec = species_.begin(); spec != species_.end(); spec++) {
+      if ((*spec)->GetSID() == +species_id::filament or
+          (*spec)->GetSID() == +species_id::rigid_filament) {
+        for (int i_fil{0}; i_fil < (*spec)->GetNMembers(); i_fil++) {
+          membrane_.neighbs_.push_back((*spec)->GetMember(i_fil));
+          printf("Adding filament #%i to membrane neighbs\n",
+                 membrane_.neighbs_.back()->GetOID());
+        }
+      }
+    }
+  }
 }
 
 /* Initialize static object parameters that are used everywhere */
@@ -429,6 +443,7 @@ void Simulation::InsertSpecies(bool force_overlap, bool processing) {
         /* Otherwise update interaction engine to include new interactors and
            update display of percentage of species inserted */
         else {
+          printf("INSERTED\n");
           inserted++;
           if (!force_overlap && !processing) {
             ix_mgr_.AddInteractors(last_ixors);

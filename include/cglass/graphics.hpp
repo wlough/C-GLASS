@@ -126,7 +126,7 @@ private:
   void DrawBox();    // Wrapper for rectangular boundaries
   void DrawSquare(); // boundary square
   void DrawCube();   // boundary cube
-  void DrawMesh() {} // boundary triangular mesh
+  void DrawMesh();   // boundary triangular mesh
   void
   DrawWireSphere(double r, int lats,
                  int longs); // Slow, not for mass drawing, just for boundary

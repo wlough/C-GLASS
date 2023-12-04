@@ -357,6 +357,7 @@ int TriMesh::SegmentToPolygon(double xStart, double yStart, double zStart,
   *dist = 1e10;
   // for (int itri = 0; itri < tri->numTriang; ++itri) {
   for (int itri{0}; itri < tris_.size(); itri++) {
+    printf("itri = %i\n", itri);
     double tt, txRot, tyRot, tdist;
     tris_[itri].MinDist_Segment(xStart, yStart, zStart, xEnd, yEnd, zEnd, &tt,
                                 &txRot, &tyRot, &tdist);
@@ -475,9 +476,9 @@ void TriMesh::DivideFaces() {
 // rminmag2: squared minimum distance
 // rcontact: lab coordinate of contact point on polygon
 // mu: distance along rod for contact
-void TriMesh::MinDist_Sphero(double *r_1, double *s_1, double *u_1,
-                             double length_1, double *rmin, double *rminmag2,
-                             double *rcontact, double *mu) {
+int TriMesh::MinDist_Sphero(double *r_1, double *s_1, double *u_1,
+                            double length_1, double *rmin, double *rminmag2,
+                            double *rcontact, double *mu) {
 
   size_t n_dim{3};
   double r1[3] = {0.0};
@@ -486,10 +487,14 @@ void TriMesh::MinDist_Sphero(double *r_1, double *s_1, double *u_1,
   double xRot, yRot;
 
   // Convert to the tirangle mesh representation
+  // r1 and r2 are simply the endpoints of each filament
   for (int i = 0; i < n_dim; ++i) {
     r1[i] = r_1[i] - 0.5 * length_1 * u_1[i];
     r2[i] = r_1[i] + 0.5 * length_1 * u_1[i];
   }
+
+  printf("\nr1 = <%g, %g, %g>\n", r1[0], r1[1], r1[2]);
+  printf("r2 = <%g, %g, %g>\n", r2[0], r2[1], r2[2]);
 
   // Run the other version
   int itri = SegmentToPolygon(r1[0], r1[1], r1[2], r2[0], r2[1], r2[2], &t,
@@ -500,14 +505,187 @@ void TriMesh::MinDist_Sphero(double *r_1, double *s_1, double *u_1,
   for (int i = 0; i < n_dim; ++i) {
     rmin[i] = rcontact[i] - (r_1[i] + *mu * u_1[i]);
   }
+  return itri;
 }
 
 void TriMesh::Draw(std::vector<graph_struct *> &graph_array) {
 
-  return;
-  // for (int i_vrt{0}; i_vrt < vrts_.size(); i_vrt++) {
-  //   vrts_[i_vrt].Draw(graph_array);
-  // }
+  for (int i_vrt{0}; i_vrt < vrts_.size(); i_vrt++) {
+    vrts_[i_vrt].Draw(graph_array);
+  }
+}
+
+void TriMesh::UpdateMesh() {
+  // for (auto &&tri : tris_) {
+  for (int itri{0}; itri < tris_.size(); itri++) {
+    Triangle *tri{&tris_[itri]};
+    double aVector[3] = {0.0};
+    double bVector[3] = {0.0};
+    double cVector[3] = {0.0};
+
+    // Compute rotation to a plane and rotated coordinates
+    for (int i = 0; i < 3; ++i) {
+      aVector[i] =
+          tri->vrts_[1]->GetPosition()[i] - tri->vrts_[0]->GetPosition()[i];
+      bVector[i] =
+          tri->vrts_[2]->GetPosition()[i] - tri->vrts_[1]->GetPosition()[i];
+    }
+    cross_product(aVector, bVector, cVector, 3);
+    double cLenInXY = sqrt(cVector[0] * cVector[0] + cVector[1] * cVector[1]);
+    double cLength = sqrt(cVector[0] * cVector[0] + cVector[1] * cVector[1] +
+                          cVector[2] * cVector[2]);
+
+    double sinGam, cosGam, sinBet, cosBet;
+    if (cLenInXY < 1.0e-10) {
+      sinGam = 0.0;
+      cosGam = 1.0;
+    } else {
+      sinGam = -cVector[1] / cLenInXY;
+      cosGam = cVector[0] / cLenInXY;
+    }
+    sinBet = cLenInXY / cLength;
+    cosBet = cVector[2] / cLength;
+
+    tri->cosGamma_ = cosGam;
+    tri->sinGamma_ = sinGam;
+    tri->cosBeta_ = cosBet;
+    tri->sinBeta_ = sinBet;
+
+    // Calculate and save rotated coordiantes
+    double zRotSum = 0;
+    for (int ivert = 0; ivert < 3; ++ivert) {
+      int iv = ivert; //tri->indVert[ivert][itri];
+      tri->XYrot_[0][ivert] = (tri->vrts_[iv]->GetPosition()[0] * cosGam -
+                               tri->vrts_[iv]->GetPosition()[1] * sinGam) *
+                                  cosBet -
+                              tri->vrts_[iv]->GetPosition()[2] * sinBet;
+      tri->XYrot_[1][ivert] = tri->vrts_[iv]->GetPosition()[0] * sinGam +
+                              tri->vrts_[iv]->GetPosition()[1] * cosGam;
+      zRotSum = zRotSum +
+                (tri->vrts_[iv]->GetPosition()[0] * cosGam -
+                 tri->vrts_[iv]->GetPosition()[1] * sinGam) *
+                    sinBet +
+                tri->vrts_[iv]->GetPosition()[2] * cosBet;
+    }
+    tri->Zrot_ = zRotSum / 3.;
+  }
+}
+
+void TriMesh::ApplyBoundaryForces() {
+
+  double r_cutoff2 = 4.0;
+  double sigma2 = 1.0;
+  double four_epsilon = 1.0;
+
+  for (int i_neighb{0}; i_neighb < neighbs_.size(); i_neighb++) {
+    double rmin[3], r_min_mag2, rcontact[3], mu;
+    // double pos[3] = neighbs_[i_neighb].GetPosition();
+    Object *neighb{neighbs_[i_neighb]};
+    double r[3] = {neighb->GetPosition()[0], neighb->GetPosition()[1],
+                   neighb->GetPosition()[2]};
+    double u[3] = {neighb->GetOrientation()[0], neighb->GetOrientation()[1],
+                   neighb->GetOrientation()[2]};
+    printf("r = <%g, %g, %g>\n", r[0], r[1], r[2]);
+    printf("u = <%g, %g, %g>\n", u[0], u[1], u[2]);
+    printf("l = %g\n", neighb->GetLength());
+    // SF TODO incorporate periodic space (incorporate s and h)
+    int i_tri = MinDist_Sphero(r, r, u, neighb->GetLength(), rmin, &r_min_mag2,
+                               rcontact, &mu);
+    printf("%g @ triangle %i\n", r_min_mag2, i_tri);
+    return;
+    if (r_min_mag2 < r_cutoff2) {
+      //std::cout << "Firing off WCA calc\n";
+      // Calculate WCA potential and forces
+      double rho2 = sigma2 / r_min_mag2;
+      double rho6 = CUBE(rho2);
+      double rho12 = SQR(rho6);
+
+      // u += four_epsilon * (rho12 - rho6) + u_shift;
+      double factor = 6.0 * four_epsilon * (2.0 * rho12 - rho6) / r_min_mag2;
+      // sf todo incorporate gamma properly
+      // double f_cutoff =
+      //     0.1 / params_->delta *
+      //     MIN(properties->bonds.gamma_par[ibond], chromosomes->gamma_t_);
+      double f_cutoff = 10;
+      // Truncate the forces if necessary
+      double r_min_mag = sqrt(r_min_mag2);
+      if (factor * r_min_mag > f_cutoff) {
+        //std::cout << "NOTE tripping fcutoff in kcmt, resetting force factor, original " << factor << " to ";
+        factor = f_cutoff / r_min_mag;
+        //std::cout << factor << std::endl;
+        printf(" *** Force exceeded f_cutoff "
+               "kinetochoremesh_mt_wca_potential_neighbors ***\n");
+      }
+      double f_lj[3] = {0.0};
+      for (int i = 0; i < params_->n_dim; ++i) {
+        f_lj[i] = factor * rmin[i];
+      }
+      //std::cout << "KC MT Current forces Steric:\n";
+      //std::cout << "  KC[" << ikc << "] bond[" << ibond << "]\n";
+      std::cout << "  f_lj: (" << f_lj[0] << ", " << f_lj[1] << ", " << f_lj[2]
+                << ")\n";
+      //std::cout << "  fkc:   (" << f_kc[ikc][0] << ", " << f_kc[ikc][1] << ", " << f_kc[ikc][2] << ")\n";
+      //std::cout << "  fbond: (" << f_bond[ibond][0] << ", " << f_bond[ibond][1] << ", " << f_bond[ibond][2] << ")\n";
+
+      Triangle *tri{&tris_[i_tri]};
+      for (auto &&vrt : tri->vrts_) {
+        vrt->AddForce(f_lj);
+      }
+      // tri->AddForce(f_lj);
+      neighb->SubForce(f_lj);
+      // Add to accumulators
+      // for (int i = 0; i < ndim; ++i) {
+      //   f_kc[ikc][i] += f_lj[i];
+      //   f_bond[ibond][i] -= f_lj[i];
+      //   //ftip[ibond][i] -= f_lj[i]; // we are definitely talking to the tip
+      // }
+
+      // SF TODO incorporate this into kinetochores
+      /*
+      // We need to do a special check to see if we're within the tip distance for the KC-MT interaction
+      // for force dependent catastrophe
+      if (properties->bonds.length[ibond] -
+              (mu - 0.5) * properties->bonds.length[ibond] <
+          chromosomes->chromatid_mt_fc_distance_) {
+        for (int i = 0; i < ndim; ++i) {
+          ftip[ibond][i] -= f_lj[i];
+        }
+      }
+      */
+
+      // // Calculate the virial contribution
+      // if (properties->control.virial_flag == 1) {
+      //   for (int i = 0; i < parameters->n_dim; ++i) {
+      //     for (int j = 0; j < parameters->n_dim; ++j) {
+      //       virial[i][j] += rmin[i] * f_lj[j];
+      //     }
+      //   }
+      // }
+
+      // SF TODO incorporate torques
+      /*
+      // Calculate torques
+      double rcontact_kc[3] = {0.0};
+      double rcontact_mt[3] = {0.0};
+      for (int i = 0; i < ndim; ++i) {
+        //rcontact_kc[i] = kc_iter->r_[i] - rcontact[i];
+        rcontact_kc[i] = chromosomes->r_[ikc][i] - rcontact[i];
+        rcontact_mt[i] = mu * u_bond[ibond][i];
+      }
+      //std::cout << "rcontact_kc(" << rcontact_kc[0] << ", " << rcontact_kc[1] << ", " << rcontact_kc[2] << ")\n";
+      //std::cout << "rcontact_mt(" << rcontact_mt[0] << ", " << rcontact_mt[1] << ", " << rcontact_mt[2] << ")\n";
+      double tau[3] = {0.0};
+      cross_product(rcontact_kc, f_lj, tau, 3);
+      for (int i = 0; i < 3; ++i) {
+        t_kc[ikc][i] -= tau[i];
+      }
+      cross_product(rcontact_mt, f_lj, tau, 3);
+      for (int i = 0; i < 3; ++i) {
+        t_bond[ibond][i] -= tau[i];
+      }
+      */
+    }
+  }
 }
 
 void TriMesh::UpdatePositions() {
@@ -516,10 +694,17 @@ void TriMesh::UpdatePositions() {
   // SF TODO i.e., we do not take advtange of newton's 3rd law
   // SF TODO once validated, increase computational efficiency by addressing this
 
+  // for (auto &&neighb : neighbs_) {
+  //   printf("position is <%g, %g, %g>\n", neighb->GetPosition()[0],
+  //          neighb->GetPosition()[1], neighb->GetPosition()[2]);
+  // }
+
   // zero forces out first
   for (auto &&vrt : vrts_) {
     vrt.ZeroForce();
   }
+  UpdateMesh();
+  ApplyBoundaryForces();
   double f_teth_flaw{0.0};
   size_t n_teth_flaw{0};
   double f_bend_flaw{0.0};
@@ -729,6 +914,30 @@ void TriMesh::UpdatePositions() {
       for (int i_dim{0}; i_dim < 3; i_dim++) {
         nhat_b[i_dim] = n_b[i_dim] / norm_b;
       }
+      // the triangle with this nhat will be composed of vrt, neighb, and neighb_fwd
+      // SF TODO fix this monstrosity with improved data structure
+      bool found_tri{false};
+      for (int i_tri{0}; i_tri < vrt.n_tris_; i_tri++) {
+        if (found_tri) {
+          break;
+        }
+        for (int j_tri{0}; j_tri < neighb->n_tris_; j_tri++) {
+          if (found_tri) {
+            break;
+          }
+          for (int k_tri{0}; k_tri < neighb_plus->n_tris_; k_tri++) {
+            if (vrt.tris_[i_tri] == neighb->tris_[j_tri] and
+                neighb->tris_[j_tri] == neighb_plus->tris_[k_tri]) {
+              for (int i_dim{0}; i_dim < 3; i_dim++) {
+                vrt.tris_[i_tri]->nhat_[i_dim] = nhat_b[i_dim];
+              }
+              found_tri = true;
+              break;
+            }
+          }
+        }
+      }
+
       cross_product(r_jj_plus, nhat_b, area_force_vec, 3);
       // get current area of triangle
       double s{0.5 * (l_ij + l_jj_plus + l_ij_plus)};

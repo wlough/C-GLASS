@@ -104,10 +104,11 @@ struct Triangle {
   bool inside_triangle(double *bx, double *by, double xTest, double yTest) {
     bool inside_triangle = false;
 
-    //std::cout << "Testing (" << xTest << ", " << yTest << ") inside triangle\n";
-    //for (int iv = 0; iv < 3; ++iv) {
-    //    std::cout << "Vertex[" << iv << "] (" << bx[iv] << ", " << by[iv] << ")\n";
-    //}
+    std::cout << "Testing (" << xTest << ", " << yTest << ") inside triangle\n";
+    for (int iv = 0; iv < 3; ++iv) {
+      std::cout << "Vertex[" << iv << "] (" << bx[iv] << ", " << by[iv]
+                << ")\n";
+    }
     // Compute signed area of each triangle between the point and an edge
     double area0 =
         (bx[0] - xTest) * (by[1] - yTest) - (bx[1] - xTest) * (by[0] - yTest);
@@ -354,8 +355,10 @@ struct Triangle {
     xEndRot = temp * cosBeta_ - zEnd * sinBeta_;
     yEndRot = xEnd * sinGamma_ + yEnd * cosGamma_;
     zEndRot = temp * sinBeta_ + zEnd * cosBeta_;
-    //std::cout << "xStartRot (" << xStartRot << ", " << yStartRot << ", " << zStartRot << ")\n";
-    //std::cout << "xEndRot   (" << xEndRot << ", " << yEndRot << ", " << zEndRot << ")\n";
+    std::cout << "xStartRot (" << xStartRot << ", " << yStartRot << ", "
+              << zStartRot << ")\n";
+    std::cout << "xEndRot   (" << xEndRot << ", " << yEndRot << ", " << zEndRot
+              << ")\n";
     startIn =
         inside_triangle(&(XYrot_[0][0]), &(XYrot_[1][0]), xStartRot, yStartRot);
     endIn = inside_triangle(&(XYrot_[0][0]), &(XYrot_[1][0]), xEndRot, yEndRot);
@@ -456,7 +459,6 @@ private:
   bool file_open_{false};
   FILE *forces_{nullptr};
   system_parameters *params_{nullptr};
-  double r_sys_{0.0};
   double l_avg_{0.0};
   double gamma_{0.0};
 
@@ -474,6 +476,8 @@ private:
   RNG *rng_; // SF TODO link with system RNG
 
 public:
+  std::vector<Object *> neighbs_;
+  double r_sys_{0.0};
   std::vector<Vertex> vrts_;
   std::vector<Triangle> tris_;
 
@@ -486,13 +490,15 @@ private:
   int SegmentToPolygon(double xStart, double yStart, double zStart, double xEnd,
                        double yEnd, double zEnd, double *t, double *xRot,
                        double *yRot, double *dist, double *rcontact);
+  void UpdateMesh();
+  void ApplyBoundaryForces();
 
 public:
   TriMesh() {}
   void Init(system_parameters *params);
-  void MinDist_Sphero(double *r_1, double *s_1, double *u_1, double length_1,
-                      double *rmin, double *rminmag2, double *rcontact,
-                      double *mu);
+  int MinDist_Sphero(double *r_1, double *s_1, double *u_1, double length_1,
+                     double *rmin, double *rminmag2, double *rcontact,
+                     double *mu);
   void Draw(std::vector<graph_struct *> &graph_array);
   void UpdatePositions();
   void WriteOutputs();

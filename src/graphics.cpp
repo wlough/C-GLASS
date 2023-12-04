@@ -863,85 +863,14 @@ void Graphics::Draw3d() {
 
 // SAF TODO: incorporate triangle mesh drawing here
 void Graphics::DrawBoundary() {
+
   if (boundary_ == +boundary_type::none)
     return;
 
   glUseProgram(0);
   GLfloat color[4] = {0.5, 0.5, 0.5, 1.0};
   glColor4fv(color);
-  if (boundary_ == +boundary_type::mesh) {
-    // glDisable(GL_LIGHTING);
-    // glDisable(GL_CULL_FACE);
-    // /* Fixme: I'm not drawing anything */
-    // // Turn on wireframe mode
-    // if (n_dim_ == 2)
-    //   // DrawWireSphere(0.5*unit_cell_[0], 3, 32);
-    //   DrawWireSphere(0.5 * unit_cell_[0], 32, 32);
-    // if (n_dim_ == 3)
-    //   DrawWireSphere(0.5 * unit_cell_[0], 16, 16);
-    // return;
-
-    glDisable(GL_LIGHTING);
-    glDisable(GL_CULL_FACE);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    glLineWidth(1.0);
-    // glDisable(GL_LIGHTING);
-    // glDisable(GL_CULL_FACE);
-    // glEnable(GL_POLYGON_SMOOTH);
-    // glShadeModel(GL_FLAT);
-    glBegin(GL_LINES);
-    for (auto &&tri : membrane_->tris_) {
-      // glBegin(GL_TRIANGLES);
-      // glColor3f(tri.color_[0] / 255, tri.color_[1] / 255, tri.color_[2] / 255);
-      // glVertex3f(tri.vrts_[0]->pos_[0], tri.vrts_[0]->pos_[1],
-      //            tri.vrts_[0]->pos_[2]);
-      // // glColor3f(0.5f, 0.5f, 0.5f);
-      // glVertex3f(tri.vrts_[2]->pos_[0], tri.vrts_[2]->pos_[1],
-      //            tri.vrts_[2]->pos_[2]);
-      // // glColor3f(0.5f, 0.5f, 0.5f);
-      // glVertex3f(tri.vrts_[1]->pos_[0], tri.vrts_[1]->pos_[1],
-      //            tri.vrts_[1]->pos_[2]);
-      // glEnd();
-      // glFlush();
-
-      // glBegin(GL_LINES);
-      // node 0 to node 1
-      glVertex3f(tri.vrts_[0]->pos_[0], tri.vrts_[0]->pos_[1],
-                 tri.vrts_[0]->pos_[2]);
-      glVertex3f(tri.vrts_[1]->pos_[0], tri.vrts_[1]->pos_[1],
-                 tri.vrts_[1]->pos_[2]);
-      // node 1 to node 2
-      glVertex3f(tri.vrts_[1]->pos_[0], tri.vrts_[1]->pos_[1],
-                 tri.vrts_[1]->pos_[2]);
-      glVertex3f(tri.vrts_[2]->pos_[0], tri.vrts_[2]->pos_[1],
-                 tri.vrts_[2]->pos_[2]);
-      // node 2 to node 0
-      glVertex3f(tri.vrts_[2]->pos_[0], tri.vrts_[2]->pos_[1],
-                 tri.vrts_[2]->pos_[2]);
-      glVertex3f(tri.vrts_[0]->pos_[0], tri.vrts_[0]->pos_[1],
-                 tri.vrts_[0]->pos_[2]);
-      // glEnd();
-      // printf("l1: %g\n",
-      //        sqrt(SQR(tri.vrts_[0]->pos_[0] - tri.vrts_[1]->pos_[0]) +
-      //             SQR(tri.vrts_[0]->pos_[1] - tri.vrts_[1]->pos_[1]) +
-      //             SQR(tri.vrts_[0]->pos_[2] - tri.vrts_[1]->pos_[2])));
-      // printf("l2: %g\n",
-      //        sqrt(SQR(tri.vrts_[2]->pos_[0] - tri.vrts_[1]->pos_[0]) +
-      //             SQR(tri.vrts_[2]->pos_[1] - tri.vrts_[1]->pos_[1]) +
-      //             SQR(tri.vrts_[2]->pos_[2] - tri.vrts_[1]->pos_[2])));
-      // printf("l3: %g\n\n",
-      //        sqrt(SQR(tri.vrts_[0]->pos_[0] - tri.vrts_[2]->pos_[0]) +
-      //             SQR(tri.vrts_[0]->pos_[1] - tri.vrts_[2]->pos_[1]) +
-      //             SQR(tri.vrts_[0]->pos_[2] - tri.vrts_[2]->pos_[2])));
-    }
-    glEnd();
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    glEnable(GL_LIGHTING);
-    glEnable(GL_CULL_FACE);
-  }
   if (boundary_ == +boundary_type::sphere) {
-    glDisable(GL_LIGHTING);
-    glDisable(GL_CULL_FACE);
     /* Fixme: I'm not drawing anything */
     // Turn on wireframe mode
     if (n_dim_ == 2)
@@ -955,11 +884,69 @@ void Graphics::DrawBoundary() {
   else if (boundary_ == +boundary_type::budding)
     DrawBudding();
   else if (boundary_ == +boundary_type::mesh) {
-    // DrawMesh();
+    // DrawWireSphere(0.5 * unit_cell_[0], 16, 16);
+    DrawMesh();
   }
 }
 
+// SF TODO add param toggle for faces/wire and whether to draw normals or not
+void Graphics::DrawMesh() {
+  glDisable(GL_LIGHTING);
+
+  glDisable(GL_CULL_FACE);
+  // glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // for filled faces
+  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // for wire mesh
+
+  // draw faces
+  glBegin(GL_TRIANGLES);
+  for (auto &&tri : membrane_->tris_) {
+    // glColor3f(0.8f, 0.8f, 0.8f);
+    // glColor3f(tri.color_[0] / 255, tri.color_[1] / 255, tri.color_[2] / 255);
+    glVertex3f(tri.vrts_[2]->pos_[0], tri.vrts_[2]->pos_[1],
+               tri.vrts_[2]->pos_[2]);
+    // glColor3f(0.5f, 0.5f, 0.5f);
+    glNormal3f(tri.nhat_[0], tri.nhat_[1], tri.nhat_[2]);
+    glVertex3f(tri.vrts_[0]->pos_[0], tri.vrts_[0]->pos_[1],
+               tri.vrts_[0]->pos_[2]);
+    glVertex3f(tri.vrts_[1]->pos_[0], tri.vrts_[1]->pos_[1],
+               tri.vrts_[1]->pos_[2]);
+  }
+  glEnd();
+  glEnable(GL_CULL_FACE);
+  glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+  // draw normals
+  glDisable(GL_LIGHTING);
+  glBegin(GL_LINES);
+  for (auto &&tri : membrane_->tris_) {
+    double cent_x{(tri.vrts_[0]->pos_[0] + tri.vrts_[1]->pos_[0] +
+                   tri.vrts_[2]->pos_[0]) /
+                  3.0};
+    double cent_y{(tri.vrts_[0]->pos_[1] + tri.vrts_[1]->pos_[1] +
+                   tri.vrts_[2]->pos_[1]) /
+                  3.0};
+    double cent_z{(tri.vrts_[0]->pos_[2] + tri.vrts_[1]->pos_[2] +
+                   tri.vrts_[2]->pos_[2]) /
+                  3.0};
+    double to_origin[3] = {-cent_x, -cent_y, -cent_z};
+    // hot pink for pointing outwards, green for inwards (should NEVER be inwards)
+    if (dot_product(3, to_origin, tri.nhat_) < 0.0) {
+      glColor3f(0.0f, 1.0f, 0.0f);
+    } else {
+      glColor3f(0.966f, 0.41f, 0.703f);
+    }
+    glVertex3f(cent_x, cent_y, cent_z);
+    // printf("center at (%g, %g, %g)\n", cent_x, cent_y, cent_z);
+    double scale{membrane_->r_sys_ / 20.0};
+    glVertex3f(cent_x + scale * tri.nhat_[0], cent_y + scale * tri.nhat_[1],
+               cent_z + scale * tri.nhat_[2]);
+  }
+  glEnd();
+  glEnable(GL_LIGHTING);
+}
+
 void Graphics::DrawWireSphere(double r, int lats, int longs) {
+  glDisable(GL_LIGHTING);
+  glDisable(GL_CULL_FACE);
   glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
   glLineWidth(1.0);
 
@@ -1571,7 +1558,8 @@ void Graphics::InitSpheroCylinder() {
       "  else"
       "    stretched_pos = diameter*position - vec4(0.0,0.0,half_l,0.0);"
       "  stretched_pos.w = position.w;"
-      "  /* these are the new lines of code to compute the light's direction */"
+      "  /* these are the new lines of code to compute the light's direction "
+      "*/"
       "  ecPos = gl_ModelViewMatrix * (stretched_pos);"
       "  aux = vec3(gl_LightSource[0].position-ecPos);"
       "  lightDir = normalize(aux);"
@@ -1622,7 +1610,8 @@ void Graphics::InitSpheroCylinder() {
       "a new variable to store the normalized interpolated normal */"
       "n = normalize(normal);"
       ""
-      "    /* compute the dot product between normal and normalized lightdir */"
+      "    /* compute the dot product between normal and normalized lightdir "
+      "*/"
       "NdotL = max(dot(n,normalize(lightDir)),0.0);"
       ""
       "if (NdotL > 0.0) {"

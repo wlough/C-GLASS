@@ -913,7 +913,8 @@ bool MinimumDistance::CheckBoundaryInteraction(Interaction &ix) {
   ix.buffer_mag = 0.5 * d1;
   ix.buffer_mag2 = ix.buffer_mag * ix.buffer_mag;
   bool outside = false;
-  if (space_->type == +boundary_type::sphere) {
+  if (space_->type == +boundary_type::sphere ||
+      space_->type == +boundary_type::mesh) {
     if (l1 == 0) {
       PointSphereBC(r1, ix.dr, &(ix.dr_mag2), outside, ix.buffer_mag);
     } else {
