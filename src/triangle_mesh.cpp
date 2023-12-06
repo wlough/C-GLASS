@@ -127,6 +127,9 @@ void TriMesh::Init(system_parameters *params) {
   // l_c1_ = l_avg_ - var;
   // l_max_ = 1.25 * l_avg_;
   // l_min_ = 0.75 * l_avg_;
+  // l_avg_ *= 0.8;
+
+  l_avg_ *= 0.9;
   l_c0_ = 1.2 * l_avg_;
   l_c1_ = 0.8 * l_avg_;
   l_max_ = 1.4 * l_avg_;
@@ -357,7 +360,7 @@ int TriMesh::SegmentToPolygon(double xStart, double yStart, double zStart,
   *dist = 1e10;
   // for (int itri = 0; itri < tri->numTriang; ++itri) {
   for (int itri{0}; itri < tris_.size(); itri++) {
-    printf("itri = %i\n", itri);
+    // printf("itri = %i\n", itri);
     double tt, txRot, tyRot, tdist;
     tris_[itri].MinDist_Segment(xStart, yStart, zStart, xEnd, yEnd, zEnd, &tt,
                                 &txRot, &tyRot, &tdist);
@@ -373,18 +376,18 @@ int TriMesh::SegmentToPolygon(double xStart, double yStart, double zStart,
   }
 
   // sf todo
-  /*
   // undo the rotation
-  double xPrime =
-      *xRot * cosBeta[itriang] + triZrot[itriang] * sinBeta[itriang];
-  rcontact[0] = xPrime * cosGamma[itriang] + *yRot * sinGamma[itriang];
-  rcontact[1] = -xPrime * sinGamma[itriang] + *yRot * cosGamma[itriang];
-  rcontact[2] =
-      -(*xRot) * sinBeta[itriang] + triZrot[itriang] * cosBeta[itriang];
+  double xPrime = *xRot * tris_[itriang].cosBeta_ +
+                  tris_[itriang].Zrot_ * tris_[itriang].sinBeta_;
+  rcontact[0] =
+      xPrime * tris_[itriang].cosGamma_ + *yRot * tris_[itriang].sinGamma_;
+  rcontact[1] =
+      -xPrime * tris_[itriang].sinGamma_ + *yRot * tris_[itriang].cosGamma_;
+  rcontact[2] = -(*xRot) * tris_[itriang].sinBeta_ +
+                tris_[itriang].Zrot_ * tris_[itriang].cosBeta_;
   //std::cout << "Contact (" << rcontact[0] << ", "
   //                         << rcontact[1] << ", "
   //                         << rcontact[2] << ")\n";
-  */
 
   return itriang;
 }
@@ -493,8 +496,8 @@ int TriMesh::MinDist_Sphero(double *r_1, double *s_1, double *u_1,
     r2[i] = r_1[i] + 0.5 * length_1 * u_1[i];
   }
 
-  printf("\nr1 = <%g, %g, %g>\n", r1[0], r1[1], r1[2]);
-  printf("r2 = <%g, %g, %g>\n", r2[0], r2[1], r2[2]);
+  // printf("\nr1 = <%g, %g, %g>\n", r1[0], r1[1], r1[2]);
+  // printf("r2 = <%g, %g, %g>\n", r2[0], r2[1], r2[2]);
 
   // Run the other version
   int itri = SegmentToPolygon(r1[0], r1[1], r1[2], r2[0], r2[1], r2[2], &t,
@@ -513,6 +516,7 @@ void TriMesh::Draw(std::vector<graph_struct *> &graph_array) {
   for (int i_vrt{0}; i_vrt < vrts_.size(); i_vrt++) {
     vrts_[i_vrt].Draw(graph_array);
   }
+  graph_array.push_back(&f_mem_);
 }
 
 void TriMesh::UpdateMesh() {
@@ -574,10 +578,11 @@ void TriMesh::UpdateMesh() {
 void TriMesh::ApplyBoundaryForces() {
 
   double r_cutoff2 = 4.0;
-  double sigma2 = 1.0;
+  double sigma2 = 4.0;
   double four_epsilon = 1.0;
 
   for (int i_neighb{0}; i_neighb < neighbs_.size(); i_neighb++) {
+    // printf("neighb %i\n", i_neighb);
     double rmin[3], r_min_mag2, rcontact[3], mu;
     // double pos[3] = neighbs_[i_neighb].GetPosition();
     Object *neighb{neighbs_[i_neighb]};
@@ -585,14 +590,28 @@ void TriMesh::ApplyBoundaryForces() {
                    neighb->GetPosition()[2]};
     double u[3] = {neighb->GetOrientation()[0], neighb->GetOrientation()[1],
                    neighb->GetOrientation()[2]};
-    printf("r = <%g, %g, %g>\n", r[0], r[1], r[2]);
-    printf("u = <%g, %g, %g>\n", u[0], u[1], u[2]);
-    printf("l = %g\n", neighb->GetLength());
+    // printf("r = <%g, %g, %g>\n", r[0], r[1], r[2]);
+    // printf("u = <%g, %g, %g>\n", u[0], u[1], u[2]);
+    // printf("l = %g\n", neighb->GetLength());
     // SF TODO incorporate periodic space (incorporate s and h)
     int i_tri = MinDist_Sphero(r, r, u, neighb->GetLength(), rmin, &r_min_mag2,
                                rcontact, &mu);
-    printf("%g @ triangle %i\n", r_min_mag2, i_tri);
-    return;
+    double rmagcalc{0.0};
+    for (int i{0}; i < 3; i++) {
+      f_mem_.r[i] = tris_[i_tri].GetCenterPos(i);
+      rmagcalc += SQR(rmin[i]);
+    }
+    // printf("%g vs %g\n", rmagcalc, r_min_mag2);
+    rmagcalc = sqrt(rmagcalc);
+    for (int i{0}; i < 3; i++) {
+      f_mem_.u[i] = rmin[i] / rmagcalc;
+    }
+    // printf("u_f = <%g, %g, %g>\n", f_mem_.u[0], f_mem_.u[1], f_mem_.u[2]);
+    f_mem_.length = 0.0;
+    f_mem_.color = 1.8 * M_PI;
+    f_mem_.diameter = 1.0;
+    f_mem_.draw = draw_type::fixed;
+    // printf("%g @ triangle %i\n", r_min_mag2, i_tri);
     if (r_min_mag2 < r_cutoff2) {
       //std::cout << "Firing off WCA calc\n";
       // Calculate WCA potential and forces
@@ -600,13 +619,20 @@ void TriMesh::ApplyBoundaryForces() {
       double rho6 = CUBE(rho2);
       double rho12 = SQR(rho6);
 
+      // printf("r_min_mag = %g\n", sqrt(r_min_mag2));
       // u += four_epsilon * (rho12 - rho6) + u_shift;
       double factor = 6.0 * four_epsilon * (2.0 * rho12 - rho6) / r_min_mag2;
+      // printf("factor = %g\n", factor);
+
+      for (int i{0}; i < 3; i++) {
+        f_mem_.u[i] = rmin[i] / sqrt(r_min_mag2);
+      }
+      f_mem_.length = factor;
       // sf todo incorporate gamma properly
       // double f_cutoff =
       //     0.1 / params_->delta *
       //     MIN(properties->bonds.gamma_par[ibond], chromosomes->gamma_t_);
-      double f_cutoff = 10;
+      double f_cutoff = 10000;
       // Truncate the forces if necessary
       double r_min_mag = sqrt(r_min_mag2);
       if (factor * r_min_mag > f_cutoff) {
@@ -622,8 +648,8 @@ void TriMesh::ApplyBoundaryForces() {
       }
       //std::cout << "KC MT Current forces Steric:\n";
       //std::cout << "  KC[" << ikc << "] bond[" << ibond << "]\n";
-      std::cout << "  f_lj: (" << f_lj[0] << ", " << f_lj[1] << ", " << f_lj[2]
-                << ")\n";
+      // std::cout << "  f_lj: (" << f_lj[0] << ", " << f_lj[1] << ", " << f_lj[2]
+      //           << ")\n";
       //std::cout << "  fkc:   (" << f_kc[ikc][0] << ", " << f_kc[ikc][1] << ", " << f_kc[ikc][2] << ")\n";
       //std::cout << "  fbond: (" << f_bond[ibond][0] << ", " << f_bond[ibond][1] << ", " << f_bond[ibond][2] << ")\n";
 
@@ -690,6 +716,13 @@ void TriMesh::ApplyBoundaryForces() {
 
 void TriMesh::UpdatePositions() {
 
+  // shrink this jonny
+  l_avg_ *= 0.99999;
+  l_c0_ = 1.2 * l_avg_;
+  l_c1_ = 0.8 * l_avg_;
+  l_max_ = 1.4 * l_avg_;
+  l_min_ = 0.6 * l_avg_;
+
   // SF TODO all calculations are currently done redundantly
   // SF TODO i.e., we do not take advtange of newton's 3rd law
   // SF TODO once validated, increase computational efficiency by addressing this
@@ -703,8 +736,6 @@ void TriMesh::UpdatePositions() {
   for (auto &&vrt : vrts_) {
     vrt.ZeroForce();
   }
-  UpdateMesh();
-  ApplyBoundaryForces();
   double f_teth_flaw{0.0};
   size_t n_teth_flaw{0};
   double f_bend_flaw{0.0};
@@ -979,6 +1010,9 @@ void TriMesh::UpdatePositions() {
   // }
   // printf("\n");
   // apply displacements
+  UpdateMesh();
+  ApplyBoundaryForces();
+
   for (int i_vrt{0}; i_vrt < vrts_.size(); i_vrt++) {
     //Expected diffusion length of the crosslink in the solution in delta
     double sigma{sqrt(2 * params_->delta / gamma_)}; // kbT = 1??

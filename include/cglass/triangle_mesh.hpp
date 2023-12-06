@@ -82,6 +82,11 @@ struct Triangle {
     color_[1] = rand() % 255;
     color_[2] = rand() % 255;
   }
+  double GetCenterPos(int i_dim) {
+    return (vrts_[0]->pos_[i_dim] + vrts_[1]->pos_[i_dim] +
+            vrts_[2]->pos_[i_dim]) /
+           3.0;
+  }
   // Returns the XOR between two booleans a, b
   inline bool b3dxor(bool a, bool b) { return ((a && !b) || (b && !a)); }
   // Inlined version of distance calc for ease
@@ -104,11 +109,11 @@ struct Triangle {
   bool inside_triangle(double *bx, double *by, double xTest, double yTest) {
     bool inside_triangle = false;
 
-    std::cout << "Testing (" << xTest << ", " << yTest << ") inside triangle\n";
-    for (int iv = 0; iv < 3; ++iv) {
-      std::cout << "Vertex[" << iv << "] (" << bx[iv] << ", " << by[iv]
-                << ")\n";
-    }
+    // std::cout << "Testing (" << xTest << ", " << yTest << ") inside triangle\n";
+    // for (int iv = 0; iv < 3; ++iv) {
+    //   std::cout << "Vertex[" << iv << "] (" << bx[iv] << ", " << by[iv]
+    //             << ")\n";
+    // }
     // Compute signed area of each triangle between the point and an edge
     double area0 =
         (bx[0] - xTest) * (by[1] - yTest) - (bx[1] - xTest) * (by[0] - yTest);
@@ -355,10 +360,10 @@ struct Triangle {
     xEndRot = temp * cosBeta_ - zEnd * sinBeta_;
     yEndRot = xEnd * sinGamma_ + yEnd * cosGamma_;
     zEndRot = temp * sinBeta_ + zEnd * cosBeta_;
-    std::cout << "xStartRot (" << xStartRot << ", " << yStartRot << ", "
-              << zStartRot << ")\n";
-    std::cout << "xEndRot   (" << xEndRot << ", " << yEndRot << ", " << zEndRot
-              << ")\n";
+    // std::cout << "xStartRot (" << xStartRot << ", " << yStartRot << ", "
+    //           << zStartRot << ")\n";
+    // std::cout << "xEndRot   (" << xEndRot << ", " << yEndRot << ", " << zEndRot
+    //           << ")\n";
     startIn =
         inside_triangle(&(XYrot_[0][0]), &(XYrot_[1][0]), xStartRot, yStartRot);
     endIn = inside_triangle(&(XYrot_[0][0]), &(XYrot_[1][0]), xEndRot, yEndRot);
@@ -480,6 +485,7 @@ public:
   double r_sys_{0.0};
   std::vector<Vertex> vrts_;
   std::vector<Triangle> tris_;
+  graph_struct f_mem_;
 
 private:
   void MakeIcosphere();

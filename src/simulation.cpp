@@ -47,6 +47,10 @@ void Simulation::RunSimulation() {
       // Calculate nominal timestep
       params_.i_step = (int)round(time_ / (step_fact_ * params_.delta));
     }
+    // SF TODO CRITICAL what the hell even is that thing
+    if (params_.mesh_membrane and i_step_ > 10) {
+      membrane_.UpdatePositions();
+    }
     // Output progress
     PrintComplete();
     /* Zero the force_ array on all objects for bookkeeping */
@@ -54,9 +58,6 @@ void Simulation::RunSimulation() {
     /* Calculate forces between objects in system */
     Interact();
     // printf("step %i\n", i_step_);
-    if (params_.mesh_membrane) {
-      membrane_.UpdatePositions();
-    }
     /*Decrease or increase timestep depending on size of forces and torques 
       on objects. Timestep remains the same if equal to initial timestep. */
     if (params_.dynamic_timestep && ix_mgr_.CheckDynamicTimestep()) {
@@ -196,7 +197,6 @@ void Simulation::InitSimulation() {
   params_ = parser_.ParseSystemParameters();
   run_name_ = params_.run_name;
   rng_ = new RNG(params_.seed);
-
 #ifdef TRACE
   if (params_.n_steps > 100) {
     Logger::Warning(
@@ -637,6 +637,9 @@ void Simulation::GetGraphicsStructure() {
   graph_array_.clear();
   for (auto it = species_.begin(); it != species_.end(); ++it) {
     (*it)->Draw(graph_array_);
+  }
+  if (params_.mesh_membrane) {
+    membrane_.Draw(graph_array_);
   }
   /* Visualize interaction forces, crosslinks, etc */
   ix_mgr_.DrawInteractions(graph_array_);
