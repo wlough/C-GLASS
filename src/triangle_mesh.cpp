@@ -516,7 +516,9 @@ void TriMesh::Draw(std::vector<graph_struct *> &graph_array) {
   for (int i_vrt{0}; i_vrt < vrts_.size(); i_vrt++) {
     vrts_[i_vrt].Draw(graph_array);
   }
-  graph_array.push_back(&f_mem_);
+  for (int i{0}; i < f_mem_.size(); i++) {
+    graph_array.push_back(&f_mem_[i]);
+  }
 }
 
 void TriMesh::UpdateMesh() {
@@ -577,10 +579,11 @@ void TriMesh::UpdateMesh() {
 
 void TriMesh::ApplyBoundaryForces() {
 
-  double r_cutoff2 = 4.0;
-  double sigma2 = 4.0;
+  double r_cutoff2 = 1.0;
+  double sigma2 = 1.0;
   double four_epsilon = 1.0;
 
+  f_mem_.resize(neighbs_.size());
   for (int i_neighb{0}; i_neighb < neighbs_.size(); i_neighb++) {
     // printf("neighb %i\n", i_neighb);
     double rmin[3], r_min_mag2, rcontact[3], mu;
@@ -598,19 +601,19 @@ void TriMesh::ApplyBoundaryForces() {
                                rcontact, &mu);
     double rmagcalc{0.0};
     for (int i{0}; i < 3; i++) {
-      f_mem_.r[i] = tris_[i_tri].GetCenterPos(i);
+      f_mem_[i_neighb].r[i] = tris_[i_tri].GetCenterPos(i);
       rmagcalc += SQR(rmin[i]);
     }
     // printf("%g vs %g\n", rmagcalc, r_min_mag2);
     rmagcalc = sqrt(rmagcalc);
     for (int i{0}; i < 3; i++) {
-      f_mem_.u[i] = rmin[i] / rmagcalc;
+      f_mem_[i_neighb].u[i] = rmin[i] / rmagcalc;
     }
     // printf("u_f = <%g, %g, %g>\n", f_mem_.u[0], f_mem_.u[1], f_mem_.u[2]);
-    f_mem_.length = 0.0;
-    f_mem_.color = 1.8 * M_PI;
-    f_mem_.diameter = 1.0;
-    f_mem_.draw = draw_type::fixed;
+    f_mem_[i_neighb].length = 0.0;
+    f_mem_[i_neighb].color = 1.8 * M_PI;
+    f_mem_[i_neighb].diameter = 1.0;
+    f_mem_[i_neighb].draw = draw_type::fixed;
     // printf("%g @ triangle %i\n", r_min_mag2, i_tri);
     if (r_min_mag2 < r_cutoff2) {
       //std::cout << "Firing off WCA calc\n";
@@ -624,10 +627,10 @@ void TriMesh::ApplyBoundaryForces() {
       double factor = 6.0 * four_epsilon * (2.0 * rho12 - rho6) / r_min_mag2;
       // printf("factor = %g\n", factor);
 
-      for (int i{0}; i < 3; i++) {
-        f_mem_.u[i] = rmin[i] / sqrt(r_min_mag2);
-      }
-      f_mem_.length = factor;
+      // for (int i{0}; i < 3; i++) {
+      //   f_mem_[i_neighb].u[i] = rmin[i] / sqrt(r_min_mag2);
+      // }
+      // f_mem_[i_neighb].length = factor;
       // sf todo incorporate gamma properly
       // double f_cutoff =
       //     0.1 / params_->delta *

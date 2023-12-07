@@ -485,7 +485,7 @@ public:
   double r_sys_{0.0};
   std::vector<Vertex> vrts_;
   std::vector<Triangle> tris_;
-  graph_struct f_mem_;
+  std::vector<graph_struct> f_mem_;
 
 private:
   void MakeIcosphere();

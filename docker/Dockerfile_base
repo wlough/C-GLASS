@@ -1,7 +1,6 @@
 FROM debian:10.2-slim
 WORKDIR /build
-RUN apt-get update -qq && \
-    apt-get install -qqy --no-install-recommends \
+RUN apt-get update -qq && apt-get install -qqy --no-install-recommends \
         build-essential \
         ca-certificates \
         vim \
@@ -16,6 +15,7 @@ RUN apt-get update -qq && \
         libgsl-dev \
         libfftw3-dev \
         libopenmpi-dev \
-        libboost-math1.67-dev &&\
+        libboost-math1.67-dev \
+        libarmadillo-dev &&\
     rm -rf ~/.cache
 ENTRYPOINT []
