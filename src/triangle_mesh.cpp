@@ -1,9 +1,6 @@
 #include <cglass/triangle_mesh.hpp>
 
-// todo lol fix seed
-
 void TriMesh::Init(system_parameters *params) {
-  // TriMesh::TriMesh() : rng_(0) {
 
   // SF temp before integrating with output_manager
   std::string filename{params->run_name + "_membrane_forces.file"};
@@ -16,14 +13,24 @@ void TriMesh::Init(system_parameters *params) {
   }
 
   params_ = params;
-  long seed{params == nullptr ? 0 : params_->seed};
-  rng_ = new RNG(seed);
+  SetParameters();
+  MakeIcosphere();
+  UpdateNeighbors();
+  CheckVertices();
+}
 
-  r_sys_ = params->system_radius;
-  kappa_B_ = params->mesh_kB;
-  kappa_ = params->mesh_k;
-  kappa_l_ = params->mesh_kl;
-  gamma_ = params->node_gamma;
+void TriMesh::SetParameters() {
+
+  long seed{params_ == nullptr ? 0 : params_->seed};
+  rng_ = new RNG(seed);
+  r_sys_ = params_->system_radius;
+  kappa_B_ = params_->mesh_kB;
+  kappa_ = params_->mesh_k;
+  kappa_l_ = params_->mesh_kl;
+  gamma_ = params_->node_gamma;
+}
+
+void TriMesh::MakeIcosphere() {
 
   size_t n_faces{size_t(20 * std::pow(4, params_->n_subdivisions))};
   printf("%zu faces expected\n", n_faces);
@@ -38,234 +45,6 @@ void TriMesh::Init(system_parameters *params) {
     printf("%zu VRTS TOTAL\n", vrts_.size());
   }
   ProjectToUnitSphere();
-  for (auto &&vrt : vrts_) {
-    vrt.neighbs_.resize(6);
-  }
-  // apparently the above shuffle destroys triangle ptrs??
-  UpdateNeighbors();
-  size_t n_flawed{0};
-  size_t n_gucci{0};
-  for (auto &&vrt : vrts_) {
-    if (vrt.n_neighbs_ != 6) {
-      n_flawed++;
-    } else if (vrt.n_neighbs_ == 6) {
-      n_gucci++;
-    } else {
-      printf("ummm?? in TRIANGLE MESH INIT\n");
-      exit(1);
-    }
-  }
-  printf("%zu vrts (%zu flawed; %zu ideal)\n", vrts_.size(), n_flawed, n_gucci);
-
-  // SF TODO sloppy hack; fix
-  double l_sum{0.0};
-  double A_sum{0.0};
-  size_t n_entries{0};
-  size_t n_good{0};
-  size_t n_bad{0};
-  for (auto const &tri : tris_) {
-    double l1{0.0};
-    double l2{0.0};
-    double l3{0.0};
-    for (int i_dim{0}; i_dim < 3; i_dim++) {
-      l1 += SQR(tri.vrts_[0]->pos_[i_dim] - tri.vrts_[1]->pos_[i_dim]);
-      l2 += SQR(tri.vrts_[0]->pos_[i_dim] - tri.vrts_[2]->pos_[i_dim]);
-      l3 += SQR(tri.vrts_[1]->pos_[i_dim] - tri.vrts_[2]->pos_[i_dim]);
-    }
-    l1 = sqrt(l1);
-    l2 = sqrt(l2);
-    l3 = sqrt(l3);
-    if (l1 < 1) {
-      n_good++;
-    } else {
-      n_bad++;
-    }
-    if (l2 < 1) {
-      n_good++;
-    } else {
-      n_bad++;
-    }
-    if (l3 < 1) {
-      n_good++;
-    } else {
-      n_bad++;
-    }
-    l_sum += l1;
-    l_sum += l2;
-    l_sum += l3;
-    double s{0.5 * (l1 + l2 + l3)};
-    A_sum += sqrt(s * (s - l1) * (s - l2) * (s - l3));
-    n_entries += 3;
-  }
-  l_avg_ = l_sum / n_entries;
-  A_prime_ = A_sum / (n_entries / 3);
-  printf("%zu good lengths; %zu bad\n", n_good, n_bad);
-  // also calculate std_err of mean to check for bugs
-  double var{0.0};
-  for (auto const &tri : tris_) {
-    double l1{0.0};
-    double l2{0.0};
-    double l3{0.0};
-    for (int i_dim{0}; i_dim < 3; i_dim++) {
-      l1 += SQR(tri.vrts_[0]->pos_[i_dim] - tri.vrts_[1]->pos_[i_dim]);
-      l2 += SQR(tri.vrts_[0]->pos_[i_dim] - tri.vrts_[2]->pos_[i_dim]);
-      l3 += SQR(tri.vrts_[1]->pos_[i_dim] - tri.vrts_[2]->pos_[i_dim]);
-    }
-    var += SQR(l_avg_ - sqrt(l1));
-    var += SQR(l_avg_ - sqrt(l2));
-    var += SQR(l_avg_ - sqrt(l3));
-    // n_entries += 3;
-  }
-  var = sqrt(var / n_entries);
-  printf("l_avg = %g +/- %g\n", l_avg_, var);
-  printf("A_prime = %g\n", A_prime_);
-  printf("A_calc = %g\n", 4 * M_PI * SQR(r_sys_) / tris_.size());
-  if (var < 0.05 * l_avg_) {
-    var = 0.05 * l_avg_;
-  }
-  // l_c0_ = l_avg_ + var;
-  // l_c1_ = l_avg_ - var;
-  // l_max_ = 1.25 * l_avg_;
-  // l_min_ = 0.75 * l_avg_;
-  // l_avg_ *= 0.8;
-
-  l_avg_ *= 0.9;
-  l_c0_ = 1.2 * l_avg_;
-  l_c1_ = 0.8 * l_avg_;
-  l_max_ = 1.4 * l_avg_;
-  l_min_ = 0.6 * l_avg_;
-
-  for (auto &&vrt : vrts_) {
-    vrt.SetDiameter(params_->node_diameter);
-  }
-}
-
-void TriMesh::UpdateNeighbors() {
-
-  // This function is purposefully coded to be explicit yet inefficient
-  // (it does not get called often if at all beyond initialization)
-  // Reset storage of neighb and triangle ptrs in each vertex
-  for (auto &&vrt : vrts_) {
-    vrt.n_tris_ = 0;
-    vrt.n_neighbs_ = 0;
-  }
-  // Update triangle ptrs stored by each vertex
-  for (auto &&tri : tris_) {
-    tri.vrts_[0]->tris_[tri.vrts_[0]->n_tris_++] = &tri;
-    tri.vrts_[1]->tris_[tri.vrts_[1]->n_tris_++] = &tri;
-    tri.vrts_[2]->tris_[tri.vrts_[2]->n_tris_++] = &tri;
-  }
-  // Update vertex neighbors held by each vertex
-  for (auto &&vrt : vrts_) {
-    // Each triangle we are a part of will contain 2 neighbors
-    for (int i_tri{0}; i_tri < vrt.n_tris_; i_tri++) {
-      Triangle *tri{vrt.tris_[i_tri]};
-      // Add all points that are not ourselves or duplicated vertices
-      for (int i{0}; i < 3; i++) {
-        if (*tri->vrts_[i] != vrt) {
-          // printf("NOT EQUAL\n");
-          bool duplicate{false};
-          for (int i_neighb{0}; i_neighb < vrt.n_neighbs_; i_neighb++) {
-            if (tri->vrts_[i] == vrt.neighbs_[i_neighb])
-              duplicate = true;
-          }
-          if (!duplicate) {
-            vrt.neighbs_[vrt.n_neighbs_++] = tri->vrts_[i];
-            // printf("ADDED\n");
-          }
-          // else {
-          // printf("DUPLICATE IGNORED\n");
-          // }
-        }
-        // else if (*tri->vrts_[i] == vrt) {
-        // printf("EQUAL\n");
-        // }
-      }
-    }
-    // printf("%i neighbors from %i triangles\n\n", vrt.n_neighbs_, vrt.n_tris_);
-  }
-  // rearrange all neighbor lists to order them in a counterclockwise ring
-  for (auto &&vrt : vrts_) {
-    Vertex *neighbs_ordered[vrt.n_neighbs_]; // list to be ordered in ccw ring
-    neighbs_ordered[0] = vrt.neighbs_[0];    // use 1st entry as starting point
-    // scan over all neighbors to find which is next in the ring
-    for (int i_neighb{0}; i_neighb < vrt.n_neighbs_ - 1; i_neighb++) {
-      Vertex *current_entry{neighbs_ordered[i_neighb]};
-      double r_ij[3]; // points from j (current_entry) to i (vrt)
-      for (int i_dim{0}; i_dim < 3; i_dim++) {
-        r_ij[i_dim] = vrt.pos_[i_dim] - current_entry->pos_[i_dim];
-      }
-      bool found{false};
-      // the next node in the ring order will be a neighbor of current entry
-      for (int j_neighb{0}; j_neighb < current_entry->n_neighbs_; j_neighb++) {
-        if (found) {
-          break;
-        }
-        Vertex *entry_neighb{current_entry->neighbs_[j_neighb]};
-        // check if entry_neighb is also part of vrt's neighbor list
-        for (int k_neighb{0}; k_neighb < vrt.n_neighbs_; k_neighb++) {
-          Vertex *this_entry{vrt.neighbs_[k_neighb]};
-          if (entry_neighb == this_entry) {
-            double r_ik[3]; // points from k (entry_neighb) to i (vrt)
-            for (int i_dim{0}; i_dim < 3; i_dim++) {
-              r_ik[i_dim] = vrt.pos_[i_dim] - this_entry->pos_[i_dim];
-            }
-            // to ensure ccw ordering, need to make sure n_tri points away from origin
-            double nhat[3];
-            cross_product(r_ij, r_ik, nhat, 3);
-            // if nhat is antiparallel with vertex position, its pointing inwards
-            if (dot_product(3, vrt.pos_, nhat) == 0.0) {
-              printf("ya dun goofed\n");
-              exit(1);
-            }
-            if (dot_product(3, vrt.pos_, nhat) < 0.0) {
-              // printf("this aint it cuz\n");
-              continue;
-            }
-            if (this_entry != current_entry and this_entry != &vrt) {
-              if (i_neighb == 0) {
-                neighbs_ordered[i_neighb + 1] = this_entry;
-                found = true;
-                break;
-              } else if (this_entry != neighbs_ordered[i_neighb - 1]) {
-                neighbs_ordered[i_neighb + 1] = this_entry;
-                found = true;
-                break;
-              } else {
-                printf("this should never happen\n");
-                exit(1);
-              }
-            }
-          }
-        }
-      }
-      if (!found) {
-        printf("tri mesh neighbor not found ?? \n");
-        exit(1);
-      }
-    }
-    for (int i_neighb{0}; i_neighb < vrt.n_neighbs_; i_neighb++) {
-      vrt.neighbs_[i_neighb] = neighbs_ordered[i_neighb];
-    }
-  }
-}
-
-void TriMesh::ProjectToUnitSphere() {
-  // p much just normalization i believe
-  for (auto &&vrt : vrts_) {
-    // const double *old_pos{vrt.GetPosition()};
-    double norm{0.0};
-    for (int i_dim{0}; i_dim < 3; i_dim++) {
-      norm += SQR(vrt.pos_[i_dim]);
-    }
-    norm = sqrt(norm);
-    double new_pos[3];
-    for (int i_dim{0}; i_dim < 3; i_dim++) {
-      double val{vrt.pos_[i_dim]};
-      new_pos[i_dim] = r_sys_ * val / norm;
-    }
-    vrt.SetPos(new_pos);
-  }
 }
 
 void TriMesh::MakeIcosahedron() {
@@ -337,59 +116,6 @@ void TriMesh::MakeIcosahedron() {
     n_entries += 3;
   }
   printf("edge length is %g (alt)\n", l_sum / n_entries);
-}
-
-// Minimum distance from segment to a polygon
-// INPUT
-// (x, y, z) line segment
-// tri triangle mesh
-// RETURN: triangle number in mesh
-// OUTPUT
-// t fractional distance along segment
-// (xRot, yRot) rotated coordinates of point on triangle mesh
-// dist distance of closest approach
-// rcontact lab frame coordinates of closest point of approach on
-//     polygon
-int TriMesh::SegmentToPolygon(double xStart, double yStart, double zStart,
-                              double xEnd, double yEnd, double zEnd, double *t,
-                              double *xRot, double *yRot, double *dist,
-                              double *rcontact) {
-
-  // Set dist to something large
-  int itriang = 0;
-  *dist = 1e10;
-  // for (int itri = 0; itri < tri->numTriang; ++itri) {
-  for (int itri{0}; itri < tris_.size(); itri++) {
-    // printf("itri = %i\n", itri);
-    double tt, txRot, tyRot, tdist;
-    tris_[itri].MinDist_Segment(xStart, yStart, zStart, xEnd, yEnd, zEnd, &tt,
-                                &txRot, &tyRot, &tdist);
-    // segment_to_triangle(xStart, yStart, zStart, xEnd, yEnd, zEnd, tri, itri,
-    //                     &tt, &txRot, &tyRot, &tdist);
-    if (tdist < *dist) {
-      *dist = tdist;
-      *t = tt;
-      *xRot = txRot;
-      *yRot = tyRot;
-      itriang = itri;
-    }
-  }
-
-  // sf todo
-  // undo the rotation
-  double xPrime = *xRot * tris_[itriang].cosBeta_ +
-                  tris_[itriang].Zrot_ * tris_[itriang].sinBeta_;
-  rcontact[0] =
-      xPrime * tris_[itriang].cosGamma_ + *yRot * tris_[itriang].sinGamma_;
-  rcontact[1] =
-      -xPrime * tris_[itriang].sinGamma_ + *yRot * tris_[itriang].cosGamma_;
-  rcontact[2] = -(*xRot) * tris_[itriang].sinBeta_ +
-                tris_[itriang].Zrot_ * tris_[itriang].cosBeta_;
-  //std::cout << "Contact (" << rcontact[0] << ", "
-  //                         << rcontact[1] << ", "
-  //                         << rcontact[2] << ")\n";
-
-  return itriang;
 }
 
 void TriMesh::DivideFaces() {
@@ -473,42 +199,200 @@ void TriMesh::DivideFaces() {
   tris_ = new_faces;
 }
 
-// Finds the minimum distance from a rod to a polygon described in the triangle mesh
-// OUTPUTS
-// rmin: minimum r vector from point on rod to point on polygon
-// rminmag2: squared minimum distance
-// rcontact: lab coordinate of contact point on polygon
-// mu: distance along rod for contact
-int TriMesh::MinDist_Sphero(double *r_1, double *s_1, double *u_1,
-                            double length_1, double *rmin, double *rminmag2,
-                            double *rcontact, double *mu) {
+void TriMesh::UpdateNeighbors() {
 
-  size_t n_dim{3};
-  double r1[3] = {0.0};
-  double r2[3] = {0.0};
-  double t, dist;
-  double xRot, yRot;
-
-  // Convert to the tirangle mesh representation
-  // r1 and r2 are simply the endpoints of each filament
-  for (int i = 0; i < n_dim; ++i) {
-    r1[i] = r_1[i] - 0.5 * length_1 * u_1[i];
-    r2[i] = r_1[i] + 0.5 * length_1 * u_1[i];
+  // This function is purposefully coded to be explicit yet inefficient
+  // (it does not get called often if at all beyond initialization)
+  for (auto &&vrt : vrts_) {
+    vrt.neighbs_.resize(6);
   }
-
-  // printf("\nr1 = <%g, %g, %g>\n", r1[0], r1[1], r1[2]);
-  // printf("r2 = <%g, %g, %g>\n", r2[0], r2[1], r2[2]);
-
-  // Run the other version
-  int itri = SegmentToPolygon(r1[0], r1[1], r1[2], r2[0], r2[1], r2[2], &t,
-                              &xRot, &yRot, &dist, rcontact);
-  // Convert to what we need
-  *rminmag2 = dist * dist;
-  *mu = (t - 0.5) * length_1;
-  for (int i = 0; i < n_dim; ++i) {
-    rmin[i] = rcontact[i] - (r_1[i] + *mu * u_1[i]);
+  // Reset storage of neighb and triangle ptrs in each vertex
+  for (auto &&vrt : vrts_) {
+    vrt.n_tris_ = 0;
+    vrt.n_neighbs_ = 0;
   }
-  return itri;
+  // Update triangle ptrs stored by each vertex
+  for (auto &&tri : tris_) {
+    tri.vrts_[0]->tris_[tri.vrts_[0]->n_tris_++] = &tri;
+    tri.vrts_[1]->tris_[tri.vrts_[1]->n_tris_++] = &tri;
+    tri.vrts_[2]->tris_[tri.vrts_[2]->n_tris_++] = &tri;
+  }
+  // Update vertex neighbors held by each vertex
+  for (auto &&vrt : vrts_) {
+    // Each triangle we are a part of will contain 2 neighbors
+    for (int i_tri{0}; i_tri < vrt.n_tris_; i_tri++) {
+      Triangle *tri{vrt.tris_[i_tri]};
+      // Add all points that are not ourselves or duplicated vertices
+      for (int i{0}; i < 3; i++) {
+        if (*tri->vrts_[i] != vrt) {
+          bool duplicate{false};
+          for (int i_neighb{0}; i_neighb < vrt.n_neighbs_; i_neighb++) {
+            if (tri->vrts_[i] == vrt.neighbs_[i_neighb])
+              duplicate = true;
+          }
+          if (!duplicate) {
+            vrt.neighbs_[vrt.n_neighbs_++] = tri->vrts_[i];
+          }
+        }
+      }
+    }
+  }
+  // rearrange all neighbor lists to order them in a counterclockwise ring
+  for (auto &&vrt : vrts_) {
+    Vertex *neighbs_ordered[vrt.n_neighbs_]; // list to be ordered in ccw ring
+    neighbs_ordered[0] = vrt.neighbs_[0];    // use 1st entry as starting point
+    // scan over all neighbors to find which is next in the ring
+    // (up to n_neighbs-1 because we set i_neighb+1 each loop iteration)
+    for (int i_neighb{0}; i_neighb < vrt.n_neighbs_ - 1; i_neighb++) {
+      Vertex *current_entry{neighbs_ordered[i_neighb]};
+      double r_ij[3]; // points from j (current_entry) to i (vrt)
+      for (int i_dim{0}; i_dim < 3; i_dim++) {
+        r_ij[i_dim] = vrt.pos_[i_dim] - current_entry->pos_[i_dim];
+      }
+      bool found{false};
+      // the next node in ring order will be a neighbor of both current_entry and vrt
+      for (int j_neighb{0}; j_neighb < current_entry->n_neighbs_; j_neighb++) {
+        if (found) {
+          break;
+        }
+        Vertex *entry_neighb{current_entry->neighbs_[j_neighb]};
+        // check if entry_neighb is also part of vrt's neighbor list
+        for (int k_neighb{0}; k_neighb < vrt.n_neighbs_; k_neighb++) {
+          Vertex *this_entry{vrt.neighbs_[k_neighb]};
+          // two neighbs in the ring will fulfil this criterion: one behind, and one in front
+          if (entry_neighb == this_entry) {
+            double r_ik[3]; // points from k (entry_neighb) to i (vrt)
+            for (int i_dim{0}; i_dim < 3; i_dim++) {
+              r_ik[i_dim] = vrt.pos_[i_dim] - this_entry->pos_[i_dim];
+            }
+            // to ensure ccw ordering, need to make sure n_tri points away from origin
+            double nhat[3];
+            cross_product(r_ij, r_ik, nhat, 3);
+            if (dot_product(3, vrt.pos_, nhat) == 0.0) {
+              printf("Error in TriMesh::UpdateNeighbors()\n");
+              exit(1);
+            }
+            if (this_entry == current_entry or this_entry == &vrt) {
+              printf("Error 2 in TriMesh::UpdateNeighbors()\n");
+              exit(1);
+            }
+            // if nhat is antiparallel with vertex position, its pointing inwards
+            if (dot_product(3, vrt.pos_, nhat) < 0.0) {
+              continue;
+            }
+            if (i_neighb == 0) {
+              neighbs_ordered[i_neighb + 1] = this_entry;
+              found = true;
+              break;
+            } else if (this_entry != neighbs_ordered[i_neighb - 1]) {
+              neighbs_ordered[i_neighb + 1] = this_entry;
+              found = true;
+              break;
+            } else {
+              printf("Error 3 in TriMesh::UpdateNeighbors()\n");
+              exit(1);
+            }
+          }
+        }
+      }
+      if (!found) {
+        printf("Error 4 in TriMesh::UpdateNeighbors()\n");
+        exit(1);
+      }
+    }
+    for (int i_neighb{0}; i_neighb < vrt.n_neighbs_; i_neighb++) {
+      vrt.neighbs_[i_neighb] = neighbs_ordered[i_neighb];
+    }
+  }
+}
+
+void TriMesh::CheckVertices() {
+
+  size_t n_flawed{0};
+  size_t n_gucci{0};
+  for (auto &&vrt : vrts_) {
+    vrt.SetDiameter(params_->node_diameter);
+    if (vrt.n_neighbs_ != 6) {
+      n_flawed++;
+    } else if (vrt.n_neighbs_ == 6) {
+      n_gucci++;
+    } else {
+      printf("ummm?? in TRIANGLE MESH INIT\n");
+      exit(1);
+    }
+  }
+  printf("%zu vrts (%zu flawed; %zu ideal)\n", vrts_.size(), n_flawed, n_gucci);
+
+  // SF TODO sloppy hack; fix
+  double l_sum{0.0};
+  double A_sum{0.0};
+  size_t n_entries{0};
+  for (auto const &tri : tris_) {
+    double l1{0.0};
+    double l2{0.0};
+    double l3{0.0};
+    for (int i_dim{0}; i_dim < 3; i_dim++) {
+      l1 += SQR(tri.vrts_[0]->pos_[i_dim] - tri.vrts_[1]->pos_[i_dim]);
+      l2 += SQR(tri.vrts_[0]->pos_[i_dim] - tri.vrts_[2]->pos_[i_dim]);
+      l3 += SQR(tri.vrts_[1]->pos_[i_dim] - tri.vrts_[2]->pos_[i_dim]);
+    }
+    l1 = sqrt(l1);
+    l2 = sqrt(l2);
+    l3 = sqrt(l3);
+    l_sum += l1;
+    l_sum += l2;
+    l_sum += l3;
+    double s{0.5 * (l1 + l2 + l3)};
+    A_sum += sqrt(s * (s - l1) * (s - l2) * (s - l3));
+    n_entries += 3;
+  }
+  l_avg_ = l_sum / n_entries;
+  A_prime_ = A_sum / (n_entries / 3);
+  // also calculate std_err of mean to check for bugs
+  double var{0.0};
+  for (auto const &tri : tris_) {
+    double l1{0.0};
+    double l2{0.0};
+    double l3{0.0};
+    for (int i_dim{0}; i_dim < 3; i_dim++) {
+      l1 += SQR(tri.vrts_[0]->pos_[i_dim] - tri.vrts_[1]->pos_[i_dim]);
+      l2 += SQR(tri.vrts_[0]->pos_[i_dim] - tri.vrts_[2]->pos_[i_dim]);
+      l3 += SQR(tri.vrts_[1]->pos_[i_dim] - tri.vrts_[2]->pos_[i_dim]);
+    }
+    var += SQR(l_avg_ - sqrt(l1));
+    var += SQR(l_avg_ - sqrt(l2));
+    var += SQR(l_avg_ - sqrt(l3));
+  }
+  var = sqrt(var / n_entries);
+  printf("l_avg = %g +/- %g\n", l_avg_, var);
+  printf("A_prime = %g\n", A_prime_);
+  printf("A_calc = %g\n", 4 * M_PI * SQR(r_sys_) / tris_.size());
+  if (var < 0.05 * l_avg_) {
+    var = 0.05 * l_avg_;
+  }
+  // l_avg_ *= 0.9;
+  l_c0_ = 1.2 * l_avg_;
+  l_c1_ = 0.8 * l_avg_;
+  l_max_ = 1.4 * l_avg_;
+  l_min_ = 0.6 * l_avg_;
+}
+
+void TriMesh::ProjectToUnitSphere() {
+  // p much just normalization i believe
+  for (auto &&vrt : vrts_) {
+    // const double *old_pos{vrt.GetPosition()};
+    double norm{0.0};
+    for (int i_dim{0}; i_dim < 3; i_dim++) {
+      norm += SQR(vrt.pos_[i_dim]);
+    }
+    norm = sqrt(norm);
+    double new_pos[3];
+    for (int i_dim{0}; i_dim < 3; i_dim++) {
+      double val{vrt.pos_[i_dim]};
+      new_pos[i_dim] = r_sys_ * val / norm;
+    }
+    vrt.SetPos(new_pos);
+  }
 }
 
 void TriMesh::Draw(std::vector<graph_struct *> &graph_array) {
@@ -579,8 +463,8 @@ void TriMesh::UpdateMesh() {
 
 void TriMesh::ApplyBoundaryForces() {
 
-  double r_cutoff2 = 1.0;
-  double sigma2 = 1.0;
+  double r_cutoff2 = 0.2;
+  double sigma2 = 0.1;
   double four_epsilon = 1.0;
 
   f_mem_.resize(neighbs_.size());
@@ -597,8 +481,8 @@ void TriMesh::ApplyBoundaryForces() {
     // printf("u = <%g, %g, %g>\n", u[0], u[1], u[2]);
     // printf("l = %g\n", neighb->GetLength());
     // SF TODO incorporate periodic space (incorporate s and h)
-    int i_tri = MinDist_Sphero(r, r, u, neighb->GetLength(), rmin, &r_min_mag2,
-                               rcontact, &mu);
+    int i_tri = mindist_.SpheroPolygon(this, r, r, u, neighb->GetLength(), rmin,
+                                       &r_min_mag2, rcontact, &mu);
     double rmagcalc{0.0};
     for (int i{0}; i < 3; i++) {
       f_mem_[i_neighb].r[i] = tris_[i_tri].GetCenterPos(i);
@@ -720,11 +604,11 @@ void TriMesh::ApplyBoundaryForces() {
 void TriMesh::UpdatePositions() {
 
   // shrink this jonny
-  l_avg_ *= 0.99999;
-  l_c0_ = 1.2 * l_avg_;
-  l_c1_ = 0.8 * l_avg_;
-  l_max_ = 1.4 * l_avg_;
-  l_min_ = 0.6 * l_avg_;
+  // l_avg_ *= 0.9999;
+  // l_c0_ = 1.2 * l_avg_;
+  // l_c1_ = 0.8 * l_avg_;
+  // l_max_ = 1.4 * l_avg_;
+  // l_min_ = 0.6 * l_avg_;
 
   // SF TODO all calculations are currently done redundantly
   // SF TODO i.e., we do not take advtange of newton's 3rd law
