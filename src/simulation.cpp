@@ -48,7 +48,7 @@ void Simulation::RunSimulation() {
       params_.i_step = (int)round(time_ / (step_fact_ * params_.delta));
     }
     // SF TODO CRITICAL what the hell even is that thing
-    if (params_.mesh_membrane and i_step_ > 10) {
+    if (params_.mesh_membrane) {
       membrane_.UpdatePositions();
     }
     // Output progress

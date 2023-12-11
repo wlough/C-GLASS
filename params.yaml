@@ -1,5 +1,5 @@
 seed: 114222003020845
-run_name: testinoTUHH3
+run_name: test
 n_dim: 3
 n_periodic: 0
 boundary: 5
@@ -28,19 +28,13 @@ coarse_grained_mesh_interactions: false # SF TODO explore this
 mesh_coarsening: 2 # SF this is not related to the below bool/params lol sry
 mesh_membrane: false # overridden when boundary_Type=5
 n_subdivisions: 3
+mesh_datapoints: 1000
+mesh_steps_per_datapoint: 1
 mesh_kB: 16.0 # 80.5
 mesh_k: 5.0 # 20.1
 mesh_kl: 1.0 # 5.03
 node_gamma: 0.02
 node_diameter: 0.0
-# triangulated_mesh: 
-#   - name: MEMBRANE 
-#     init_shape: sphere
-#     init_divisions: 3 
-#     k_teth: 80
-#     k_bend: 20
-#     k_area: 1
-#     gamma: 1
 chromosome: 
   - name: CHROMO
     num: 0

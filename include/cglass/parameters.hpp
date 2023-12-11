@@ -324,6 +324,8 @@ struct system_parameters {
   bool no_midstep = false;
   bool single_occupancy = true;
   bool mesh_membrane = false;
+  size_t mesh_datapoints = 10000;
+  size_t mesh_steps_per_datapoint = 10;
   double mesh_kB = 0.0;
   double mesh_k = 0.0;
   double mesh_kl = 0.0;

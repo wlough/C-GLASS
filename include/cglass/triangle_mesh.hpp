@@ -11,6 +11,7 @@
 
 struct Triangle;
 struct Vertex : public Site {
+  size_t vid_{0}; // vertex ID
   int seed{0};
   double pos_[3];
 
@@ -42,6 +43,7 @@ struct Vertex : public Site {
   friend bool operator!=(const Vertex &lhs, const Vertex &rhs) {
     return !(lhs == rhs);
   }
+  void SetID(size_t id) { vid_ = id; }
   void SetPos(const double *const new_pos) {
     pos_[0] = position_[0] = new_pos[0];
     pos_[1] = position_[1] = new_pos[1];
@@ -93,9 +95,12 @@ struct Triangle {
 class TriMesh {
 
 private:
-  size_t n_datapoints{0};
-  bool file_open_{false};
+  int i_datapoint_{0};
   FILE *forces_{nullptr};
+  double f_avg_ideal_[3];  // tether, bend, and area forces (6 pt nodes)
+  double f_avg_flawed_[3]; // tether, bend, and area forces (5 pt nodes)
+  FILE *vertices_{nullptr};
+  FILE *adjacency_{nullptr};
   system_parameters *params_{nullptr};
   double l_avg_{0.0};
   double gamma_{0.0};
@@ -130,6 +135,7 @@ private:
   void UpdateNeighbors();
   void CheckVertices();
   void UpdateMesh();
+  void ApplyMembraneForces();
   void ApplyBoundaryForces();
 
 public:

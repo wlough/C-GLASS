@@ -169,6 +169,10 @@ system_parameters parse_system_params(YAML::Node &node) {
       params.single_occupancy = it->second.as<bool>();
     } else if (param_name.compare("mesh_membrane") == 0) {
       params.mesh_membrane = it->second.as<bool>();
+    } else if (param_name.compare("mesh_datapoints") == 0) {
+      params.mesh_datapoints = it->second.as<size_t>();
+    } else if (param_name.compare("mesh_steps_per_datapoint") == 0) {
+      params.mesh_steps_per_datapoint = it->second.as<size_t>();
     } else if (param_name.compare("mesh_kB") == 0) {
       params.mesh_kB = it->second.as<double>();
     } else if (param_name.compare("mesh_k") == 0) {

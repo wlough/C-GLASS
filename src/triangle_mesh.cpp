@@ -3,15 +3,16 @@
 void TriMesh::Init(system_parameters *params) {
 
   // SF temp before integrating with output_manager
-  std::string filename{params->run_name + "_membrane_forces.file"};
-  forces_ = fopen(filename.c_str(), "w");
-  if (forces_ == nullptr) {
-    printf("aw hell naw\n");
+  std::string force_filename{params->run_name + "_membrane_forces.file"};
+  std::string vrt_filename{params->run_name + "_membrane_vrt_positions.file"};
+  std::string adj_filename{params->run_name + "_membrane_vrt_adjacency.file"};
+  forces_ = fopen(force_filename.c_str(), "w");
+  vertices_ = fopen(vrt_filename.c_str(), "w");
+  adjacency_ = fopen(adj_filename.c_str(), "w");
+  if (forces_ == nullptr or vertices_ == nullptr or adjacency_ == nullptr) {
+    printf("Error generating mesh data files\n");
     exit(1);
-  } else {
-    file_open_ = true;
   }
-
   params_ = params;
   SetParameters();
   MakeIcosphere();
@@ -45,6 +46,9 @@ void TriMesh::MakeIcosphere() {
     printf("%zu VRTS TOTAL\n", vrts_.size());
   }
   ProjectToUnitSphere();
+  for (size_t i_vrt{0}; i_vrt < vrts_.size(); i_vrt++) {
+    vrts_[i_vrt].SetID(i_vrt);
+  }
 }
 
 void TriMesh::MakeIcosahedron() {
@@ -406,7 +410,9 @@ void TriMesh::Draw(std::vector<graph_struct *> &graph_array) {
 }
 
 void TriMesh::UpdateMesh() {
-  // for (auto &&tri : tris_) {
+  for (auto &&vrt : vrts_) {
+    vrt.ZeroForce();
+  }
   for (int itri{0}; itri < tris_.size(); itri++) {
     Triangle *tri{&tris_[itri]};
     double aVector[3] = {0.0};
@@ -461,168 +467,12 @@ void TriMesh::UpdateMesh() {
   }
 }
 
-void TriMesh::ApplyBoundaryForces() {
-
-  double r_cutoff2 = 0.2;
-  double sigma2 = 0.1;
-  double four_epsilon = 1.0;
-
-  f_mem_.resize(neighbs_.size());
-  for (int i_neighb{0}; i_neighb < neighbs_.size(); i_neighb++) {
-    // printf("neighb %i\n", i_neighb);
-    double rmin[3], r_min_mag2, rcontact[3], mu;
-    // double pos[3] = neighbs_[i_neighb].GetPosition();
-    Object *neighb{neighbs_[i_neighb]};
-    double r[3] = {neighb->GetPosition()[0], neighb->GetPosition()[1],
-                   neighb->GetPosition()[2]};
-    double u[3] = {neighb->GetOrientation()[0], neighb->GetOrientation()[1],
-                   neighb->GetOrientation()[2]};
-    // printf("r = <%g, %g, %g>\n", r[0], r[1], r[2]);
-    // printf("u = <%g, %g, %g>\n", u[0], u[1], u[2]);
-    // printf("l = %g\n", neighb->GetLength());
-    // SF TODO incorporate periodic space (incorporate s and h)
-    int i_tri = mindist_.SpheroPolygon(this, r, r, u, neighb->GetLength(), rmin,
-                                       &r_min_mag2, rcontact, &mu);
-    double rmagcalc{0.0};
-    for (int i{0}; i < 3; i++) {
-      f_mem_[i_neighb].r[i] = tris_[i_tri].GetCenterPos(i);
-      rmagcalc += SQR(rmin[i]);
-    }
-    // printf("%g vs %g\n", rmagcalc, r_min_mag2);
-    rmagcalc = sqrt(rmagcalc);
-    for (int i{0}; i < 3; i++) {
-      f_mem_[i_neighb].u[i] = rmin[i] / rmagcalc;
-    }
-    // printf("u_f = <%g, %g, %g>\n", f_mem_.u[0], f_mem_.u[1], f_mem_.u[2]);
-    f_mem_[i_neighb].length = 0.0;
-    f_mem_[i_neighb].color = 1.8 * M_PI;
-    f_mem_[i_neighb].diameter = 1.0;
-    f_mem_[i_neighb].draw = draw_type::fixed;
-    // printf("%g @ triangle %i\n", r_min_mag2, i_tri);
-    if (r_min_mag2 < r_cutoff2) {
-      //std::cout << "Firing off WCA calc\n";
-      // Calculate WCA potential and forces
-      double rho2 = sigma2 / r_min_mag2;
-      double rho6 = CUBE(rho2);
-      double rho12 = SQR(rho6);
-
-      // printf("r_min_mag = %g\n", sqrt(r_min_mag2));
-      // u += four_epsilon * (rho12 - rho6) + u_shift;
-      double factor = 6.0 * four_epsilon * (2.0 * rho12 - rho6) / r_min_mag2;
-      // printf("factor = %g\n", factor);
-
-      // for (int i{0}; i < 3; i++) {
-      //   f_mem_[i_neighb].u[i] = rmin[i] / sqrt(r_min_mag2);
-      // }
-      // f_mem_[i_neighb].length = factor;
-      // sf todo incorporate gamma properly
-      // double f_cutoff =
-      //     0.1 / params_->delta *
-      //     MIN(properties->bonds.gamma_par[ibond], chromosomes->gamma_t_);
-      double f_cutoff = 10000;
-      // Truncate the forces if necessary
-      double r_min_mag = sqrt(r_min_mag2);
-      if (factor * r_min_mag > f_cutoff) {
-        //std::cout << "NOTE tripping fcutoff in kcmt, resetting force factor, original " << factor << " to ";
-        factor = f_cutoff / r_min_mag;
-        //std::cout << factor << std::endl;
-        printf(" *** Force exceeded f_cutoff "
-               "kinetochoremesh_mt_wca_potential_neighbors ***\n");
-      }
-      double f_lj[3] = {0.0};
-      for (int i = 0; i < params_->n_dim; ++i) {
-        f_lj[i] = factor * rmin[i];
-      }
-      //std::cout << "KC MT Current forces Steric:\n";
-      //std::cout << "  KC[" << ikc << "] bond[" << ibond << "]\n";
-      // std::cout << "  f_lj: (" << f_lj[0] << ", " << f_lj[1] << ", " << f_lj[2]
-      //           << ")\n";
-      //std::cout << "  fkc:   (" << f_kc[ikc][0] << ", " << f_kc[ikc][1] << ", " << f_kc[ikc][2] << ")\n";
-      //std::cout << "  fbond: (" << f_bond[ibond][0] << ", " << f_bond[ibond][1] << ", " << f_bond[ibond][2] << ")\n";
-
-      Triangle *tri{&tris_[i_tri]};
-      for (auto &&vrt : tri->vrts_) {
-        vrt->AddForce(f_lj);
-      }
-      // tri->AddForce(f_lj);
-      neighb->SubForce(f_lj);
-      // Add to accumulators
-      // for (int i = 0; i < ndim; ++i) {
-      //   f_kc[ikc][i] += f_lj[i];
-      //   f_bond[ibond][i] -= f_lj[i];
-      //   //ftip[ibond][i] -= f_lj[i]; // we are definitely talking to the tip
-      // }
-
-      // SF TODO incorporate this into kinetochores
-      /*
-      // We need to do a special check to see if we're within the tip distance for the KC-MT interaction
-      // for force dependent catastrophe
-      if (properties->bonds.length[ibond] -
-              (mu - 0.5) * properties->bonds.length[ibond] <
-          chromosomes->chromatid_mt_fc_distance_) {
-        for (int i = 0; i < ndim; ++i) {
-          ftip[ibond][i] -= f_lj[i];
-        }
-      }
-      */
-
-      // // Calculate the virial contribution
-      // if (properties->control.virial_flag == 1) {
-      //   for (int i = 0; i < parameters->n_dim; ++i) {
-      //     for (int j = 0; j < parameters->n_dim; ++j) {
-      //       virial[i][j] += rmin[i] * f_lj[j];
-      //     }
-      //   }
-      // }
-
-      // SF TODO incorporate torques
-      /*
-      // Calculate torques
-      double rcontact_kc[3] = {0.0};
-      double rcontact_mt[3] = {0.0};
-      for (int i = 0; i < ndim; ++i) {
-        //rcontact_kc[i] = kc_iter->r_[i] - rcontact[i];
-        rcontact_kc[i] = chromosomes->r_[ikc][i] - rcontact[i];
-        rcontact_mt[i] = mu * u_bond[ibond][i];
-      }
-      //std::cout << "rcontact_kc(" << rcontact_kc[0] << ", " << rcontact_kc[1] << ", " << rcontact_kc[2] << ")\n";
-      //std::cout << "rcontact_mt(" << rcontact_mt[0] << ", " << rcontact_mt[1] << ", " << rcontact_mt[2] << ")\n";
-      double tau[3] = {0.0};
-      cross_product(rcontact_kc, f_lj, tau, 3);
-      for (int i = 0; i < 3; ++i) {
-        t_kc[ikc][i] -= tau[i];
-      }
-      cross_product(rcontact_mt, f_lj, tau, 3);
-      for (int i = 0; i < 3; ++i) {
-        t_bond[ibond][i] -= tau[i];
-      }
-      */
-    }
-  }
-}
-
-void TriMesh::UpdatePositions() {
-
-  // shrink this jonny
-  // l_avg_ *= 0.9999;
-  // l_c0_ = 1.2 * l_avg_;
-  // l_c1_ = 0.8 * l_avg_;
-  // l_max_ = 1.4 * l_avg_;
-  // l_min_ = 0.6 * l_avg_;
+void TriMesh::ApplyMembraneForces() {
 
   // SF TODO all calculations are currently done redundantly
   // SF TODO i.e., we do not take advtange of newton's 3rd law
   // SF TODO once validated, increase computational efficiency by addressing this
 
-  // for (auto &&neighb : neighbs_) {
-  //   printf("position is <%g, %g, %g>\n", neighb->GetPosition()[0],
-  //          neighb->GetPosition()[1], neighb->GetPosition()[2]);
-  // }
-
-  // zero forces out first
-  for (auto &&vrt : vrts_) {
-    vrt.ZeroForce();
-  }
   double f_teth_flaw{0.0};
   size_t n_teth_flaw{0};
   double f_bend_flaw{0.0};
@@ -891,58 +741,178 @@ void TriMesh::UpdatePositions() {
       exit(1);
     }
   }
-  // for (int i_entry{0}; i_entry < observed_thetas.size(); i_entry++) {
-  //   printf("angle %.4g observed %i times\n",
-  //          observed_thetas[i_entry] * 180 / M_PI, observed_counts[i_entry]);
-  // }
-  // printf("\n");
-  // apply displacements
-  UpdateMesh();
-  ApplyBoundaryForces();
+  f_avg_ideal_[0] = f_teth_good / n_teth_good;
+  f_avg_ideal_[1] = f_bend_good / n_bend_good;
+  f_avg_ideal_[2] = f_area_good / n_area_good;
+  f_avg_flawed_[0] = f_teth_flaw / n_teth_flaw;
+  f_avg_flawed_[1] = f_bend_flaw / n_bend_flaw;
+  f_avg_flawed_[2] = f_area_flaw / n_area_flaw;
+}
 
+void TriMesh::ApplyBoundaryForces() {
+
+  double r_cutoff2 = 0.2;
+  double sigma2 = 0.1;
+  double four_epsilon = 1.0;
+
+  f_mem_.resize(neighbs_.size());
+  for (int i_neighb{0}; i_neighb < neighbs_.size(); i_neighb++) {
+    // printf("neighb %i\n", i_neighb);
+    double rmin[3], r_min_mag2, rcontact[3], mu;
+    // double pos[3] = neighbs_[i_neighb].GetPosition();
+    Object *neighb{neighbs_[i_neighb]};
+    double r[3] = {neighb->GetPosition()[0], neighb->GetPosition()[1],
+                   neighb->GetPosition()[2]};
+    double u[3] = {neighb->GetOrientation()[0], neighb->GetOrientation()[1],
+                   neighb->GetOrientation()[2]};
+    // printf("r = <%g, %g, %g>\n", r[0], r[1], r[2]);
+    // printf("u = <%g, %g, %g>\n", u[0], u[1], u[2]);
+    // printf("l = %g\n", neighb->GetLength());
+    // SF TODO incorporate periodic space (incorporate s and h)
+    int i_tri = mindist_.SpheroPolygon(this, r, r, u, neighb->GetLength(), rmin,
+                                       &r_min_mag2, rcontact, &mu);
+    double rmagcalc{0.0};
+    for (int i{0}; i < 3; i++) {
+      f_mem_[i_neighb].r[i] = tris_[i_tri].GetCenterPos(i);
+      rmagcalc += SQR(rmin[i]);
+    }
+    // printf("%g vs %g\n", rmagcalc, r_min_mag2);
+    rmagcalc = sqrt(rmagcalc);
+    for (int i{0}; i < 3; i++) {
+      f_mem_[i_neighb].u[i] = rmin[i] / rmagcalc;
+    }
+    // printf("u_f = <%g, %g, %g>\n", f_mem_.u[0], f_mem_.u[1], f_mem_.u[2]);
+    f_mem_[i_neighb].length = 0.0;
+    f_mem_[i_neighb].color = 1.8 * M_PI;
+    f_mem_[i_neighb].diameter = 1.0;
+    f_mem_[i_neighb].draw = draw_type::fixed;
+    // printf("%g @ triangle %i\n", r_min_mag2, i_tri);
+    if (r_min_mag2 < r_cutoff2) {
+      //std::cout << "Firing off WCA calc\n";
+      // Calculate WCA potential and forces
+      double rho2 = sigma2 / r_min_mag2;
+      double rho6 = CUBE(rho2);
+      double rho12 = SQR(rho6);
+
+      // printf("r_min_mag = %g\n", sqrt(r_min_mag2));
+      // u += four_epsilon * (rho12 - rho6) + u_shift;
+      double factor = 6.0 * four_epsilon * (2.0 * rho12 - rho6) / r_min_mag2;
+      // printf("factor = %g\n", factor);
+
+      // for (int i{0}; i < 3; i++) {
+      //   f_mem_[i_neighb].u[i] = rmin[i] / sqrt(r_min_mag2);
+      // }
+      // f_mem_[i_neighb].length = factor;
+      // sf todo incorporate gamma properly
+      // double f_cutoff =
+      //     0.1 / params_->delta *
+      //     MIN(properties->bonds.gamma_par[ibond], chromosomes->gamma_t_);
+      double f_cutoff = 10000;
+      // Truncate the forces if necessary
+      double r_min_mag = sqrt(r_min_mag2);
+      if (factor * r_min_mag > f_cutoff) {
+        //std::cout << "NOTE tripping fcutoff in kcmt, resetting force factor, original " << factor << " to ";
+        factor = f_cutoff / r_min_mag;
+        //std::cout << factor << std::endl;
+        printf(" *** Force exceeded f_cutoff "
+               "kinetochoremesh_mt_wca_potential_neighbors ***\n");
+      }
+      double f_lj[3] = {0.0};
+      for (int i = 0; i < params_->n_dim; ++i) {
+        f_lj[i] = factor * rmin[i];
+      }
+      Triangle *tri{&tris_[i_tri]};
+      for (auto &&vrt : tri->vrts_) {
+        vrt->AddForce(f_lj);
+      }
+      // tri->AddForce(f_lj);
+      neighb->SubForce(f_lj);
+
+      // SF TODO incorporate torques
+      /*
+      // Calculate torques
+      double rcontact_kc[3] = {0.0};
+      double rcontact_mt[3] = {0.0};
+      for (int i = 0; i < ndim; ++i) {
+        //rcontact_kc[i] = kc_iter->r_[i] - rcontact[i];
+        rcontact_kc[i] = chromosomes->r_[ikc][i] - rcontact[i];
+        rcontact_mt[i] = mu * u_bond[ibond][i];
+      }
+      //std::cout << "rcontact_kc(" << rcontact_kc[0] << ", " << rcontact_kc[1] << ", " << rcontact_kc[2] << ")\n";
+      //std::cout << "rcontact_mt(" << rcontact_mt[0] << ", " << rcontact_mt[1] << ", " << rcontact_mt[2] << ")\n";
+      double tau[3] = {0.0};
+      cross_product(rcontact_kc, f_lj, tau, 3);
+      for (int i = 0; i < 3; ++i) {
+        t_kc[ikc][i] -= tau[i];
+      }
+      cross_product(rcontact_mt, f_lj, tau, 3);
+      for (int i = 0; i < 3; ++i) {
+        t_bond[ibond][i] -= tau[i];
+      }
+      */
+    }
+  }
+}
+
+void TriMesh::WriteOutputs() {
+  // SF temp before integrating into output_manager
+  if (params_->i_step % params_->mesh_steps_per_datapoint != 0) {
+    return;
+  }
+  if (i_datapoint_ < params_->mesh_datapoints) {
+    // write different membrane forces
+    int n_written_good = fwrite(f_avg_ideal_, sizeof(double), 3, forces_);
+    int n_written_flaw = fwrite(f_avg_flawed_, sizeof(double), 3, forces_);
+    i_datapoint_++;
+    for (int i_vrt{0}; i_vrt < vrts_.size(); i_vrt++) {
+      double pos[3];
+      int adj[6];
+      Vertex *vrt{&vrts_[i_vrt]};
+      for (int i_dim{0}; i_dim < params_->n_dim; i_dim++) {
+        pos[i_dim] = vrt->GetPosition()[i_dim];
+      }
+      for (int i_neighb{0}; i_neighb < vrt->n_neighbs_; i_neighb++) {
+        adj[i_neighb] = (int)vrt->neighbs_[i_neighb]->vid_;
+      }
+      // padding for 5-point vertices
+      for (int i_neighb{vrt->n_neighbs_}; i_neighb < 6; i_neighb++) {
+        adj[i_neighb] = -1;
+      }
+      fwrite(pos, sizeof(double), 3, vertices_);
+      fwrite(adj, sizeof(int), 6, adjacency_);
+    }
+  } else {
+    printf("data collection done! (%zu datapoints written)\n", i_datapoint_);
+    fclose(forces_);
+    fclose(vertices_);
+    fclose(adjacency_);
+    early_exit = true;
+  }
+}
+
+void TriMesh::UpdatePositions() {
+
+  // shrink this jonny
+  // l_avg_ *= 0.9999;
+  // l_c0_ = 1.2 * l_avg_;
+  // l_c1_ = 0.8 * l_avg_;
+  // l_max_ = 1.4 * l_avg_;
+  // l_min_ = 0.6 * l_avg_;
+  UpdateMesh();
+  ApplyMembraneForces();
+  ApplyBoundaryForces();
   for (int i_vrt{0}; i_vrt < vrts_.size(); i_vrt++) {
-    //Expected diffusion length of the crosslink in the solution in delta
     double sigma{sqrt(2 * params_->delta / gamma_)}; // kbT = 1??
-    //Distance actually diffused
     double dr[3] = {0.0, 0.0, 0.0};
-    //Previous and final location of the crosslink
     double const *const r_prev = vrts_[i_vrt].GetPosition();
     double r_final[3];
-    //Update position of the crosslink
     for (int i = 0; i < 3; ++i) {
-      // you forgot the timestep you IDJEET
       double vel{vrts_[i_vrt].GetForce()[i] / gamma_};
       double noise{rng_->RandomNormal(sigma)};
       dr[i] = vel * params_->delta + noise;
       r_final[i] = r_prev[i] + dr[i];
     }
-    // if (i_vrt == 1) {
-    //   r_final[1] += l_avg_ / 100;
-    // printf("r_final[1] = %g\n", r_final[1]);
-    // }
     vrts_[i_vrt].SetPos(r_final);
   }
-  double f_avg_good[3] = {f_teth_good / n_teth_good, f_bend_good / n_bend_good,
-                          f_area_good / n_area_good};
-  double f_avg_flaw[3] = {f_teth_flaw / n_teth_flaw, f_bend_flaw / n_bend_flaw,
-                          f_area_flaw / n_area_flaw};
-
-  // SF temp before integrating into output_manager
-  if (n_datapoints < 10000) {
-    int n_written_good = fwrite(f_avg_good, sizeof(double), 3, forces_);
-    int n_written_flaw = fwrite(f_avg_flaw, sizeof(double), 3, forces_);
-    // if (n_written != 1) {
-    //   printf("%i\n", n_written);
-    //   exit(1);
-    // }
-    // printf("counter is %i\n", n_datapoints);
-    n_datapoints++;
-    // exit(1);
-  } else if (file_open_) {
-    file_open_ = false;
-    printf("done!\n");
-    fclose(forces_);
-    // exit(1);
-  }
-  // printf("writing forces\n");
+  WriteOutputs();
 }
