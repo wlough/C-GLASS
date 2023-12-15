@@ -209,6 +209,7 @@ void CentrosomeSpecies::UpdatePositions() {
     // Construct the force vector
     double forcevec[3] = {0.0};
 
+    // SF TODO implement alternate force versions
     /*
     // If we are using a harmonic force
     if (properties->anchors.spb_confinement_type == 0) {
@@ -273,6 +274,7 @@ void CentrosomeSpecies::UpdatePositions() {
     centro->AddForce(forcevec);
     centro->AddTorque(torquevec);
 
+    // SF TODO set up case (and choice) for confined SPBs
     /* BELOW CODE IS FOR 'FREE' SPB, I.E., NOT CONFINED TO MEMBRANE */
     // Set up armadillo versions of all of our information of interest
     arma::vec3 r = {centro->GetR(0), centro->GetR(1), centro->GetR(2)};
@@ -340,46 +342,7 @@ void CentrosomeSpecies::UpdatePositions() {
       v_new[i] = v(i);
       w_new[i] = w(i);
     }
-
     centro->UpdatePosition(r_new, u_new, v_new, w_new);
-
-    // Now we have to update the positions of the MTs on the anchor
-    /*
-    for (al_list::iterator p = properties->anchors.anchor_list[idx].begin();
-         p < properties->anchors.anchor_list[idx].end(); p++) {
-      double factor_u = dot_product(3, p->pos_rel, u_anchor[idx]);
-      double factor_v = dot_product(3, p->pos_rel, v_anchor[idx]);
-      double factor_w = dot_product(3, p->pos_rel, w_anchor[idx]);
-
-      // Calculate new lab frame coordinate
-      for (int i = 0; i < 3; ++i) {
-        p->pos[i] = r_anchor[idx][i] + factor_u * u_anchor[idx][i] +
-                    factor_v * v_anchor[idx][i] + factor_w * w_anchor[idx][i];
-      }
-      // Make sure that we properly attack the orientation of the anchor list
-      // Orientations!
-      double original_u[3] = {0.0};
-      for (int i = 0; i < 3; ++i) {
-        original_u[i] = p->u[i];
-        p->u[i] = p->u_rel[0] * u_anchor[idx][i] +
-                  p->u_rel[1] * v_anchor[idx][i] +
-                  p->u_rel[2] * w_anchor[idx][i];
-      }
-      // Create a check if the position isn't working correctly
-      for (int i = 0; i < 3; ++i) {
-        if (std::isnan(p->pos[i])) {
-          // Print out the information of the centrosome and exit
-          std::cerr << "Encountered an error in SPB update code, printing "
-                       "information then exiting\n";
-          std::cerr << "  step: " << properties->i_current_step << std::endl;
-          print_centrosomes_information(idx, &(properties->anchors));
-          std::cerr << "  Force = " << force.as_row();
-          std::cerr << "  Torque = " << torque.as_row();
-          exit(1);
-        }
-      }
-    }
-    */
   }
 }
 

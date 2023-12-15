@@ -3,15 +3,15 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import proj3d
 
 n_datapoints = 1000
-n_vrts = 642
+n_vrts = 42
 n_adj_max = 6
 
 data_pos = np.fromfile(
-    "/home/shane/projects/C-GLASS/test_membrane_vrt_positions.file",
+    "/home/shane/projects/C-GLASS/test2_membrane_vrt_positions.file",
     dtype=np.double,
 ).reshape(n_datapoints, n_vrts, 3)
 data_adj = np.fromfile(
-    "/home/shane/projects/C-GLASS/test_membrane_vrt_adjacency.file",
+    "/home/shane/projects/C-GLASS/test2_membrane_vrt_adjacency.file",
     dtype=np.int32,
 ).reshape(n_datapoints, n_vrts, 6)
 

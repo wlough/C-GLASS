@@ -13,6 +13,8 @@ void CrosslinkSpecies::Init(std::string spec_name, ParamsParser &parser) {
   xlink_concentration_ = sparams_.concentration;
   infinite_reservoir_flag_ = sparams_.infinite_reservoir_flag;
   sparams_.num = (int)round(sparams_.concentration * space_->volume);
+  printf("\n NUM = %g * %g = %i (%s)\n", sparams_.concentration, space_->volume,
+         sparams_.num, spec_name.c_str());
   std::vector<std::string> bind_file = {sparams_.anchors[0].bind_file,
                                         sparams_.anchors[1].bind_file};
 
@@ -283,6 +285,8 @@ void CrosslinkSpecies::InsertCrosslinks() {
             0.5 * sqrt((R + r - d) * (r + d - R) * (R + d - r) * (R + r + d)));
       } else {
         Logger::Error("Boundary type not recognized in CrosslinkSpecies");
+        printf("heyoo\n");
+        exit(1);
       }
     }
     for (int i = 0; i < sparams_.num; ++i) {

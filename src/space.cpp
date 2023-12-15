@@ -327,6 +327,17 @@ void Space::CalculateVolume() {
     else
       volume_ = CUBE(2 * radius_);
     break;
+
+  case 5:
+    v_ratio_ = 0;
+    neck_height_ = 0;
+    neck_radius_ = 0;
+    if (n_dim_ == 2) {
+      printf("2d mesh not implemented yet!!\n");
+      exit(1);
+    } else
+      volume_ = 4.0 / 3.0 * M_PI * CUBE(radius_);
+    break;
   default:
     break;
   }

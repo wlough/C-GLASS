@@ -180,7 +180,6 @@ void Centrosome::ApplyInteractions() {
     // apply forces -- SF TODO: integrate this into Interacte() routine
     anchor.filament_->AddForceTail(f_spring);
     SubForce(f_spring);
-    // ! SF TODO add torque
     double r_spb[3];
     double r_bond[3];
     for (int i_dim{0}; i_dim < params_->n_dim; i_dim++) {
@@ -199,16 +198,6 @@ void Centrosome::ApplyInteractions() {
     cross_product(r_bond, f_spring, tau_bond, params_->n_dim);
     anchor.filament_->AddTorqueTail(tau_bond);
     SubTorque(tau_spb);
-    // double tau_bond_mag{0.0};
-    // double tau_spb_mag{0.0};
-    // for (int i_dim{0}; i_dim < params_->n_dim; i_dim++) {
-    //   tau_bond_mag += tau_bond[i_dim];
-    //   tau_spb_mag += tau_spb[i_dim];
-    // }
-    // tau_bond_mag = sqrt(tau_bond_mag);
-    // tau_spb_mag = sqrt(tau_spb_mag);
-    // printf("tq_mag_spb: %g\n", tau_spb_mag);
-    // printf("tq_mag_bond: %g\n", tau_bond_mag);
   }
 }
 

@@ -47,7 +47,6 @@ void Simulation::RunSimulation() {
       // Calculate nominal timestep
       params_.i_step = (int)round(time_ / (step_fact_ * params_.delta));
     }
-    // SF TODO CRITICAL what the hell even is that thing
     if (params_.mesh_membrane) {
       membrane_.UpdatePositions();
     }
@@ -248,7 +247,7 @@ void Simulation::InitSimulation() {
   }
   params_.i_step = 0;
   WriteOutputs();
-  // SF TODO cleanup
+  // SF TODO cleanup and make neighbor list dynamic
   if (params_.mesh_membrane) {
     printf("Addng neighbors to mesh mebrane\n");
     for (auto spec = species_.begin(); spec != species_.end(); spec++) {

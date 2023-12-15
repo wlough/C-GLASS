@@ -34,16 +34,15 @@ void TriMesh::SetParameters() {
 void TriMesh::MakeIcosphere() {
 
   size_t n_faces{size_t(20 * std::pow(4, params_->n_subdivisions))};
-  printf("%zu faces expected\n", n_faces);
+  // printf("%zu faces expected\n", n_faces);
 
   tris_.reserve(n_faces);
   vrts_.reserve(n_faces);
   MakeIcosahedron(); // 20 triangle faces initially
   // 80 -> 320 -> 1,280 -> 5,120 -> 20,480 -> 81,920 -> 327,680 -> 1,310,720 faces
-  printf("%zu VRTS TOTAL\n", vrts_.size());
   for (int i_divide{0}; i_divide < params_->n_subdivisions; i_divide++) {
-    DivideFaces(); // 80 triangles
-    printf("%zu VRTS TOTAL\n", vrts_.size());
+    printf("Subdivision iteration %i:\n", i_divide + 1);
+    DivideFaces();
   }
   ProjectToUnitSphere();
   for (size_t i_vrt{0}; i_vrt < vrts_.size(); i_vrt++) {
@@ -53,8 +52,7 @@ void TriMesh::MakeIcosphere() {
 
 void TriMesh::MakeIcosahedron() {
 
-  printf("initializing icosahedron (20 triangles; 12 points)\n");
-  // sf todo update system radius from params
+  printf("Initializing icosahedron (20 triangles; 12 vertices)\n");
   double phi = (1.0f + sqrt(5.0f)) * 0.5f; // golden ratio
   double a = r_sys_ * 1.0f;
   double b = r_sys_ * 1.0f / phi;
@@ -71,13 +69,6 @@ void TriMesh::MakeIcosahedron() {
   vrts_.emplace_back(-a, 0.0, -b);
   vrts_.emplace_back(b, -a, 0.0);
   vrts_.emplace_back(-b, -a, 0.0);
-
-  double edge_length{0.0};
-  for (int i{0}; i < 3; i++) {
-    edge_length += SQR(vrts_[0].pos_[i] - vrts_[1].pos_[i]);
-  }
-  edge_length = sqrt(edge_length);
-  printf("edge length is %g\n", edge_length);
 
   tris_.emplace_back(&vrts_[2], &vrts_[1], &vrts_[0]);
   tris_.emplace_back(&vrts_[1], &vrts_[2], &vrts_[3]);
@@ -99,27 +90,6 @@ void TriMesh::MakeIcosahedron() {
   tris_.emplace_back(&vrts_[7], &vrts_[10], &vrts_[6]);
   tris_.emplace_back(&vrts_[5], &vrts_[11], &vrts_[4]);
   tris_.emplace_back(&vrts_[10], &vrts_[8], &vrts_[4]);
-  double l_sum{0.0};
-  size_t n_entries{0};
-
-  for (auto const &tri : tris_) {
-    double l1{0.0};
-    double l2{0.0};
-    double l3{0.0};
-    for (int i_dim{0}; i_dim < 3; i_dim++) {
-      l1 += SQR(tri.vrts_[0]->pos_[i_dim] - tri.vrts_[1]->pos_[i_dim]);
-      l2 += SQR(tri.vrts_[0]->pos_[i_dim] - tri.vrts_[2]->pos_[i_dim]);
-      l3 += SQR(tri.vrts_[1]->pos_[i_dim] - tri.vrts_[2]->pos_[i_dim]);
-    }
-    l1 = sqrt(l1);
-    l2 = sqrt(l2);
-    l3 = sqrt(l3);
-    l_sum += l1;
-    l_sum += l2;
-    l_sum += l3;
-    n_entries += 3;
-  }
-  printf("edge length is %g (alt)\n", l_sum / n_entries);
 }
 
 void TriMesh::DivideFaces() {
@@ -127,11 +97,11 @@ void TriMesh::DivideFaces() {
   std::vector<Triangle> new_faces;
   double avg_edge_length{0.0};
   size_t n_edges{0};
+  size_t n_vrts_pre{vrts_.size()};
   for (auto &&face : tris_) {
     Vertex *vrt0{face.vrts_[0]};
     Vertex *vrt1{face.vrts_[1]};
     Vertex *vrt2{face.vrts_[2]};
-    // SF todo validate this
     double pos10[3] = {(vrt0->pos_[0] + vrt1->pos_[0]) / 2.0,
                        (vrt0->pos_[1] + vrt1->pos_[1]) / 2.0,
                        (vrt0->pos_[2] + vrt1->pos_[2]) / 2.0};
@@ -147,9 +117,6 @@ void TriMesh::DivideFaces() {
       norm1 += SQR(vrt1->pos_[i] - pos10[i]);
       norm2 += SQR(vrt2->pos_[i] - pos12[i]);
       norm3 += SQR(vrt2->pos_[i] - pos20[i]);
-      // norm1 += SQR(pos10[i]);
-      // norm2 += SQR(pos12[i]);
-      // norm3 += SQR(pos20[i]);
     }
     norm1 = sqrt(norm1);
     norm2 = sqrt(norm2);
@@ -198,8 +165,9 @@ void TriMesh::DivideFaces() {
     new_faces.emplace_back(vrt2, vrt12, vrt20);
     new_faces.emplace_back(vrt10, vrt12, vrt20);
   }
-  printf("%zu -> %zu triangles\n", tris_.size(), new_faces.size());
-  printf("avg edge length is %g\n", avg_edge_length / n_edges);
+  printf("  %zu -> %zu triangles\n", tris_.size(), new_faces.size());
+  printf("  %zu -> %zu vertices\n", n_vrts_pre, vrts_.size());
+  printf("  (avg edge length is now %g)\n", avg_edge_length / n_edges);
   tris_ = new_faces;
 }
 
@@ -325,7 +293,9 @@ void TriMesh::CheckVertices() {
       exit(1);
     }
   }
-  printf("%zu vrts (%zu flawed; %zu ideal)\n", vrts_.size(), n_flawed, n_gucci);
+  printf("Final mesh statistics:\n");
+  printf("  %zu vrts (%zu flawed; %zu ideal)\n", vrts_.size(), n_flawed,
+         n_gucci);
 
   // SF TODO sloppy hack; fix
   double l_sum{0.0};
@@ -368,9 +338,9 @@ void TriMesh::CheckVertices() {
     var += SQR(l_avg_ - sqrt(l3));
   }
   var = sqrt(var / n_entries);
-  printf("l_avg = %g +/- %g\n", l_avg_, var);
-  printf("A_prime = %g\n", A_prime_);
-  printf("A_calc = %g\n", 4 * M_PI * SQR(r_sys_) / tris_.size());
+  printf("  l_avg = %g +/- %g\n", l_avg_, var);
+  printf("  A_prime = %g\n", A_prime_);
+  printf("  A_calc = %g\n", 4 * M_PI * SQR(r_sys_) / tris_.size());
   if (var < 0.05 * l_avg_) {
     var = 0.05 * l_avg_;
   }
@@ -491,7 +461,6 @@ void TriMesh::ApplyMembraneForces() {
   // sum forces over all vertices -- radial tether attraction/repulsion
   for (auto &&vrt : vrts_) {
     for (int i_neighb{0}; i_neighb < vrt.n_neighbs_; i_neighb++) {
-      // vrt.neighb_int_[i_neighb] = true;
       Vertex *neighb{vrt.neighbs_[i_neighb]};
       if (neighb == nullptr) {
         printf("what in TriMesh::UpdatePosition()\n");
@@ -594,7 +563,7 @@ void TriMesh::ApplyMembraneForces() {
       double grad_chi_plus[3];
       double grad_chi_minus[3];
       double grad_T[3];
-      //some bullshit
+      // c.f. Appendix A of Guckenberger et al. Comp. Phys. Comm (2016)
       for (int i_dim{0}; i_dim < 3; i_dim++) {
         grad_lsq[i_dim] = 2 * r_ij[i_dim];
         grad_chi_plus[i_dim] =
@@ -751,9 +720,9 @@ void TriMesh::ApplyMembraneForces() {
 
 void TriMesh::ApplyBoundaryForces() {
 
-  double r_cutoff2 = 0.2;
-  double sigma2 = 0.1;
-  double four_epsilon = 1.0;
+  double r_cutoff2 = SQR(pow(2, 1.0 / 6.0) * 0.5);
+  double sigma2 = 0.25;
+  double four_epsilon = 4.0;
 
   f_mem_.resize(neighbs_.size());
   for (int i_neighb{0}; i_neighb < neighbs_.size(); i_neighb++) {
@@ -807,7 +776,7 @@ void TriMesh::ApplyBoundaryForces() {
       // double f_cutoff =
       //     0.1 / params_->delta *
       //     MIN(properties->bonds.gamma_par[ibond], chromosomes->gamma_t_);
-      double f_cutoff = 10000;
+      double f_cutoff = 25;
       // Truncate the forces if necessary
       double r_min_mag = sqrt(r_min_mag2);
       if (factor * r_min_mag > f_cutoff) {
