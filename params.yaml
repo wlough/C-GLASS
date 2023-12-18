@@ -37,7 +37,7 @@ node_gamma: 0.02
 node_diameter: 0.0
 chromosome: 
   - name: CHROMO
-    num: 0
+    num: 0 # 2
     length: 5
     diameter: 2 
     draw_type: orientation
@@ -66,14 +66,14 @@ rigid_filament:
   - name: bulk # SPANDLE
    # draw_type: orientation
     insertion_type: random # spb_anchored
-    num: 0 #12
+    num: 12 #12
     length: 30
 filament:
   - name: bulk #SPINDLE
     insertion_type: random # spb_anchored
     draw_type: orientation
     color: 2
-    num: 5 # 2 # 12 #5 # 10
+    num: 0 # 5 # 2 # 12 #5 # 10
     length: 40 # 75 # 5
     min_length: 2
     max_length: 60 # 110  # SF TODO no upper cap in NAB -- possible in C-GLASS?

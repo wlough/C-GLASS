@@ -3,6 +3,7 @@
 
 #include "chromatid.hpp"
 #include "object.hpp"
+#include "rng.hpp"
 #include "tracker.hpp"
 
 // Safe arc cosine from -1 to 1
@@ -14,13 +15,27 @@ inline double safe_acos(double x) {
   return acos(x);
 }
 
+#define SKIN_ 8.0
+
 // By convention, the Object that 'Chromosome' represents
 // is the centromere since it is a logical mid-way point
 class Chromosome : public Object {
 private:
+  bool af_tip_crowd_{false};
+  double af_xc_assemble_{0.0};
+  double af_r0_{0.0};
+  double af_tip_on_rate_assemble_{0.0};
+  double rcutoff_{0.0};
+
+  double delta_kmc_{0.0};
+
   chromosome_parameters *sparams_;
 
   std::vector<Chromatid> sisters_;
+  std::vector<int> n_bound_;
+
+public:
+  int orientation_status_{0};
 
 public:
   Chromosome(unsigned long seed);
@@ -41,6 +56,16 @@ public:
     //   sis.SetPosition(new_pos);
     // }
   }
+
+  void Update_1_2_Probability();
+  void DetermineAttachmentType();
+
+  void KMC_1_2();
+  void KMC_2_1();
+  void KMC_2_1_FIndep();
+  void KMC_2_1_FDep();
+  void RunKMC();
+
   void Draw(std::vector<graph_struct *> &graph_array) {
     Object::Draw(graph_array);
     for (auto &&sis : sisters_) {

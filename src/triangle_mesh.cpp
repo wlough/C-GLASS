@@ -851,7 +851,7 @@ void TriMesh::WriteOutputs() {
       fwrite(adj, sizeof(int), 6, adjacency_);
     }
   } else {
-    printf("data collection done! (%zu datapoints written)\n", i_datapoint_);
+    printf("data collection done! (%int datapoints written)\n", i_datapoint_);
     fclose(forces_);
     fclose(vertices_);
     fclose(adjacency_);

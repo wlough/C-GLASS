@@ -756,7 +756,7 @@ void Simulation::RunProcessing(run_options run_opts) {
 
   for (i_step_ = 1; i_step_ <= (params_.n_steps * inv_step_fact_); ++i_step_) {
     params_.i_step = i_step_;
-    printf("step %zu\n", i_step_);
+    printf("step %i\n", i_step_);
     time_ = params_.i_step * params_.delta * step_fact_;
     PrintComplete();
     if (early_exit) {

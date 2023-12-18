@@ -50,6 +50,223 @@ void Chromosome::Init(chromosome_parameters *sparams) {
   sisters_[1].InsertAt(pos_sis_two, u);
 }
 
+void Chromosome::Update_1_2_Probability() {
+
+  for (auto &&sis : sisters_) {
+    sis.kc.Update_1_2();
+  }
+}
+
+void Chromosome::DetermineAttachmentType() {
+
+  // Ask the kinetochores to determine their attachment status
+  //std::cout << "Step[" << properties->i_current_step << "] chromosomes determining attachment type\n";
+  int kc0 = 0;
+  int kc1 = 1;
+  sisters_[kc0].kc.DetermineAttachmentStatus();
+  sisters_[kc1].kc.DetermineAttachmentStatus();
+  // Now, figure out what kind of attachment we happen to be
+  if (sisters_[kc0].kc.attachment_status_ == -1 &&
+      sisters_[kc1].kc.attachment_status_ == -1) {
+    // Unattached means both are -1
+    orientation_status_ = 0;
+  } else if (sisters_[kc0].kc.attachment_status_ == 2 ||
+             sisters_[kc1].kc.attachment_status_ == 2) {
+    // Merotelic means either of them is merotelic
+    orientation_status_ = 2;
+  } else if (sisters_[kc0].kc.attachment_status_ ==
+             sisters_[kc1].kc.attachment_status_) {
+    // Syntelic (they are attached to the same pole)
+    orientation_status_ = 3;
+  } else {
+    // Remaining options are to be amphitelic (attached to different poles), or monotelic (only one is attached)
+    if (sisters_[kc0].kc.attachment_status_ == -1 ||
+        sisters_[kc1].kc.attachment_status_ == -1) {
+      // One of them is unattached, and so this must be a monotelic state
+      orientation_status_ = 1;
+    } else {
+      // Only remaining option is to be in amphitelic attachment
+      orientation_status_ = 4;
+    }
+  }
+  //std::cout << "Attachment Status: " << chromosome_orientation_status_[ic] << std::endl;
+}
+
+void Chromosome::KMC_1_2() {
+
+  for (auto &&sis : sisters_) {
+    // How many attach?
+    int Ntot = rng_.RandomPoisson(sis.kc.n_exp_tot_ * delta_kmc_);
+    // Now do the attachment
+    for (int itrial = 0; itrial < Ntot; ++itrial) {
+      //if (properties->i_current_step >= 7577191) {
+      //    std::cout << "(" << properties->i_current_step << ")";
+      //    std::cout << "KC[" << ikc << "] attaching trial: " << itrial << std::endl;
+      //    std::cout << "  nbound before new attach: " << n_bound_[ikc] << std::endl;
+      //}
+      bool successful_insert = sis.kc.Insert_1_2();
+      if (successful_insert) {
+        sis.kc.n_bound_++;
+        //PrintFrame();
+      }
+    }
+  }
+}
+
+void Chromosome::KMC_2_1() {
+  if (af_xc_assemble_ == 0.0 && af_r0_ == 0.0) {
+    KMC_2_1_FIndep();
+  } else {
+    KMC_2_1_FDep();
+  }
+}
+
+void Chromosome::KMC_2_1_FIndep() {
+
+  // SF NOTE: apparently this is never supposed to run. lol. remove?
+  std::cout << "CM Shouldn't be here...\n";
+  return;
+  // exit(1);
+  /*
+  // Force independent, just detach via probability distribution
+  unsigned int noff = gsl_ran_binomial(
+      rng_, af_tip_on_rate_assemble_ * delta_kmc_, n_bound_[ikc]);
+
+  for (unsigned int ioff = 0; ioff < noff; ++ioff) {
+    //std::cout << "KC[" << ikc << "] detaching trial: "<< ioff << std::endl;
+    Kinetochore *kc = &(kinetochores_[ikc]);
+    bool did_remove = kc->Remove_2_1(parameters, properties);
+
+    if (!did_remove) {
+      std::cout << "Something funny happened during KC detachment\n";
+      exit(1);
+    }
+  }
+
+  // Assuming everythign went well, and we removed, rebulid the neighbor list
+  // if need be
+  if (noff > 0) {
+    Kinetochore *kc = &(kinetochores_[ikc]);
+    kc->trip_update_on_removal_ = true;
+    //double r_cutoff2 = SQR(rcutoff_ + SKIN_);
+    //kc->UpdateNeighbors(parameters->n_dim,
+    //                    parameters->n_periodic,
+    //                    properties->bonds.n_bonds,
+    //                    properties->unit_cell.h,
+    //                    properties->bonds.r_bond,
+    //                    properties->bonds.s_bond,
+    //                    properties->bonds.u_bond,
+    //                    properties->bonds.length,
+    //                    r_cutoff2);
+  }
+  */
+}
+
+void Chromosome::KMC_2_1_FDep() {
+
+  for (auto &&sis : sisters_) {
+    int noff = sis.kc.Remove_2_1_Fdep();
+
+    // SF NOTE: this ensures that only ONE microtubule tip is bound to each AF
+    // SF NOTE: I could put this in chromo_MGMT, but should rewrite using C-GLASS tools
+    // Check for crowding effects
+    if (af_tip_crowd_) {
+      printf("Need to implement tip crowding FX\n");
+      exit(1);
+      /*
+    for (int ikc2 = 0; ikc2 < nkcs_; ++ikc2) {
+      Kinetochore *kc2 = &(kinetochores_[ikc2]);
+
+      for (int isite1 = 0; isite1 < naf_; ++isite1) {
+        for (int isite2 = 0; isite2 < naf_; ++isite2) {
+          if (isite1 == isite2 && ikc == ikc2) {
+            continue; // Don't worry about ourselves
+          }
+          // If they aren't both attached, continue
+          if (kc->attach_[isite1] == -1 && kc2->attach_[isite2] == -1) {
+            continue;
+          }
+
+          int ibond1 = kc->attach_[isite1];
+          int ibond2 = kc2->attach_[isite2];
+
+          // Check if on the same bond...
+          if (ibond1 != ibond2) {
+            continue;
+          }
+
+          double dstab1 =
+              properties->bonds.length[ibond1] - kc->cross_pos_[isite1];
+          double dstab2 =
+              properties->bonds.length[ibond2] - kc2->cross_pos_[isite2];
+
+          // Only check unbinding of myself (isite1 and ikc/kc)
+          if (dstab2 < af_tip_distance_ && dstab1 < af_tip_distance_) {
+            if (dstab1 > dstab2) {
+              // Unbind me
+              //std::cout << "KC[" << ikc << "]{" << isite1 << "} MT[" << ibond1 << "] position: " << kc->cross_pos_[isite1]
+              //    << ", crowding against KC[" << ikc2 << "]{" << isite2 << "} position: " << kc2->cross_pos_[isite2] << std::endl;
+              n_bound_[ikc]--;
+              kc->attach_[isite1] = -1;
+              kc->cross_pos_[isite1] = 0.0;
+              noff++;
+            }
+          }
+        }
+      }
+    }
+  */
+    }
+    if (noff > 0) {
+      //std::cout << "KC[" << ikc << "] detached trials: " << noff << std::endl;
+      sis.kc.trip_update_on_removal_ = true;
+      //PrintFrame();
+      //double r_cutoff2 = SQR(rcutoff_ + SKIN_);
+      //kc->UpdateNeighbors(parameters->n_dim,
+      //                    parameters->n_periodic,
+      //                    properties->bonds.n_bonds,
+      //                    properties->unit_cell.h,
+      //                    properties->bonds.r_bond,
+      //                    properties->bonds.s_bond,
+      //                    properties->bonds.u_bond,
+      //                    properties->bonds.length,
+      //                    r_cutoff2);
+    }
+  }
+}
+
+void Chromosome::RunKMC() {
+
+  // Randomly decide to do detach->attach or reverse
+  int g[2] = {0, 1};
+  for (int i = 0; i < 2; ++i) {
+    int j{(int)rng_.RandomInt(2)};
+    // int j = gsl_rng_uniform_int(properties->rng.r, 2);
+    int swap = g[i];
+    g[i] = g[j];
+    g[j] = swap;
+  }
+  for (int i = 0; i < 2; ++i) {
+    switch (g[i]) {
+    case 0:
+      KMC_1_2();
+      break;
+    case 1:
+      KMC_2_1();
+      break;
+    }
+  }
+  // Check if the kinetochores need to rebuild their neighbor list
+  for (int ikc = 0; ikc < sisters_.size(); ++ikc) {
+    Kinetochore *kc = (&sisters_[ikc].kc);
+    if (kc->trip_update_on_removal_) {
+      kc->trip_update_on_removal_ = false;
+      double r_cutoff2 = SQR(rcutoff_ + SKIN_);
+      kc->UpdateNeighbors();
+    }
+  }
+}
+
 void Chromosome::UpdatePosition() {
 
   // ! SF TODO check interKC forces; currently unaccounted for
@@ -59,6 +276,7 @@ void Chromosome::UpdatePosition() {
   // v_ -> orientation
 
   // First: calculate and add force/torques to chromatin sisters
+  // SF TODO should forces be zeroed here??
   for (auto &&sis : sisters_) {
     sis.ZeroForce();
     sis.GetBodyFrame();

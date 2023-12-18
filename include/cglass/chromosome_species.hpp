@@ -7,6 +7,12 @@
 
 class ChromosomeSpecies : public Species<Chromosome, species_id::chromosome> {
 private:
+  bool do_anaphase_{false};
+  int n_bioriented_{0};
+  int sac_bioriented_times_{0};
+  int sac_delay_{0};
+  int sac_status_{0};
+
   bool *update_;
   std::string checkpoint_file_;
   std::vector<Object *> *objs_;
@@ -24,6 +30,7 @@ public:
 
   void Reserve();
 
+  void CheckSAC();
   void UpdatePositions();
 
   void GetInteractors(std::vector<Object *> &ixors);
