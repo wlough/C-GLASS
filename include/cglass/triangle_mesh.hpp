@@ -10,21 +10,19 @@
 // TODO add param storage and sync site seeds
 
 struct Triangle;
+struct Edge;
 struct Vertex : public Site {
   size_t vid_{0}; // vertex ID
+  // SF TODO link
   int seed{0};
   double pos_[3];
 
   int n_tris_ = 0;
-  Triangle *tris_[10]; // triangles this vertex is a part of
+  std::vector<Triangle *> tris_; // triangles this vertex is a part of
   int n_neighbs_ = 0;
   std::vector<Vertex *> neighbs_;
-
-  // bend energy jawn -- summed over all dem neighbs
-  double sum_lsqT_;         // scalar
-  double sum_del_lsqT_[3];  // vec; scalar in each dim
-  double sum_rT_[3];        // vec; scalr in each dim
-  double sum_del_rT_[3][3]; // tensor; vec. in each dim
+  int n_edges_ = 0; // should be replaced by n_neigbs when all is done
+  std::vector<Edge *> edges_;
 
   Vertex() : Site(seed) {
     pos_[0] = pos_[1] = pos_[2] = 0;
@@ -45,23 +43,40 @@ struct Vertex : public Site {
   }
   void SetID(size_t id) { vid_ = id; }
   void SetPos(const double *const new_pos) {
-    pos_[0] = position_[0] = new_pos[0];
-    pos_[1] = position_[1] = new_pos[1];
-    pos_[2] = position_[2] = new_pos[2];
+    pos_[0] = pos[0] = position_[0] = new_pos[0];
+    pos_[1] = pos[1] = position_[1] = new_pos[1];
+    pos_[2] = pos[2] = position_[2] = new_pos[2];
   }
-  void ZeroSums() {
-    sum_lsqT_ = 0.0;
-    for (int i_dim{0}; i_dim < 3; i_dim++) {
-      sum_rT_[i_dim] = 0.0;
-      sum_del_lsqT_[i_dim] = 0.0;
-      for (int j_dim{0}; j_dim < 3; j_dim++) {
-        sum_del_rT_[i_dim][j_dim] = 0.0;
-      }
-    }
+};
+
+struct Edge {
+  double length_{0.0};
+
+  Vertex *vrts_[2];   // each endpoint
+  Triangle *tris_[2]; // each adjacent triangle
+  Edge() {}
+  Edge(Vertex *start, Vertex *end) {
+    vrts_[0] = start;
+    vrts_[1] = end;
+  }
+  friend bool operator==(const Edge &lhs, const Edge &rhs) {
+    return ((lhs.vrts_[0] == rhs.vrts_[0] and lhs.vrts_[1] == rhs.vrts_[1]) or
+            (lhs.vrts_[0] == rhs.vrts_[1] and lhs.vrts_[1] == rhs.vrts_[0]));
+  }
+  friend bool operator!=(const Edge &lhs, const Edge &rhs) {
+    return !(lhs == rhs);
+  }
+  bool Contains(Vertex *vrt) { return vrts_[0] == vrt or vrts_[1] == vrt; }
+  Vertex *GetOtherEnd(Vertex *vrt) {
+    return vrt == vrts_[0] ? vrts_[1] : vrts_[0];
+  }
+  Triangle *GetOtherTriangle(Triangle *tri) {
+    return tri == tris_[0] ? tris_[1] : tris_[0];
   }
 };
 
 struct Triangle {
+  bool flipped_{false};
   double area_;
   double nhat_[3];
   double color_[3];
@@ -90,11 +105,15 @@ struct Triangle {
             vrts_[2]->pos_[i_dim]) /
            3.0;
   }
+  bool Contains(Vertex *vrt) {
+    return vrts_[0] == vrt or vrts_[1] == vrt or vrts_[2] == vrt;
+  }
 };
 
 class TriMesh {
 
 private:
+  bool do_not_pass_go_{false};
   int i_datapoint_{0};
   FILE *forces_{nullptr};
   double f_avg_ideal_[3];  // tether, bend, and area forces (6 pt nodes)
@@ -113,18 +132,24 @@ private:
   double l_c1_{0.0};
   // params for bending force
   double kappa_{0.0};
-  // params for area force
+  // params for area conservation force
   double kappa_l_{0.0};
   double A_prime_{0.0};
+  // params for volume conservation force
+  double kappa_v_{0.0};
+  double V_prime_{0.0};
   RNG *rng_; // SF TODO link with system RNG
   MinimumDistance mindist_;
 
 public:
+  double origin_[3];
   std::vector<Object *> neighbs_;
   double r_sys_{0.0};
   std::vector<Vertex> vrts_;
   std::vector<Triangle> tris_;
+  std::vector<Edge> edges_;
   std::vector<graph_struct> f_mem_;
+  graph_struct o_;
 
 private:
   void SetParameters();
@@ -132,8 +157,11 @@ private:
   void MakeIcosahedron();
   void DivideFaces();
   void ProjectToUnitSphere();
-  void UpdateNeighbors();
   void CheckVertices();
+  void FlipEdges();
+  void UpdateOrigin();
+  void UpdateTriangles();
+  void UpdateNeighbors();
   void UpdateMesh();
   void ApplyMembraneForces();
   void ApplyBoundaryForces();

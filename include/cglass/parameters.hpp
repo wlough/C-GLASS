@@ -326,9 +326,11 @@ struct system_parameters {
   bool mesh_membrane = false;
   size_t mesh_datapoints = 10000;
   size_t mesh_steps_per_datapoint = 10;
+  double mesh_shrink_rate = 0.0;
   double mesh_kB = 0.0;
   double mesh_k = 0.0;
   double mesh_kl = 0.0;
+  double mesh_kV = 0.0;
   size_t n_subdivisions = 0;
   double node_diameter = 0.0;
   double node_gamma = 0.0;

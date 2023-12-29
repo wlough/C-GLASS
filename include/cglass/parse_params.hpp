@@ -173,12 +173,16 @@ system_parameters parse_system_params(YAML::Node &node) {
       params.mesh_datapoints = it->second.as<size_t>();
     } else if (param_name.compare("mesh_steps_per_datapoint") == 0) {
       params.mesh_steps_per_datapoint = it->second.as<size_t>();
+    } else if (param_name.compare("mesh_shrink_rate") == 0) {
+      params.mesh_shrink_rate = it->second.as<double>();
     } else if (param_name.compare("mesh_kB") == 0) {
       params.mesh_kB = it->second.as<double>();
     } else if (param_name.compare("mesh_k") == 0) {
       params.mesh_k = it->second.as<double>();
     } else if (param_name.compare("mesh_kl") == 0) {
       params.mesh_kl = it->second.as<double>();
+    } else if (param_name.compare("mesh_kV") == 0) {
+      params.mesh_kV = it->second.as<double>();
     } else if (param_name.compare("n_subdivisions") == 0) {
       params.n_subdivisions = it->second.as<size_t>();
     } else if (param_name.compare("node_gamma") == 0) {

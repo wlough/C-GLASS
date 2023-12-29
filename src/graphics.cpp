@@ -902,14 +902,22 @@ void Graphics::DrawMesh() {
   for (auto &&tri : membrane_->tris_) {
     // glColor3f(0.8f, 0.8f, 0.8f);
     // glColor3f(tri.color_[0] / 255, tri.color_[1] / 255, tri.color_[2] / 255);
-    glVertex3f(tri.vrts_[2]->pos_[0], tri.vrts_[2]->pos_[1],
-               tri.vrts_[2]->pos_[2]);
+    // glVertex3f(tri.vrts_[2]->pos_[0], tri.vrts_[2]->pos_[1],
+    //            tri.vrts_[2]->pos_[2]);
     // glColor3f(0.5f, 0.5f, 0.5f);
     glNormal3f(tri.nhat_[0], tri.nhat_[1], tri.nhat_[2]);
-    glVertex3f(tri.vrts_[0]->pos_[0], tri.vrts_[0]->pos_[1],
-               tri.vrts_[0]->pos_[2]);
-    glVertex3f(tri.vrts_[1]->pos_[0], tri.vrts_[1]->pos_[1],
-               tri.vrts_[1]->pos_[2]);
+    // glVertex3f(tri.vrts_[0]->pos_[0], tri.vrts_[0]->pos_[1],
+    //            tri.vrts_[0]->pos_[2]);
+    // glVertex3f(tri.vrts_[1]->pos_[0], tri.vrts_[1]->pos_[1],
+    //            tri.vrts_[1]->pos_[2]);
+  }
+  glEnd();
+  glBegin(GL_LINES);
+  for (auto &&edge : membrane_->edges_) {
+    glVertex3f(edge.vrts_[0]->pos_[0], edge.vrts_[0]->pos_[1],
+               edge.vrts_[0]->pos_[2]);
+    glVertex3f(edge.vrts_[1]->pos_[0], edge.vrts_[1]->pos_[1],
+               edge.vrts_[1]->pos_[2]);
   }
   glEnd();
   glEnable(GL_CULL_FACE);
@@ -918,18 +926,16 @@ void Graphics::DrawMesh() {
   glDisable(GL_LIGHTING);
   glBegin(GL_LINES);
   for (auto &&tri : membrane_->tris_) {
-    double cent_x{(tri.vrts_[0]->pos_[0] + tri.vrts_[1]->pos_[0] +
-                   tri.vrts_[2]->pos_[0]) /
-                  3.0};
-    double cent_y{(tri.vrts_[0]->pos_[1] + tri.vrts_[1]->pos_[1] +
-                   tri.vrts_[2]->pos_[1]) /
-                  3.0};
-    double cent_z{(tri.vrts_[0]->pos_[2] + tri.vrts_[1]->pos_[2] +
-                   tri.vrts_[2]->pos_[2]) /
-                  3.0};
-    double to_origin[3] = {-cent_x, -cent_y, -cent_z};
+    double cent_x{tri.GetCenterPos(0)};
+    double cent_y{tri.GetCenterPos(1)};
+    double cent_z{tri.GetCenterPos(2)};
+    // double to_origin[3] = {-cent_x, -cent_y, -cent_z};
+    double r_origin[3];
+    for (int i_dim{0}; i_dim < 3; i_dim++) {
+      r_origin[i_dim] = tri.GetCenterPos(i_dim) - membrane_->origin_[i_dim];
+    }
     // hot pink for pointing outwards, green for inwards (should NEVER be inwards)
-    if (dot_product(3, to_origin, tri.nhat_) < 0.0) {
+    if (dot_product(3, r_origin, tri.nhat_) > 0.0) {
       glColor3f(0.0f, 1.0f, 0.0f);
     } else {
       glColor3f(0.966f, 0.41f, 0.703f);
