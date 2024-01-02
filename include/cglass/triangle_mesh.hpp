@@ -113,14 +113,17 @@ struct Triangle {
 class TriMesh {
 
 private:
+  static const size_t n_edges_min_{3};  // true for any connected graph
+  static const size_t n_edges_max_{10}; // arbitrary choice
+
   bool do_not_pass_go_{false};
   int i_datapoint_{0};
-  FILE *forces_{nullptr};
-  double f_avg_ideal_[3];  // tether, bend, and area forces (6 pt nodes)
-  double f_avg_flawed_[3]; // tether, bend, and area forces (5 pt nodes)
-  FILE *vertices_{nullptr};
-  FILE *adjacency_{nullptr};
+
+  FILE *forces_{nullptr};    // average force from each type of potential
+  FILE *vertices_{nullptr};  // position (3D per vrt per step)
+  FILE *adjacency_{nullptr}; // adjacency matrix  (2D per vrt per step)
   system_parameters *params_{nullptr};
+
   double l_avg_{0.0};
   double gamma_{0.0};
 
