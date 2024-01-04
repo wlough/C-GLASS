@@ -923,6 +923,7 @@ void Graphics::DrawMesh() {
   glEnable(GL_CULL_FACE);
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
   // draw normals
+  /*
   glDisable(GL_LIGHTING);
   glBegin(GL_LINES);
   for (auto &&tri : membrane_->tris_) {
@@ -947,6 +948,7 @@ void Graphics::DrawMesh() {
                cent_z + scale * tri.nhat_[2]);
   }
   glEnd();
+  */
   glEnable(GL_LIGHTING);
 }
 

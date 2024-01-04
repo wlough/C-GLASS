@@ -5,7 +5,7 @@ n_periodic: 0
 boundary: 5
 draw_boundary: true
 system_radius: 40
-delta: 2.5e-5
+delta: 1e-4
 dynamic_timestep: false
 dynamic_timestep_ramp: 0.0001
 n_steps: 50000000 # 000
@@ -27,14 +27,14 @@ remove_duplicate_interactions: false   # SF TODO explore this
 coarse_grained_mesh_interactions: false # SF TODO explore this
 mesh_coarsening: 2 # SF this is not related to the below bool/params lol sry
 mesh_membrane: false # overridden when boundary_Type=5
-n_subdivisions: 4
+n_subdivisions: 2 # 3
 mesh_datapoints: 2000
 mesh_steps_per_datapoint: 100
 mesh_shrink_rate: 0 # 1e-5
-mesh_kB: 0.0 # 1.6 # 16 # 80.5
-mesh_k: 0.4 # 4 # 20.1
-mesh_kl: 0.5 # 5 # 5.03
-mesh_kV: 1.5 # 15 # 3 # 15
+mesh_kB: 8.05
+mesh_k: 2.01
+mesh_kl: 0.503
+mesh_kV: 1.50
 node_gamma: 0.2
 node_diameter: 1
 chromosome: 
@@ -75,8 +75,8 @@ filament:
     insertion_type: random # spb_anchored
     draw_type: orientation
     color: 2
-    num: 0 #5 # 0 # 5 # 2 # 12 #5 # 10
-    length: 40 # 75 # 5
+    num: 0 # 0 # 5 # 2 # 12 #5 # 10
+    length: 60 # 75 # 5
     min_length: 2
     max_length: 120 # 110  # SF TODO no upper cap in NAB -- possible in C-GLASS?
     min_bond_length: 1

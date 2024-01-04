@@ -17,7 +17,6 @@ void TriMesh::Init(system_parameters *params) {
   params_ = params;
   SetParameters();
   MakeIcosphere();
-  UpdateOrigin();
   UpdateNeighbors();
   CheckVertices();
   // SF TODO relocate thi
@@ -259,24 +258,34 @@ void TriMesh::UpdateNeighbors() {
     vrt.edges_.resize(10);
   }
   // Reset storage of neighb and triangle ptrs in each vertex
+  size_t i_vrt{0};
   for (auto &&vrt : vrts_) {
+    vrt.i_ = i_vrt++;
     vrt.n_tris_ = 0;
     vrt.n_neighbs_ = 0;
     vrt.n_edges_ = 0;
   }
   // Update triangle ptrs stored by each vertex
+  size_t i_tri{0};
   for (auto &&tri : tris_) {
+    tri.i_ = i_tri++;
     tri.vrts_[0]->tris_[tri.vrts_[0]->n_tris_++] = &tri;
     tri.vrts_[1]->tris_[tri.vrts_[1]->n_tris_++] = &tri;
     tri.vrts_[2]->tris_[tri.vrts_[2]->n_tris_++] = &tri;
+    for (int i_edge{0}; i_edge < 3; i_edge++) {
+      tri.edges_[i_edge] = nullptr;
+    }
   }
   // Update edge + neighb ptrs stored by each vertex
+  size_t i_edge{0};
   for (auto &&edge : edges_) {
+    edge.i_ = i_edge++;
     edge.vrts_[0]->edges_[edge.vrts_[0]->n_edges_++] = &edge;
     edge.vrts_[1]->edges_[edge.vrts_[1]->n_edges_++] = &edge;
     edge.vrts_[0]->neighbs_[edge.vrts_[0]->n_neighbs_++] = edge.vrts_[1];
     edge.vrts_[1]->neighbs_[edge.vrts_[1]->n_neighbs_++] = edge.vrts_[0];
   }
+
   // Update triangles and edges so that they track each other
   for (auto &&edge : edges_) {
     int n_found{0};
@@ -284,7 +293,20 @@ void TriMesh::UpdateNeighbors() {
     for (int i_tri{0}; i_tri < edge.vrts_[0]->n_tris_; i_tri++) {
       Triangle *tri{edge.vrts_[0]->tris_[i_tri]};
       if (tri->Contains(edge.vrts_[1])) {
+        // store triangle pointer in edge
         edge.tris_[n_found++] = tri;
+        // add edge pointer to said triangle
+        for (int i_edge{0}; i_edge < 3; i_edge++) {
+          // printf("query %i\n", i_edge);
+          if (tri->edges_[i_edge] == nullptr) {
+            // printf("edge %i added\n", i_edge);
+            tri->edges_[i_edge] = &edge;
+            break;
+          } else if (i_edge == 2) {
+            printf("error? i think?\n");
+            exit(1);
+          }
+        }
       }
     }
     if (n_found != 2) {
@@ -292,6 +314,12 @@ void TriMesh::UpdateNeighbors() {
       exit(1);
     }
   }
+  // for (auto &&tri : tris_) {
+  //   printf("tri %zu composed of vrts %zu, %zu, %zu\n", tri.i_, tri.vrts_[0]->i_,
+  //          tri.vrts_[1]->i_, tri.vrts_[2]->i_);
+  //   printf("tri %zu composed of edges %zu, %zu, %zu\n", tri.i_,
+  //          tri.edges_[0]->i_, tri.edges_[1]->i_, tri.edges_[2]->i_);
+  // }
   // Order triangle ptrs so that they are in consecutive order (share edges)
   for (auto &&vrt : vrts_) {
     Triangle *tris_ordered[vrt.n_tris_]{{}};
@@ -331,6 +359,7 @@ void TriMesh::UpdateNeighbors() {
           printf("no thx @ %i\n", i_entry);
           printf("(%i entries total)\n", vrt.n_edges_);
           vrt.SetColor(2 * M_PI, draw_type::fixed);
+          vrt.SetDiameter(2);
           do_not_pass_go_ = true;
           return;
           // exit(1);
@@ -472,138 +501,138 @@ void TriMesh::CheckVertices() {
   }
   l_c0_ = 1.2 * l_avg_;
   l_c1_ = 0.8 * l_avg_;
-  l_max_ = 1.4 * l_avg_;
-  l_min_ = 0.6 * l_avg_;
+  // l_max_ = 1.4 * l_avg_;
+  // l_min_ = 0.6 * l_avg_;
+  l_max_ = 1.67 * l_avg_;
+  l_min_ = 0.33 * l_avg_;
 }
 
 void TriMesh::FlipEdges() {
 
-  // SF TODO in extremely irregular triangles, will create slivers
-  // add area check to reject ??
-
-  // printf("start flippin\n");
-  std::vector<Triangle> new_faces;
-  std::vector<Edge> new_edges;
-  for (auto &&tri : tris_) {
-    tri.flipped_ = false;
+  for (auto &&edge : edges_) {
+    edge.just_flipped = false;
   }
-  int i_edge{0};
   bool flipparino{false};
   for (auto &&edge : edges_) {
+    if (edge.just_flipped) {
+      continue;
+    }
     Vertex *vrt1 = edge.vrts_[0];
     Vertex *vrt2 = edge.vrts_[1];
     // Find adjacent triangles
-    Triangle *left = nullptr;
-    Triangle *right = nullptr;
-    int n_found{0};
-    // printf("edge #%i\n", ++i_edge);
-    for (int i_tri{0}; i_tri < vrt1->n_tris_; i_tri++) {
-      // printf("%i\n", i_tri);
-      for (int j_tri{0}; j_tri < vrt2->n_tris_; j_tri++) {
-        // printf("  %i\n", j_tri);
-        if (vrt1->tris_[i_tri] == vrt2->tris_[j_tri]) {
-          n_found++;
-          if (left == nullptr) {
-            left = vrt1->tris_[i_tri];
-          } else if (right == nullptr) {
-            right = vrt2->tris_[j_tri];
-          } else {
-            printf("aint right m8\n");
-            exit(1);
-          }
-        }
-      }
-    }
-    // printf("%i FOUND\n", n_found);
+    Triangle *left{edge.tris_[0]};
+    Triangle *right{edge.tris_[1]};
     if (left == nullptr or right == nullptr) {
-      printf("issue at edge %i\n", i_edge);
+      printf("issue at edge %zu\n", edge.i_);
       printf("ABORT\n");
       exit(1);
     }
-    Vertex *vrt3 = nullptr;
-    Vertex *vrt4 = nullptr;
-    for (int i_vrt{0}; i_vrt < 3; i_vrt++) {
-      if (left->vrts_[i_vrt] != vrt1 and left->vrts_[i_vrt] != vrt2) {
-        if (vrt3 == nullptr) {
-          vrt3 = left->vrts_[i_vrt];
-        } else {
-          printf("brother.\n");
-          exit(1);
-        }
-      }
-      if (right->vrts_[i_vrt] != vrt1 and right->vrts_[i_vrt] != vrt2) {
-        if (vrt4 == nullptr) {
-          vrt4 = right->vrts_[i_vrt];
-        } else {
-          printf("mother.\n");
-          exit(1);
-        }
-      }
-    }
-    if (left->flipped_ or right->flipped_) {
-      // printf("woah nelly\n");
-      new_edges.emplace_back(vrt1, vrt2);
-      if (!left->flipped_) {
-        new_faces.emplace_back(vrt1, vrt2, vrt3);
-        left->flipped_ = true;
-      }
-      if (!right->flipped_) {
-        new_faces.emplace_back(vrt1, vrt2, vrt4);
-        right->flipped_ = true;
-      }
-      continue;
-    }
-
+    Vertex *vrt3{left->GetOtherVertex(vrt1, vrt2)};
+    Vertex *vrt4{right->GetOtherVertex(vrt1, vrt2)};
     if (vrt3 == nullptr or vrt4 == nullptr) {
-      printf("gawd DAMN\n");
+      printf("issue 2 at edge %zu\n", edge.i_);
+      printf("ABORT\n");
       exit(1);
     }
-    double ran = rng_->RandomUniform();
-    if (ran < 0.0001) {
-      // exit(1);
-      printf("FLIP edge %i\n", i_edge);
+    // original triangles: 1->2->3->1 and 1->2->4->1
+    // post-flip triangles: 1->3->4->1 and 2->3->4->2
+    double l12{0.0}; // original edge
+    double l34{0.0}; // flipped edge
+    // shared edges
+    double l23{0.0};
+    double l31{0.0};
+    double l24{0.0};
+    double l41{0.0};
+    for (int i_dim{0}; i_dim < params_->n_dim; i_dim++) {
+      l12 += SQR(vrt1->pos_[i_dim] - vrt2->pos_[i_dim]);
+      l34 += SQR(vrt3->pos_[i_dim] - vrt4->pos_[i_dim]);
+      l23 += SQR(vrt2->pos_[i_dim] - vrt3->pos_[i_dim]);
+      l31 += SQR(vrt3->pos_[i_dim] - vrt1->pos_[i_dim]);
+      l24 += SQR(vrt2->pos_[i_dim] - vrt4->pos_[i_dim]);
+      l41 += SQR(vrt4->pos_[i_dim] - vrt1->pos_[i_dim]);
+    }
+    l12 = sqrt(l12);
+    l34 = sqrt(l34);
+    l23 = sqrt(l23);
+    l31 = sqrt(l31);
+    l24 = sqrt(l24);
+    l41 = sqrt(l41);
+    // calculate energy pre-flip
+    double energy_i{0.0};
+    if (l12 > l_c0_) {
+      energy_i += kappa_B_ * exp(1.0 / (l_c0_ - l12)) / (l_max_ - l12);
+    } else if (l12 < l_c1_) {
+      energy_i += kappa_B_ * exp(1.0 / (l12 - l_c1_)) / (l12 - l_min_);
+    }
+    double s1_i{0.5 * (l12 + l23 + l31)};
+    double area1_i{sqrt(s1_i * (s1_i - l12) * (s1_i - l23) * (s1_i - l31))};
+    energy_i += 0.5 * kappa_l_ * SQR(A_prime_ - area1_i) / A_prime_;
+    double s2_i{0.5 * (l12 + l24 + l41)};
+    double area2_i{sqrt(s2_i * (s2_i - l12) * (s2_i - l24) * (s2_i - l41))};
+    energy_i += 0.5 * kappa_l_ * SQR(A_prime_ - area2_i) / A_prime_;
+    // calculate energy post-flip
+    double energy_f{0.0};
+    bool impossible{false};
+    if (l34 >= l_max_ or l34 <= l_min_) {
+      impossible = true;
+    } else if (l34 > l_c0_) {
+      energy_f += kappa_B_ * exp(1.0 / (l_c0_ - l34)) / (l_max_ - l34);
+    } else if (l34 < l_c1_) {
+      energy_f += kappa_B_ * exp(1.0 / (l34 - l_c1_)) / (l34 - l_min_);
+    }
+    double s1_f{0.5 * (l34 + l41 + l31)};
+    double area1_f{sqrt(s1_f * (s1_f - l34) * (s1_f - l41) * (s1_f - l31))};
+    energy_f += 0.5 * kappa_l_ * SQR(A_prime_ - area1_f) / A_prime_;
+    double s2_f{0.5 * (l34 + l24 + l23)};
+    double area2_f{sqrt(s2_f * (s2_f - l34) * (s2_f - l41) * (s2_f - l31))};
+    energy_f += 0.5 * kappa_l_ * SQR(A_prime_ - area2_f) / A_prime_;
+    // area can become NaN if three vertices are in a line
+    if (area1_f != area1_f or area2_f != area2_f) {
+      impossible = true;
+    }
+    bool do_flip{false};
+    if (not impossible) {
+      if (energy_f < energy_i) {
+        // printf("AUTO PASS \n");
+        do_flip = true;
+      } else {
+        // printf("pre: %.4f | post %.4f\n", energy_i, energy_f);
+        double delta{energy_f - energy_i};
+        double p_flip{exp(-delta)};
+        // printf("  p = %.4f\n", p_flip);
+        double ran = rng_->RandomUniform();
+        if (ran < p_flip) {
+          do_flip = true;
+        }
+      }
+    }
+    if (do_flip) {
+      // printf("FLIP edge %i\n", i_edge);
+      flipparino = true;
       // flipped triangles: 3->2->4 and 3->1->4
+      edges_[edge.i_].vrts_[0] = vrt3;
+      edges_[edge.i_].vrts_[1] = vrt4;
+      tris_[left->i_].vrts_[0] = vrt2;
+      tris_[left->i_].vrts_[1] = vrt3;
+      tris_[left->i_].vrts_[2] = vrt4;
+      tris_[right->i_].vrts_[0] = vrt1;
+      tris_[right->i_].vrts_[1] = vrt3;
+      tris_[right->i_].vrts_[2] = vrt4;
+      // need to mark all edges as just flipped; otherwise can get wonky triangles
+      for (int i_edge{0}; i_edge < 3; i_edge++) {
+        left->edges_[i_edge]->just_flipped = true;
+        right->edges_[i_edge]->just_flipped = true;
+      }
       vrt1->SetColor(0.0, draw_type::fixed);
       vrt2->SetColor(0.0, draw_type::fixed);
       vrt3->SetColor(0.0, draw_type::fixed);
       vrt4->SetColor(0.0, draw_type::fixed);
-      new_edges.emplace_back(vrt3, vrt4);
-      new_faces.emplace_back(vrt2, vrt3, vrt4);
-      new_faces.emplace_back(vrt1, vrt3, vrt4);
-      left->flipped_ = true;
-      right->flipped_ = true;
-      flipparino = true;
-    } else {
-      // original triangles: 1->2->3 and 1->2->4
-      new_edges.emplace_back(vrt1, vrt2);
-      new_faces.emplace_back(vrt1, vrt2, vrt3);
-      new_faces.emplace_back(vrt1, vrt2, vrt4);
-      // new_faces.emplace_back(left->vrts_[0], left->vrts_[1], left->vrts_[2]);
-      // new_faces.emplace_back(right->vrts_[0], right->vrts_[1], right->vrts_[2]);
-      left->flipped_ = true;
-      right->flipped_ = true;
-      // new_faces[new_faces.size() - 1].flipped_ = true;
-      // new_faces[new_faces.size() - 2].flipped_ = true;
     }
-    i_edge++;
-  }
-  if (new_edges.size() != edges_.size()) {
-    printf("woah woah woah 1 - %zu org, %zu new\n", edges_.size(),
-           new_edges.size());
-    exit(1);
-  }
-  if (new_faces.size() != tris_.size()) {
-    printf("woah woah woah 2 - %zu org, %zu new\n", tris_.size(),
-           new_faces.size());
-    exit(1);
   }
   if (flipparino) {
-    edges_ = new_edges;
-    tris_ = new_faces;
     UpdateTriangles();
     UpdateNeighbors();
   }
-  // printf("done flippin\n\n");
 }
 
 void TriMesh::UpdateTriangles() {
@@ -1068,8 +1097,10 @@ void TriMesh::ApplyMembraneForces() {
 
 void TriMesh::ApplyBoundaryForces() {
 
-  double r_cutoff2 = SQR(pow(2, 1.0 / 6.0) * 0.5);
-  double sigma2 = 0.25;
+  // double r_cutoff2 = SQR(pow(2, 1.0 / 6.0) * 0.5);
+  // double sigma2 = 0.25;
+  double r_cutoff2 = 1.5;
+  double sigma2 = 1.5;
   double four_epsilon = 4.0;
 
   f_mem_.resize(neighbs_.size());
@@ -1116,23 +1147,23 @@ void TriMesh::ApplyBoundaryForces() {
       double factor = 6.0 * four_epsilon * (2.0 * rho12 - rho6) / r_min_mag2;
       // printf("factor = %g\n", factor);
 
-      // for (int i{0}; i < 3; i++) {
-      //   f_mem_[i_neighb].u[i] = rmin[i] / sqrt(r_min_mag2);
-      // }
-      // f_mem_[i_neighb].length = factor;
+      for (int i{0}; i < 3; i++) {
+        f_mem_[i_neighb].u[i] = rmin[i] / sqrt(r_min_mag2);
+      }
+      f_mem_[i_neighb].length = factor;
       // sf todo incorporate gamma properly
       // double f_cutoff =
       //     0.1 / params_->delta *
       //     MIN(properties->bonds.gamma_par[ibond], chromosomes->gamma_t_);
-      double f_cutoff = 25;
+      double f_cutoff = 250;
       // Truncate the forces if necessary
       double r_min_mag = sqrt(r_min_mag2);
       if (factor * r_min_mag > f_cutoff) {
         //std::cout << "NOTE tripping fcutoff in kcmt, resetting force factor, original " << factor << " to ";
+        std::cout << factor << std::endl;
+        printf(" *** Force exceeded f_cutoff "
+               "kinetochoremesh_mt_wca_potential_neighbors ***\n");
         factor = f_cutoff / r_min_mag;
-        //std::cout << factor << std::endl;
-        // printf(" *** Force exceeded f_cutoff "
-        //        "kinetochoremesh_mt_wca_potential_neighbors ***\n");
       }
       double f_lj[3] = {0.0};
       for (int i = 0; i < params_->n_dim; ++i) {
@@ -1222,9 +1253,12 @@ void TriMesh::UpdatePositions() {
   }
   UpdateTriangles();
   FlipEdges();
+  if (do_not_pass_go_) {
+    return;
+  }
   UpdateMesh(); // update edge lengths, triangle area/vol, etc.
   ApplyMembraneForces();
-  ApplyBoundaryForces();
+  // ApplyBoundaryForces();
   for (int i_vrt{0}; i_vrt < vrts_.size(); i_vrt++) {
     double sigma{sqrt(2 * params_->delta / gamma_)}; // kbT = 1??
     double dr[3] = {0.0, 0.0, 0.0};

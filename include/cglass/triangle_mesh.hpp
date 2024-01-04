@@ -12,6 +12,7 @@
 struct Triangle;
 struct Edge;
 struct Vertex : public Site {
+  size_t i_{0};   // index in master vrts_ list
   size_t vid_{0}; // vertex ID
   // SF TODO link
   int seed{0};
@@ -50,6 +51,10 @@ struct Vertex : public Site {
 };
 
 struct Edge {
+
+  size_t i_{0}; // index in master edges_ list
+
+  bool just_flipped{false};
   double length_{0.0};
 
   Vertex *vrts_[2];   // each endpoint
@@ -76,6 +81,9 @@ struct Edge {
 };
 
 struct Triangle {
+
+  size_t i_{0}; // index in master tris_ lit
+
   bool flipped_{false};
   double area_;
   double nhat_[3];
@@ -89,7 +97,8 @@ struct Triangle {
   double Zrot_;
   double XYrot_[2][3]; // [dim][i_vrt]
 
-  Vertex *vrts_[3]; // verteces that compose this triangle
+  Vertex *vrts_[3];    // vertices that compose this triangle
+  Edge *edges_[3]{{}}; // edges that compose this triangle
   Triangle *neighbs_[3];
 
   Triangle(Vertex *v1, Vertex *v2, Vertex *v3) {
@@ -107,6 +116,18 @@ struct Triangle {
   }
   bool Contains(Vertex *vrt) {
     return vrts_[0] == vrt or vrts_[1] == vrt or vrts_[2] == vrt;
+  }
+
+  Vertex *GetOtherVertex(Vertex *vrt1, Vertex *vrt2) {
+    if (vrts_[0] != vrt1 and vrts_[0] != vrt2) {
+      return vrts_[0];
+    } else if (vrts_[1] != vrt1 and vrts_[1] != vrt2) {
+      return vrts_[1];
+    } else if (vrts_[2] != vrt1 and vrts_[2] != vrt2) {
+      return vrts_[2];
+    } else {
+      return nullptr;
+    }
   }
 };
 
