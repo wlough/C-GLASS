@@ -1,5 +1,5 @@
 seed: 114222003020845
-run_name: testShrinkFL3
+run_name: test
 n_dim: 3
 n_periodic: 0
 boundary: 5
@@ -27,14 +27,14 @@ remove_duplicate_interactions: false   # SF TODO explore this
 coarse_grained_mesh_interactions: false # SF TODO explore this
 mesh_coarsening: 2 # SF this is not related to the below bool/params lol sry
 mesh_membrane: false # overridden when boundary_Type=5
-n_subdivisions: 2 # 3
-mesh_datapoints: 2000
-mesh_steps_per_datapoint: 100
-mesh_shrink_rate: 0 # 1e-5
+n_subdivisions: 3
+mesh_datapoints: 10000
+mesh_steps_per_datapoint: 10
+mesh_shrink_rate: 0 # 1e-4
 mesh_kB: 8.05
 mesh_k: 2.01
 mesh_kl: 0.503
-mesh_kV: 1.50
+mesh_kV: 1.52
 node_gamma: 0.2
 node_diameter: 1
 chromosome: 

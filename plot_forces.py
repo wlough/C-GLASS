@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 n_datapoints = 10000
 
 data = np.fromfile(
-    "/home/shane/projects/C-GLASS/test2_membrane_forces.file", dtype=np.double
+    "/home/shane/projects/C-GLASS/test_membrane_forces.file", dtype=np.double
 ).reshape(n_datapoints, 6)
 
 t = np.arange(0, n_datapoints)

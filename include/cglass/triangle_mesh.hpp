@@ -12,8 +12,7 @@
 struct Triangle;
 struct Edge;
 struct Vertex : public Site {
-  size_t i_{0};   // index in master vrts_ list
-  size_t vid_{0}; // vertex ID
+  size_t i_{0}; // index in master vrts_ list
   // SF TODO link
   int seed{0};
   double pos_[3];
@@ -42,7 +41,6 @@ struct Vertex : public Site {
   friend bool operator!=(const Vertex &lhs, const Vertex &rhs) {
     return !(lhs == rhs);
   }
-  void SetID(size_t id) { vid_ = id; }
   void SetPos(const double *const new_pos) {
     pos_[0] = pos[0] = position_[0] = new_pos[0];
     pos_[1] = pos[1] = position_[1] = new_pos[1];
@@ -51,11 +49,11 @@ struct Vertex : public Site {
 };
 
 struct Edge {
-
   size_t i_{0}; // index in master edges_ list
-
   bool just_flipped{false};
+
   double length_{0.0};
+  double vector_[3]; // points from vrt 0 to vrt 1
 
   Vertex *vrts_[2];   // each endpoint
   Triangle *tris_[2]; // each adjacent triangle
@@ -78,6 +76,14 @@ struct Edge {
   Triangle *GetOtherTriangle(Triangle *tri) {
     return tri == tris_[0] ? tris_[1] : tris_[0];
   }
+  void Update() {
+    length_ = 0.0;
+    for (int i_dim{0}; i_dim < 3; i_dim++) {
+      vector_[i_dim] = vrts_[1]->pos_[i_dim] - vrts_[0]->pos_[i_dim];
+      length_ += SQR(vector_[i_dim]);
+    }
+    length_ = sqrt(length_);
+  }
 };
 
 struct Triangle {
@@ -86,6 +92,7 @@ struct Triangle {
 
   bool flipped_{false};
   double area_;
+  double volume_;
   double nhat_[3];
   double color_[3];
 
@@ -97,9 +104,9 @@ struct Triangle {
   double Zrot_;
   double XYrot_[2][3]; // [dim][i_vrt]
 
-  Vertex *vrts_[3];    // vertices that compose this triangle
-  Edge *edges_[3]{{}}; // edges that compose this triangle
-  Triangle *neighbs_[3];
+  Vertex *vrts_[3]{{}}; // vertices that compose this triangle
+  Edge *edges_[3]{{}};  // edges that compose this triangle
+  Triangle *neighbs_[3]{{}};
 
   Triangle(Vertex *v1, Vertex *v2, Vertex *v3) {
     vrts_[0] = v1;
@@ -126,8 +133,44 @@ struct Triangle {
     } else if (vrts_[2] != vrt1 and vrts_[2] != vrt2) {
       return vrts_[2];
     } else {
-      return nullptr;
+      printf("Error finding other vertex in triangle %zu\n", i_);
+      exit(1);
     }
+  }
+  Edge *GetEdge(Vertex *vrt1, Vertex *vrt2) {
+    for (auto &&edge : edges_) {
+      if (edge->Contains(vrt1) and edge->Contains(vrt2)) {
+        return edge;
+      }
+    }
+    printf("Error finding edge in triangle %zu\n", i_);
+    exit(1);
+  }
+  void Update(double origin[]) {
+    UpdateArea();
+    UpdateVolume(origin);
+  }
+  void UpdateArea() {
+    double a{edges_[0]->length_};
+    double b{edges_[1]->length_};
+    double c{edges_[2]->length_};
+    double s{0.5 * (a + b + c)};
+    area_ = sqrt(s * (s - a) * (s - b) * (s - c));
+  }
+  void UpdateVolume(double origin[]) {
+    // update nhat
+    // update volume
+    double A[3];
+    double B[3];
+    double C[3];
+    for (int i_dim{0}; i_dim < 3; i_dim++) {
+      A[i_dim] = vrts_[0]->pos_[i_dim] - origin[i_dim];
+      B[i_dim] = vrts_[1]->pos_[i_dim] - origin[i_dim];
+      C[i_dim] = vrts_[2]->pos_[i_dim] - origin[i_dim];
+    }
+    double BxC[3];
+    cross_product(B, C, BxC, 3);
+    volume_ = std::fabs(dot_product(3, A, BxC) / 6.0);
   }
 };
 
@@ -181,9 +224,9 @@ private:
   void MakeIcosahedron();
   void DivideFaces();
   void ProjectToUnitSphere();
-  void CheckVertices();
+  void InitializeMesh();
   void FlipEdges();
-  void UpdateOrigin();
+  void UpdateCentroid();
   void UpdateTriangles();
   void UpdateNeighbors();
   void UpdateMesh();

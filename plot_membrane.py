@@ -3,22 +3,22 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import proj3d
 
 n_datapoints = 1000
-n_vrts = 642
-n_adj_max = 6
+n_vrts = 42
+n_adj_max = 10
 
 data_pos = np.fromfile(
-    "/home/shane/projects/C-GLASS/testShrinkFL_membrane_vrt_positions.file",
+    "/home/shane/projects/C-GLASS/test_membrane_vrt_positions.file",
     dtype=np.double,
 ).reshape(n_datapoints, n_vrts, 3)
 data_adj = np.fromfile(
-    "/home/shane/projects/C-GLASS/testShrinkFL_membrane_vrt_adjacency.file",
+    "/home/shane/projects/C-GLASS/test_membrane_vrt_adjacency.file",
     dtype=np.int32,
-).reshape(n_datapoints, n_vrts, 6)
+).reshape(n_datapoints, n_vrts, n_adj_max)
 
 fig = plt.figure(figsize=(8, 8))
 ax = fig.add_subplot(111, projection="3d")
 
-for i in range(0, n_datapoints, 100):
+for i in range(0, n_datapoints, 10):
     ax.clear()
     x = data_pos[i, :, 0]
     y = data_pos[i, :, 1]
