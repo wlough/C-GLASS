@@ -254,9 +254,9 @@ void Simulation::InitSimulation() {
       if ((*spec)->GetSID() == +species_id::filament or
           (*spec)->GetSID() == +species_id::rigid_filament) {
         for (int i_fil{0}; i_fil < (*spec)->GetNMembers(); i_fil++) {
-          membrane_.neighbs_.push_back((*spec)->GetMember(i_fil));
+          membrane_.boundary_neighbs_.push_back((*spec)->GetMember(i_fil));
           printf("Adding filament #%i to membrane neighbs\n",
-                 membrane_.neighbs_.back()->GetOID());
+                 membrane_.boundary_neighbs_.back()->GetOID());
         }
       }
     }

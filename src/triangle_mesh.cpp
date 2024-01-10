@@ -1,8 +1,8 @@
+#include <cglass/filament.hpp>
 #include <cglass/triangle_mesh.hpp>
 #include <unistd.h>
 
 void TriMesh::Init(system_parameters *params) {
-
   // SF temp before integrating with output_manager
   std::string force_filename{params->run_name + "_membrane_forces.file"};
   std::string vrt_filename{params->run_name + "_membrane_vrt_positions.file"};
@@ -26,7 +26,6 @@ void TriMesh::Init(system_parameters *params) {
 }
 
 void TriMesh::SetParameters() {
-
   long seed{params_ == nullptr ? 0 : params_->seed};
   rng_ = new RNG(seed);
   r_sys_ = params_->system_radius;
@@ -38,7 +37,6 @@ void TriMesh::SetParameters() {
 }
 
 void TriMesh::MakeIcosphere() {
-
   // We start with 20 faces, and each subdivision algorithm quadruples the number
   size_t n_faces{size_t(20 * std::pow(4, params_->n_subdivisions))};
   // For a triangle mesh, 2E = 3F
@@ -64,7 +62,6 @@ void TriMesh::MakeIcosphere() {
 }
 
 void TriMesh::MakeIcosahedron() {
-
   printf("Initializing icosahedron (20 triangles; 12 vertices)\n");
   double phi = (1.0f + sqrt(5.0f)) * 0.5f; // golden ratio
   double a = r_sys_ * 1.0f;
@@ -104,40 +101,39 @@ void TriMesh::MakeIcosahedron() {
   tris_.emplace_back(&vrts_[5], &vrts_[11], &vrts_[4]);
   tris_.emplace_back(&vrts_[10], &vrts_[8], &vrts_[4]);
   // add edges
-  edges_.emplace_back(&vrts_[0], &vrts_[1]);   // 1: 1
-  edges_.emplace_back(&vrts_[0], &vrts_[2]);   // 2: 1
-  edges_.emplace_back(&vrts_[0], &vrts_[6]);   // 6: 1
-  edges_.emplace_back(&vrts_[0], &vrts_[7]);   // 7: 1
-  edges_.emplace_back(&vrts_[0], &vrts_[9]);   // 9: 1
-  edges_.emplace_back(&vrts_[1], &vrts_[2]);   // 2: 2
-  edges_.emplace_back(&vrts_[1], &vrts_[3]);   // 3: 1
-  edges_.emplace_back(&vrts_[1], &vrts_[7]);   // 7: 2
-  edges_.emplace_back(&vrts_[1], &vrts_[8]);   // 8: 1
-  edges_.emplace_back(&vrts_[2], &vrts_[3]);   // 3: 2
-  edges_.emplace_back(&vrts_[2], &vrts_[5]);   // 5: 1
-  edges_.emplace_back(&vrts_[2], &vrts_[9]);   // 9: 2
-  edges_.emplace_back(&vrts_[3], &vrts_[4]);   // 4: 1
-  edges_.emplace_back(&vrts_[3], &vrts_[5]);   // 5: 2
-  edges_.emplace_back(&vrts_[3], &vrts_[8]);   // 8: 2
-  edges_.emplace_back(&vrts_[4], &vrts_[5]);   // 5: 3
-  edges_.emplace_back(&vrts_[4], &vrts_[8]);   // 8: 3
-  edges_.emplace_back(&vrts_[4], &vrts_[10]);  // 10: 1
-  edges_.emplace_back(&vrts_[4], &vrts_[11]);  // 11: 1
-  edges_.emplace_back(&vrts_[5], &vrts_[9]);   // 9: 3
-  edges_.emplace_back(&vrts_[5], &vrts_[11]);  // 11: 2
-  edges_.emplace_back(&vrts_[6], &vrts_[7]);   // 7: 3
-  edges_.emplace_back(&vrts_[6], &vrts_[9]);   // 9: 4
-  edges_.emplace_back(&vrts_[6], &vrts_[10]);  // 10: 2
-  edges_.emplace_back(&vrts_[6], &vrts_[11]);  // 11: 3
-  edges_.emplace_back(&vrts_[7], &vrts_[8]);   // 8: 4
-  edges_.emplace_back(&vrts_[7], &vrts_[10]);  // 10: 3
-  edges_.emplace_back(&vrts_[8], &vrts_[10]);  // 10: 4
-  edges_.emplace_back(&vrts_[9], &vrts_[11]);  // 11: 4
-  edges_.emplace_back(&vrts_[10], &vrts_[11]); // 11: 5
+  edges_.emplace_back(&vrts_[0], &vrts_[1]);
+  edges_.emplace_back(&vrts_[0], &vrts_[2]);
+  edges_.emplace_back(&vrts_[0], &vrts_[6]);
+  edges_.emplace_back(&vrts_[0], &vrts_[7]);
+  edges_.emplace_back(&vrts_[0], &vrts_[9]);
+  edges_.emplace_back(&vrts_[1], &vrts_[2]);
+  edges_.emplace_back(&vrts_[1], &vrts_[3]);
+  edges_.emplace_back(&vrts_[1], &vrts_[7]);
+  edges_.emplace_back(&vrts_[1], &vrts_[8]);
+  edges_.emplace_back(&vrts_[2], &vrts_[3]);
+  edges_.emplace_back(&vrts_[2], &vrts_[5]);
+  edges_.emplace_back(&vrts_[2], &vrts_[9]);
+  edges_.emplace_back(&vrts_[3], &vrts_[4]);
+  edges_.emplace_back(&vrts_[3], &vrts_[5]);
+  edges_.emplace_back(&vrts_[3], &vrts_[8]);
+  edges_.emplace_back(&vrts_[4], &vrts_[5]);
+  edges_.emplace_back(&vrts_[4], &vrts_[8]);
+  edges_.emplace_back(&vrts_[4], &vrts_[10]);
+  edges_.emplace_back(&vrts_[4], &vrts_[11]);
+  edges_.emplace_back(&vrts_[5], &vrts_[9]);
+  edges_.emplace_back(&vrts_[5], &vrts_[11]);
+  edges_.emplace_back(&vrts_[6], &vrts_[7]);
+  edges_.emplace_back(&vrts_[6], &vrts_[9]);
+  edges_.emplace_back(&vrts_[6], &vrts_[10]);
+  edges_.emplace_back(&vrts_[6], &vrts_[11]);
+  edges_.emplace_back(&vrts_[7], &vrts_[8]);
+  edges_.emplace_back(&vrts_[7], &vrts_[10]);
+  edges_.emplace_back(&vrts_[8], &vrts_[10]);
+  edges_.emplace_back(&vrts_[9], &vrts_[11]);
+  edges_.emplace_back(&vrts_[10], &vrts_[11]);
 }
 
 void TriMesh::DivideFaces() {
-
   std::vector<Triangle> new_faces;
   std::vector<Edge> new_edges;
   size_t n_vrts_pre{vrts_.size()};
@@ -278,7 +274,7 @@ void TriMesh::InitializeMesh() {
   // Using updated centroid position, calculate each triangle volume
   double vol_sum{0.0};
   for (auto &&tri : tris_) {
-    tri.UpdateVolume(origin_);
+    tri.UpdateVolume(centroid_);
     vol_sum += tri.volume_;
   }
   // Update neighbor lists and pointers for vertices, edges, and triangles
@@ -299,71 +295,49 @@ void TriMesh::InitializeMesh() {
   printf("Final mesh statistics:\n");
   printf("  %zu vrts (%zu flawed; %zu ideal)\n", vrts_.size(), n_flawed,
          n_gucci);
-
   l_avg_ = l_sum / edges_.size();
   A_prime_ = area_sum / tris_.size();
   V_prime_ = vol_sum / tris_.size();
-  /*
-  // also calculate std_err of mean to check for bugs
-  double var{0.0};
-  for (auto const &tri : tris_) {
-    double l1{0.0};
-    double l2{0.0};
-    double l3{0.0};
-    for (int i_dim{0}; i_dim < 3; i_dim++) {
-      l1 += SQR(tri.vrts_[0]->pos_[i_dim] - tri.vrts_[1]->pos_[i_dim]);
-      l2 += SQR(tri.vrts_[0]->pos_[i_dim] - tri.vrts_[2]->pos_[i_dim]);
-      l3 += SQR(tri.vrts_[1]->pos_[i_dim] - tri.vrts_[2]->pos_[i_dim]);
-    }
-    var += SQR(l_avg_ - sqrt(l1));
-    var += SQR(l_avg_ - sqrt(l2));
-    var += SQR(l_avg_ - sqrt(l3));
-  }
-  var = sqrt(var / n_entries);
-  */
-  // printf("  l_avg = %g +/- %g\n", l_avg_, var);
   printf("  l_avg = %g\n", l_avg_);
   printf("  A_prime = %g\n", A_prime_);
   printf("  A_calc = %g\n", 4.0 * M_PI * SQR(r_sys_) / tris_.size());
   printf("  V_prime = %g\n", V_prime_);
   printf("  V_calc = %g\n", (4.0 / 3.0) * M_PI * CUBE(r_sys_) / tris_.size());
   printf("  V_calc_alt = %g\n", (1.0 / 3.0) * A_prime_ * r_sys_);
-  // if (var < 0.05 * l_avg_) {
-  //   var = 0.05 * l_avg_;
-  // }
   l_c0_ = 1.2 * l_avg_;
   l_c1_ = 0.8 * l_avg_;
+  // used in vutukuri et al
   // l_max_ = 1.4 * l_avg_;
   // l_min_ = 0.6 * l_avg_;
+  // used when more edge flipping is desired
   l_max_ = 1.67 * l_avg_;
   l_min_ = 0.33 * l_avg_;
 }
 
 void TriMesh::UpdateCentroid() {
-
   for (int i_dim{0}; i_dim < params_->n_dim; i_dim++) {
-    origin_[i_dim] = 0.0;
+    centroid_[i_dim] = 0.0;
   }
   double area_sum{0.0};
   for (auto &&tri : tris_) {
     for (int i_dim{0}; i_dim < params_->n_dim; i_dim++) {
-      origin_[i_dim] += tri.area_ * tri.GetCenterPos(i_dim);
+      centroid_[i_dim] += tri.area_ * tri.GetCenterPos(i_dim);
     }
     area_sum += tri.area_;
   }
   for (int i_dim{0}; i_dim < params_->n_dim; i_dim++) {
-    origin_[i_dim] /= area_sum;
+    centroid_[i_dim] /= area_sum;
   }
-  o_.r[0] = origin_[0];
-  o_.r[1] = origin_[1];
-  o_.r[2] = origin_[2];
+  o_.r[0] = centroid_[0];
+  o_.r[1] = centroid_[1];
+  o_.r[2] = centroid_[2];
 }
 
 void TriMesh::UpdateNeighbors() {
-
   UpdateTriangles();
   // NOTE: currently only works with convex objects
   // NOTE: an update to ensure neighboring normals are aligned would fix this
+  // NOTE: alternatively, a ray-tracing algorithm to determine in/out would be best
   // This function is purposefully coded to be explicit yet inefficient
   // (it does not get called often if at all beyond initialization)
 
@@ -413,8 +387,13 @@ void TriMesh::UpdateNeighbors() {
       }
     }
     if (n_found != 2) {
-      printf("Error: found %i triangles that contain one edge\n", n_found);
-      exit(1);
+      edge.vrts_[0]->SetColor(2 * M_PI, draw_type::fixed);
+      edge.vrts_[0]->SetDiameter(2);
+      printf("Error: found %i triangles that contain edge #%zu\n", n_found,
+             edge.i_);
+      do_not_pass_go_ = true;
+      return;
+      // exit(1);
     }
   }
   // Order triangle ptrs so that they are in consecutive order (share edges)
@@ -454,6 +433,10 @@ void TriMesh::UpdateNeighbors() {
         // SF TODO remove chicanery
         if (prev_edge == nullptr) {
           printf("no thx @ %i\n", i_entry);
+          for (auto &&edge : vrt.edges_) {
+            printf("  edge %zu\n", edge->i_);
+          }
+          // printf("edge %zu\n", prev_edge->i_, next_edge->i_);
           printf("(%i entries total)\n", vrt.n_edges_);
           vrt.SetColor(2 * M_PI, draw_type::fixed);
           vrt.SetDiameter(2);
@@ -513,31 +496,35 @@ void TriMesh::UpdateNeighbors() {
 }
 
 void TriMesh::FlipEdges() {
+  size_t i_entries[edges_.size()];
   for (auto &&edge : edges_) {
+    i_entries[edge.i_] = edge.i_;
     edge.just_flipped = false;
   }
   bool flipparino{false};
-  for (auto &&edge : edges_) {
-    // if (flipparino) {
-    //   break;
-    // }
-    if (edge.just_flipped) {
+  rng_->Shuffle(i_entries, edges_.size());
+  // for (auto &&edge : edges_) {
+  for (int i_edge{0}; i_edge < edges_.size(); i_edge++) {
+    Edge *edge = &edges_[i_entries[i_edge]];
+    // printf("edge #%zu\n", edge->i_);
+    if (edge->just_flipped) {
+      // printf("already flipped\n");
       continue;
     }
-    Vertex *vrt1 = edge.vrts_[0];
-    Vertex *vrt2 = edge.vrts_[1];
+    Vertex *vrt1 = edge->vrts_[0];
+    Vertex *vrt2 = edge->vrts_[1];
     // Find adjacent triangles
-    Triangle *left{edge.tris_[0]};
-    Triangle *right{edge.tris_[1]};
+    Triangle *left{edge->tris_[0]};
+    Triangle *right{edge->tris_[1]};
     if (left == nullptr or right == nullptr) {
-      printf("issue at edge %zu\n", edge.i_);
+      printf("issue at edge %zu\n", edge->i_);
       printf("ABORT\n");
       exit(1);
     }
     Vertex *vrt3{left->GetOtherVertex(vrt1, vrt2)};
     Vertex *vrt4{right->GetOtherVertex(vrt1, vrt2)};
     // Get pre- and post-flip edge lengths
-    double l_12{edge.length_};
+    // double l_12{edge.length_};
     double l_34{0.0};
     for (int i_dim{0}; i_dim < params_->n_dim; i_dim++) {
       l_34 += SQR(vrt3->pos_[i_dim] - vrt4->pos_[i_dim]);
@@ -545,20 +532,85 @@ void TriMesh::FlipEdges() {
     l_34 = sqrt(l_34);
     // If post-flip length is outside of allowed bounds, automatically discard it
     if (l_34 >= l_max_ or l_34 <= l_min_) {
+      // printf("length wrong\n");
+      // printf("%g outside of [%g, %g]\n", l_34, l_min_, l_max_);
       continue;
     }
-    // Get area of pre-flip triangles (1->2->3->1 and 1->2->4->1)
-    double area_left{left->area_};
-    double area_right{right->area_};
-    // Need to calculate areas of post-flip triangles (1->3->4->1 and 2->3->4->2)
+    // check that angle between edges is >90 deg (edges cross post-flip otherwise)
+    // manual test implementation
+    double r_12[3]; // 2->1
+    double r_32[3]; // 2->3
+    double r_42[3]; // 2->4
+    double r_21[3]; // 1->2
+    double r_31[3]; // 1->4
+    double r_41[3]; // 1->3
+    for (int i_dim{0}; i_dim < 3; i_dim++) {
+      r_12[i_dim] = vrt1->pos_[i_dim] - vrt2->pos_[i_dim];
+      r_32[i_dim] = vrt3->pos_[i_dim] - vrt2->pos_[i_dim];
+      r_42[i_dim] = vrt4->pos_[i_dim] - vrt2->pos_[i_dim];
+      r_21[i_dim] = vrt2->pos_[i_dim] - vrt1->pos_[i_dim];
+      r_31[i_dim] = vrt3->pos_[i_dim] - vrt1->pos_[i_dim];
+      r_41[i_dim] = vrt4->pos_[i_dim] - vrt1->pos_[i_dim];
+    }
+    double l_12{0.0};
+    double l_32{0.0};
+    double l_42{0.0};
+    double l_21{0.0};
+    double l_31{0.0};
+    double l_41{0.0};
+    for (int i_dim{0}; i_dim < 3; i_dim++) {
+      l_12 += SQR(r_12[i_dim]);
+      l_32 += SQR(r_32[i_dim]);
+      l_42 += SQR(r_42[i_dim]);
+      l_21 += SQR(r_21[i_dim]);
+      l_31 += SQR(r_31[i_dim]);
+      l_41 += SQR(r_41[i_dim]);
+    }
+    l_12 = sqrt(l_12);
+    l_32 = sqrt(l_32);
+    l_42 = sqrt(l_42);
+    l_21 = sqrt(l_21);
+    l_31 = sqrt(l_31);
+    l_41 = sqrt(l_41);
+    // we dont want any angle between to-be flipped edge to be greater than 90 deg
+    double theta_31{acos(dot_product(3, r_21, r_31) / (l_21 * l_31))};
+    double theta_32{acos(dot_product(3, r_12, r_32) / (l_12 * l_32))};
+    double theta_41{acos(dot_product(3, r_21, r_41) / (l_21 * l_41))};
+    double theta_42{acos(dot_product(3, r_12, r_42) / (l_12 * l_42))};
+    // printf("  THETA 31: %g\n", theta_31 * 180 / M_PI);
+    // printf("  THETA 32: %g\n", theta_32 * 180 / M_PI);
+    // printf("  THETA 41: %g\n", theta_41 * 180 / M_PI);
+    // printf("  THETA 42: %g\n", theta_42 * 180 / M_PI);
+    if (theta_31 >= M_PI_2 or theta_32 >= M_PI_2 or theta_41 >= M_PI_2 or
+        theta_42 >= M_PI_2) {
+      // printf("NUH UH\n");
+      // printf("angle wrong\n");
+      continue;
+    }
+
     Edge *edge_23{left->GetEdge(vrt2, vrt3)};
     Edge *edge_31{left->GetEdge(vrt3, vrt1)};
     Edge *edge_24{right->GetEdge(vrt2, vrt4)};
     Edge *edge_41{right->GetEdge(vrt4, vrt1)};
     double l_23{edge_23->length_};
-    double l_31{edge_31->length_};
+    // double l_31{edge_31->length_};
     double l_24{edge_24->length_};
-    double l_41{edge_41->length_};
+    // double l_41{edge_41->length_};
+    // double angle_left{acos(std::fabs(
+    //     dot_product(3, edge.vector_, edge_23->vector_) / (l_12 * l_23)))};
+    // double angle_right{acos(std::fabs(
+    //     dot_product(3, edge.vector_, edge_24->vector_) / (l_12 * l_24)))};
+    // if (angle_left >= M_PI_2) {
+    //   printf("triangle is irregular! (theta = %g)\n", angle_left * 180 / M_PI);
+    // }
+    // if (angle_right >= M_PI_2) {
+    //   printf("triangle is irregular! (theta = %g)\n", angle_right * 180 / M_PI);
+    // }
+
+    // Get area of pre-flip triangles (1->2->3->1 and 1->2->4->1)
+    double area_left{left->area_};
+    double area_right{right->area_};
+    // Calculate areas of post-flip triangles (1->3->4->1 and 2->3->4->2)
     double s1{0.5 * (l_34 + l_41 + l_31)};
     double s2{0.5 * (l_34 + l_24 + l_23)};
     double area_top{sqrt(s1 * (s1 - l_34) * (s1 - l_41) * (s1 - l_31))};
@@ -569,9 +621,9 @@ void TriMesh::FlipEdges() {
     }
     // Calculate energy of current configuration
     double current_energy{0.0};
-    if (edge.length_ > l_c0_) {
+    if (edge->length_ > l_c0_) {
       current_energy += kappa_B_ * exp(1.0 / (l_c0_ - l_12)) / (l_max_ - l_12);
-    } else if (edge.length_ < l_c1_) {
+    } else if (edge->length_ < l_c1_) {
       current_energy += kappa_B_ * exp(1.0 / (l_12 - l_c1_)) / (l_12 - l_min_);
     }
     current_energy += 0.5 * kappa_l_ * SQR(A_prime_ - area_left) / A_prime_;
@@ -586,67 +638,65 @@ void TriMesh::FlipEdges() {
     postflip_energy += 0.5 * kappa_l_ * SQR(A_prime_ - area_top) / A_prime_;
     postflip_energy += 0.5 * kappa_l_ * SQR(A_prime_ - area_bot) / A_prime_;
     bool do_flip{false};
-    if (postflip_energy <= current_energy) {
-      do_flip = true;
-    } else {
-      double delta{postflip_energy - current_energy};
-      double p_flip{exp(-delta)};
-      double ran = rng_->RandomUniform();
-      if (ran < p_flip) {
+    // bool do_flip{true};
+    double p_flip_base{0.3};
+    if (rng_->RandomUniform() < p_flip_base) {
+      if (postflip_energy <= current_energy) {
         do_flip = true;
+      } else {
+        double delta{postflip_energy - current_energy};
+        double p_flip{exp(-delta)};
+        double ran = rng_->RandomUniform();
+        if (ran < p_flip) {
+          do_flip = true;
+        }
       }
     }
-    // do_flip = false;
+    // flipped triangles: 3->2->4 and 3->1->4
     if (do_flip) {
       flipparino = true;
-      // printf("FLIP edge %zu of triangles %zu and %zu\n", edge.i_, left->i_,
+      // printf("FLIP edge %zu of triangles %zu and %zu\n", edge->i_, left->i_,
       //        right->i_);
-      // flipped triangles: 3->2->4 and 3->1->4
-      edge.vrts_[0] = vrt3;
-      edge.vrts_[1] = vrt4;
+      // printf("angles: %g and %g\n", angle_left * 180 / M_PI,
+      //        angle_right * 180 / M_PI);
+      edge->vrts_[0] = vrt3;
+      edge->vrts_[1] = vrt4;
       // turn left triangle into top triangle
       left->vrts_[0] = vrt1;
       left->vrts_[1] = vrt3;
       left->vrts_[2] = vrt4;
-      // left->edges_[0] = &edge;
-      // left->edges_[1] = edge_31;
-      // left->edges_[2] = edge_41;
+      left->edges_[0] = edge;
+      left->edges_[1] = edge_31;
+      left->edges_[2] = edge_41;
       // turn right triangle into bottom triangle
       right->vrts_[0] = vrt2;
       right->vrts_[1] = vrt3;
       right->vrts_[2] = vrt4;
-      // right->edges_[0] = &edge;
-      // right->edges_[1] = edge_23;
-      // right->edges_[2] = edge_24;
-      // // need to mark all edges as just flipped; otherwise can get wonky triangles
+      right->edges_[0] = edge;
+      right->edges_[1] = edge_23;
+      right->edges_[2] = edge_24;
+      // need to mark all edges as just flipped; otherwise can get wonky triangles
       for (int i_edge{0}; i_edge < 3; i_edge++) {
         left->edges_[i_edge]->just_flipped = true;
-        // printf("  also edge %zu\n", left->edges_[i_edge]->i_);
         right->edges_[i_edge]->just_flipped = true;
-        // printf("  also edge %zu\n", right->edges_[i_edge]->i_);
       }
-      // SF TODO add dynamic updating to increase speed
-      // UpdateOrigin();
-      // printf("length pre: %g vs %g\n", l34, edge.length_);
-      // edge.Update();
-      // printf("length post: %g vs %g\n", l34, edge.length_);
-      // left->Update(origin_);
-      // right->Update(origin_);
-      // printf("edge lengths (L): %g | %g | %g\n", left->edges_[0]->length_,
-      //        left->edges_[1]->length_, left->edges_[2]->length_);
-      // printf("area (L): %g\n", left->area_);
-      // printf("edge lengths (R): %g | %g | %g\n", right->edges_[0]->length_,
-      //        right->edges_[1]->length_, right->edges_[2]->length_);
-      // printf("area (R): %g\n", right->area_);
-      vrt1->SetColor(0.0, draw_type::fixed);
-      vrt2->SetColor(0.0, draw_type::fixed);
-      vrt3->SetColor(0.0, draw_type::fixed);
-      vrt4->SetColor(0.0, draw_type::fixed);
+      // dynamically updating causes minor error in vol (~0.1%), but improves performance
+      // (error is from the fact that edge flips change the centroid slightly)
+      edge->Update();
+      left->UpdateArea();
+      right->UpdateArea();
+      left->UpdateVolume(centroid_);
+      right->UpdateVolume(centroid_);
+      // vrt1->SetColor(0.0, draw_type::fixed);
+      // vrt2->SetColor(0.0, draw_type::fixed);
+      // vrt3->SetColor(0.0, draw_type::fixed);
+      // vrt4->SetColor(0.0, draw_type::fixed);
     }
   }
   if (flipparino) {
     UpdateNeighbors();
-    UpdateMesh();
+    // uncomment below if you want to remove dynamic updating above
+    // UpdateMesh();
   }
 }
 
@@ -659,7 +709,7 @@ void TriMesh::UpdateTriangles() {
     for (int i_dim{0}; i_dim < 3; i_dim++) {
       r1[i_dim] = tri.vrts_[0]->pos_[i_dim] - tri.vrts_[1]->pos_[i_dim];
       r2[i_dim] = tri.vrts_[1]->pos_[i_dim] - tri.vrts_[2]->pos_[i_dim];
-      r_origin[i_dim] = tri.GetCenterPos(i_dim) - origin_[i_dim];
+      r_origin[i_dim] = tri.GetCenterPos(i_dim) - centroid_[i_dim];
     }
     double n[3];
     cross_product(r1, r2, n, 3);
@@ -708,7 +758,7 @@ void TriMesh::Draw(std::vector<graph_struct *> &graph_array) {
   for (int i{0}; i < f_mem_.size(); i++) {
     graph_array.push_back(&f_mem_[i]);
   }
-  graph_array.push_back(&o_);
+  // graph_array.push_back(&o_); // plots centroid pos
 }
 
 void TriMesh::UpdateMesh() {
@@ -728,7 +778,7 @@ void TriMesh::UpdateMesh() {
   UpdateCentroid();
   // Update triangle volumes
   for (auto &&tri : tris_) {
-    tri.UpdateVolume(origin_);
+    tri.UpdateVolume(centroid_);
   }
   // Update triangle nhats SF TODO FIX
   UpdateTriangles();
@@ -858,13 +908,12 @@ void TriMesh::ApplyMembraneForces() {
       }
     }
   }
-  // SF TODO think about better data structure -- vrts seems best tho
   // DISCRETE BENDING FORCES
   for (auto &&vrt : vrts_) {
     double sum_lsqT{0.0};        // scalar
     double sum_del_lsqT[3]{{}};  // vec; scalar in each dim
     double sum_rT[3]{{}};        // vec; scalr in each dim
-    double sum_del_rT[3][3]{{}}; // tensor; vec. in each dim
+    double sum_del_rT[3][3]{{}}; // tensor; vec in each dim
     for (int i_neighb{0}; i_neighb < vrt.n_neighbs_; i_neighb++) {
       // this assumes neighbors are ordered in a ring with + oriented ccw
       int i_plus{i_neighb == (vrt.n_neighbs_ - 1) ? 0 : i_neighb + 1};
@@ -872,7 +921,7 @@ void TriMesh::ApplyMembraneForces() {
       Vertex *neighb{vrt.neighbs_[i_neighb]};
       Vertex *neighb_plus{vrt.neighbs_[i_plus]};
       Vertex *neighb_minus{vrt.neighbs_[i_minus]};
-      double r_ij[3];
+      double r_ij[3]; // points from j (neighb) to i (vrt)
       double r_ij_plus[3];
       double r_ij_minus[3];
       double r_jj_plus[3];
@@ -974,95 +1023,57 @@ void TriMesh::ApplyMembraneForces() {
       int i_plus{i_neighb == (vrt.n_neighbs_ - 1) ? 0 : i_neighb + 1};
       Vertex *neighb{vrt.neighbs_[i_neighb]};
       Vertex *neighb_plus{vrt.neighbs_[i_plus]};
-      // printf("edge: %zu\n", vrt.edges_[i_neighb]->i_);
-      // printf("edge fwd: %zu\n", vrt.edges_[i_plus]->i_);
-      Triangle *tri_plus{vrt.tris_[i_neighb]}; // from neighb list construction
-      double r_ij[3];
-      double r_ij_plus[3];
-      double r_jj_plus[3];
+      // only consider contribution from fwd triangle to avoid double counting
+      Triangle *tri_plus{vrt.tris_[i_neighb]};
+      double r_jj_plus[3]; // points from j_plus (fwd_neighb) to j (neighb)
+      double r_oj[3];      // points from j (neighb) to o (centroid)
+      double r_oj_plus[3]; // points from j_plus (fwd_neighb) to o (centroid)
       for (int i_dim{0}; i_dim < 3; i_dim++) {
-        r_ij[i_dim] = vrt.pos_[i_dim] - neighb->pos_[i_dim];
-        r_ij_plus[i_dim] = vrt.pos_[i_dim] - neighb_plus->pos_[i_dim];
         r_jj_plus[i_dim] = neighb->pos_[i_dim] - neighb_plus->pos_[i_dim];
+        r_oj_plus[i_dim] = centroid_[i_dim] - neighb_plus->GetPosition()[i_dim];
+        r_oj[i_dim] = centroid_[i_dim] - neighb->GetPosition()[i_dim];
       }
       // the edge l_ij = |r_ij| connects two triangles, get length of each
-      // double n_b[3];
-      // cross_product(r_ij, r_ij_plus, n_b, 3);
-      double l_ij{0.0};
-      double l_ij_plus{0.0};
       double l_jj_plus{0.0};
-      // double norm_b{0.0};
+      double l_oj_plus{0.0};
+      double l_oj{0.0};
       for (int i_dim{0}; i_dim < 3; i_dim++) {
-        l_ij += SQR(r_ij[i_dim]);
-        l_ij_plus += SQR(r_ij_plus[i_dim]);
         l_jj_plus += SQR(r_jj_plus[i_dim]);
-        // norm_b += SQR(n_b[i_dim]);
+        l_oj_plus += SQR(r_oj_plus[i_dim]);
+        l_oj += SQR(r_oj[i_dim]);
       }
-      l_ij = sqrt(l_ij);
-      l_ij_plus = sqrt(l_ij_plus);
       l_jj_plus = sqrt(l_jj_plus);
-      // norm_b = sqrt(norm_b);
-      // force from area conservation
-      // (only add contribution from fwd neighbor)
-      double f_area_vec[3];
+      l_oj_plus = sqrt(l_oj_plus);
+      l_oj = sqrt(l_oj);
+      // calculate force from area conservation
       // cross product order intentionally reversed cuz dir of r_jj+ is wrong
-      // double nhat_b[3];
-      // for (int i_dim{0}; i_dim < 3; i_dim++) {
-      //   nhat_b[i_dim] = n_b[i_dim] / norm_b;
-      // }
+      double f_area_vec[3];
       cross_product(r_jj_plus, tri_plus->nhat_, f_area_vec, 3);
-      // get current area of triangle
-      double s{0.5 * (l_ij + l_jj_plus + l_ij_plus)};
-      double area{sqrt(s * (s - l_ij) * (s - l_jj_plus) * (s - l_ij_plus))};
+      double area{tri_plus->area_};
       double f_area_mag{-0.25 * kappa_l_ * (area - A_prime_) / A_prime_};
       for (int i_dim{0}; i_dim < 3; i_dim++) {
         f_area[i_dim] += f_area_mag * f_area_vec[i_dim];
       }
-      // neighb vertices for volume force will be same as area (i.e., fwd only)
-      // need area of triangle that connects these two vertices w/ polygon center
-      // (opposite edge is l_jj_plus)
-      // to keep consistent naming, r_oj_plus points from j+ to origin
-      // likewise, r_oj points from j to origin
-      double r_oj[3];
-      double r_oj_plus[3];
-      for (int i_dim{0}; i_dim < params_->n_dim; i_dim++) {
-        r_oj[i_dim] = origin_[i_dim] - neighb->GetPosition()[i_dim];
-        r_oj_plus[i_dim] = origin_[i_dim] - neighb_plus->GetPosition()[i_dim];
-      }
-      double l_oj{0.0};
-      double l_oj_plus{0.0};
-      for (int i_dim{0}; i_dim < params_->n_dim; i_dim++) {
-        l_oj += SQR(r_oj[i_dim]);
-        l_oj_plus += SQR(r_oj_plus[i_dim]);
-      }
-      l_oj = sqrt(l_oj);
-      l_oj_plus = sqrt(l_oj_plus);
+      // need area of triangle that connects neighb and neighb_plus w/ polygon center
       double s_opp{0.5 * (l_jj_plus + l_oj + l_oj_plus)};
       double area_opp{sqrt(s_opp * (s_opp - l_jj_plus) * (s_opp - l_oj) *
                            (s_opp - l_oj_plus))};
-      double A[3];
-      double B[3];
-      double C[3];
-      for (int i_dim{0}; i_dim < params_->n_dim; i_dim++) {
-        A[i_dim] = vrt.pos_[i_dim] - origin_[i_dim];
-        B[i_dim] = neighb->pos_[i_dim] - origin_[i_dim];
-        C[i_dim] = neighb_plus->pos_[i_dim] - origin_[i_dim];
-      }
-      double BxC[3];
-      cross_product(B, C, BxC, 3);
-      double V{std::fabs(dot_product(3, A, BxC) / 6.0)};
-      double epsilon{1e-10};
-      if (std::fabs(area - tri_plus->area_) > epsilon or
-          std::fabs(V - tri_plus->volume_) > epsilon) {
-        printf("bruh\n");
-        printf("edge lengths: %g | %g | %g\n", l_ij, l_ij_plus, l_jj_plus);
-        printf("area: %g vs %g\n", area, tri_plus->area_);
-        printf("volume: %g vs %g\n", V, tri_plus->volume_);
-        for (int i{0}; i < 3; i++) {
-          printf("  edge %zu\n", tri_plus->edges_[i]->i_);
-        }
-        // exit(1);
-      }
+      double V{tri_plus->volume_};
+      // double epsilon{1e-1};
+      // if (std::fabs(area - tri_plus->area_) > epsilon) {
+      //   printf("bruh\n");
+      //   printf("edge lengths: %g | %g | %g\n", l_ij, l_ij_plus, l_jj_plus);
+      //   printf("area: %g vs %g\n", area, tri_plus->area_);
+      // }
+      // if (std::fabs(V - tri_plus->volume_) > epsilon) {
+      //   printf("bruh\n");
+      //   printf("edge lengths: %g | %g | %g\n", l_ij, l_ij_plus, l_jj_plus);
+      //   printf("volume: %g vs %g\n", V, tri_plus->volume_);
+      //   for (int i{0}; i < 3; i++) {
+      //     printf("  edge %zu\n", tri_plus->edges_[i]->i_);
+      //   }
+      //   // exit(1);
+      // }
       double f_vol_mag{(-1.0 / 3.0) * kappa_v_ * (V - V_prime_) * area_opp /
                        V_prime_};
       if (f_vol_mag != f_vol_mag) {
@@ -1072,11 +1083,6 @@ void TriMesh::ApplyMembraneForces() {
         printf("V_prime: %g\n", V_prime_);
         printf("area_opp: %g\n", area_opp);
         do_not_pass_go_ = true;
-        double zero_force[3] = {0.0, 0.0, 0.0};
-        for (auto &&vrt : vrts_) {
-          vrt.SetForce(zero_force);
-        }
-        printf("holla\n");
         return;
       }
       // just the inward pointing normal of the face opposite to vrt in prism
@@ -1095,23 +1101,8 @@ void TriMesh::ApplyMembraneForces() {
         printf("NOPE\n");
         exit(1);
       }
-      // vec is going -NaN, meaning the norm is zero?? WHY
-      // should be in-line with r_ij
-      // if (dot_product(3, r_ij, f_vol_vec) < 0.0) {
-      //   printf("no way bro\n");
-      //   vrt.SetColor(0.0, draw_type::fixed);
-      //   neighb_plus->SetColor(1.0, draw_type::fixed);
-      //   do_not_pass_go_ = true;
-      //   return;
-      //   exit(1);
-      // }
       for (int i_dim{0}; i_dim < 3; i_dim++) {
         f_vol[i_dim] += f_vol_mag * f_vol_vec[i_dim] / f_vol_vec_norm;
-        // f_vol[i_dim] += f_vol_vec[i_dim] / f_vol_vec_norm;
-        if (f_vol[i_dim] != f_vol[i_dim]) {
-          printf("why - %g\n", f_vol[i_dim]);
-          exit(1);
-        }
       }
     }
     vrt.AddForce(f_area);
@@ -1144,28 +1135,49 @@ void TriMesh::ApplyMembraneForces() {
 
 void TriMesh::ApplyBoundaryForces() {
 
-  // double r_cutoff2 = SQR(pow(2, 1.0 / 6.0) * 0.5);
-  // double sigma2 = 0.25;
-  double r_cutoff2 = 1.5;
-  double sigma2 = 1.5;
+  double r_cutoff2 = SQR(pow(2, 1.0 / 6.0) * 0.5);
+  double sigma2 = 0.25;
+  // double r_cutoff2 = 1.5;
+  // double sigma2 = 1.5;
   double four_epsilon = 4.0;
 
-  f_mem_.resize(neighbs_.size());
-  for (int i_neighb{0}; i_neighb < neighbs_.size(); i_neighb++) {
+  f_mem_.resize(boundary_neighbs_.size());
+  for (int i_neighb{0}; i_neighb < boundary_neighbs_.size(); i_neighb++) {
     // printf("neighb %i\n", i_neighb);
     double rmin[3], r_min_mag2, rcontact[3], mu;
     // double pos[3] = neighbs_[i_neighb].GetPosition();
-    Object *neighb{neighbs_[i_neighb]};
-    double r[3] = {neighb->GetPosition()[0], neighb->GetPosition()[1],
-                   neighb->GetPosition()[2]};
-    double u[3] = {neighb->GetOrientation()[0], neighb->GetOrientation()[1],
-                   neighb->GetOrientation()[2]};
-    // printf("r = <%g, %g, %g>\n", r[0], r[1], r[2]);
-    // printf("u = <%g, %g, %g>\n", u[0], u[1], u[2]);
-    // printf("l = %g\n", neighb->GetLength());
-    // SF TODO incorporate periodic space (incorporate s and h)
-    int i_tri = mindist_.SpheroPolygon(this, r, r, u, neighb->GetLength(), rmin,
-                                       &r_min_mag2, rcontact, &mu);
+    Object *neighb{boundary_neighbs_[i_neighb]};
+    Filament *fil{dynamic_cast<Filament *>(neighb)};
+    int n_bonds = fil->GetNBonds();
+    int i_tri{0};
+    int i_bond{0};
+    r_min_mag2 = SQR(r_sys_);
+    for (int j_bond{0}; j_bond < n_bonds; j_bond++) {
+      Bond *bond{fil->GetBond(j_bond)};
+      double r[3] = {bond->GetPosition()[0], bond->GetPosition()[1],
+                     bond->GetPosition()[2]};
+      double u[3] = {bond->GetOrientation()[0], bond->GetOrientation()[1],
+                     bond->GetOrientation()[2]};
+      double l{bond->GetLength()};
+      // printf("r = <%g, %g, %g>\n", r[0], r[1], r[2]);
+      // printf("u = <%g, %g, %g>\n", u[0], u[1], u[2]);
+      // printf("l = %g\n", neighb->GetLength());
+      // SF TODO incorporate periodic space (incorporate s and h)
+      double rmin_b[3], r_min_mag2_b, rcontact_b[3], mu_b;
+      int j_tri = mindist_.SpheroPolygon(this, r, r, u, l, rmin_b,
+                                         &r_min_mag2_b, rcontact_b, &mu_b);
+      if (r_min_mag2_b < r_min_mag2) {
+        r_min_mag2 = r_min_mag2_b;
+        mu = mu_b;
+        for (int i{0}; i < 3; i++) {
+          rmin[i] = rmin_b[i];
+          rcontact[i] = rcontact_b[i];
+        }
+        i_tri = j_tri;
+        i_bond = j_bond;
+      }
+    }
+    // printf("chose bond %i & triangle %i\n", i_bond, i_tri);
     double rmagcalc{0.0};
     for (int i{0}; i < 3; i++) {
       f_mem_[i_neighb].r[i] = tris_[i_tri].GetCenterPos(i);
@@ -1202,14 +1214,16 @@ void TriMesh::ApplyBoundaryForces() {
       // double f_cutoff =
       //     0.1 / params_->delta *
       //     MIN(properties->bonds.gamma_par[ibond], chromosomes->gamma_t_);
-      double f_cutoff = 250;
+      double f_cutoff = 500;
       // Truncate the forces if necessary
       double r_min_mag = sqrt(r_min_mag2);
       if (factor * r_min_mag > f_cutoff) {
-        //std::cout << "NOTE tripping fcutoff in kcmt, resetting force factor, original " << factor << " to ";
-        std::cout << factor << std::endl;
         printf(" *** Force exceeded f_cutoff "
                "kinetochoremesh_mt_wca_potential_neighbors ***\n");
+        printf("r_min_mag: %g\n", r_min_mag);
+        printf("factor: %g\n", factor);
+        //std::cout << "NOTE tripping fcutoff in kcmt, resetting force factor, original " << factor << " to ";
+        // std::cout << factor << std::endl;
         factor = f_cutoff / r_min_mag;
       }
       double f_lj[3] = {0.0};
@@ -1220,8 +1234,7 @@ void TriMesh::ApplyBoundaryForces() {
       for (auto &&vrt : tri->vrts_) {
         vrt->AddForce(f_lj);
       }
-      // tri->AddForce(f_lj);
-      neighb->SubForce(f_lj);
+      fil->GetBond(i_bond)->SubForce(f_lj);
 
       // SF TODO incorporate torques
       /*
@@ -1295,25 +1308,24 @@ void TriMesh::UpdatePositions() {
     l_avg_ *= (1.0 - params_->mesh_shrink_rate);
     l_c0_ = 1.2 * l_avg_;
     l_c1_ = 0.8 * l_avg_;
-    l_max_ = 1.4 * l_avg_;
-    l_min_ = 0.6 * l_avg_;
+    l_max_ = 1.667 * l_avg_;
+    l_min_ = 0.333 * l_avg_;
   }
   UpdateMesh(); // update edge lengths, triangle area/vol, etc.
-  FlipEdges();
+  // FlipEdges();
   if (do_not_pass_go_) {
     return;
   }
   ApplyMembraneForces();
-  // ApplyBoundaryForces();
+  ApplyBoundaryForces();
   for (int i_vrt{0}; i_vrt < vrts_.size(); i_vrt++) {
-    double sigma{sqrt(2 * params_->delta / gamma_)}; // kbT = 1??
+    double sigma{sqrt(2 * params_->delta / gamma_)}; // kbT = 1
     double dr[3] = {0.0, 0.0, 0.0};
     double const *const r_prev = vrts_[i_vrt].GetPosition();
     double r_final[3];
     for (int i = 0; i < 3; ++i) {
       double vel{vrts_[i_vrt].GetForce()[i] / gamma_};
       double noise{rng_->RandomNormal(sigma)};
-      // double noise{0.0};
       dr[i] = vel * params_->delta + noise;
       r_final[i] = r_prev[i] + dr[i];
     }

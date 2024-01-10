@@ -209,12 +209,15 @@ private:
   MinimumDistance mindist_;
 
 public:
-  double origin_[3];
-  std::vector<Object *> neighbs_;
   double r_sys_{0.0};
+  double centroid_[3];
+
+  std::vector<Object *> boundary_neighbs_;
+
   std::vector<Vertex> vrts_;
   std::vector<Triangle> tris_;
   std::vector<Edge> edges_;
+
   std::vector<graph_struct> f_mem_;
   graph_struct o_;
 
