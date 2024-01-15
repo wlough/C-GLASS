@@ -532,7 +532,7 @@ void TriMesh::FlipEdges() {
     }
     l_34 = sqrt(l_34);
     // If post-flip length is outside of allowed bounds, automatically discard it
-    if (l_34 >= l_max_ or l_34 <= l_min_) {
+    if (l_34 >= 0.9 *l_max_ or l_34 <= 1.1 * l_min_) {
       // printf("length wrong\n");
       // printf("%g outside of [%g, %g]\n", l_34, l_min_, l_max_);
       continue;
@@ -582,7 +582,7 @@ void TriMesh::FlipEdges() {
     // printf("  THETA 32: %g\n", theta_32 * 180 / M_PI);
     // printf("  THETA 41: %g\n", theta_41 * 180 / M_PI);
     // printf("  THETA 42: %g\n", theta_42 * 180 / M_PI);
-    double lim{0.95 * M_PI_2}; // dont want angles anywhere near 90 deg
+    double lim{0.75 * M_PI_2}; // dont want angles anywhere near 90 deg
     if (theta_31 >= lim or theta_32 >= lim or theta_41 >= lim or
         theta_42 >= lim) {
       // printf("NUH UH\n");
@@ -782,7 +782,7 @@ void TriMesh::UpdateMesh() {
   for (auto &&tri : tris_) {
     tri.UpdateVolume(centroid_);
   }
-  // Update triangle nhats SF TODO FIX
+  // Update triangle nhats SF TODO make per-triangle nhat update
   UpdateTriangles();
 
   // mathematical jonnies used in calculating boundary forces
@@ -846,18 +846,14 @@ void TriMesh::ApplyMembraneForces() {
   // SF TODO i.e., we do not take advtange of newton's 3rd law
   // SF TODO once validated, increase computational efficiency by addressing this
 
-  double f_teth_flaw{0.0};
-  size_t n_teth_flaw{0};
-  double f_bend_flaw{0.0};
-  size_t n_bend_flaw{0};
-  double f_area_flaw{0.0};
-  size_t n_area_flaw{0};
-  double f_teth_good{0.0};
-  size_t n_teth_good{0};
-  double f_bend_good{0.0};
-  size_t n_bend_good{0};
-  double f_area_good{0.0};
-  size_t n_area_good{0};
+  double f_teth_sum{0.0};
+  size_t n_teth{0};
+  double f_bend_sum{0.0};
+  size_t n_bend{0};
+  double f_area_sum{0.0};
+  size_t n_area{0};
+  double f_vol_sum{0.0};
+  size_t n_vol{0};
 
   // SAF TODO -- make loop over edges (with pre-updated r vec+mag)
   // TETHER FORCE
@@ -876,7 +872,7 @@ void TriMesh::ApplyMembraneForces() {
       }
       rmag = sqrt(rmag);
       // SF TODO need some way of getting back into range w/o infinite forces
-      // use a RLY STRONG SPRING!
+      // use a RLY STRONG SPRING ???
       if (rmag >= l_max_ or rmag <= l_min_) {
         printf("CORRECTION!\n");
         double kspring{10};
@@ -887,11 +883,7 @@ void TriMesh::ApplyMembraneForces() {
         }
         vrt.AddForce(vec);
         continue;
-        // printf("TOO BIG!\n");
       }
-      // if (rmag <= l_min_) {
-      //   printf("TOO SMALL!\n");
-      // }
       // free movement within a certain range
       if (rmag <= l_c0_ and rmag >= l_c1_) {
         continue;
@@ -915,16 +907,8 @@ void TriMesh::ApplyMembraneForces() {
         f[i] = fmag * r_ij[i] / rmag;
       }
       vrt.AddForce(f);
-      if (vrt.n_neighbs_ == 5) {
-        f_teth_flaw += fmag;
-        n_teth_flaw++;
-      } else if (vrt.n_neighbs_ == 6) {
-        f_teth_good += fmag;
-        n_teth_good++;
-      } else {
-        // printf("what [1] - %i\n", vrt.n_neighbs_);
-        // exit(1);
-      }
+      f_teth_sum += fmag;
+      n_teth++;
     }
   }
   // DISCRETE BENDING FORCES
@@ -1021,16 +1005,8 @@ void TriMesh::ApplyMembraneForces() {
     for (int i_dim{0}; i_dim < 3; i_dim++) {
       fmag_bend += SQR(f_bend[i_dim]);
     }
-    if (vrt.n_neighbs_ == 5) {
-      f_bend_flaw += sqrt(fmag_bend);
-      n_bend_flaw++;
-    } else if (vrt.n_neighbs_ == 6) {
-      f_bend_good += sqrt(fmag_bend);
-      n_bend_good++;
-    } else {
-      // printf("what [2] - %i\n", vrt.n_neighbs_);
-      // exit(1);
-    }
+    f_bend_sum += sqrt(fmag_bend);
+    n_bend++;
   }
   // SF TODO loop over pre-updated triangles?
   // AREA AND VOLUME CONSERVATION FORCE
@@ -1126,40 +1102,33 @@ void TriMesh::ApplyMembraneForces() {
     }
     vrt.AddForce(f_area);
     vrt.AddForce(f_vol);
-    /*
     double fmag_area{0.0};
+    double fmag_vol{0.0};
     for (int i_dim{0}; i_dim < 3; i_dim++) {
       fmag_area += SQR(f_area[i_dim]);
+      fmag_vol += SQR(f_vol[i_dim]);
     }
-    if (vrt.n_neighbs_ == 5) {
-      f_area_flaw += sqrt(fmag_area);
-      n_area_flaw++;
-    } else if (vrt.n_neighbs_ == 6) {
-      f_area_good += sqrt(fmag_area);
-      n_area_good++;
-    } else {
-      // printf("what [3] - %i\n", vrt.n_neighbs_);
-      // exit(1);
-    }
-    */
+    f_area_sum += sqrt(fmag_area);
+    n_area++;
+    f_vol_sum += sqrt(fmag_vol);
+    n_vol++;
   }
   // SF TODO add volume forces?
-  // f_avg_ideal_[0] = f_teth_good / n_teth_good;
-  // f_avg_ideal_[1] = f_bend_good / n_bend_good;
-  // f_avg_ideal_[2] = f_area_good / n_area_good;
-  // f_avg_flawed_[0] = f_teth_flaw / n_teth_flaw;
-  // f_avg_flawed_[1] = f_bend_flaw / n_bend_flaw;
-  // f_avg_flawed_[2] = f_area_flaw / n_area_flaw;
+  f_avgs_[0] = f_teth_sum / n_teth;
+  f_avgs_[1] = f_bend_sum / n_bend;
+  f_avgs_[2] = f_area_sum / n_area;
+  f_avgs_[3] = f_vol_sum / n_vol;
 }
 
 void TriMesh::ApplyBoundaryForces() {
 
+  if(boundary_neighbs_.empty()){
+    return;
+  }
+
+  // values taken directly from NAB
   double r_cutoff2 = SQR(pow(2, 1.0 / 6.0) * 0.5);
   double sigma2 = 0.25;
-  r_cutoff2 *= 10;
-  sigma2 *= 10;
-  // double r_cutoff2 = 1.5;
-  // double sigma2 = 1.5;
   double four_epsilon = 4.0;
   int n_bonds_tot{0};
   for (int i_neighb{0}; i_neighb < boundary_neighbs_.size(); i_neighb++) {
@@ -1334,8 +1303,7 @@ void TriMesh::WriteOutputs() {
   }
   if (i_datapoint_ < params_->mesh_datapoints) {
     // write different membrane forces
-    // int n_written_good = fwrite(f_avg_ideal_, sizeof(double), 3, forces_);
-    // int n_written_flaw = fwrite(f_avg_flawed_, sizeof(double), 3, forces_);
+    int n_written= fwrite(f_avgs_, sizeof(double), 4, forces_);
     i_datapoint_++;
     for (int i_vrt{0}; i_vrt < vrts_.size(); i_vrt++) {
       double pos[3];
@@ -1347,7 +1315,7 @@ void TriMesh::WriteOutputs() {
       for (int i_neighb{0}; i_neighb < vrt->n_neighbs_; i_neighb++) {
         adj[i_neighb] = (int)vrt->neighbs_[i_neighb]->i_;
       }
-      // padding for 5-point vertices
+      // padding for non-ideal vertices (less or more than 6 neighbs)
       for (int i_neighb{vrt->n_neighbs_}; i_neighb < n_edges_max_; i_neighb++) {
         adj[i_neighb] = -1;
       }
@@ -1388,7 +1356,7 @@ void TriMesh::UpdatePositions() {
   if (do_not_pass_go_) {
     return;
   }
-  // FlipEdges();
+  FlipEdges();
   if (do_not_pass_go_) {
     return;
   }

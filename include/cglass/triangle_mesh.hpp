@@ -188,6 +188,8 @@ private:
   FILE *adjacency_{nullptr}; // adjacency matrix  (2D per vrt per step)
   system_parameters *params_{nullptr};
 
+  double f_avgs_[4]; // indices 0-4: tether, bend, area, vol
+
   double l_avg_{0.0};
   double gamma_{0.0};
 

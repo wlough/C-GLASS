@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import proj3d
 
 n_datapoints = 1000
-n_vrts = 42
+n_vrts = 642
 n_adj_max = 10
 
 data_pos = np.fromfile(
