@@ -496,6 +496,7 @@ void TriMesh::UpdateNeighbors() {
 }
 
 void TriMesh::FlipEdges() {
+  // Get edge indices and shuffle them so that order of flipping is random
   size_t i_entries[edges_.size()];
   for (auto &&edge : edges_) {
     i_entries[edge.i_] = edge.i_;
@@ -581,8 +582,9 @@ void TriMesh::FlipEdges() {
     // printf("  THETA 32: %g\n", theta_32 * 180 / M_PI);
     // printf("  THETA 41: %g\n", theta_41 * 180 / M_PI);
     // printf("  THETA 42: %g\n", theta_42 * 180 / M_PI);
-    if (theta_31 >= M_PI_2 or theta_32 >= M_PI_2 or theta_41 >= M_PI_2 or
-        theta_42 >= M_PI_2) {
+    double lim{0.95 * M_PI_2}; // dont want angles anywhere near 90 deg
+    if (theta_31 >= lim or theta_32 >= lim or theta_41 >= lim or
+        theta_42 >= lim) {
       // printf("NUH UH\n");
       // printf("angle wrong\n");
       continue;
@@ -876,7 +878,7 @@ void TriMesh::ApplyMembraneForces() {
       // SF TODO need some way of getting back into range w/o infinite forces
       // use a RLY STRONG SPRING!
       if (rmag >= l_max_ or rmag <= l_min_) {
-        // printf("CORRECTION!\n");
+        printf("CORRECTION!\n");
         double kspring{10};
         double mag{kspring * (l_avg_ - rmag)}; // use l_avg as rest length;
         double vec[3];
@@ -1154,12 +1156,19 @@ void TriMesh::ApplyBoundaryForces() {
 
   double r_cutoff2 = SQR(pow(2, 1.0 / 6.0) * 0.5);
   double sigma2 = 0.25;
-  // r_cutoff2 *= 6;
-  // sigma2 *= 60;
+  r_cutoff2 *= 10;
+  sigma2 *= 10;
   // double r_cutoff2 = 1.5;
   // double sigma2 = 1.5;
   double four_epsilon = 4.0;
-
+  int n_bonds_tot{0};
+  for (int i_neighb{0}; i_neighb < boundary_neighbs_.size(); i_neighb++) {
+    Object *neighb{boundary_neighbs_[i_neighb]};
+    Filament *fil{dynamic_cast<Filament *>(neighb)};
+    n_bonds_tot += fil->GetNBonds();
+  }
+  int i_bond{0};
+  f_mem_.resize(n_bonds_tot);
   for (int i_neighb{0}; i_neighb < boundary_neighbs_.size(); i_neighb++) {
     // double rmin[3], r_min_mag2, rcontact[3], mu;
     // printf("neighb %i\n", i_neighb);
@@ -1168,7 +1177,6 @@ void TriMesh::ApplyBoundaryForces() {
     Filament *fil{dynamic_cast<Filament *>(neighb)};
     int n_bonds = fil->GetNBonds();
     // printf("%i bonds\n", n_bonds);
-    f_mem_.resize(boundary_neighbs_.size() * n_bonds);
     // int i_tri{0};
     // int i_bond{0};
     // r_min_mag2 = SQR(r_sys_);
@@ -1190,19 +1198,19 @@ void TriMesh::ApplyBoundaryForces() {
       //                                    &r_min_mag2_b, rcontact_b, &mu_b);
       int j_tri = mindist_.SpheroPolygon(this, r, r, u, l, rmin, &r_min_mag2,
                                          rcontact, &mu);
-      f_mem_[j_bond].color = 1.8 * M_PI;
-      f_mem_[j_bond].diameter = 0.25;
-      f_mem_[j_bond].draw = draw_type::fixed;
+      f_mem_[i_bond].color = 1.8 * M_PI;
+      f_mem_[i_bond].diameter = 0.25;
+      f_mem_[i_bond].draw = draw_type::fixed;
       double uu[3];
       double ll{sqrt(r_min_mag2)};
       if (ll == 0) {
         printf("why\n");
-        f_mem_[j_bond].color = 0.0 * M_PI;
+        f_mem_[i_bond].color = 0.0 * M_PI;
         for (int i_dim{0}; i_dim < 3; i_dim++) {
-          f_mem_[j_bond].r[i_dim] = rcontact[i_dim];
+          f_mem_[i_bond].r[i_dim] = rcontact[i_dim];
         }
-        f_mem_[j_bond].diameter = 1;
-        f_mem_[j_bond].length = 10;
+        f_mem_[i_bond].diameter = 1;
+        f_mem_[i_bond].length = 10;
         continue;
         // do_not_pass_go_ = true;
         // return;
@@ -1211,10 +1219,10 @@ void TriMesh::ApplyBoundaryForces() {
         uu[i_dim] = rmin[i_dim] / ll;
       }
       for (int i_dim{0}; i_dim < 3; i_dim++) {
-        f_mem_[j_bond].r[i_dim] = rcontact[i_dim] - uu[i_dim] * ll / 2.0;
-        f_mem_[j_bond].u[i_dim] = uu[i_dim];
+        f_mem_[i_bond].r[i_dim] = rcontact[i_dim] - uu[i_dim] * ll / 2.0;
+        f_mem_[i_bond].u[i_dim] = uu[i_dim];
       }
-      f_mem_[j_bond].length = ll;
+      f_mem_[i_bond].length = ll;
       // if (r_min_mag2_b < r_min_mag2) {
       //   r_min_mag2 = r_min_mag2_b;
       //   mu = mu_b;
@@ -1245,8 +1253,8 @@ void TriMesh::ApplyBoundaryForces() {
       // f_mem_[i_neighb].draw = draw_type::fixed;
       // printf("%g @ triangle %i\n", r_min_mag2, i_tri);
       if (r_min_mag2 < r_cutoff2) {
-        f_mem_[j_bond].color = 0.0 * M_PI;
-        f_mem_[j_bond].diameter = 0.5;
+        f_mem_[i_bond].color = 0.0 * M_PI;
+        f_mem_[i_bond].diameter = 0.5;
         // std::cout << "Firing off WCA calc\n";
         // Calculate WCA potential and forces
         double rho2 = sigma2 / r_min_mag2;
@@ -1291,7 +1299,6 @@ void TriMesh::ApplyBoundaryForces() {
         }
         // fil->GetBond(j_bond)->SubForce(f_lj);
         fil->SubForce(f_lj);
-
         // SF TODO incorporate torques
         /*
       // Calculate torques
@@ -1315,6 +1322,7 @@ void TriMesh::ApplyBoundaryForces() {
       }
       */
       }
+      i_bond++;
     }
   }
 }
@@ -1380,7 +1388,7 @@ void TriMesh::UpdatePositions() {
   if (do_not_pass_go_) {
     return;
   }
-  FlipEdges();
+  // FlipEdges();
   if (do_not_pass_go_) {
     return;
   }
