@@ -183,12 +183,18 @@ system_parameters parse_system_params(YAML::Node &node) {
       params.mesh_kl = it->second.as<double>();
     } else if (param_name.compare("mesh_kV") == 0) {
       params.mesh_kV = it->second.as<double>();
-    } else if (param_name.compare("n_subdivisions") == 0) {
+    } else if (param_name.compare("mesh_enable_flipping") == 0) {
+      params.enable_flipping = it->second.as<bool>();
+    } else if (param_name.compare("mesh_n_subdivisions") == 0) {
       params.n_subdivisions = it->second.as<size_t>();
-    } else if (param_name.compare("node_gamma") == 0) {
+    } else if (param_name.compare("mesh_node_gamma") == 0) {
       params.node_gamma = it->second.as<double>();
-    } else if (param_name.compare("node_diameter") == 0) {
+    } else if (param_name.compare("mesh_node_diameter") == 0) {
       params.node_diameter = it->second.as<double>();
+    } else if (param_name.compare("mesh_draw_centroid") == 0) {
+      params.draw_centroid = it->second.as<bool>();
+    } else if (param_name.compare("mesh_draw_mindist") == 0) {
+      params.draw_mindist = it->second.as<bool>();
     } else {
       Logger::Warning("Unrecognized parameter '%s'", param_name.c_str());
     }

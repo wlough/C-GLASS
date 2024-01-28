@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-n_datapoints = 1000
+n_datapoints = 250
 
 data = np.fromfile(
     "/home/shane/projects/C-GLASS/test_membrane_forces.file", dtype=np.double

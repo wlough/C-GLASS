@@ -334,6 +334,9 @@ struct system_parameters {
   size_t n_subdivisions = 0;
   double node_diameter = 0.0;
   double node_gamma = 0.0;
+  bool draw_centroid = false;
+  bool draw_mindist = false;
+  bool enable_flipping = false;
 };
 
 #endif // _CGLASS_PARAMETERS_H_
