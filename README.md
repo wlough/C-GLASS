@@ -10,85 +10,142 @@ A **C**oarse-**G**rained **L**iving **A**ctive **S**ystem **S**imulator
 
 ## Installation
 
-First clone the repo, including submodule dependencies.
+### Building from source (Arch)
+
+#### Install dependencies
+
+C-GLASS dependencies on arch
+
 ```
-git clone --recursive https://github.com/Betterton-Lab/C-GLASS
+cmake
+libgsl-dev --> gsl
+libopenmpi-dev --> openmpi
+libfftw3-dev --> fftw
+libyaml-cpp-dev --> yaml-cpp
+libboost-math-dev --> boost-libs
+g++ --> gcc
+libarmadillo-dev --> armadillo
+pkg-config --> pkgconf
+libglfw3-dev --> glfw-x11
+libglew-dev --> glew
+libxi-dev --> libxi
+libxcursor-dev --> libxcursor
+libxinerama-dev --> libxinerama
+```
+
+<!-- ```bash
+sudo pacman -S \
+clang \
+cmake \
+gsl \
+openmpi \
+fftw \
+yaml-cpp \
+boost-libs \
+gcc \
+pkgconf \
+glfw \
+glew \
+boost
+``` -->
+
+```bash
+sudo pacman -S \
+glew \
+glfw \
+yaml-cpp \
+boost
+```
+
+From aur:
+```bash
+yay -S armadillo 
+```
+
+#### Clone C-GLASS repository
+
+Need to use `--recursive` to clone submodules (e.g. `extern/KMC`)
+
+```bash
+git clone --recursive git@github.com:wlough/C-GLASS.git
+```
+
+#### Fix miscellaneous errors and run install script
+
+To install without graphics:
+
+```bash
 cd C-GLASS
-```
-C-GLASS can either be run in a container using Docker or Singularity, or be built from source using CMake.
-
-### Running with Docker
-
-A pre-built image of C-GLASS is available as a [Docker](https://www.docker.com/) image. To download the image, run
-
-```bash
-docker pull jeffmm/cglass
-```
-
-To use the image, run the provided script to launch a Docker container named `cglass_latest` in the background
-
-```bash
-./launch_docker.sh
-```
-
-You may also build the Docker image yourself by providing the launch script with the `-b` flag.
-
-To launch C-GLASS, run
-
-```bash
-docker exec cglass_latest cglass.exe [optional-flags] [parameter-file]
-```
-
-### Running with Singularity
-
-If you are using Singularity, C-GLASS is also available as a Singularity image. The command
-
-```bash
-singularity pull docker://jeffmm/cglass
-```
-
-will create a local file named `cglass_latest.sif`. You may then run
-
-```bash
-singularity exec cglass_latest.sif cglass.exe [optional-flags] [parameter-file]
-```
-
-The Singularity image may also be built locally using the provided recipe in the file `Singularity`
-
-### Building from source
-
-C-GLASS is ready to be built from source using CMake, provided several dependencies are installed:
-  * CMake (version 3.13+)
-  * [libyaml-cpp](https://github.com/jbeder/yaml-cpp)
-  * libgsl-dev
-  * libopenmpi-dev
-  * libfftw3-dev
-  * libboost-math1.67-dev
-
-Included is a script for building C-GLASS with CMake. To build C-GLASS (without graphics or parallelization) run
-
-```bash
 ./install.sh
 ```
 
-There are additional flags for building with OpenMP, building with graphics, installing C-GLASS in `/usr/local`, etc. To see a menu of options, run 
+To install with graphics:
 
 ```bash
-./install.sh -h
+cd C-GLASS
+./install.sh -g
 ```
 
-### Building with graphics
+##### Compilation error in logger.cpp
 
-C-GLASS is available with graphics for Mac OSX. To install on Mac OSX, you will need the glew and glfw3 libraries, both of which can be installed using [Homebrew](https://brew.sh/).
+If you see the error
 
 ```bash
-brew install glew
-brew install glfw
+[ 49%] Building CXX object src/CMakeFiles/cglass.dir/logger.cpp.o
+/home/wlough/git/C-GLASS/src/logger.cpp: In static member function ‘static void Logger::Error(const char*, ...)’:
+/home/wlough/git/C-GLASS/src/logger.cpp:128:3: error: ‘exit’ was not declared in this scope
+  128 |   exit(1);
+      |   ^~~~
+/home/wlough/git/C-GLASS/src/logger.cpp:2:1: note: ‘exit’ is defined in header ‘<cstdlib>’; did you forget to ‘#include <cstdlib>’?
+    1 | #include "cglass/logger.hpp"
+
 ```
 
-You may also need to help CMake find your OpenGL Framework libraries.
+add the `#include <cstdlib>` directive at the top of the `C-GLASS/src/logger.cpp`:
 
-Several other libraries are required for running C-GLASS with graphics on Linux or in WSL. See the `src/CMakeLists.txt` file for a comprehensive list of libraries passed to the compiler when building C-GLASS with graphics on WSL.
+```C
+#include <cstdlib>  // add this line
+
+#include "cglass/logger.hpp"
+
+/****************************/
+/******** SINGLETON *********/
+/****************************/
+...
+```
+
+##### Help CMake find glew
+
+If you see the error
+
+```bash
+CMake Error at src/CMakeLists.txt:23 (find_package):
+  By not providing "Findglew.cmake" in CMAKE_MODULE_PATH this project has
+  asked CMake to find a package configuration file provided by "glew", but
+  CMake did not find one.
+
+  Could not find a package configuration file provided by "glew" with any of
+  the following names:
+
+    glewConfig.cmake
+    glew-config.cmake
+
+  Add the installation prefix of "glew" to CMAKE_PREFIX_PATH or set
+  "glew_DIR" to a directory containing one of the above files.  If "glew"
+  provides a separate development package or SDK, be sure it has been
+  installed.
+```
+
+then try renaming
+
+`C-GLASS/.CMake_Modules/FindGLEW.cmake`
+
+file to
+
+`C-GLASS/.CMake_Modules/Findglew.cmake`
+
+Another option is to replace `find_package(glew REQUIRED)` with `find_package(GLEW REQUIRED)` in `C-GLASS/src/CMakeLists.txt`
+
 
 ## Running C-GLASS
 
@@ -153,6 +210,10 @@ The following flags are available:
     this flag will cause the simulation to begin immediately without user
     input. Goes great with the -m flag for creating multiple movies without
     input from the user.
+```
+
+```
+/path/to/C-GLASS/build/src/executable/cglass.exe cut7_crosslinking.yaml
 ```
 
 ## Parameter files
