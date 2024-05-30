@@ -1,0 +1,19 @@
+---
+rig1_receptor:
+  k_on_s: 0.038
+  k_off_s: 0.0036
+  k_on_d: 0.023
+  k_off_d: 0.0036
+  density_type: surface
+  bind_site_density: 10 #3.125
+  single_occupancy: true
+  diameter: 0.32
+rig2_receptor:
+  k_on_s: 0.038
+  k_off_s: 0.0036
+  k_on_d: 0.023
+  k_off_d: 0.0036
+  density_type: surface
+  bind_site_density: 10 #3.125
+  single_occupancy: true
+  diameter: 0.32

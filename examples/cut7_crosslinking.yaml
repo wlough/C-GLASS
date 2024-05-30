@@ -1,0 +1,133 @@
+run_name: example
+seed: 399339
+n_periodic: 0
+n_steps: 100000
+n_dim: 2
+delta: .0005
+graph_flag: true
+movie_flag: false
+checkpoint_flag: false
+n_checkpoint: 1000
+load_checkpoint: false
+checkpoint_run_name: cp_test
+movie_directory: movie_fold
+n_graph: 100
+potential: wca
+system_radius: 83
+f_cutoff: 1500000
+n_runs: 1
+n_random: 1
+single_occupancy: true
+protrusion_radius: 2
+protrusion_length: 81
+like_like_interactions: true
+rigid_filament:
+  - name: rig1
+    draw_type: orientation
+    color: .8
+    max_length: 5000
+    min_length: 5
+    num: 1
+    insertion_type: custom
+    insert_file: file1.yaml
+    length: 4.16
+    stationary_flag: false
+    constrain_motion_flag: false
+    constrain_to_move_in_y: true
+    packing_fraction: -1
+    n_equil: 0
+    spec_flag: true
+    n_spec: 1000
+    stationary_until: 10000
+    forced_slide_speed: &1 0
+    slide_start_time: &2 0
+    slide_end_point: &3 0
+  - name: rig2
+    draw_type: orientation
+    color: .8
+    max_length: 5000
+    min_length: 5
+    num: 1
+    insertion_type: custom
+    insert_file: file2.yaml
+    length: 4.16
+    stationary_flag: false
+    constrain_motion_flag: false
+    constrain_to_move_in_y: true
+    packing_fraction: -1
+    n_equil: 0
+    spec_flag: true
+    n_spec: 1000
+    stationary_until: 10000
+    forced_slide_speed: *1
+    slide_start_time: *2
+    slide_end_point: *3
+crosslink:
+  - name: cut7
+    anchors:
+      - name: head
+        velocity_s: 0.0712
+        velocity_d: 0.0285
+        bind_file: cut7_bind.yaml
+        color: 5
+        diameter: 10
+    insertion_type: random
+    concentration: .1
+    f_to_s_factor: 0
+    start_at_spb: false
+    diameter: .32
+    begin_with_bound_crosslinks: 0
+    k_spring: 152
+    k_spring_compress: 152
+    no_binding: false
+    rest_length: 3.12
+    draw_type: fixed
+    tether_draw_type: fixed
+    plus_end_pausing: true
+    minus_end_pausing: true
+    diffusion_s: 0.05696
+    diffusion_d: 0.05696
+    diffusion_free: 25.6
+    use_binding_volume: false
+    spec_flag: true
+    n_spec: 1000
+    tether_diameter: 0.15
+    energy_dep_factor: .5
+    tether_color: 5.5
+    step_direction: 1
+    infinite_reservoir_flag: true
+    cant_cross: false
+    polar_affinity: 1
+    f_stall: -36
+    exist_in_solution: false
+    pro_diffusion_test: false
+    begin_double_bound: false
+    no_solution_binding: false
+    bind_site_density: 1
+    static_flag: false
+    force_dep_length: 0
+    force_dep_vel_flag: true
+    k_align: 0
+    r_capture: 5
+    lut_grid_num: 256
+    use_number: false
+    f_to_s_rate: 0
+    f_to_s_radius: 1
+    exist_while_unbound: false
+receptor:
+  - name: rig1_receptor
+    component: rig1
+    insertion_type: grid
+    num: 13
+    diameter: 0.32
+    concentration: &4 -1
+    induce_catastrophe: &5 false
+    on_edge: bottom
+  - name: rig2_receptor
+    component: rig2
+    insertion_type: grid
+    num: 13
+    diameter: 0.32
+    concentration: *4
+    induce_catastrophe: *5
+    on_edge: top
