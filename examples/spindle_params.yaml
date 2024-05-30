@@ -10,6 +10,7 @@ boundary: 2
 graph_flag: true
 n_graph: 100
 movie_flag: true
+movie_directory: frames
 
 system_radius: 30
 potential: soft

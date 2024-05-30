@@ -62,6 +62,10 @@ From aur:
 yay -S armadillo 
 ```
 
+for docs
+```bash
+sudo pacman -S doxygen
+```
 #### Clone C-GLASS repository
 
 Need to use `--recursive` to clone submodules (e.g. `extern/KMC`)

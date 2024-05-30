@@ -59,3 +59,4 @@ rhs_files
 analysis/rhs
 rhs_yamls
 meshbrane_tests*
+**/*output*

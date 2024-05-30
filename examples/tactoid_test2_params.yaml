@@ -1,84 +1,66 @@
-seed: 2108792213194
-run_name: spindle_test
-n_dim: 2
-n_periodic: 0
-delta: 0.000002
+seed: 89362513826754
+run_name: tactoid_test2
+n_dim: 3
+n_periodic: 3
+delta: 0.0001
 n_steps: 10000000
-boundary: 3
+boundary: 0
 graph_flag: true
-n_graph: 10000
-movie_flag: true
-system_radius: 20
+n_graph: 100
+movie_flag: false
+insert_radius: 50
+graph_diameter: 1
+system_radius: 150
 potential: soft
 soft_potential_mag: 1000
 f_cutoff: 100000
-thermo_flag: false
+thermo_flag: true
 n_thermo: 100
-like_like_interactions: false
-checkpoint_flag: false
-n_checkpoint: 1000
-spindle:
-  - name: species
-    num: 1
-    spec_flag: true
-    n_spec: 100
-    n_filaments_mother: 0
-    n_filaments_bud: 1
-    insertion_type: custom
-    insert_file: spindle_0.yaml
-    length: 6
-    stationary_flag: false
-    diameter: 6
-    spb_diameter: 1
-    k_spring: 500
-    alignment_potential: true
-    k_align: 127
-    spring_length: 0
-    nuc_site_insertion: centered_oriented
+like_like_interactions: true
+checkpoint_flag: true
+n_checkpoint: 10000
 filament:
-  - name: spindle
-    num: 0
-    packing_fraction: -1
-    insertion_type: random
-    insert_file: examples/assay_3d_insert.yaml
+  - name: actin
+    num: 300
+    insertion_type: random_nematic
     draw_type: fixed
     color: 2
-    diameter: .1
+    diameter: 1
     overlap: false
-    length: 10
-    min_length: 1
-    max_length: 1000
-    min_bond_length: 1
-    polydispersity_flag: false
-    dynamic_instability_flag: true
-    persistence_length: 8000
-    driving_factor: 0
-    v_poly: 3.1
-    v_depoly: 4.05
-    f_grow_to_shrink: 0.1
-    f_shrink_to_grow: 0.5
+    length: 36
+    min_bond_length: 2
+    polydispersity_flag: true
+    persistence_length: 3400
     spec_flag: true
-    n_spec: 100
-    force_induced_catastrophe_flag: true
-    fic_factor: 0.001
-    spiral_init_flag: false
-    spiral_analysis: false
+    n_spec: 1000
+    n_equil: 10000
+    max_length: 500
+    min_length: 5
+    spiral_flag: false
     spiral_number_fail_condition: 0
+    driving_factor: 0
     friction_ratio: 2
+    dynamic_instability_flag: false
+    force_induced_catastrophe_flag: false
     optical_trap_flag: false
     optical_trap_spring: 20
     optical_trap_fixed: false
     cilia_trap_flag: false
+    fic_factor: 0.828
+    f_shrink_to_grow: 0.017
     f_shrink_to_pause: 0.0
     f_pause_to_grow: 0.0
     f_pause_to_shrink: 0.0
     f_grow_to_pause: 0.0
+    f_grow_to_shrink: 0.00554
+    v_poly: 0.44
+    v_depoly: 0.793
     theta_analysis: false
     lp_analysis: false
     global_order_analysis: false
+    packing_fraction: -1
     perlen_ratio: -1
     drive_from_bond_center: true
-    n_equil: 0
     orientation_corr_analysis: false
     orientation_corr_n_steps: 1000
     crossing_analysis: false
@@ -88,15 +70,6 @@ filament:
     flagella_period: 2
     flagella_amplitude: 1
     flocking_analysis: false
-    polar_order_analysis: false
-    polar_order_n_bins: 100
-    polar_order_contact_cutoff: 3
-    flock_polar_min: 0.5
-    flock_contact_min: 1.5
-    highlight_flock: false
-    flock_color_ext: 1.57
-    flock_color_int: 4.71
-    in_out_analysis: false
     nematic_driving: false
     nematic_driving_freq: 0
     peclet_number: -1
@@ -109,77 +82,108 @@ filament:
     highlight_curvature: false
     draw_center_of_curvature: false
     error_analysis: false
+    polar_order_analysis: false
+    polar_order_n_bins: 100
+    polar_order_contact_cutoff: 3
     polar_order_width: 10
     msd_analysis: false
     curvature_cluster_analysis: false
     cluster_lifetime_min: 100
     cluster_by_handedness: false
+    spiral_init_flag: false
+    spiral_analysis: false
+    flock_polar_min: 0.5
+    flock_contact_min: 0.5
+    highlight_flock: false
+    flock_color_int: 1.57
+    flock_color_ext: 4.71
     number_fluctuation_analysis: false
     number_fluctuation_boxes: 6
     number_fluctuation_centers: 10
+    in_out_analysis: false
     custom_set_tail: false
     reference_frame_flag: false
     partner_destab_A: 0
     partner_destab_B: 0
     partner_destab_k: 1
 crosslink:
-  name: dynein
-  concentration: .03
-  bind_site_density: 0.4
-  insertion_type: random
-  diameter: 0.5
-  diffusion_s: 0
-  diffusion_d: 0
-  draw_type: fixed
-  color: 4.67
-  energy_dep_factor: 0
-  force_dep_length: 0
-  polar_affinity: 0
-  k_spring: 3000
-  f_stall: 10
-  force_dep_vel_flag: true
-  k_align: 0
-  rest_length: 1
-  step_direction: -1
-  tether_draw_type: fixed
-  tether_diameter: 0.3
-  plus_end_pausing: true
-  minus_end_pausing: false
-  r_capture: 10
-  spec_flag: true
-  n_spec: 100
-  static_flag: false
-  begin_with_bound_crosslinks: 0
-  use_binding_volume: true
-  infinite_reservoir_flag: true
-  k_spring_compress: -1.
-  lut_grid_num: 256
-  tether_color: 4.67
-  anchors:
-    - &1
-      velocity_s: -7.1
-      velocity_d: 7.1
-      color: 4.67
-      bind_file: xlink_bind.yaml
-      diffusion_s: -1
-      diffusion_d: -1
-      use_partner: false
-      k_on_s: 10
-      partner_on_s: 0
-      k_off_s: 2
-      k_on_d: 10
-      partner_on_d: 0
-      k_off_d: 2
-    - *1
-  use_number: false
-  begin_double_bound: false
-  no_binding: false
-  no_solution_binding: false
-  cant_cross: false
-  diffusion_free: 0
-  f_to_s_rate: 0
-  f_to_s_radius: 1
-  exist_while_unbound: false
+  - name: filamin
+    concentration: 0.0001
+    insertion_type: random
+    diameter: 1
+    walker_flag: false
+    velocity: 0
+    diffusion_flag: false
+    draw_type: fixed
+    color: 4.67
+    k_on: 50
+    k_off: 5
+    k_on_d: 50
+    k_off_d: 5
+    force_dep_factor: 0
+    polar_affinity: 0
+    k_spring: 10
+    f_stall: 100
+    force_dep_vel_flag: false
+    k_align: 0
+    rest_length: 8
+    step_direction: -1
+    tether_draw_type: fixed
+    tether_diameter: 0.1
+    tether_color: 4.67
+    end_pausing: false
+    r_capture: 30
+    spec_flag: true
+    n_spec: 1000
+    static_flag: false
+    anchors:
+      - velocity_s: 0
+        velocity_d: 0
+        diffusion_s: -1
+        diffusion_d: -1
+        color: 0
+        bind_file: none
+        use_partner: false
+        k_on_s: 10
+        partner_on_s: 0
+        k_off_s: 2
+        k_on_d: 10
+        partner_on_d: 0
+        k_off_d: 2
+      - velocity_s: 0
+        velocity_d: 0
+        diffusion_s: -1
+        diffusion_d: -1
+        color: 0
+        bind_file: none
+        use_partner: false
+        k_on_s: 10
+        partner_on_s: 0
+        k_off_s: 2
+        k_on_d: 10
+        partner_on_d: 0
+        k_off_d: 2
+    use_number: false
+    begin_with_bound_crosslinks: 0
+    begin_double_bound: false
+    no_binding: false
+    no_solution_binding: false
+    use_binding_volume: true
+    infinite_reservoir_flag: false
+    bind_site_density: 1
+    cant_cross: false
+    diffusion_s: 0
+    diffusion_d: 0
+    diffusion_free: 0
+    energy_dep_factor: 0
+    force_dep_length: 0
+    k_spring_compress: -1.
+    minus_end_pausing: false
+    plus_end_pausing: false
+    f_to_s_rate: 0
+    f_to_s_radius: 1
+    exist_while_unbound: false
+    lut_grid_num: 256
 n_runs: 1
 n_random: 1
 species:
@@ -215,37 +219,26 @@ br_bead:
 spherocylinder:
   diffusion_analysis: false
   n_diffusion_samples: 1
-receptor:
-  - name: num1
-    num: 1
-    insertion_type: random
-    concentration: 0.8
-    diameter: 0.4
-    component: cortex
-    spec_flag: false
-    induce_catastrophe: false
-    on_edge: &2 no
-  - name: num1_apex
-    num: 5
-    insertion_type: custom
-    insert_file: spindle_0.yaml
-    diameter: 0.4
-    component: cortex
-    spec_flag: false
-    induce_catastrophe: false
-    concentration: -1
-    on_edge: *2
+  midstep: false
+spindle:
+  n_filaments_bud: 1
+  n_filaments_mother: 0
+  alignment_potential: false
+  k_spring: 1000
+  k_align: 0
+  spring_length: 0
+  spb_diameter: 5
+  nuc_site_insertion: random
 i_step: 0
-graph_diameter: 0
 invert_background: false
 draw_boundary: true
 load_checkpoint: false
 checkpoint_run_name: sc
 n_load: 0
 movie_directory: frames
-time_analysis: true
-bud_height: 25
-bud_radius: 12
+time_analysis: false
+bud_height: 680
+bud_radius: 300
 lj_epsilon: 1
 wca_eps: 1
 wca_sig: 1
@@ -258,6 +251,7 @@ target_pressure: 0
 target_radius: 100
 pressure_time: 100
 compressibility: 1
+stoch_flag: true
 interaction_flag: true
 species_insertion_failure_threshold: 10000
 species_insertion_reattempt_threshold: 10
@@ -275,37 +269,49 @@ local_order_n_analysis: 100
 density_analysis: 0
 density_bin_width: 0.1
 density_com_only: false
+polar_order_analysis: false
+polar_order_n_bins: 100
+polar_order_contact_cutoff: 3
 overlap_analysis: false
 highlight_overlaps: false
 reduced: false
 reload_reduce_switch: false
+flock_polar_min: 0.5
+flock_contact_min: 1.5
+highlight_flock: false
+flock_color_ext: 1.57
+flock_color_int: 4.71
+in_out_flag: false
 rigid_filament:
   max_length: 500
   min_length: 5
-  stationary_flag: true
   constrain_motion_flag: false
+  constrain_to_move_in_y: false
   packing_fraction: -1
   n_equil: 0
-  constrain_to_move_in_y: false
   forced_slide_speed: 0
   slide_start_time: 0
   slide_end_point: 0
+receptor:
+  component: cortex
+  concentration: -1
+  induce_catastrophe: false
+  on_edge: no
+t_step: 0
+on_midstep: false
 prev_step: 0
 dynamic_timestep: false
 dynamic_timestep_ramp: 0.001
-zero_temperature: false
-insert_radius: -1
-remove_duplicate_interactions: false
-coarse_grained_mesh_interactions: false
-mesh_coarsening: 2
-no_midstep: false
-knockout_xlink: false
-t_step: 0
-on_midstep: false
 protrusion_radius: 2
 protrusion_length: 80
 protrusion_growth_speed: 0
 start_protrusion_growth: 0
+zero_temperature: false
+remove_duplicate_interactions: false
+coarse_grained_mesh_interactions: false
+mesh_coarsening: 2
 reflect_at_boundary: false
+knockout_xlink: false
+no_midstep: false
 single_occupancy: true
 turn_off_cell_list: false
