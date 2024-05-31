@@ -1,6 +1,6 @@
 seed: 151681588832136
 
-run_name: parameter_sweep
+run_name: test_sim
 n_dim: 2
 n_periodic: 0
 delta: 0.00001
@@ -10,7 +10,7 @@ boundary: 2
 graph_flag: true
 n_graph: 100
 movie_flag: true
-movie_directory: temp_images
+movie_directory: frames
 
 system_radius: 30
 potential: soft

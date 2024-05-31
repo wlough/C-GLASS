@@ -1,0 +1,17 @@
+black
+dill
+findiff
+ipykernel
+matplotlib
+mayavi
+numba
+numpy
+pip-search
+plyfile
+pyflakes
+pyyaml
+PyQt5
+python-lsp-server[all]
+scipy
+sympy
+scikit-image

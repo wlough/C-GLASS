@@ -5,12 +5,12 @@ n_steps: 100000
 n_dim: 2
 delta: .0005
 graph_flag: true
-movie_flag: false
+movie_flag: true
+movie_directory: temp_images
 checkpoint_flag: false
 n_checkpoint: 1000
 load_checkpoint: false
 checkpoint_run_name: cp_test
-movie_directory: movie_fold
 n_graph: 100
 potential: wca
 system_radius: 83

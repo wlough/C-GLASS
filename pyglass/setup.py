@@ -10,6 +10,7 @@ def make_output_directory(output_directory):
     # os.system(f"mkdir {output_directory}/config")
     # os.system(f"mkdir {output_directory}/checkpoints")
 
+
 # def run_cglass(output_directory):
 #     cglass_exe_path = f"../output"
 
@@ -28,7 +29,11 @@ cglass_dir = "/home/wlough/git/C-GLASS"
 os.chdir(cglass_dir)
 output_directory = "./output"
 params_path = "./meshbrane_tests/mbtest.yaml"
-aux_param_paths = ["./meshbrane_tests/file1.yaml", "./meshbrane_tests/file2.yaml", "./meshbrane_tests/cut7_bind.yaml"]
+aux_param_paths = [
+    "./meshbrane_tests/file1.yaml",
+    "./meshbrane_tests/file2.yaml",
+    "./meshbrane_tests/cut7_bind.yaml",
+]
 cglass_exe_path = "./build/src/executable/cglass.exe"
 cglass_flags = ""
 mkdir_output = True
@@ -52,11 +57,11 @@ os.system(run_command)
 
 import yaml
 
-with open(sim_params_path, 'r') as file:
+with open(sim_params_path, "r") as file:
     data = yaml.safe_load(file)
 
 # Accessing a key value
-run_name = data['run_name']
+run_name = data["run_name"]
 print(run_name)
 
 
