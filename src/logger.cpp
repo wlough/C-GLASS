@@ -1,5 +1,5 @@
 #include "cglass/logger.hpp"
-
+#include <cstdlib>
 /****************************/
 /******** SINGLETON *********/
 /****************************/
@@ -39,7 +39,8 @@ void LoggerService::Error(const char *msg, va_list args) const {
   WriteMsg("ERROR", msg, args);
 }
 
-void LoggerService::WriteMsg(const char *severity, const char *msg, va_list args) const {
+void LoggerService::WriteMsg(const char *severity, const char *msg,
+                             va_list args) const {
   std::lock_guard<std::mutex> lk(mtx_);
 
   // Create time string.
@@ -74,7 +75,6 @@ const LoggerService &LoggerService::Get() {
   static LoggerService logger;
   return logger;
 }
-
 
 /****************************/
 /******** INTERFACE *********/
