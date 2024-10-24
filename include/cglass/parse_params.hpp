@@ -177,6 +177,8 @@ system_parameters parse_system_params(YAML::Node &node) {
       params.mesh_shrink_rate = it->second.as<double>();
     } else if (param_name.compare("mesh_kB") == 0) {
       params.mesh_kB = it->second.as<double>();
+    } else if (param_name.compare("mesh_ply_path") == 0) {
+      params.mesh_ply_path = it->second.as<std::string>();
     } else if (param_name.compare("mesh_k") == 0) {
       params.mesh_k = it->second.as<double>();
     } else if (param_name.compare("mesh_kl") == 0) {

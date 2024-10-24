@@ -244,6 +244,13 @@ public:
   void Draw(std::vector<graph_struct *> &graph_array);
   void UpdatePositions();
   void WriteOutputs();
+
+  ////////////////////////////////////////////////////////////////////////////
+  // WLOUGH
+public:
+  std::string ply_path{"none"};
+  void load_ply();
+  ////////////////////////////////////////////////////////////////////////////
 };
 
 #endif

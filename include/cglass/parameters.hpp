@@ -337,6 +337,7 @@ struct system_parameters {
   bool draw_centroid = false;
   bool draw_mindist = false;
   bool enable_flipping = false;
+  std::string mesh_ply_path = "none";
 };
 
 #endif // _CGLASS_PARAMETERS_H_
