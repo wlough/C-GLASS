@@ -3,6 +3,7 @@
 
 // #include "common_libs.hpp"
 // #include "definitions.hpp"
+#include "meshbrane/meshbrane_data_types.hpp"
 #include "minimum_distance.hpp"
 #include "rng.hpp"
 #include "site.hpp"

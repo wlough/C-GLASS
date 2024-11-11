@@ -5,7 +5,7 @@ n_periodic: 0
 boundary: 5
 draw_boundary: true
 system_radius: 40
-delta: 1e-4
+delta: 1e-5
 dynamic_timestep: false
 dynamic_timestep_ramp: 0.0001
 n_steps: 50000000 # 000
@@ -13,7 +13,7 @@ n_steps_equil: 0
 graph_flag: true
 auto_graph: true
 n_graph: 1
-movie_flag: false
+movie_flag: true
 movie_directory: images
 invert_background: true
 potential: wca
@@ -40,7 +40,11 @@ mesh_enable_flipping: false
 mesh_node_diameter: 1
 mesh_draw_centroid: false
 mesh_draw_mindist: true
-mesh_ply_path: ply_files/dumbbell_coarse_he.ply
+# mesh_ply_path: ply_files/cglass.unit_sphere_001280_he.ply
+# mesh_ply_path: ply_files/cglass.oblate_001280_he.ply
+# mesh_ply_path: ply_files/cglass.unit_sphere_005120_he.ply
+# mesh_ply_path: ply_files/cglass.unit_sphere_081920_he.ply
+mesh_ply_path: ply_files/cglass.unit_torus_3_1_raw_001536_he.ply
 chromosome:
   - name: CHROMO
     num: 0 # 2

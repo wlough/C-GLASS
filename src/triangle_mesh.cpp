@@ -1,5 +1,5 @@
 #include <cglass/filament.hpp>
-#include <cglass/ply_tools.hpp>
+// #include <cglass/ply_tools.hpp>
 #include <cglass/triangle_mesh.hpp>
 #include <meshbrane/half_edge_mesh.hpp>
 #include <unistd.h>
@@ -409,10 +409,10 @@ void TriMesh::UpdateNeighbors() {
     Triangle *tris_ordered[vrt.n_tris_]{{}};
     Edge *edges_ordered[vrt.n_edges_]{{}};
     Vertex *neighbs_ordered[vrt.n_neighbs_]{{}};
-    if (vrt.n_tris_ != vrt.n_edges_ or vrt.n_tris_ != vrt.n_neighbs_) {
-      printf("Error in neighbor lists\n");
-      exit(1);
-    }
+    // if (vrt.n_tris_ != vrt.n_edges_ or vrt.n_tris_ != vrt.n_neighbs_) {
+    //   printf("Error in neighbor lists\n");
+    //   exit(1);
+    // }
     // starting point doesn't matter, so just use whichever entry is first
     neighbs_ordered[0] = vrt.neighbs_[0];
     for (int i_edge{0}; i_edge < vrt.n_edges_; i_edge++) {
@@ -1348,6 +1348,7 @@ void TriMesh::UpdatePositions() {
 //     tris_.emplace_back(&vrts_[v0], &vrts_[v1], &vrts_[v2]);
 //   }
 // }
+
 void TriMesh::load_ply() {
   // printf("Loading ply file\n");
   printf("Loading ply file %s\n", ply_path.c_str());
@@ -1358,10 +1359,15 @@ void TriMesh::load_ply() {
   auto [xyz_coord_V, V_of_E, V_of_F] = m.vef_samples();
 
   // assuming genus=0 without boundary
-  int euler_characteristic = 2;
-  int num_vertices = xyz_coord_V.rows();
-  int num_faces = V_of_F.rows();
-  int num_edges = (-euler_characteristic + num_vertices + num_faces);
+  // int euler_characteristic = 2;
+  int euler_characteristic = m.get_euler_characteristic();
+  int num_vertices = m.get_num_vertices();
+  int num_faces = m.get_num_faces();
+  int num_edges = m.get_num_edges();
+
+  // for (int i = 0; i < num_vertices; i++) {
+  //   xyz_coord_V(i, 2) = .75 * xyz_coord_V(i, 2);
+  // }
 
   tris_.reserve(num_faces);
   edges_.reserve(num_edges);
