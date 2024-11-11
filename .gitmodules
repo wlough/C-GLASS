@@ -1,3 +1,6 @@
 [submodule "extern/KMC"]
 	path = extern/KMC
 	url = https://github.com/lamsoa729/KMC.git
+[submodule "extern/MeshBrane"]
+	path = extern/MeshBrane
+	url = git@github.com:wlough/MeshBrane.git

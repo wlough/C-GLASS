@@ -1,6 +1,7 @@
 #include <cglass/filament.hpp>
 #include <cglass/ply_tools.hpp>
 #include <cglass/triangle_mesh.hpp>
+#include <meshbrane/half_edge_mesh.hpp>
 #include <unistd.h>
 
 void TriMesh::Init(system_parameters *params) {
@@ -1313,11 +1314,48 @@ void TriMesh::UpdatePositions() {
   WriteOutputs();
 }
 
+// void TriMesh::load_ply() {
+//   // printf("Loading ply file\n");
+//   printf("Loading ply file %s\n", ply_path.c_str());
+//   MeshConverter mc = MeshConverter::from_he_ply(ply_path, false);
+//   auto [xyz_coord_V, V_of_E, V_of_F] = mc.get_vef_samples();
+
+//   // assuming genus=0 without boundary
+//   int euler_characteristic = 2;
+//   int num_vertices = xyz_coord_V.rows();
+//   int num_faces = V_of_F.rows();
+//   int num_edges = (-euler_characteristic + num_vertices + num_faces);
+
+//   tris_.reserve(num_faces);
+//   edges_.reserve(num_edges);
+//   vrts_.reserve(num_vertices);
+//   printf("%zu faces, %zu edges, %zu verts\n", num_faces, num_edges,
+//          num_vertices);
+//   // MakeIcosahedron();
+//   for (int v = 0; v < num_vertices; v++) {
+//     // double xyz_coord[3] = {xyz_coord_V(v, 0), xyz_coord_V(v, 1), xyz_coord_V(v, 2)};
+//     vrts_.emplace_back(xyz_coord_V(v, 0), xyz_coord_V(v, 1), xyz_coord_V(v, 2));
+//   }
+//   for (int e = 0; e < num_edges; e++) {
+//     int v0 = V_of_E(e, 0);
+//     int v1 = V_of_E(e, 1);
+//     edges_.emplace_back(&vrts_[v0], &vrts_[v1]);
+//   }
+//   for (int f = 0; f < num_faces; f++) {
+//     int v0 = V_of_F(f, 0);
+//     int v1 = V_of_F(f, 1);
+//     int v2 = V_of_F(f, 2);
+//     tris_.emplace_back(&vrts_[v0], &vrts_[v1], &vrts_[v2]);
+//   }
+// }
 void TriMesh::load_ply() {
   // printf("Loading ply file\n");
   printf("Loading ply file %s\n", ply_path.c_str());
-  MeshConverter mc = MeshConverter::from_he_ply(ply_path, false);
-  auto [xyz_coord_V, V_of_E, V_of_F] = mc.get_vef_samples();
+  meshbrane::HalfEdgeMesh m = meshbrane::HalfEdgeMesh::from_he_ply(ply_path);
+
+  // meshbrane::MeshConverter mc =
+  //     meshbrane::MeshConverter::from_he_ply(ply_path, false);
+  auto [xyz_coord_V, V_of_E, V_of_F] = m.vef_samples();
 
   // assuming genus=0 without boundary
   int euler_characteristic = 2;
