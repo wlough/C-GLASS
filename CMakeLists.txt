@@ -39,6 +39,8 @@ endif()
 ## Add external dependencies here, e.g.:
 add_subdirectory(extern/KMC)
 add_subdirectory(extern/MeshBrane)
+# Include directories
+include_directories(extern/MeshBrane/include)
 
 ## The directory for the library
 add_subdirectory(src)
