@@ -1,8 +1,10 @@
 #include <cglass/filament.hpp>
 // #include <cglass/ply_tools.hpp>
 #include <cglass/triangle_mesh.hpp>
+#include <filesystem>
 #include <meshbrane/half_edge_mesh.hpp>
 #include <unistd.h>
+#include <vector>
 
 void TriMesh::Init(system_parameters *params) {
   // SF temp before integrating with output_manager
@@ -1352,22 +1354,24 @@ void TriMesh::UpdatePositions() {
 void TriMesh::load_ply() {
   // printf("Loading ply file\n");
   printf("Loading ply file %s\n", ply_path.c_str());
+  std::filesystem::path path(ply_path);
+  std::string directory = path.parent_path().string();
+  std::string filename = path.filename().string();
   meshbrane::HalfEdgeMesh m = meshbrane::HalfEdgeMesh::from_he_ply(ply_path);
-
-  // meshbrane::MeshConverter mc =
-  //     meshbrane::MeshConverter::from_he_ply(ply_path, false);
-  auto [xyz_coord_V, V_of_E, V_of_F] = m.vef_samples();
-
-  // assuming genus=0 without boundary
-  // int euler_characteristic = 2;
   int euler_characteristic = m.get_euler_characteristic();
   int num_vertices = m.get_num_vertices();
   int num_faces = m.get_num_faces();
   int num_edges = m.get_num_edges();
 
+  // meshbrane::MeshConverter mc =
+  //     meshbrane::MeshConverter::from_he_ply(ply_path, false);
+  auto [xyz_coord_V, V_of_E, V_of_F] = m.vef_samples();
+
   // for (int i = 0; i < num_vertices; i++) {
-  //   xyz_coord_V(i, 2) = .75 * xyz_coord_V(i, 2);
+  //   xyz_coord_V(i, 2) = .65 * xyz_coord_V(i, 2);
   // }
+  m.set_xyz_coord_V(xyz_coord_V);
+  m.write_he_ply("data/cglass_ply/" + filename);
 
   tris_.reserve(num_faces);
   edges_.reserve(num_edges);

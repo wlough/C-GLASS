@@ -58,4 +58,5 @@ version_generator.cpp
 rhs_files
 analysis/rhs
 rhs_yamls
-images/
+images/*
+output/*
