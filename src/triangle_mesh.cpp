@@ -3,6 +3,7 @@
 #include <cglass/triangle_mesh.hpp>
 #include <filesystem>
 #include <meshbrane/half_edge_mesh.hpp>
+#include <meshbrane/meshbrane_data_types.hpp>
 #include <unistd.h>
 #include <vector>
 
@@ -1366,12 +1367,14 @@ void TriMesh::load_ply() {
   // meshbrane::MeshConverter mc =
   //     meshbrane::MeshConverter::from_he_ply(ply_path, false);
   auto [xyz_coord_V, V_of_E, V_of_F] = m.vef_samples();
-
+  meshbrane::Samples3d xyz_coord_V2 = xyz_coord_V;
   // for (int i = 0; i < num_vertices; i++) {
-  //   xyz_coord_V(i, 2) = .65 * xyz_coord_V(i, 2);
+  //   xyz_coord_V(i, 1) = xyz_coord_V2(i, 2);
+  //   xyz_coord_V(i, 2) = xyz_coord_V2(i, 0);
+  //   xyz_coord_V(i, 0) = xyz_coord_V2(i, 1);
   // }
-  m.set_xyz_coord_V(xyz_coord_V);
-  m.write_he_ply("data/cglass_ply/" + filename);
+  // m.set_xyz_coord_V(xyz_coord_V);
+  m.write_he_ply("output/" + filename);
 
   tris_.reserve(num_faces);
   edges_.reserve(num_edges);
