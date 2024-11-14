@@ -320,9 +320,12 @@ void TriMesh::InitializeMesh() {
   // used in vutukuri et al
   // l_max_ = 1.4 * l_avg_;
   // l_min_ = 0.6 * l_avg_;
-  // used when more edge flipping is desired
-  l_max_ = 1.67 * l_avg_;
-  l_min_ = 0.33 * l_avg_;
+  // // used when more edge flipping is desired
+  // l_max_ = 1.67 * l_avg_;
+  // l_min_ = 0.33 * l_avg_;
+  // used for relaxation
+  l_max_ = 3.5 * l_avg_;
+  l_min_ = 0.15 * l_avg_;
 }
 
 void TriMesh::UpdateCentroid() {

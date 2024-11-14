@@ -1,150 +1,162 @@
-#ifndef HALF_EDGE_MESH_HPP
-#define HALF_EDGE_MESH_HPP
+#pragma once
 
-#include <cglass/generators.hpp>
-#include <cglass/half_edge_data_types.hpp>
-#include <optional> // std::optional
-#include <string>   // std::string
+#include "meshbrane/meshbrane_data_types.hpp"
+#include "minimum_distance.hpp"
+#include "rng.hpp"
+#include "site.hpp"
 
-class HalfEdgeMesh {
-public:
-  ///////////////////////////////////////////////////////
-  // Constructors ///////////////////////////////////////
-  ///////////////////////////////////////////////////////
-  // Default constructor
-  HalfEdgeMesh(const Samples3d &xyz_coord_V, const Samplesi &h_out_V,
-               const Samplesi &v_origin_H, const Samplesi &h_next_H,
-               const Samplesi &h_twin_H, const Samplesi &f_left_H,
-               const Samplesi &h_bound_F, const Samplesi &h_right_B);
-  static HalfEdgeMesh from_he_ply(const std::string &ply_path);
+namespace halfedge {
+struct HalfEdge;
 
-  ///////////////////////////////////////////////////////
-  // Fundamental accessors and properties ///////////////
-  ///////////////////////////////////////////////////////
-  const Samples3d &get_xyz_coord_V() const;
-  void set_xyz_coord_V(const Samples3d &value);
-  const Samplesi &get_h_out_V() const;
-  void set_h_out_V(const Samplesi &value);
-  const Samplesi &get_v_origin_H() const;
-  void set_v_origin_H(const Samplesi &value);
-  const Samplesi &get_h_next_H() const;
-  void set_h_next_H(const Samplesi &value);
-  const Samplesi &get_h_twin_H() const;
-  void set_h_twin_H(const Samplesi &value);
-  const Samplesi &get_f_left_H() const;
-  void set_f_left_H(const Samplesi &value);
-  const Samplesi &get_h_bound_F() const;
-  void set_h_bound_F(const Samplesi &value);
-  const Samplesi &get_h_right_B() const;
-  void set_h_right_B(const Samplesi &value);
+struct Vertex : public Site {
+  int i_{0}; // index in master vertices_ list
+  int seed{0};
+  meshbrane::Coords3d xyz_coord_;
+  HalfEdge *h_out_{nullptr};
 
-  int get_num_vertices() const;
-  int get_num_edges() const;
-  int get_num_half_edges() const;
-  int get_num_faces() const;
-  int get_euler_characteristic() const;
-  int get_num_boundaries() const;
-  int get_genus() const;
-
-  Samples3i V_of_F() const;
-  // Samples2i V_of_H() const;
-  // Samples2i V_of_E() const;
-  VertexFaceSamples vf_samples() const;
-  HalfEdgeSamples he_samples() const;
-  Samplesi F_incident_b(int b) const;
-  ///////////////////////////////////////////////////////
-  // Combinatorial maps /////////////////////////////////
-  ///////////////////////////////////////////////////////
-  Coords3d xyz_coord_v(int v) const;
-  Samples3d xyz_coord_v(const Samplesi &indices) const;
-  int h_out_v(int v) const;
-  Samplesi h_out_v(const Samplesi &indices) const;
-  int v_origin_h(int h) const;
-  Samplesi v_origin_h(const Samplesi &indices) const;
-  int h_next_h(int h) const;
-  Samplesi h_next_h(const Samplesi &indices) const;
-  int h_twin_h(int h) const;
-  Samplesi h_twin_h(const Samplesi &indices) const;
-  int f_left_h(int h) const;
-  Samplesi f_left_h(const Samplesi &indices) const;
-  int h_bound_f(int f) const;
-  Samplesi h_bound_f(const Samplesi &indices) const;
-  int h_right_b(int b) const;
-  Samplesi h_right_b(const Samplesi &indices) const;
-  // Derived combinatorial maps
-  int h_in_v(int v) const;
-  int v_head_h(int h) const;
-  int h_prev_h(int h) const;
-  int h_rotcw_h(int h) const;
-  int h_rotccw_h(int h) const;
-  int h_prev_h_by_rot(int h) const;
-  ///////////////////////////////////////////////////////
-  // Predicates /////////////////////////////////////////
-  ///////////////////////////////////////////////////////
-  bool some_negative_boundary_contains_h(int h) const;
-  bool some_positive_boundary_contains_h(int h) const;
-  bool some_boundary_contains_h(int h) const;
-  bool some_boundary_contains_v(int v) const;
-  bool h_is_locally_delaunay(int h) const;
-  bool h_is_flippable(int h) const;
-  ///////////////////////////////////////////////////////
-  // Generators /////////////////////////////////////////
-  ///////////////////////////////////////////////////////
-  SimpleGenerator<int> generate_V_of_f(int f) const;
-  SimpleGenerator<int> generate_H_out_v_clockwise(int v,
-                                                  int h_start = -1) const;
-  SimpleGenerator<int> generate_H_bound_f(int f, int h_start = -1) const;
-  SimpleGenerator<int> generate_H_rotcw_h(int h) const;
-  SimpleGenerator<int> generate_H_next_h(int h) const;
-  SimpleGenerator<int> generate_H_right_b(int b) const;
-  ///////////////////////////////////////////////////////
-  // Mutators ///////////////////////////////////////////
-  ///////////////////////////////////////////////////////
-  void update_vertex(int v,
-                     const std::optional<Coords3d> &xyz_coord = std::nullopt,
-                     const std::optional<int> &h_out = std::nullopt);
-  void update_half_edge(int h,
-                        const std::optional<int> &v_origin = std::nullopt,
-                        const std::optional<int> &h_next = std::nullopt,
-                        const std::optional<int> &h_twin = std::nullopt,
-                        const std::optional<int> &f_left = std::nullopt);
-  void update_face(int f, const std::optional<int> &h_left = std::nullopt);
-  /**
-   * @brief Flips edge h.
-   *
-   * @param h
-   * h cannot be on boundary!
-   *         v1                           v1
-   *       /    \                       /  |  \
-   *      /      \                     /   |   \
-   *     /h3    h2\                   /h3  |  h2\
-   *    /    f0    \                 /     |     \
-   *   /            \               /  f0  |  f1  \
-   *  /      h0      \             /       |       \
-   * v2--------------v0  |----->  v2     h0|h1     v0
-   *  \      h1      /             \       |       /
-   *   \            /               \      |      /
-   *    \    f1    /                 \     |     /
-   *     \h4    h5/                   \h4  |  h5/
-   *      \      /                     \   |   /
-   *       \    /                       \  |  /
-   *         v3                           v3
-   */
-  void flip_edge(int h);
-  int flip_non_delaunay();
-
-private:
-  ///////////////
-  // Attributes /
-  ///////////////
-  Samples3d _xyz_coord_V; //
-  Samplesi _h_out_V;      //
-  Samplesi _v_origin_H;   //
-  Samplesi _h_next_H;     //
-  Samplesi _h_twin_H;     //
-  Samplesi _f_left_H;     //
-  Samplesi _h_bound_F;    //
-  Samplesi _h_right_B;    //
+  Vertex() : Site(seed) {
+    xyz_coord_.setZero();
+    Site::SetPositionXYZ(0, 0, 0);
+  }
+  Vertex(double x, double y, double z) : Site(seed) {
+    xyz_coord_[0] = x;
+    xyz_coord_[1] = y;
+    xyz_coord_[2] = z;
+    Site::SetPositionXYZ(x, y, z);
+  }
+  friend bool operator==(const Vertex &lhs, const Vertex &rhs) {
+    return (lhs.xyz_coord_[0] == rhs.xyz_coord_[0] and
+            lhs.xyz_coord_[1] == rhs.xyz_coord_[1] and
+            lhs.xyz_coord_[2] == rhs.xyz_coord_[2]);
+  }
+  friend bool operator!=(const Vertex &lhs, const Vertex &rhs) {
+    return !(lhs == rhs);
+  }
+  void SetPos(const double *const new_pos) {
+    xyz_coord_ = Eigen::Map<const Eigen::Matrix<double, 3, 1>>(new_pos);
+    pos[0] = position_[0] = new_pos[0];
+    pos[1] = position_[1] = new_pos[1];
+    pos[2] = position_[2] = new_pos[2];
+  }
 };
 
-#endif // HALF_EDGE_MESH_HPP
+struct Face {
+  int i_{0}; // index in master faces_ list
+  HalfEdge *h_right_{nullptr};
+
+  Face();
+
+  friend bool operator==(const Face &lhs, const Face &rhs) {
+    return lhs.h_right_ == rhs.h_right_;
+  }
+  friend bool operator!=(const Face &lhs, const Face &rhs) {
+    return !(lhs == rhs);
+  }
+};
+
+struct Edge {
+  int i_{0}; // index in master faces_ list
+  HalfEdge *h_right_{nullptr};
+  Edge();
+
+  friend bool operator==(const Edge &lhs, const Edge &rhs) {
+    return (lhs.h_right_ == rhs.h_right_ or
+            lhs.h_right_->h_twin_ == rhs.h_right_);
+  }
+  friend bool operator!=(const Edge &lhs, const Edge &rhs) {
+    return !(lhs == rhs);
+  }
+};
+
+struct HalfEdge {
+  int i_{0}; // index in master half_edges_ list
+  Vertex *v_origin_{nullptr};
+  HalfEdge *h_twin_{nullptr};
+  HalfEdge *h_next_{nullptr};
+  Face *f_left_{nullptr};
+
+  HalfEdge() {}
+  HalfEdge(Vertex *v) : v_origin_(v) {}
+  HalfEdge(Vertex *v, HalfEdge *twin, HalfEdge *next, Face *f)
+      : v_origin_(v), h_twin_(twin), h_next_(next), f_left_(f) {}
+};
+
+class HalfEdgeMesh {
+private:
+  static const size_t n_edges_min_{3};  // true for any connected graph
+  static const size_t n_edges_max_{10}; // arbitrary choice
+
+  bool do_not_pass_go_{false};
+  int i_datapoint_{0};
+
+  FILE *forces_{nullptr};    // average force from each type of potential
+  FILE *vertices_{nullptr};  // position (3D per vrt per step)
+  FILE *adjacency_{nullptr}; // adjacency matrix  (2D per vrt per step)
+  system_parameters *params_{nullptr};
+
+  double f_avgs_[4]; // indices 0-4: tether, bend, area, vol
+
+  double l_avg_{0.0};
+  double gamma_{0.0};
+
+  // params for radial force
+  double kappa_B_{0.0};
+  double l_max_{0.0};
+  double l_min_{0.0};
+  double l_c0_{0.0};
+  double l_c1_{0.0};
+  // params for bending force
+  double kappa_{0.0};
+  // params for area conservation force
+  double kappa_l_{0.0};
+  double A_prime_{0.0};
+  // params for volume conservation force
+  double kappa_v_{0.0};
+  double V_prime_{0.0};
+  RNG *rng_; // SF TODO link with system RNG
+  MinimumDistance mindist_;
+
+public:
+  double r_sys_{0.0};
+  double centroid_[3];
+
+  std::vector<Object *> boundary_neighbs_;
+
+  std::vector<Vertex> vrts_;
+  std::vector<Triangle> tris_;
+  std::vector<Edge> edges_;
+
+  std::vector<graph_struct> f_mem_;
+  graph_struct o_;
+
+private:
+  void SetParameters();
+  void MakeIcosphere();
+  void MakeIcosahedron();
+  void DivideFaces();
+  void ProjectToUnitSphere();
+  void InitializeMesh();
+  void FlipEdges();
+  void UpdateCentroid();
+  void UpdateTriangles();
+  void UpdateNeighbors();
+  void UpdateMesh();
+  void ApplyMembraneForces();
+  void ApplyBoundaryForces();
+
+public:
+  TriMesh() {}
+  void Init(system_parameters *params);
+  void Draw(std::vector<graph_struct *> &graph_array);
+  void UpdatePositions();
+  void WriteOutputs();
+
+  ////////////////////////////////////////////////////////////////////////////
+  // WLOUGH
+public:
+  std::string ply_path{"none"};
+  void load_ply();
+  ////////////////////////////////////////////////////////////////////////////
+};
+
+} // namespace halfedge

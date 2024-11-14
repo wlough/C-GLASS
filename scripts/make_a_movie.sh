@@ -12,10 +12,10 @@ fi
 image_format="bmp"
 image_prefix="test"
 index_length=5
-movie_name=image_prefix
+movie_name=$image_prefix
 movie_format="mp4"
 
-frame_rate=200
+frame_rate=20
 frame_size="1080x720"
 video_codec="libx264"
 video_quality=25
