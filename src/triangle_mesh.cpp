@@ -1367,8 +1367,6 @@ void TriMesh::load_ply() {
   int num_faces = m.get_num_faces();
   int num_edges = m.get_num_edges();
 
-  // meshbrane::MeshConverter mc =
-  //     meshbrane::MeshConverter::from_he_ply(ply_path, false);
   auto [xyz_coord_V, V_of_E, V_of_F] = m.vef_samples();
   meshbrane::Samples3d xyz_coord_V2 = xyz_coord_V;
   // for (int i = 0; i < num_vertices; i++) {
