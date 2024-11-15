@@ -74,13 +74,14 @@ target_include_directories(cglass PUBLIC
 # Associate the include files with the target, so they will be installed
 set_target_properties(cglass PROPERTIES PUBLIC_HEADER "${HEADERS}")
 
+
 # Set install targets and destinations
 install(TARGETS cglass
     EXPORT cglassTargets
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
     PUBLIC_HEADER DESTINATION include/cglass)
-
+message("------------------------cglassTargets: ${cglassTargets}")
 # Export additional install files (for clients using CMake)
 install(EXPORT cglassTargets
     NAMESPACE cglass::
