@@ -94,7 +94,7 @@ n_load: 0
 print_complete: 0
 insertion_type: species
 movie_flag: 0
-movie_directory: frames
+movie_directory: output/temp_images
 time_flag: 0
 bud_height: 680
 bud_radius: 300

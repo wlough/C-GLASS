@@ -149,7 +149,7 @@ draw_boundary: true
 load_checkpoint: false
 checkpoint_run_name: sc
 n_load: 0
-movie_directory: frames
+movie_directory: output/temp_images
 time_analysis: false
 bud_height: 680
 bud_radius: 300

@@ -10,7 +10,7 @@ draw_boundary: true
 graph_flag: false
 n_graph: 500
 movie_flag: false
-movie_directory: images
+movie_directory: output/temp_images
 system_radius: 100
 thermo_flag: true
 n_thermo: 2000
