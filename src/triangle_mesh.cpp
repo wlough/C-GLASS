@@ -2,7 +2,7 @@
 // #include <cglass/ply_tools.hpp>
 #include <cglass/triangle_mesh.hpp>
 #include <filesystem>
-#include <meshbrane/half_edge_mesh.hpp>
+#include <meshbrane/matrix_mesh.hpp>
 #include <meshbrane/meshbrane_data_types.hpp>
 #include <unistd.h>
 #include <vector>
@@ -1361,7 +1361,7 @@ void TriMesh::load_ply() {
   std::filesystem::path path(ply_path);
   std::string directory = path.parent_path().string();
   std::string filename = path.filename().string();
-  meshbrane::HalfEdgeMesh m = meshbrane::HalfEdgeMesh::from_he_ply(ply_path);
+  meshbrane::MatrixMesh m = meshbrane::MatrixMesh::from_he_ply(ply_path);
   int euler_characteristic = m.get_euler_characteristic();
   int num_vertices = m.get_num_vertices();
   int num_faces = m.get_num_faces();

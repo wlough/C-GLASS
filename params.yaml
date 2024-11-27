@@ -46,7 +46,7 @@ mesh_node_diameter: 1
 mesh_draw_centroid: false
 mesh_draw_mindist: true
 # mesh_ply_path: data/cglass_ply/oblate_005120_he.ply
-mesh_ply_path: data/cglass_ply/unit_sphere_001280_he.ply
+mesh_ply_path: extern/MeshBrane/data/cglass_ply/unit_sphere_001280_he.ply
 # mesh_ply_path: data/cglass_ply/dumbbell_yaxis_coarse_he.ply
 chromosome:
   - name: CHROMO

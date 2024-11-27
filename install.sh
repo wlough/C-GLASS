@@ -6,7 +6,8 @@ do_build() {
     cmake ${CMAKE_FLAGS} ..
     make -j8
     if $build_docs; then
-        make docs
+        # make docs
+        doxygen Doxyfile
     fi
     if $run_tests; then
         make test

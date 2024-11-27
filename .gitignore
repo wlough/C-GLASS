@@ -60,3 +60,5 @@ analysis/rhs
 rhs_yamls
 images/*
 output/*
+docs/html/*
+docs/latex/*

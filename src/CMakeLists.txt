@@ -81,7 +81,7 @@ install(TARGETS cglass
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
     PUBLIC_HEADER DESTINATION include/cglass)
-message("------------------------cglassTargets: ${cglassTargets}")
+    
 # Export additional install files (for clients using CMake)
 install(EXPORT cglassTargets
     NAMESPACE cglass::
