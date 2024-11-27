@@ -5,6 +5,7 @@
 
 #include "auxiliary.hpp"
 #include "cglass/centrosome.hpp"
+#include "cglass/membrane.hpp"
 #include "cglass/triangle_mesh.hpp"
 #include <GL/glew.h>
 #include <GL/glu.h>

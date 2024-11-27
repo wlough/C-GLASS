@@ -7,7 +7,7 @@ do_build() {
     make -j8
     if $build_docs; then
         # make docs
-        doxygen Doxyfile
+        doxygen ../Doxyfile
     fi
     if $run_tests; then
         make test
