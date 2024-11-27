@@ -9,7 +9,6 @@ tags
 /*.txt
 /*.dat
 /*.xyz
-/data
 *ipynb_checkpoints
 .DS_Store
 bin
