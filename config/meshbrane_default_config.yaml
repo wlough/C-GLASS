@@ -33,7 +33,7 @@ load_checkpoint:
 checkpoint_run_name: [sc, string] # Internal parameter for tracking checkpoint file run name.
 n_load: [0, int] # Internal parameter for keeping track of reload numbers
 movie_flag: [false, bool] # Generate bitmaps of graphics window to movie_directory
-movie_directory: [frames, string] # Directory to output graphics bitmaps
+movie_directory: [output/temp_images, string] # Directory to output graphics bitmaps
 time_analysis: [false, bool] # Generate output file with simulation runtime data
 bud_height: [680, double] # center separation of mother and daughter cells
 bud_radius: [300, double] # radius of daughter cell

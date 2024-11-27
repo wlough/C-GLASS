@@ -1,0 +1,36 @@
+membrane:
+  ply_path: [data/cglass_ply/unit_sphere_005120.ply, string] # Path to ply file for membrane mesh
+  preferred_area: [1.0, double] # (Length^2) preferred surface area
+  preferred_volume: [0.09403159725796, double] # (Length^3) preferred interior volume
+  spontaneous_curvature: [0.0, double] # (1/Length) spontaneous mean curvature
+  bending_modulus: [20.1, double] # (Energy) bending rigidity
+  splay_modulus: [0.0, double] # (Energy) splay modulus
+  volume_reg_stiffness: [15.2, double] # (Energy/Length^3) volume constraint stiffness
+  area_reg_stiffness: [3.0, double] # (Energy/Length^2) area constraint stiffness
+  tether_stiffness: [80.5, double] # (Energy) edge length constraint stiffness
+  tether_repulsive_onset: [0.8, double] # (Dimensionless) onset of repulsive penalty
+  tether_repulsive_singularity: [.25, double] # (Dimensionless) tethering potential minimum length
+  tether_attractive_onset: [1.2, double] # (Dimensionless) onset of attractive penalty
+  tether_attractive_singularity: [2.5, double] # (Dimensionless) tethering potential max length
+  node_drag_coefficient: [0.03, double] # (Energy*Time/Length^2) friction coefficient
+  timestep: [1e-5, double] # timestep for membrane dynamics
+  flip_sweeps_per_step: [1, int] # (dimensionless) flip sweeps per timestep
+  flipping_probability: [0.3, double] # flipping probability
+
+membrane_ply_path: [data/cglass_ply/unit_sphere_005120.ply, string] # Path to ply file for membrane mesh
+membrane_preferred_area: [1.0, double] # (Length^2) preferred surface area
+membrane_preferred_volume: [0.09403159725796, double] # (Length^3) preferred interior volume
+membrane_spontaneous_curvature: [0.0, double] # (1/Length) spontaneous mean curvature
+membrane_bending_modulus: [20.1, double] # (Energy) bending rigidity
+membrane_splay_modulus: [0.0, double] # (Energy) splay modulus
+membrane_volume_reg_stiffness: [15.2, double] # (Energy/Length^3) volume constraint stiffness
+membrane_area_reg_stiffness: [3.0, double] # (Energy/Length^2) area constraint stiffness
+membrane_tether_stiffness: [80.5, double] # (Energy) edge length constraint stiffness
+membrane_tether_repulsive_onset: [0.8, double] # (Dimensionless) onset of repulsive penalty
+membrane_tether_repulsive_singularity: [.25, double] # (Dimensionless) tethering potential minimum length
+membrane_tether_attractive_onset: [1.2, double] # (Dimensionless) onset of attractive penalty
+membrane_tether_attractive_singularity: [2.5, double] # (Dimensionless) tethering potential max length
+membrane_node_drag_coefficient: [0.03, double] # (Energy*Time/Length^2) friction coefficient
+membrane_timestep: [1e-5, double] # timestep for membrane dynamics
+membrane_flip_sweeps_per_step: [1, int] # (dimensionless) flip sweeps per timestep
+membrane_flipping_probability: [0.3, double] # flipping probability

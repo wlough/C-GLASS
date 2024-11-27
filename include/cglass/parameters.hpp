@@ -327,17 +327,19 @@ struct system_parameters {
   size_t mesh_datapoints = 10000;
   size_t mesh_steps_per_datapoint = 10;
   double mesh_shrink_rate = 0.0;
-  double mesh_kB = 0.0;
-  double mesh_k = 0.0;
-  double mesh_kl = 0.0;
-  double mesh_kV = 0.0;
+  double membrane_tether_stiffness = 0.0;
+  double membrane_bending_modulus = 0.0;
+  double membrane_area_reg_stiffness = 0.0;
+  double membrane_volume_reg_stiffness = 0.0;
   size_t n_subdivisions = 0;
   double node_diameter = 0.0;
-  double node_gamma = 0.0;
+  double membrane_node_drag_coefficient = 0.0;
   bool draw_centroid = false;
   bool draw_mindist = false;
   bool enable_flipping = false;
-  std::string mesh_ply_path = "none";
+  std::string membrane_ply_path = "none";
+  double membrane_tether_repulsive_singularity = 0.1;
+  double membrane_tether_repulsive_onset = 0.8;
 };
 
 #endif // _CGLASS_PARAMETERS_H_

@@ -175,22 +175,27 @@ system_parameters parse_system_params(YAML::Node &node) {
       params.mesh_steps_per_datapoint = it->second.as<size_t>();
     } else if (param_name.compare("mesh_shrink_rate") == 0) {
       params.mesh_shrink_rate = it->second.as<double>();
-    } else if (param_name.compare("mesh_kB") == 0) {
-      params.mesh_kB = it->second.as<double>();
-    } else if (param_name.compare("mesh_ply_path") == 0) {
-      params.mesh_ply_path = it->second.as<std::string>();
-    } else if (param_name.compare("mesh_k") == 0) {
-      params.mesh_k = it->second.as<double>();
-    } else if (param_name.compare("mesh_kl") == 0) {
-      params.mesh_kl = it->second.as<double>();
-    } else if (param_name.compare("mesh_kV") == 0) {
-      params.mesh_kV = it->second.as<double>();
+    } else if (param_name.compare("membrane_tether_stiffness") == 0) {
+      params.membrane_tether_stiffness = it->second.as<double>();
+    } else if (param_name.compare("membrane_tether_repulsive_singularity") ==
+               0) {
+      params.membrane_tether_repulsive_singularity = it->second.as<double>();
+    } else if (param_name.compare("membrane_tether_repulsive_onset") == 0) {
+      params.membrane_tether_repulsive_onset = it->second.as<double>();
+    } else if (param_name.compare("membrane_ply_path") == 0) {
+      params.membrane_ply_path = it->second.as<std::string>();
+    } else if (param_name.compare("membrane_bending_modulus") == 0) {
+      params.membrane_bending_modulus = it->second.as<double>();
+    } else if (param_name.compare("membrane_area_reg_stiffness") == 0) {
+      params.membrane_area_reg_stiffness = it->second.as<double>();
+    } else if (param_name.compare("membrane_volume_reg_stiffness") == 0) {
+      params.membrane_volume_reg_stiffness = it->second.as<double>();
     } else if (param_name.compare("mesh_enable_flipping") == 0) {
       params.enable_flipping = it->second.as<bool>();
     } else if (param_name.compare("mesh_n_subdivisions") == 0) {
       params.n_subdivisions = it->second.as<size_t>();
-    } else if (param_name.compare("mesh_node_gamma") == 0) {
-      params.node_gamma = it->second.as<double>();
+    } else if (param_name.compare("membrane_node_drag_coefficient") == 0) {
+      params.membrane_node_drag_coefficient = it->second.as<double>();
     } else if (param_name.compare("mesh_node_diameter") == 0) {
       params.node_diameter = it->second.as<double>();
     } else if (param_name.compare("mesh_draw_centroid") == 0) {

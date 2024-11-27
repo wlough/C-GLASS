@@ -4,6 +4,7 @@
 // #include "common_libs.hpp"
 // #include "definitions.hpp"
 #include "meshbrane/meshbrane_data_types.hpp"
+#include "meshbrane/simple_generator.hpp"
 #include "minimum_distance.hpp"
 #include "rng.hpp"
 #include "site.hpp"
@@ -191,22 +192,22 @@ private:
 
   double f_avgs_[4]; // indices 0-4: tether, bend, area, vol
 
-  double l_avg_{0.0};
-  double gamma_{0.0};
+  double l_avg_{0.0}; // average edge length
+  double gamma_{0.0}; // a
 
   // params for radial force
-  double kappa_B_{0.0};
-  double l_max_{0.0};
-  double l_min_{0.0};
-  double l_c0_{0.0};
-  double l_c1_{0.0};
+  double tether_stiffness_{0.0};
+  double tether_attractive_singularity_{0.0};
+  double tether_repulsive_singularity_{0.0};
+  double tether_attractive_onset_{0.0};
+  double tether_repulsive_onset_{0.0};
   // params for bending force
-  double kappa_{0.0};
+  double bending_modulus_{0.0};
   // params for area conservation force
-  double kappa_l_{0.0};
+  double area_reg_stiffness_{0.0};
   double A_prime_{0.0};
   // params for volume conservation force
-  double kappa_v_{0.0};
+  double volume_reg_stiffness_{0.0};
   double V_prime_{0.0};
   RNG *rng_; // SF TODO link with system RNG
   MinimumDistance mindist_;
@@ -247,10 +248,32 @@ public:
   void WriteOutputs();
 
   ////////////////////////////////////////////////////////////////////////////
-  // WLOUGH
+  // WBL
 public:
   std::string ply_path{"none"};
   void load_ply();
+
+  //   ply_path: [data/cglass_ply/unit_sphere_005120.ply, string] # Path to ply file for membrane mesh
+
+  double preferred_area_{1.0};
+  double preferred_volume_{0.09403159725796};
+  double spontaneous_curvature_{0.0};
+  // double bending_modulus_{20.1};
+  double splay_modulus_{0.0};
+  // double volume_reg_stiffness_{15.2};
+  // double area_reg_stiffness_{3.0};
+  // double tether_stiffness_{80.5};
+  // double tether_repulsive_onset_{0.8};
+  // double tether_repulsive_singularity_{0.25};
+  // double tether_attractive_onset_{1.2};
+  // double tether_attractive_singularity_{2.5};
+  double node_drag_coefficient_{0.03};
+  double timestep_{1e-5};
+  int flip_sweeps_per_step_{1};
+  double flipping_probability_{0.3};
+
+  //   // WBL
+
   ////////////////////////////////////////////////////////////////////////////
 };
 

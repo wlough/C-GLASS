@@ -4,18 +4,18 @@ n_dim: 3
 n_periodic: 0
 boundary: 5
 draw_boundary: true
-system_radius: 35
-delta: 1e-4
+system_radius: 30
+delta: 1e-5
 dynamic_timestep: false
 dynamic_timestep_ramp: 0.0001
 n_steps: 50000000 #000
 n_steps_equil: 0
 graph_flag: true
 auto_graph: true
-n_graph: 50 # want n_graph*delta = 1e-5-1e-4?
+n_graph: 10 # want n_graph*delta = 1e-5-1e-4?
 movie_flag: true
 movie_directory: output/temp_images
-invert_background: false
+invert_background: true
 potential: wca
 wca_sig: 1
 wca_eps: 1
@@ -29,25 +29,13 @@ coarse_grained_mesh_interactions: false # SF TODO explore this
 mesh_membrane: false # overridden when boundary_Type=5
 mesh_n_subdivisions: 3
 mesh_datapoints: 10000
-mesh_steps_per_datapoint: 1
+mesh_steps_per_datapoint: 5
 mesh_shrink_rate: 0.0 # 1e-4
-# mesh_kB: 16.1 #16.1 # 80.5
-# mesh_k: 4.0 # 0.4 # 20.1
-# mesh_kl: 1.0 # 0.1 # 5.03
-# mesh_kV: 3.0 # 0.3 # 15.2
-# mesh_node_gamma: 0.02 # 0.02
-mesh_kB: 80.5
-mesh_k: 20.1
-mesh_kl: .03
-mesh_kV: 15.2
-mesh_node_gamma: 0.02
-mesh_enable_flipping: false
-mesh_node_diameter: 1
-mesh_draw_centroid: false
-mesh_draw_mindist: true
-# mesh_ply_path: data/cglass_ply/oblate_005120_he.ply
-mesh_ply_path: extern/MeshBrane/data/cglass_ply/unit_sphere_001280_he.ply
-# mesh_ply_path: data/cglass_ply/dumbbell_yaxis_coarse_he.ply
+# membrane_tether_stiffness: 16.1 #16.1 # 80.5
+# membrane_bending_modulus: 4.0 # 0.4 # 20.1
+# membrane_area_reg_stiffness: 1.0 # 0.1 # 5.03
+# membrane_volume_reg_stiffness: 3.0 # 0.3 # 15.2
+# membrane_node_drag_coefficient: 0.02 # 0.02
 chromosome:
   - name: CHROMO
     num: 0 # 2
@@ -226,3 +214,28 @@ crosslink:
     force_dep_length: 0
     spec_flag: false
     n_spec: 100
+
+membrane_tether_stiffness: 80.5 # bond stiffness
+membrane_bending_modulus: 10.1 # bending stiffness
+membrane_area_reg_stiffness: 3. # area constraint stiffness
+membrane_volume_reg_stiffness: 15.2 # volume constraint stiffness
+membrane_node_drag_coefficient: 0.02
+mesh_enable_flipping: false
+mesh_node_diameter: 1
+mesh_draw_centroid: false
+mesh_draw_mindist: false
+# membrane_ply_path: extern/MeshBrane/data/cglass_ply/unit_sphere_001280_he.ply
+membrane_ply_path: data/cglass_ply/dumbbell_yaxis_coarse_he.ply
+
+membrane_tether_repulsive_singularity: .25 # (Dimensionless) tethering potential minimum length
+
+# membrane_preferred_area: [1.0, double] # (Length^2) preferred surface area
+# membrane_preferred_volume: [0.09403159725796, double] # (Length^3) preferred interior volume
+# membrane_spontaneous_curvature: [0.0, double] # (1/Length) spontaneous mean curvature
+# membrane_splay_modulus: [0.0, double] # (Energy) splay modulus
+# membrane_tether_repulsive_onset: [0.8, double] # (Dimensionless) onset of repulsive penalty
+# membrane_tether_attractive_onset: [1.2, double] # (Dimensionless) onset of attractive penalty
+# membrane_tether_attractive_singularity: [2.5, double] # (Dimensionless) tethering potential max length
+# membrane_timestep: [1e-5, double] # timestep for membrane dynamics
+# membrane_flip_sweeps_per_step: [1, int] # (dimensionless) flip sweeps per timestep
+# membrane_flipping_probability: [0.3, double] # flipping probability
