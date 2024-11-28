@@ -180,8 +180,13 @@ system_parameters parse_system_params(YAML::Node &node) {
     } else if (param_name.compare("membrane_tether_repulsive_singularity") ==
                0) {
       params.membrane_tether_repulsive_singularity = it->second.as<double>();
+    } else if (param_name.compare("membrane_tether_attractive_singularity") ==
+               0) {
+      params.membrane_tether_attractive_singularity = it->second.as<double>();
     } else if (param_name.compare("membrane_tether_repulsive_onset") == 0) {
       params.membrane_tether_repulsive_onset = it->second.as<double>();
+    } else if (param_name.compare("membrane_tether_attractive_onset") == 0) {
+      params.membrane_tether_attractive_onset = it->second.as<double>();
     } else if (param_name.compare("membrane_ply_path") == 0) {
       params.membrane_ply_path = it->second.as<std::string>();
     } else if (param_name.compare("membrane_bending_modulus") == 0) {

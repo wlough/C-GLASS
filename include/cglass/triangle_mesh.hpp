@@ -3,19 +3,26 @@
 
 // #include "common_libs.hpp"
 // #include "definitions.hpp"
+#include "meshbrane/matrix_mesh.hpp"
 #include "meshbrane/meshbrane_data_types.hpp"
 #include "meshbrane/simple_generator.hpp"
 #include "minimum_distance.hpp"
 #include "rng.hpp"
 #include "site.hpp"
+#include <memory> // std::shared_ptr
 
+namespace mbrn = meshbrane;
 // TODO add param storage and sync site seeds
 
 struct Triangle;
 struct Edge;
+struct HalfEdge;
+using HalfEdgePtr = std::shared_ptr<HalfEdge>;
 struct Vertex : public Site {
   size_t i_{0}; // index in master vrts_ list
   // SF TODO link
+  // size_t h_origin_{0}; // half-edge index on origin side
+  HalfEdgePtr h_origin_ptr;
   int seed{0};
   double pos_[3];
 
@@ -35,6 +42,12 @@ struct Vertex : public Site {
     pos_[1] = y;
     pos_[2] = z;
     Site::SetPositionXYZ(x, y, z);
+  }
+  Vertex(mbrn::Coords3d xyz_coord) : Site(seed) {
+    pos_[0] = xyz_coord(0);
+    pos_[1] = xyz_coord(1);
+    pos_[2] = xyz_coord(2);
+    Site::SetPositionXYZ(xyz_coord(0), xyz_coord(1), xyz_coord(2));
   }
   friend bool operator==(const Vertex &lhs, const Vertex &rhs) {
     return (lhs.pos_[0] == rhs.pos_[0] and lhs.pos_[1] == rhs.pos_[1] and
@@ -90,7 +103,9 @@ struct Edge {
 
 struct Triangle {
 
-  size_t i_{0}; // index in master tris_ lit
+  size_t i_{0};       // index in master tris_ lit
+  size_t h_right_{0}; // half-edge index on right-handed boundary
+  HalfEdgePtr half_edge_ptr;
 
   bool flipped_{false};
   double area_;
@@ -176,7 +191,11 @@ struct Triangle {
   }
 };
 
-class TriMesh {
+struct HalfEdge {
+  size_t i_{0}; // index in master half_edges_ list
+};
+
+class TriMesh : public mbrn::MatrixMesh {
 
 private:
   static const size_t n_edges_min_{3};  // true for any connected graph
@@ -192,8 +211,8 @@ private:
 
   double f_avgs_[4]; // indices 0-4: tether, bend, area, vol
 
-  double l_avg_{0.0}; // average edge length
-  double gamma_{0.0}; // a
+  double l_avg_{0.0};                 // average edge length
+  double node_drag_coefficient_{0.0}; // a
 
   // params for radial force
   double tether_stiffness_{0.0};
@@ -202,7 +221,7 @@ private:
   double tether_attractive_onset_{0.0};
   double tether_repulsive_onset_{0.0};
   // params for bending force
-  double bending_modulus_{0.0};
+  // double bending_modulus_{0.0};
   // params for area conservation force
   double area_reg_stiffness_{0.0};
   double A_prime_{0.0};
@@ -221,17 +240,23 @@ public:
   std::vector<Vertex> vrts_;
   std::vector<Triangle> tris_;
   std::vector<Edge> edges_;
+  std::vector<HalfEdge> half_edges_;
 
   std::vector<graph_struct> f_mem_;
   graph_struct o_;
 
 private:
+  /**
+ * @brief Set the Parameters object
+ * 
+ */
   void SetParameters();
   void MakeIcosphere();
   void MakeIcosahedron();
   void DivideFaces();
   void ProjectToUnitSphere();
   void InitializeMesh();
+  void InitializeMeshBrane();
   void FlipEdges();
   void UpdateCentroid();
   void UpdateTriangles();
@@ -247,34 +272,54 @@ public:
   void UpdatePositions();
   void WriteOutputs();
 
-  ////////////////////////////////////////////////////////////////////////////
-  // WBL
+  ////////////////////////////////////////
+  // WBL /////////////////////////////////
+  ////////////////////////////////////////
 public:
+  //////////
+  // Data //
+  //////////
   std::string ply_path{"none"};
-  void load_ply();
-
-  //   ply_path: [data/cglass_ply/unit_sphere_005120.ply, string] # Path to ply file for membrane mesh
 
   double preferred_area_{1.0};
   double preferred_volume_{0.09403159725796};
   double spontaneous_curvature_{0.0};
-  // double bending_modulus_{20.1};
+  double bending_modulus_{0.0};
   double splay_modulus_{0.0};
   // double volume_reg_stiffness_{15.2};
   // double area_reg_stiffness_{3.0};
+  double dimensionless_tether_repulsive_onset_{0.8};
+  double dimensionless_tether_repulsive_singularity_{0.25};
+  double dimensionless_tether_attractive_onset_{1.2};
+  double dimensionless_tether_attractive_singularity_{2.5};
   // double tether_stiffness_{80.5};
   // double tether_repulsive_onset_{0.8};
   // double tether_repulsive_singularity_{0.25};
   // double tether_attractive_onset_{1.2};
   // double tether_attractive_singularity_{2.5};
-  double node_drag_coefficient_{0.03};
+  // double node_drag_coefficient_{0.03};
   double timestep_{1e-5};
   int flip_sweeps_per_step_{1};
   double flipping_probability_{0.3};
 
-  //   // WBL
+  //////////////////////////////////////
+  // Constructors and related methods //
+  //////////////////////////////////////
+  /**
+   * @brief Copy constructor
+   */
+  TriMesh(const TriMesh &other) : mbrn::MatrixMesh(other) {};
+  void LoadPly();
+  /**
+   * @brief Refresh vertex, edge, and face lists from the matrix mesh data
+   */
+  void RefreshVEF_from_mats();
 
-  ////////////////////////////////////////////////////////////////////////////
+  void RefreshEdgeParams();
+
+  /////////////////
+  // Generators //
+  ////////////////
 };
 
 #endif

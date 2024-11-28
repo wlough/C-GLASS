@@ -462,9 +462,9 @@ membrane_ply_path: [data/cglass_ply/unit_sphere_005120.ply, string] # Path to pl
 # membrane_area_reg_stiffness: [3.0, double] # (Energy/Length^2) area constraint stiffness
 # membrane_tether_stiffness: [80.5, double] # (Energy) edge length constraint stiffness
 membrane_tether_repulsive_onset: [0.8, double] # (Dimensionless) onset of repulsive penalty
-membrane_tether_repulsive_singularity: [.25, double] # (Dimensionless) tethering potential minimum length
-# membrane_tether_attractive_onset: [1.2, double] # (Dimensionless) onset of attractive penalty
-# membrane_tether_attractive_singularity: [2.5, double] # (Dimensionless) tethering potential max length
+membrane_tether_repulsive_singularity: [.15, double] # (Dimensionless) tethering potential minimum length
+membrane_tether_attractive_onset: [1.2, double] # (Dimensionless) onset of attractive penalty
+membrane_tether_attractive_singularity: [3.5, double] # (Dimensionless) tethering potential max length
 # membrane_node_drag_coefficient: [0.03, double] # (Energy*Time/Length^2) friction coefficient
 # membrane_timestep: [1e-5, double] # timestep for membrane dynamics
 # membrane_flip_sweeps_per_step: [1, int] # (dimensionless) flip sweeps per timestep

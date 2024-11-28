@@ -340,6 +340,8 @@ struct system_parameters {
   std::string membrane_ply_path = "none";
   double membrane_tether_repulsive_singularity = 0.1;
   double membrane_tether_repulsive_onset = 0.8;
+  double membrane_tether_attractive_onset = 1.2;
+  double membrane_tether_attractive_singularity = 3.3;
 };
 
 #endif // _CGLASS_PARAMETERS_H_

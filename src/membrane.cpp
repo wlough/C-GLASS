@@ -8,7 +8,7 @@
 #include <unistd.h>
 #include <vector>
 
-// void Membrane::load_ply() {
+// void Membrane::LoadPly() {
 //   // printf("Loading ply file\n");
 //   printf("Loading ply file %s\n", ply_path.c_str());
 //   std::filesystem::path path(ply_path);
