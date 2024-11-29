@@ -3,6 +3,7 @@
 
 // #include "common_libs.hpp"
 // #include "definitions.hpp"
+#include "meshbrane/half_edge_primitives.hpp"
 #include "meshbrane/matrix_mesh.hpp"
 #include "meshbrane/meshbrane_data_types.hpp"
 #include "meshbrane/simple_generator.hpp"
@@ -12,43 +13,102 @@
 #include <memory> // std::shared_ptr
 
 namespace mbrn = meshbrane;
+namespace hedge = meshbrane::half_edge;
 // TODO add param storage and sync site seeds
 
 struct Triangle;
 struct Edge;
+struct Vertex;
 struct HalfEdge;
 using HalfEdgePtr = std::shared_ptr<HalfEdge>;
-struct Vertex : public Site {
-  size_t i_{0}; // index in master vrts_ list
-  // SF TODO link
-  // size_t h_origin_{0}; // half-edge index on origin side
-  HalfEdgePtr h_origin_ptr;
+using TrianglePtr = std::shared_ptr<Triangle>;
+using EdgePtr = std::shared_ptr<Edge>;
+using VertexPtr = std::shared_ptr<Vertex>;
+
+// Vertex //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+struct Vertex : public meshbrane::MeshBraneObject, public Site {
+  ////////////////////////////
+  // Fundamental attributes //
+  ////////////////////////////
+  // /**
+  //  * @brief Index in master vrts_ list
+  //  */
+  // size_t index_{0};
+  /**
+   * @brief Pointer to an outgoing half-edge
+   * 
+   */
+  HalfEdgePtr h_{nullptr};
+  /**
+   * @brief Seed for random number generation
+   */
   int seed{0};
+  /**
+   * @brief Position in 3D space
+   */
   double pos_[3];
 
+  //////////////////////
+  // Precomputed data //
+  //////////////////////
+  /**
+   * @brief Number of triangles incident to this vertex
+   */
   int n_tris_ = 0;
-  std::vector<Triangle *> tris_; // triangles this vertex is a part of
+  /**
+   * @brief Triangles incident to this vertex
+   */
+  std::vector<Triangle *> tris_;
+  /**
+   * @brief Number of vertices adjacent to this vertex
+   */
   int n_neighbs_ = 0;
+  /**
+   * @brief Vertices adjacent to this vertex
+   */
   std::vector<Vertex *> neighbs_;
+  /**
+   * @brief Number of edges incident to this vertex
+   */
   int n_edges_ = 0; // should be replaced by n_neigbs when all is done
+  /**
+   * @brief Edges incident to this vertex
+   */
   std::vector<Edge *> edges_;
 
+  ////////////////////
+  // Initialization //
+  ////////////////////
+  /**
+   * @brief Construct a new Vertex object
+   */
   Vertex() : Site(seed) {
     pos_[0] = pos_[1] = pos_[2] = 0;
     Site::SetPositionXYZ(0, 0, 0);
   }
+  /**
+   * @brief Construct a new Vertex object from x, y, and z coordinates
+   */
   Vertex(double x, double y, double z) : Site(seed) {
     pos_[0] = x;
     pos_[1] = y;
     pos_[2] = z;
     Site::SetPositionXYZ(x, y, z);
   }
+  /**
+   * @brief Construct a new Vertex object from a `meshbrane::Coords3d` object
+   */
   Vertex(mbrn::Coords3d xyz_coord) : Site(seed) {
     pos_[0] = xyz_coord(0);
     pos_[1] = xyz_coord(1);
     pos_[2] = xyz_coord(2);
     Site::SetPositionXYZ(xyz_coord(0), xyz_coord(1), xyz_coord(2));
   }
+
+  ///////////////////////
+  // Operators/Methods //
+  ///////////////////////
   friend bool operator==(const Vertex &lhs, const Vertex &rhs) {
     return (lhs.pos_[0] == rhs.pos_[0] and lhs.pos_[1] == rhs.pos_[1] and
             lhs.pos_[2] == rhs.pos_[2]);
@@ -56,41 +116,61 @@ struct Vertex : public Site {
   friend bool operator!=(const Vertex &lhs, const Vertex &rhs) {
     return !(lhs == rhs);
   }
+  /**
+   * @brief Set the position of the vertex
+   */
   void SetPos(const double *const new_pos) {
     pos_[0] = pos[0] = position_[0] = new_pos[0];
     pos_[1] = pos[1] = position_[1] = new_pos[1];
     pos_[2] = pos[2] = position_[2] = new_pos[2];
   }
+  /////////////////////
+  // Getters/Setters //
+  /////////////////////
+  /**
+   * @brief Get pointer to and outgoing half-edge
+   */
+  HalfEdgePtr h_out() { return h_; }
 };
 
-struct Edge {
-  size_t i_{0}; // index in master edges_ list
+// Edge //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+struct Edge : public meshbrane::MeshBraneObject {
+  ////////////////////////////
+  // Fundamental attributes //
+  ////////////////////////////
+  /**
+   * @brief Vertices at each end of the edge
+   */
+  Vertex *vrts_[2]; // each endpoint
+  /**
+   * @brief Pointer to a (anti)parallel half-edge
+   */
+  HalfEdgePtr h_{nullptr};
+  /**
+   * @brief Flag to indicate if the edge was already flipped
+   */
   bool just_flipped{false};
 
-  double length_{0.0};
-  double vector_[3]; // points from vrt 0 to vrt 1
-
-  Vertex *vrts_[2];   // each endpoint
+  //////////////////////
+  // Precomputed data //
+  //////////////////////
+  /**
+   * @brief Adjacent triangles
+   */
   Triangle *tris_[2]; // each adjacent triangle
-  Edge() {}
-  Edge(Vertex *start, Vertex *end) {
-    vrts_[0] = start;
-    vrts_[1] = end;
-  }
-  friend bool operator==(const Edge &lhs, const Edge &rhs) {
-    return ((lhs.vrts_[0] == rhs.vrts_[0] and lhs.vrts_[1] == rhs.vrts_[1]) or
-            (lhs.vrts_[0] == rhs.vrts_[1] and lhs.vrts_[1] == rhs.vrts_[0]));
-  }
-  friend bool operator!=(const Edge &lhs, const Edge &rhs) {
-    return !(lhs == rhs);
-  }
-  bool Contains(Vertex *vrt) { return vrts_[0] == vrt or vrts_[1] == vrt; }
-  Vertex *GetOtherEnd(Vertex *vrt) {
-    return vrt == vrts_[0] ? vrts_[1] : vrts_[0];
-  }
-  Triangle *GetOtherTriangle(Triangle *tri) {
-    return tri == tris_[0] ? tris_[1] : tris_[0];
-  }
+  /**
+   * @brief Length of the edge
+   */
+  double length_{0.0};
+  /**
+   * @brief Vector pointing from v0 to v1
+   */
+  double vector_[3];
+  /**
+   * @brief Update the edge length `length_` and edge vector `vector_`
+   * 
+   */
   void Update() {
     length_ = 0.0;
     for (int i_dim{0}; i_dim < 3; i_dim++) {
@@ -99,70 +179,126 @@ struct Edge {
     }
     length_ = sqrt(length_);
   }
+
+  ////////////////////
+  // Initialization //
+  ////////////////////
+  Edge() {}
+  /**
+   * @brief Construct a new Edge object from two vertices
+   */
+  Edge(Vertex *v0, Vertex *v1) {
+    vrts_[0] = v0;
+    vrts_[1] = v1;
+  }
+
+  ////////////////
+  // Predicates //
+  ////////////////
+  friend bool operator==(const Edge &lhs, const Edge &rhs) {
+    return ((lhs.vrts_[0] == rhs.vrts_[0] and lhs.vrts_[1] == rhs.vrts_[1]) or
+            (lhs.vrts_[0] == rhs.vrts_[1] and lhs.vrts_[1] == rhs.vrts_[0]));
+  }
+  friend bool operator!=(const Edge &lhs, const Edge &rhs) {
+    return !(lhs == rhs);
+  }
+  /**
+   * @brief Check the edge contains a vertex
+   */
+  bool Contains(Vertex *vrt) { return vrts_[0] == vrt or vrts_[1] == vrt; }
+
+  /////////////////////
+  // Getters/Setters //
+  /////////////////////
+  /**
+   * @brief Get the vertex at other end of the edge from a given vertex
+   */
+  Vertex *GetOtherEnd(Vertex *vrt) {
+    return vrt == vrts_[0] ? vrts_[1] : vrts_[0];
+  }
+  /**
+   * @brief Get Triangle on the other side of the edge from a given triangle
+   */
+  Triangle *GetOtherTriangle(Triangle *tri) {
+    return tri == tris_[0] ? tris_[1] : tris_[0];
+  }
+  /**
+   * @brief Get pointer to a parallel half-edge
+   */
+  HalfEdgePtr h_parallel() { return h_; }
 };
 
-struct Triangle {
-
-  size_t i_{0};       // index in master tris_ lit
-  size_t h_right_{0}; // half-edge index on right-handed boundary
-  HalfEdgePtr half_edge_ptr;
-
+// Triangle //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+struct Triangle : public meshbrane::MeshBraneObject {
+  ////////////////////////////
+  // Fundamental attributes //
+  ////////////////////////////
+  /**
+   * @brief Vertices at the corners of the triangle
+   */
+  Vertex *vrts_[3]{{}};
+  /**
+   * @brief Edges of the triangle 
+   */
+  Edge *edges_[3]{{}};
+  /**
+   * @brief Neighboring triangles
+   */
+  Triangle *neighbs_[3]{{}};
+  /**
+   * @brief Whether the triangle is flipped?
+   */
   bool flipped_{false};
+  /**
+   * @brief Pointer to a half-edge on the positively oriented boundary of this face
+   * 
+   */
+  HalfEdgePtr h_{nullptr};
+  //////////////////////
+  // Precomputed data //
+  //////////////////////
+  /**
+   * @brief Triangle area
+   */
   double area_;
+  /**
+   * @brief Volume of tetrahedron formed by triangle and origin
+   */
   double volume_;
+  /**
+   * @brief Unit normal vector to the triangle
+   */
   double nhat_[3];
+  /**
+   * @brief Color of the triangle. RGB values in [0, 255]. Doesn't seem to be used?
+   */
   double color_[3];
-
   // euler angles
+  /**
+   * @brief cos(Euler angle) about ?-axis
+   */
   double cosGamma_;
+  /**
+   * @brief sin(Euler angle) about ?-axis
+   */
   double sinGamma_;
+  /**
+   * @brief cos(Euler angle) about ?-axis
+   */
   double cosBeta_;
+  /**
+   * @brief sin(Euler angle) about ?-axis
+   */
   double sinBeta_;
+  /**
+   * @brief ???
+   */
   double Zrot_;
+  /**
+   * @brief ???
+   */
   double XYrot_[2][3]; // [dim][i_vrt]
 
-  Vertex *vrts_[3]{{}}; // vertices that compose this triangle
-  Edge *edges_[3]{{}};  // edges that compose this triangle
-  Triangle *neighbs_[3]{{}};
-
-  Triangle(Vertex *v1, Vertex *v2, Vertex *v3) {
-    vrts_[0] = v1;
-    vrts_[1] = v2;
-    vrts_[2] = v3;
-    color_[0] = rand() % 255;
-    color_[1] = rand() % 255;
-    color_[2] = rand() % 255;
-  }
-  double GetCenterPos(int i_dim) {
-    return (vrts_[0]->pos_[i_dim] + vrts_[1]->pos_[i_dim] +
-            vrts_[2]->pos_[i_dim]) /
-           3.0;
-  }
-  bool Contains(Vertex *vrt) {
-    return vrts_[0] == vrt or vrts_[1] == vrt or vrts_[2] == vrt;
-  }
-
-  Vertex *GetOtherVertex(Vertex *vrt1, Vertex *vrt2) {
-    if (vrts_[0] != vrt1 and vrts_[0] != vrt2) {
-      return vrts_[0];
-    } else if (vrts_[1] != vrt1 and vrts_[1] != vrt2) {
-      return vrts_[1];
-    } else if (vrts_[2] != vrt1 and vrts_[2] != vrt2) {
-      return vrts_[2];
-    } else {
-      printf("Error finding other vertex in triangle %zu\n", i_);
-      exit(1);
-    }
-  }
-  Edge *GetEdge(Vertex *vrt1, Vertex *vrt2) {
-    for (auto &&edge : edges_) {
-      if (edge->Contains(vrt1) and edge->Contains(vrt2)) {
-        return edge;
-      }
-    }
-    printf("Error finding edge in triangle %zu\n", i_);
-    exit(1);
-  }
   void Update(double origin[]) {
     UpdateArea();
     UpdateVolume(origin);
@@ -189,10 +325,62 @@ struct Triangle {
     cross_product(B, C, BxC, 3);
     volume_ = std::fabs(dot_product(3, A, BxC) / 6.0);
   }
+
+  ////////////////////
+  // Initialization //
+  ////////////////////
+
+  Triangle *neighbs_[3]{{}};
+
+  Triangle(Vertex *v1, Vertex *v2, Vertex *v3) {
+    vrts_[0] = v1;
+    vrts_[1] = v2;
+    vrts_[2] = v3;
+    color_[0] = rand() % 255;
+    color_[1] = rand() % 255;
+    color_[2] = rand() % 255;
+  }
+  ////////////////
+  // Predicates //
+  ////////////////
+  bool Contains(Vertex *vrt) {
+    return vrts_[0] == vrt or vrts_[1] == vrt or vrts_[2] == vrt;
+  }
+
+  /////////////////////
+  // Getters/Setters //
+  /////////////////////
+  double GetCenterPos(int i_dim) {
+    return (vrts_[0]->pos_[i_dim] + vrts_[1]->pos_[i_dim] +
+            vrts_[2]->pos_[i_dim]) /
+           3.0;
+  }
+  Vertex *GetOtherVertex(Vertex *vrt1, Vertex *vrt2) {
+    if (vrts_[0] != vrt1 and vrts_[0] != vrt2) {
+      return vrts_[0];
+    } else if (vrts_[1] != vrt1 and vrts_[1] != vrt2) {
+      return vrts_[1];
+    } else if (vrts_[2] != vrt1 and vrts_[2] != vrt2) {
+      return vrts_[2];
+    } else {
+      printf("Error finding other vertex in triangle %zu\n", index_);
+      exit(1);
+    }
+  }
+  Edge *GetEdge(Vertex *vrt1, Vertex *vrt2) {
+    for (auto &&edge : edges_) {
+      if (edge->Contains(vrt1) and edge->Contains(vrt2)) {
+        return edge;
+      }
+    }
+    printf("Error finding edge in triangle %zu\n", index_);
+    exit(1);
+  }
 };
 
+// HalfEdge //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 struct HalfEdge {
-  size_t i_{0}; // index in master half_edges_ list
+  size_t index_{0}; // index in master half_edges_ list
 };
 
 class TriMesh : public mbrn::MatrixMesh {

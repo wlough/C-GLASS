@@ -264,7 +264,7 @@ void TriMesh::DivideFaces() {
 void TriMesh::InitializeMesh() {
   // Initialize vertex storage + auxiliary parameters
   for (int i_vrt{0}; i_vrt < vrts_.size(); i_vrt++) {
-    vrts_[i_vrt].i_ = i_vrt;
+    vrts_[i_vrt].index_ = i_vrt;
     vrts_[i_vrt].tris_.resize(n_edges_max_);
     vrts_[i_vrt].edges_.resize(n_edges_max_);
     vrts_[i_vrt].neighbs_.resize(n_edges_max_);
@@ -274,7 +274,7 @@ void TriMesh::InitializeMesh() {
   // Initialize edge indices and update lengths
   double l_sum{0.0};
   for (int i_edge{0}; i_edge < edges_.size(); i_edge++) {
-    edges_[i_edge].i_ = i_edge;
+    edges_[i_edge].index_ = i_edge;
     edges_[i_edge].Update();
     l_sum += edges_[i_edge].length_;
   }
@@ -282,7 +282,7 @@ void TriMesh::InitializeMesh() {
   // Initialize triangle indices and manually calculate areas (edges not assigned yet)
   double area_sum{0.0};
   for (int i_tri{0}; i_tri < tris_.size(); i_tri++) {
-    tris_[i_tri].i_ = i_tri;
+    tris_[i_tri].index_ = i_tri;
     Triangle *tri{&tris_[i_tri]};
     double l1{0.0};
     double l2{0.0};
@@ -355,7 +355,7 @@ void TriMesh::InitializeMeshBrane() {
 
   // Initialize vertex storage + auxiliary parameters
   for (int i_vrt{0}; i_vrt < vrts_.size(); i_vrt++) {
-    vrts_[i_vrt].i_ = i_vrt;
+    vrts_[i_vrt].index_ = i_vrt;
     vrts_[i_vrt].tris_.resize(n_edges_max_);
     vrts_[i_vrt].edges_.resize(n_edges_max_);
 
@@ -366,14 +366,14 @@ void TriMesh::InitializeMeshBrane() {
   // Initialize edge indices and update lengths
   double l_sum{0.0};
   for (int i_edge{0}; i_edge < edges_.size(); i_edge++) {
-    edges_[i_edge].i_ = i_edge;
+    edges_[i_edge].index_ = i_edge;
     edges_[i_edge].Update();
     l_sum += edges_[i_edge].length_;
   }
   // Initialize triangle indices and manually calculate areas (edges not assigned yet)
   double area_sum{0.0};
   for (int i_tri{0}; i_tri < tris_.size(); i_tri++) {
-    tris_[i_tri].i_ = i_tri;
+    tris_[i_tri].index_ = i_tri;
     Triangle *tri{&tris_[i_tri]};
     double l1{0.0};
     double l2{0.0};
@@ -493,7 +493,7 @@ void TriMesh::UpdateNeighbors() {
             tri->edges_[i_edge] = &edge;
             break;
           } else if (i_edge == 2) {
-            printf("error @ edge %zu\n", edge.i_);
+            printf("error @ edge %zu\n", edge.index_);
             exit(1);
           }
         }
@@ -503,7 +503,7 @@ void TriMesh::UpdateNeighbors() {
       edge.vrts_[0]->SetColor(2 * M_PI, draw_type::fixed);
       edge.vrts_[0]->SetDiameter(2);
       printf("Error: found %i triangles that contain edge #%zu\n", n_found,
-             edge.i_);
+             edge.index_);
       do_not_pass_go_ = true;
       return;
       // exit(1);
@@ -559,7 +559,7 @@ void TriMesh::UpdateNeighbors() {
         if (prev_edge == nullptr) {
           printf("no thx @ %i\n", i_entry);
           for (auto &&edge : vrt.edges_) {
-            printf("  edge %zu\n", edge->i_);
+            printf("  edge %zu\n", edge->index_);
           }
           printf("(%i entries total)\n", vrt.n_edges_);
           vrt.SetColor(2 * M_PI, draw_type::fixed);
@@ -620,7 +620,7 @@ void TriMesh::FlipEdges() {
   // Shuffle edge indices them so that order of flipping is random
   size_t i_entries[edges_.size()];
   for (auto &&edge : edges_) {
-    i_entries[edge.i_] = edge.i_;
+    i_entries[edge.index_] = edge.index_;
     edge.just_flipped = false;
   }
   bool flipparino{false};
@@ -636,7 +636,7 @@ void TriMesh::FlipEdges() {
     Triangle *left{edge->tris_[0]};
     Triangle *right{edge->tris_[1]};
     if (left == nullptr or right == nullptr) {
-      printf("issue at edge %zu\n", edge->i_);
+      printf("issue at edge %zu\n", edge->index_);
       printf("ABORT\n");
       exit(1);
     }
@@ -770,8 +770,8 @@ void TriMesh::FlipEdges() {
     // flipped triangles: 3->2->4 and 3->1->4
     if (do_flip) {
       flipparino = true;
-      // printf("FLIP edge %zu of triangles %zu and %zu\n", edge->i_, left->i_,
-      //        right->i_);
+      // printf("FLIP edge %zu of triangles %zu and %zu\n", edge->index_, left->index_,
+      //        right->index_);
       // printf("angles: %g and %g\n", angle_left * 180 / M_PI,
       //        angle_right * 180 / M_PI);
       edge->vrts_[0] = vrt3;
@@ -1198,7 +1198,7 @@ void TriMesh::ApplyMembraneForces() {
       //   printf("edge lengths: %g | %g | %g\n", l_ij, l_ij_plus, l_jj_plus);
       //   printf("volume: %g vs %g\n", V, tri_plus->volume_);
       //   for (int i{0}; i < 3; i++) {
-      //     printf("  edge %zu\n", tri_plus->edges_[i]->i_);
+      //     printf("  edge %zu\n", tri_plus->edges_[i]->index_);
       //   }
       // }
       double f_vol_mag{(-1.0 / 3.0) * volume_reg_stiffness_ * (V - V_prime_) *
@@ -1396,7 +1396,7 @@ void TriMesh::WriteOutputs() {
         pos[i_dim] = vrt->GetPosition()[i_dim];
       }
       for (int i_neighb{0}; i_neighb < vrt->n_neighbs_; i_neighb++) {
-        adj[i_neighb] = (int)vrt->neighbs_[i_neighb]->i_;
+        adj[i_neighb] = (int)vrt->neighbs_[i_neighb]->index_;
       }
       // padding for non-ideal vertices (less or more than 6 neighbs)
       for (int i_neighb{vrt->n_neighbs_}; i_neighb < n_edges_max_; i_neighb++) {
@@ -1569,7 +1569,7 @@ void TriMesh::RefreshEdgeParams() {
   double l_avg = 0.0;
   double l_sum{0.0};
   for (int i_edge{0}; i_edge < edges_.size(); i_edge++) {
-    edges_[i_edge].i_ = i_edge;
+    edges_[i_edge].index_ = i_edge;
     edges_[i_edge].Update();
     l_sum += edges_[i_edge].length_;
   }
