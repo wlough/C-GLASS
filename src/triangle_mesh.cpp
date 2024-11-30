@@ -1,13 +1,29 @@
 #include <cglass/filament.hpp>
 // #include <cglass/ply_tools.hpp>
 #include "cglass/triangle_mesh.hpp"
+#include "meshbrane/simple_generator.hpp"
 #include <cglass/membrane.hpp>
+#include <coroutine>
 #include <filesystem>
 #include <iostream>
 #include <meshbrane/matrix_mesh.hpp>
 #include <meshbrane/meshbrane_data_types.hpp>
 #include <unistd.h>
 #include <vector>
+
+#include <unordered_set> // std::unordered_set
+
+///////////////////////////////////////////////////
+// HalfEdge ///////////////////////////////////////
+///////////////////////////////////////////////////
+
+///////////////////////////////////////////////////
+// TriMesh ////////////////////////////////////////
+///////////////////////////////////////////////////
+
+////////////////////
+// Initialization //
+////////////////////
 
 void TriMesh::Init(system_parameters *params) {
   // SF temp before integrating with output_manager
@@ -33,6 +49,7 @@ void TriMesh::Init(system_parameters *params) {
     // RefreshMatrixMesh_from_VEF();
   }
   InitializeMeshBrane();
+  // InitializeMesh();
 }
 
 void TriMesh::SetParameters() {
@@ -63,6 +80,26 @@ void TriMesh::SetParameters() {
   dimensionless_tether_attractive_onset_ =
       params_->membrane_tether_attractive_onset;
   /////////////////////////////////////////////////////
+}
+
+void TriMesh::LoadPly() {
+  // printf("Loading ply file\n");
+  printf("Loading ply file %s\n", ply_path.c_str());
+  std::filesystem::path path(ply_path);
+  std::string directory = path.parent_path().string();
+  std::string filename = path.filename().string();
+  meshbrane::MatrixMesh m = meshbrane::MatrixMesh::from_he_ply(ply_path);
+  xyz_coord_V_ = m.xyz_coord_V_;
+  h_out_V_ = m.h_out_V_;
+  v_origin_H_ = m.v_origin_H_;
+  h_next_H_ = m.h_next_H_;
+  h_twin_H_ = m.h_twin_H_;
+  f_left_H_ = m.f_left_H_;
+  h_right_F_ = m.h_right_F_;
+  h_negative_B_ = m.h_negative_B_;
+  update_vef_from_he();
+  write_he_ply("output/" + filename);
+  RefreshFromMats();
 }
 
 void TriMesh::MakeIcosphere() {
@@ -325,32 +362,28 @@ void TriMesh::InitializeMesh() {
   printf("Final mesh statistics:\n");
   printf("  %zu vrts (%zu flawed; %zu ideal)\n", vrts_.size(), n_flawed,
          n_gucci);
-  l_avg_ = l_sum / edges_.size();
-  A_prime_ = area_sum / tris_.size();
-  V_prime_ = vol_sum / tris_.size();
-  printf("  l_avg = %g\n", l_avg_);
-  printf("  A_prime = %g\n", A_prime_);
+  average_edge_length_ = l_sum / edges_.size();
+  average_face_area_ = area_sum / tris_.size();
+  average_face_volume_ = vol_sum / tris_.size();
+  printf("  l_avg = %g\n", average_edge_length_);
+  printf("  A_prime = %g\n", average_face_area_);
   printf("  A_calc = %g\n", 4.0 * M_PI * SQR(r_sys_) / tris_.size());
-  printf("  V_prime = %g\n", V_prime_);
+  printf("  V_prime = %g\n", average_face_volume_);
   printf("  V_calc = %g\n", (4.0 / 3.0) * M_PI * CUBE(r_sys_) / tris_.size());
-  printf("  V_calc_alt = %g\n", (1.0 / 3.0) * A_prime_ * r_sys_);
-  // tether_attractive_onset_ = 1.2 * l_avg_;
-  // tether_repulsive_onset_ = 0.8 * l_avg_;
+  printf("  V_calc_alt = %g\n", (1.0 / 3.0) * average_face_area_ * r_sys_);
+  // tether_attractive_onset_ = 1.2 * average_edge_length_;
+  // tether_repulsive_onset_ = 0.8 * average_edge_length_;
   // used in vutukuri et al
-  // tether_attractive_singularity_ = 1.4 * l_avg_;
-  // tether_repulsive_singularity_ = 0.6 * l_avg_;
+  // tether_attractive_singularity_ = 1.4 * average_edge_length_;
+  // tether_repulsive_singularity_ = 0.6 * average_edge_length_;
   // // used when more edge flipping is desired
-  // tether_attractive_singularity_ = 1.67 * l_avg_;
-  // tether_repulsive_singularity_ = 0.33 * l_avg_;
+  // tether_attractive_singularity_ = 1.67 * average_edge_length_;
+  // tether_repulsive_singularity_ = 0.33 * average_edge_length_;
   // used for relaxation
-  // tether_attractive_singularity_ = 3.5 * l_avg_;
-  // tether_repulsive_singularity_ = 0.15 * l_avg_;
+  // tether_attractive_singularity_ = 3.5 * average_edge_length_;
+  // tether_repulsive_singularity_ = 0.15 * average_edge_length_;
 }
 
-/**
- * @brief Initialize 
- * 
- */
 void TriMesh::InitializeMeshBrane() {
 
   // Initialize vertex storage + auxiliary parameters
@@ -416,15 +449,147 @@ void TriMesh::InitializeMeshBrane() {
   printf("Final mesh statistics:\n");
   printf("  %zu vrts (%zu flawed; %zu ideal)\n", vrts_.size(), n_flawed,
          n_gucci);
-  l_avg_ = l_sum / edges_.size();
-  A_prime_ = area_sum / tris_.size();
-  V_prime_ = vol_sum / tris_.size();
-  printf("  l_avg = %g\n", l_avg_);
-  printf("  A_prime = %g\n", A_prime_);
+  average_edge_length_ = l_sum / edges_.size();
+  average_face_area_ = area_sum / tris_.size();
+  average_face_volume_ = vol_sum / tris_.size();
+  printf("  l_avg = %g\n", average_edge_length_);
+  printf("  A_prime = %g\n", average_face_area_);
   printf("  A_calc = %g\n", 4.0 * M_PI * SQR(r_sys_) / tris_.size());
-  printf("  V_prime = %g\n", V_prime_);
+  printf("  V_prime = %g\n", average_face_volume_);
   printf("  V_calc = %g\n", (4.0 / 3.0) * M_PI * CUBE(r_sys_) / tris_.size());
-  printf("  V_calc_alt = %g\n", (1.0 / 3.0) * A_prime_ * r_sys_);
+  printf("  V_calc_alt = %g\n", (1.0 / 3.0) * average_face_area_ * r_sys_);
+}
+
+// void TriMesh::RefreshVEF_from_mats() {
+//   int num_vertices = get_num_vertices();
+//   int num_faces = get_num_faces();
+//   int num_edges = get_num_edges();
+//   tris_.clear();
+//   edges_.clear();
+//   vrts_.clear();
+//   tris_.reserve(num_faces);
+//   edges_.reserve(num_edges);
+//   vrts_.reserve(num_vertices);
+//   printf("%zu faces, %zu edges, %zu verts\n", num_faces, num_edges,
+//          num_vertices);
+//   for (int v = 0; v < num_vertices; v++) {
+//     vrts_.emplace_back(xyz_coord_v(v));
+//   }
+//   for (int e = 0; e < num_edges; e++) {
+//     edges_.emplace_back(&vrts_[V_cycle_E_(e, 0)], &vrts_[V_cycle_E_(e, 1)]);
+//   }
+//   for (int f = 0; f < num_faces; f++) {
+//     int v0 = V_cycle_F_(f, 0);
+//     int v1 = V_cycle_F_(f, 1);
+//     int v2 = V_cycle_F_(f, 2);
+//     tris_.emplace_back(&vrts_[v0], &vrts_[v1], &vrts_[v2]);
+//   }
+// }
+
+void TriMesh::RefreshFromMats() {
+  int num_vertices = get_num_vertices();
+  int num_faces = get_num_faces();
+  int num_edges = get_num_edges();
+  int num_half_edges = get_num_half_edges();
+  int num_boundaries = get_num_boundaries();
+  tris_.clear();
+  edges_.clear();
+  vrts_.clear();
+  half_edges_.clear();
+  tris_.reserve(num_faces);
+  edges_.reserve(num_edges);
+  vrts_.reserve(num_vertices);
+  half_edges_.reserve(num_half_edges);
+
+  // Initialize half-edges
+  for (int _h = 0; _h < num_half_edges; _h++) {
+    half_edges_.emplace_back();
+  }
+  // initialize boundary ghost faces, assign a half-edge to right of boundary
+  for (int _b = 0; _b < num_boundaries; _b++) {
+    boundaries_.emplace_back();
+    boundaries_[_b].set_ghost();
+    boundaries_[_b].set_right_half_edge(half_edges_[h_negative_B_(_b)]);
+    boundaries_[_b].set_index(_b);
+  }
+  // Initialize vertices set outgoing half-edge and index
+  for (int _v = 0; _v < num_vertices; _v++) {
+    vrts_.emplace_back(xyz_coord_v(_v));
+    vrts_[_v].set_outgoing_half_edge(half_edges_[h_out_V_(_v)]);
+    vrts_[_v].set_index(_v);
+  }
+  // Initialize edges and assign vertex/edge/half-edge pointers for half-edges
+  int _v0, _v1, _v2;
+  int _e0, _e1, _e2;
+  int _h0, _h1, _h2;
+  int _h0t, _h1t, _h2t;
+  int _f, _b;
+  std::unordered_set<int> setE;
+  for (int _h0 = 0; _h0 < num_half_edges; _h0++) {
+    _h0t = h_twin_H_(_h0);
+    _h1 = h_next_H_(_h0);
+    _v0 = v_origin_H_(_h0);
+    _v1 = v_origin_H_(_h0t);
+    _e0 = std::min(_h0, _h0t);
+    _f = f_left_H_(_h0);
+    if (_f >= 0) {
+      half_edges_[_h0].set_left_face(tris_[_f]);
+    } else {
+      _b = -(_f + 1);
+      half_edges_[_h0].set_left_face(boundaries_[_b]);
+    }
+    if (setE.find(_e0) == setE.end()) {
+      setE.insert(_e0);
+      edges_.emplace_back(&vrts_[std::min(_v0, _v1)],
+                          &vrts_[std::max(_v0, _v1)]);
+      edges_[_e0].set_parallel_half_edge(
+          half_edges_[_e0]); // set parallel half-edge to h=_e0=min(h0,h0t)
+    }
+
+    half_edges_[_h0].set_origin_vertex(vrts_[_v0]);
+    half_edges_[_h0].set_twin_half_edge(half_edges_[_h0t]);
+    half_edges_[_h0].set_next_half_edge(half_edges_[_h1]);
+    half_edges_[_h0].set_parallel_edge(edges_[_e0]);
+  }
+
+  // for (int e = 0; e < num_edges; e++) {
+  //   edges_.emplace_back(&vrts_[V_cycle_E_(e, 0)], &vrts_[V_cycle_E_(e, 1)]);
+  // }
+
+  // looping through faces hits:
+  // * interior half-edges exactly once
+  // * interior edges exactly twice
+
+  for (int _f = 0; _f < num_faces; _f++) {
+    _h0 = h_right_F_(_f);
+    _h0t = h_twin_H_(_h0);
+
+    _h1 = h_next_H_(_h0);
+    _h1t = h_twin_H_(_h1);
+
+    _h2 = h_next_H_(_h1);
+    _h2t = h_twin_H_(_h2);
+
+    _e1 = std::min(_h1, _h1t);
+    _e2 = std::min(_h2, _h2t);
+
+    _v0 = v_origin_H_(_h0);
+    _v1 = v_origin_H_(_h1);
+    _v2 = v_origin_H_(_h2);
+
+    tris_.emplace_back(&vrts_[_v0], &vrts_[_v1], &vrts_[_v2]);
+    tris_[_f].set_right_half_edge(half_edges_[_h0]);
+  }
+
+  // Looping though next cycle of each negatively oriented boundary hits:
+  // * boundary half-edges exactly once
+  // * boundary edges exactly once
+  // * boundary vertices exactly once
+  // for (int _b = 0; _b < num_boundaries; _b++) {
+  //   // int _h = h_negative_B_(_b);
+  //   // int _v = v_origin_H_(_h);
+  //   // vrts_[_v].set_boundary(true) ;
+  // }
 }
 
 void TriMesh::UpdateCentroid() {
@@ -733,10 +898,10 @@ void TriMesh::FlipEdges() {
                         exp(1.0 / (l_12 - tether_repulsive_onset_)) /
                         (l_12 - tether_repulsive_singularity_);
     }
-    current_energy +=
-        0.5 * area_reg_stiffness_ * SQR(A_prime_ - area_left) / A_prime_;
-    current_energy +=
-        0.5 * area_reg_stiffness_ * SQR(A_prime_ - area_right) / A_prime_;
+    current_energy += 0.5 * area_reg_stiffness_ *
+                      SQR(average_face_area_ - area_left) / average_face_area_;
+    current_energy += 0.5 * area_reg_stiffness_ *
+                      SQR(average_face_area_ - area_right) / average_face_area_;
     // Calculate energy of configuration post-flip
     double postflip_energy{0.0};
     if (l_34 > tether_attractive_onset_) {
@@ -748,10 +913,10 @@ void TriMesh::FlipEdges() {
                          exp(1.0 / (l_34 - tether_repulsive_onset_)) /
                          (l_34 - tether_repulsive_singularity_);
     }
-    postflip_energy +=
-        0.5 * area_reg_stiffness_ * SQR(A_prime_ - area_top) / A_prime_;
-    postflip_energy +=
-        0.5 * area_reg_stiffness_ * SQR(A_prime_ - area_bot) / A_prime_;
+    postflip_energy += 0.5 * area_reg_stiffness_ *
+                       SQR(average_face_area_ - area_top) / average_face_area_;
+    postflip_energy += 0.5 * area_reg_stiffness_ *
+                       SQR(average_face_area_ - area_bot) / average_face_area_;
     bool do_flip{false};
     // bool do_flip{true};
     double p_flip_base{0.3}; // from vutukuri -- seems weird but OK why not
@@ -996,7 +1161,8 @@ void TriMesh::ApplyMembraneForces() {
                   << dimensionless_tether_attractive_singularity_ << std::endl;
         std::cout << "tether_attractive_singularity_ = "
                   << tether_attractive_singularity_ << std::endl;
-        std::cout << "l_avg_ = " << l_avg_ << std::endl;
+        std::cout << "average_edge_length_ = " << average_edge_length_
+                  << std::endl;
       }
       // if (rmag <= tether_repulsive_singularity_) {
       //   printf("rmag <= tether_repulsive_singularity_!\n");
@@ -1005,7 +1171,8 @@ void TriMesh::ApplyMembraneForces() {
           rmag <= tether_repulsive_singularity_) {
         printf("CORRECTION!\n");
         double kspring{10};
-        double mag{kspring * (l_avg_ - rmag)}; // use l_avg as rest length;
+        double mag{kspring *
+                   (average_edge_length_ - rmag)}; // use l_avg as rest length;
         double vec[3];
         for (int i{0}; i < 3; i++) {
           vec[i] = mag * r_ij[i] / rmag;
@@ -1177,8 +1344,8 @@ void TriMesh::ApplyMembraneForces() {
       double f_area_vec[3];
       cross_product(r_jj_plus, tri_plus->nhat_, f_area_vec, 3);
       double area{tri_plus->area_};
-      double f_area_mag{-0.25 * area_reg_stiffness_ * (area - A_prime_) /
-                        A_prime_};
+      double f_area_mag{-0.25 * area_reg_stiffness_ *
+                        (area - average_face_area_) / average_face_area_};
       for (int i_dim{0}; i_dim < 3; i_dim++) {
         f_area[i_dim] += f_area_mag * f_area_vec[i_dim];
       }
@@ -1201,13 +1368,14 @@ void TriMesh::ApplyMembraneForces() {
       //     printf("  edge %zu\n", tri_plus->edges_[i]->index_);
       //   }
       // }
-      double f_vol_mag{(-1.0 / 3.0) * volume_reg_stiffness_ * (V - V_prime_) *
-                       area_opp / V_prime_};
+      double f_vol_mag{(-1.0 / 3.0) * volume_reg_stiffness_ *
+                       (V - average_face_volume_) * area_opp /
+                       average_face_volume_};
       if (f_vol_mag != f_vol_mag) {
         vrt.SetColor(0.0, draw_type::fixed);
         neighb_plus->SetColor(1.0, draw_type::fixed);
         printf("V: %g\n", V);
-        printf("V_prime: %g\n", V_prime_);
+        printf("V_prime: %g\n", average_face_volume_);
         printf("area_opp: %g\n", area_opp);
         do_not_pass_go_ = true;
         return;
@@ -1421,13 +1589,13 @@ void TriMesh::UpdatePositions() {
   }
   // shrink this jonny
   if (params_->mesh_shrink_rate > 0.0) {
-    l_avg_ *= (1.0 - params_->mesh_shrink_rate);
-    A_prime_ *= SQR(1.0 - params_->mesh_shrink_rate);
-    V_prime_ *= CUBE(1.0 - params_->mesh_shrink_rate);
-    tether_attractive_onset_ = 1.2 * l_avg_;
-    tether_repulsive_onset_ = 0.8 * l_avg_;
-    tether_attractive_singularity_ = 1.667 * l_avg_;
-    tether_repulsive_singularity_ = 0.333 * l_avg_;
+    average_edge_length_ *= (1.0 - params_->mesh_shrink_rate);
+    average_face_area_ *= SQR(1.0 - params_->mesh_shrink_rate);
+    average_face_volume_ *= CUBE(1.0 - params_->mesh_shrink_rate);
+    tether_attractive_onset_ = 1.2 * average_edge_length_;
+    tether_repulsive_onset_ = 0.8 * average_edge_length_;
+    tether_attractive_singularity_ = 1.667 * average_edge_length_;
+    tether_repulsive_singularity_ = 0.333 * average_edge_length_;
   }
   UpdateMesh(); // update edge lengths, triangle area/vol, etc.
   if (do_not_pass_go_) {
@@ -1502,68 +1670,6 @@ void TriMesh::UpdatePositions() {
 // WBL /////////////////////////////////
 ////////////////////////////////////////
 
-void TriMesh::RefreshVEF_from_mats() {
-  int num_vertices = get_num_vertices();
-  int num_faces = get_num_faces();
-  int num_edges = get_num_edges();
-  tris_.reserve(num_faces);
-  edges_.reserve(num_edges);
-  vrts_.reserve(num_vertices);
-  printf("%zu faces, %zu edges, %zu verts\n", num_faces, num_edges,
-         num_vertices);
-  // MakeIcosahedron();
-  for (int v = 0; v < num_vertices; v++) {
-    vrts_.emplace_back(xyz_coord_v(v));
-  }
-  for (int e = 0; e < num_edges; e++) {
-    edges_.emplace_back(&vrts_[V_cycle_E_(e, 0)], &vrts_[V_cycle_E_(e, 1)]);
-  }
-  for (int f = 0; f < num_faces; f++) {
-    int v0 = V_cycle_F_(f, 0);
-    int v1 = V_cycle_F_(f, 1);
-    int v2 = V_cycle_F_(f, 2);
-    tris_.emplace_back(&vrts_[v0], &vrts_[v1], &vrts_[v2]);
-  }
-}
-
-void TriMesh::LoadPly() {
-  // printf("Loading ply file\n");
-  printf("Loading ply file %s\n", ply_path.c_str());
-  std::filesystem::path path(ply_path);
-  std::string directory = path.parent_path().string();
-  std::string filename = path.filename().string();
-  meshbrane::MatrixMesh m = meshbrane::MatrixMesh::from_he_ply(ply_path);
-  // m.update_vef_from_he();
-  // int euler_characteristic = m.get_euler_characteristic();
-  xyz_coord_V_ = m.xyz_coord_V_;
-  // V_cycle_E_ = m.V_cycle_E_;
-  // V_cycle_F_ = m.V_cycle_F_;
-  h_out_V_ = m.h_out_V_;
-  v_origin_H_ = m.v_origin_H_;
-  h_next_H_ = m.h_next_H_;
-  h_twin_H_ = m.h_twin_H_;
-  f_left_H_ = m.f_left_H_;
-  h_right_F_ = m.h_right_F_;
-  h_negative_B_ = m.h_negative_B_;
-
-  update_vef_from_he();
-
-  // int num_vertices = m.get_num_vertices();
-  // int num_faces = m.get_num_faces();
-  // int num_edges = m.get_num_edges();
-
-  // meshbrane::Samples3d xyz_coord_V2 = xyz_coord_V;
-  // for (int i = 0; i < num_vertices; i++) {
-  //   xyz_coord_V(i, 1) = xyz_coord_V2(i, 2);
-  //   xyz_coord_V(i, 2) = xyz_coord_V2(i, 0);
-  //   xyz_coord_V(i, 0) = xyz_coord_V2(i, 1);
-  // }
-  // m.set_xyz_coord_V(xyz_coord_V);
-  // m.write_he_ply("output/" + filename);
-  write_he_ply("output/" + filename);
-  RefreshVEF_from_mats();
-}
-
 void TriMesh::RefreshEdgeParams() {
 
   double l_avg = 0.0;
@@ -1574,23 +1680,25 @@ void TriMesh::RefreshEdgeParams() {
     l_sum += edges_[i_edge].length_;
   }
 
-  // tether_attractive_onset_ = 1.2 * l_avg_;
-  // tether_repulsive_onset_ = 0.8 * l_avg_;
+  // tether_attractive_onset_ = 1.2 * average_edge_length_;
+  // tether_repulsive_onset_ = 0.8 * average_edge_length_;
   // // used in vutukuri et al
-  // tether_attractive_singularity_ = 1.4 * l_avg_;
-  // tether_repulsive_singularity_ = 0.6 * l_avg_;
+  // tether_attractive_singularity_ = 1.4 * average_edge_length_;
+  // tether_repulsive_singularity_ = 0.6 * average_edge_length_;
   // // // used when more edge flipping is desired
-  // tether_attractive_singularity_ = 1.67 * l_avg_;
-  // tether_repulsive_singularity_ = 0.33 * l_avg_;
+  // tether_attractive_singularity_ = 1.67 * average_edge_length_;
+  // tether_repulsive_singularity_ = 0.33 * average_edge_length_;
   // // used for relaxation
-  // tether_attractive_singularity_ = 3.5 * l_avg_;
-  // tether_repulsive_singularity_ = 0.15 * l_avg_;
+  // tether_attractive_singularity_ = 3.5 * average_edge_length_;
+  // tether_repulsive_singularity_ = 0.15 * average_edge_length_;
 
-  l_avg_ = l_sum / edges_.size();
-  tether_attractive_onset_ = dimensionless_tether_attractive_onset_ * l_avg_;
-  tether_repulsive_onset_ = dimensionless_tether_repulsive_onset_ * l_avg_;
+  average_edge_length_ = l_sum / edges_.size();
+  tether_attractive_onset_ =
+      dimensionless_tether_attractive_onset_ * average_edge_length_;
+  tether_repulsive_onset_ =
+      dimensionless_tether_repulsive_onset_ * average_edge_length_;
   tether_attractive_singularity_ =
-      dimensionless_tether_attractive_singularity_ * l_avg_;
+      dimensionless_tether_attractive_singularity_ * average_edge_length_;
   tether_repulsive_singularity_ =
-      dimensionless_tether_repulsive_singularity_ * l_avg_;
+      dimensionless_tether_repulsive_singularity_ * average_edge_length_;
 }

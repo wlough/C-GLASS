@@ -24,6 +24,7 @@ using HalfEdgePtr = std::shared_ptr<HalfEdge>;
 using TrianglePtr = std::shared_ptr<Triangle>;
 using EdgePtr = std::shared_ptr<Edge>;
 using VertexPtr = std::shared_ptr<Vertex>;
+using HalfEdgeGenerator = meshbrane::utils::SimpleGenerator<HalfEdgePtr>;
 
 // Vertex //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -106,9 +107,9 @@ struct Vertex : public meshbrane::MeshBraneObject, public Site {
     Site::SetPositionXYZ(xyz_coord(0), xyz_coord(1), xyz_coord(2));
   }
 
-  ///////////////////////
-  // Operators/Methods //
-  ///////////////////////
+  ///////////////
+  // Operators //
+  //////////////
   friend bool operator==(const Vertex &lhs, const Vertex &rhs) {
     return (lhs.pos_[0] == rhs.pos_[0] and lhs.pos_[1] == rhs.pos_[1] and
             lhs.pos_[2] == rhs.pos_[2]);
@@ -116,6 +117,9 @@ struct Vertex : public meshbrane::MeshBraneObject, public Site {
   friend bool operator!=(const Vertex &lhs, const Vertex &rhs) {
     return !(lhs == rhs);
   }
+  /////////////////////
+  // Getters/Setters //
+  /////////////////////
   /**
    * @brief Set the position of the vertex
    */
@@ -124,13 +128,14 @@ struct Vertex : public meshbrane::MeshBraneObject, public Site {
     pos_[1] = pos[1] = position_[1] = new_pos[1];
     pos_[2] = pos[2] = position_[2] = new_pos[2];
   }
-  /////////////////////
-  // Getters/Setters //
-  /////////////////////
   /**
    * @brief Get pointer to and outgoing half-edge
    */
   HalfEdgePtr h_out() { return h_; }
+  void set_outgoing_half_edge(HalfEdgePtr h) { h_ = h; }
+  void set_outgoing_half_edge(HalfEdge &h) {
+    h_ = std::make_shared<HalfEdge>(h);
+  }
 };
 
 // Edge //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -226,6 +231,14 @@ struct Edge : public meshbrane::MeshBraneObject {
    * @brief Get pointer to a parallel half-edge
    */
   HalfEdgePtr h_parallel() { return h_; }
+
+  /**
+   * @brief Set the parallel half-edge
+   */
+  void set_parallel_half_edge(HalfEdgePtr h) { h_ = h; }
+  void set_parallel_half_edge(HalfEdge &h) {
+    h_ = std::make_shared<HalfEdge>(h);
+  }
 };
 
 // Triangle //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -299,10 +312,20 @@ struct Triangle : public meshbrane::MeshBraneObject {
    */
   double XYrot_[2][3]; // [dim][i_vrt]
 
+  /**
+   * @brief Update face area volume of tetrahedron formed by triangle and origin
+   * 
+   * @param origin 
+   */
   void Update(double origin[]) {
     UpdateArea();
     UpdateVolume(origin);
   }
+  /**
+   * @brief Update stored triangle area
+   * 
+   * @param origin
+   */
   void UpdateArea() {
     double a{edges_[0]->length_};
     double b{edges_[1]->length_};
@@ -310,6 +333,11 @@ struct Triangle : public meshbrane::MeshBraneObject {
     double s{0.5 * (a + b + c)};
     area_ = sqrt(s * (s - a) * (s - b) * (s - c));
   }
+  /**
+   * @brief Update unit normal vector and volume of tetrahedron formed by triangle and origin
+   * 
+   * @param origin 
+   */
   void UpdateVolume(double origin[]) {
     // update nhat
     // update volume
@@ -329,9 +357,10 @@ struct Triangle : public meshbrane::MeshBraneObject {
   ////////////////////
   // Initialization //
   ////////////////////
-
-  Triangle *neighbs_[3]{{}};
-
+  Triangle() = default;
+  /**
+   * @brief Construct a new Triangle object from three vertices
+   */
   Triangle(Vertex *v1, Vertex *v2, Vertex *v3) {
     vrts_[0] = v1;
     vrts_[1] = v2;
@@ -343,6 +372,9 @@ struct Triangle : public meshbrane::MeshBraneObject {
   ////////////////
   // Predicates //
   ////////////////
+  /**
+   * @brief Check if the triangle contains a vertex
+   */
   bool Contains(Vertex *vrt) {
     return vrts_[0] == vrt or vrts_[1] == vrt or vrts_[2] == vrt;
   }
@@ -350,11 +382,17 @@ struct Triangle : public meshbrane::MeshBraneObject {
   /////////////////////
   // Getters/Setters //
   /////////////////////
+  /**
+   * @brief Get centroid of the triangle
+   */
   double GetCenterPos(int i_dim) {
     return (vrts_[0]->pos_[i_dim] + vrts_[1]->pos_[i_dim] +
             vrts_[2]->pos_[i_dim]) /
            3.0;
   }
+  /**
+   * @brief Get the vertex at the other end of the edge from two vertices
+   */
   Vertex *GetOtherVertex(Vertex *vrt1, Vertex *vrt2) {
     if (vrts_[0] != vrt1 and vrts_[0] != vrt2) {
       return vrts_[0];
@@ -367,6 +405,9 @@ struct Triangle : public meshbrane::MeshBraneObject {
       exit(1);
     }
   }
+  /**
+   * @brief Get the edge between two vertices
+   */
   Edge *GetEdge(Vertex *vrt1, Vertex *vrt2) {
     for (auto &&edge : edges_) {
       if (edge->Contains(vrt1) and edge->Contains(vrt2)) {
@@ -376,75 +417,204 @@ struct Triangle : public meshbrane::MeshBraneObject {
     printf("Error finding edge in triangle %zu\n", index_);
     exit(1);
   }
+
+  void set_right_half_edge(HalfEdgePtr h) { h_ = h; }
+  void set_right_half_edge(HalfEdge &h) { h_ = std::make_shared<HalfEdge>(h); }
 };
 
 // HalfEdge //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-struct HalfEdge {
-  size_t index_{0}; // index in master half_edges_ list
+struct HalfEdge : public meshbrane::MeshBraneObject,
+                  public std::enable_shared_from_this<HalfEdge> {
+
+  ////////////////////////////
+  // Fundamental attributes //
+  ////////////////////////////
+  /**
+   * @brief Pointer to origin vertex
+   */
+  VertexPtr v_{nullptr};
+  /**
+   * @brief Pointer to parallel edge
+   */
+  EdgePtr e_{nullptr};
+  /**
+   * @brief Pointer to face containing this half-edge
+   */
+  TrianglePtr f_{nullptr};
+  /**
+   * @brief Pointer to the twin half-edge
+   */
+  HalfEdgePtr h_twin_{nullptr};
+  /**
+   * @brief Pointer to the next half-edge in the face cycle
+   */
+  HalfEdgePtr h_next_{nullptr};
+
+  ////////////////////////
+  // Combinatorial maps //
+  ////////////////////////
+  /**
+   * @brief Get pointer to twin half-edge
+   */
+  HalfEdgePtr h_twin() { return h_twin_; }
+  /**
+   * @brief Get pointer to next half-edge in the face cycle
+   */
+  HalfEdgePtr h_next() { return h_next_; }
+  // Derived maps
+  /**
+   * @brief Get pointer to half-edge rotated clockwise about the origin vertex
+   */
+  HalfEdgePtr h_rotcw() { return this->h_twin_->h_next_; }
+
+  //////////////////////
+  // Precomputed data //
+  //////////////////////
+
+  ////////////////////
+  // Initialization //
+  ////////////////////
+  HalfEdge() = default;
+  ~HalfEdge() = default;
+
+  ////////////////
+  // Predicates //
+  ////////////////
+
+  /////////////////////
+  // Getters/Setters //
+  /////////////////////
+  void set_origin_vertex(VertexPtr v) { v_ = v; }
+  void set_origin_vertex(Vertex &v) { v_ = std::make_shared<Vertex>(v); }
+  void set_parallel_edge(EdgePtr e) { e_ = e; }
+  void set_parallel_edge(Edge &e) { e_ = std::make_shared<Edge>(e); }
+  void set_left_face(TrianglePtr f) { f_ = f; }
+  void set_left_face(Triangle &f) { f_ = std::make_shared<Triangle>(f); }
+  void set_twin_half_edge(HalfEdgePtr h) { h_twin_ = h; }
+  void set_twin_half_edge(HalfEdge &h) {
+    h_twin_ = std::make_shared<HalfEdge>(h);
+  }
+  void set_next_half_edge(HalfEdgePtr h) { h_next_ = h; }
+  void set_next_half_edge(HalfEdge &h) {
+    h_next_ = std::make_shared<HalfEdge>(h);
+  }
+
+  ////////////////
+  // Generators //
+  ////////////////
+  HalfEdgeGenerator generate_H_rotcw() {
+    HalfEdgePtr h = shared_from_this();
+    HalfEdgePtr h_start = h;
+    do {
+      co_yield h;
+      h = h->h_rotcw();
+    } while (h != h_start);
+  };
 };
 
 class TriMesh : public mbrn::MatrixMesh {
-
-private:
-  static const size_t n_edges_min_{3};  // true for any connected graph
-  static const size_t n_edges_max_{10}; // arbitrary choice
-
-  bool do_not_pass_go_{false};
-  int i_datapoint_{0};
-
-  FILE *forces_{nullptr};    // average force from each type of potential
-  FILE *vertices_{nullptr};  // position (3D per vrt per step)
-  FILE *adjacency_{nullptr}; // adjacency matrix  (2D per vrt per step)
+  ////////////////////////////
+  // Fundamental attributes //
+  ////////////////////////////
+public:
+  std::vector<Vertex> vrts_;
+  std::vector<Triangle> tris_;
+  std::vector<Edge> edges_;
+  std::vector<HalfEdge> half_edges_;
+  std::vector<Triangle> boundaries_;
+  std::vector<Object *> boundary_neighbs_;
   system_parameters *params_{nullptr};
-
-  double f_avgs_[4]; // indices 0-4: tether, bend, area, vol
-
-  double l_avg_{0.0};                 // average edge length
-  double node_drag_coefficient_{0.0}; // a
-
-  // params for radial force
+  std::string ply_path{"none"};
+  double r_sys_{0.0};
+  // Bending force
+  double bending_modulus_{0.0};
+  double spontaneous_curvature_{0.0};
+  double splay_modulus_{0.0};
+  // Tether force
+  double dimensionless_tether_repulsive_onset_{0.8};
+  double dimensionless_tether_repulsive_singularity_{0.25};
+  double dimensionless_tether_attractive_onset_{1.2};
+  double dimensionless_tether_attractive_singularity_{2.5};
   double tether_stiffness_{0.0};
   double tether_attractive_singularity_{0.0};
   double tether_repulsive_singularity_{0.0};
   double tether_attractive_onset_{0.0};
   double tether_repulsive_onset_{0.0};
-  // params for bending force
-  // double bending_modulus_{0.0};
-  // params for area conservation force
+  // Area conservation force
   double area_reg_stiffness_{0.0};
-  double A_prime_{0.0};
-  // params for volume conservation force
+  double preferred_area_{1.0};
+  // Volume conservation force
+  double preferred_volume_{0.09403159725796};
   double volume_reg_stiffness_{0.0};
-  double V_prime_{0.0};
-  RNG *rng_; // SF TODO link with system RNG
-  MinimumDistance mindist_;
+  // Drag force
+  double node_drag_coefficient_{0.0};
+  //  Edge flipping
+  int flip_sweeps_per_step_{1};
+  double flipping_probability_{0.3};
+  //  Misc
+  double timestep_{1e-5};
+  static const size_t n_edges_min_{3};  // true for any connected graph
+  static const size_t n_edges_max_{10}; // arbitrary choice
+  bool do_not_pass_go_{false};
+  int i_datapoint_{0};
 
-public:
-  double r_sys_{0.0};
-  double centroid_[3];
-
-  std::vector<Object *> boundary_neighbs_;
-
-  std::vector<Vertex> vrts_;
-  std::vector<Triangle> tris_;
-  std::vector<Edge> edges_;
-  std::vector<HalfEdge> half_edges_;
-
-  std::vector<graph_struct> f_mem_;
-  graph_struct o_;
-
-private:
+  ////////////////////
+  // Initialization //
+  ////////////////////
+  TriMesh() {}
   /**
- * @brief Set the Parameters object
- * 
- */
+   * @brief calls SetParameters, LoadPly, MakeIcosphere, InitializeMeshBrane
+   */
+  void Init(system_parameters *params);
+  /**
+   * @brief Set parameters from system_parameters
+   */
   void SetParameters();
+  /**
+   * @brief Initialize MatrixMesh from a ply file.
+   */
+  void InitializeMeshBrane();
+  /**
+   * @brief Copy constructor
+   */
+  TriMesh(const TriMesh &other) : mbrn::MatrixMesh(other) {};
+  void LoadPly();
   void MakeIcosphere();
   void MakeIcosahedron();
   void DivideFaces();
   void ProjectToUnitSphere();
-  void InitializeMesh();
-  void InitializeMeshBrane();
+  /**
+   * @brief Refresh vertex, edge, and face lists from the matrix mesh data
+   */
+  void RefreshFromMats();
+
+  //////////////////////
+  // Precomputed data //
+  //////////////////////
+  double average_face_area_{0.0};
+  double average_face_volume_{0.0};
+  double centroid_[3];
+  double f_avgs_[4];                // indices 0-4: tether, bend, area, vol
+  double average_edge_length_{0.0}; // average edge length
+
+  //////////////////////////////
+  // Getters/Setters/updaters //
+  //////////////////////////////
+  void RefreshEdgeParams();
+  void UpdatePositions();
+
+  ///////////////////////////
+  // Output methods/params //
+  //////////////////////////
+  FILE *forces_{nullptr};    // average force from each type of potential
+  FILE *vertices_{nullptr};  // position (3D per vrt per step)
+  FILE *adjacency_{nullptr}; // adjacency matrix  (2D per vrt per step)
+  void WriteOutputs();
+
+  ///////////////////
+  // Other methods //
+  ///////////////////
+private:
   void FlipEdges();
   void UpdateCentroid();
   void UpdateTriangles();
@@ -454,60 +624,22 @@ private:
   void ApplyBoundaryForces();
 
 public:
-  TriMesh() {}
-  void Init(system_parameters *params);
   void Draw(std::vector<graph_struct *> &graph_array);
-  void UpdatePositions();
-  void WriteOutputs();
 
-  ////////////////////////////////////////
-  // WBL /////////////////////////////////
-  ////////////////////////////////////////
+  //////////////////////
+  // ???????????????? //
+  //////////////////////
 public:
-  //////////
-  // Data //
-  //////////
-  std::string ply_path{"none"};
+  std::vector<graph_struct> f_mem_;
+  graph_struct o_;
+  RNG *rng_; // SF TODO link with system RNG
+  MinimumDistance mindist_;
 
-  double preferred_area_{1.0};
-  double preferred_volume_{0.09403159725796};
-  double spontaneous_curvature_{0.0};
-  double bending_modulus_{0.0};
-  double splay_modulus_{0.0};
-  // double volume_reg_stiffness_{15.2};
-  // double area_reg_stiffness_{3.0};
-  double dimensionless_tether_repulsive_onset_{0.8};
-  double dimensionless_tether_repulsive_singularity_{0.25};
-  double dimensionless_tether_attractive_onset_{1.2};
-  double dimensionless_tether_attractive_singularity_{2.5};
-  // double tether_stiffness_{80.5};
-  // double tether_repulsive_onset_{0.8};
-  // double tether_repulsive_singularity_{0.25};
-  // double tether_attractive_onset_{1.2};
-  // double tether_attractive_singularity_{2.5};
-  // double node_drag_coefficient_{0.03};
-  double timestep_{1e-5};
-  int flip_sweeps_per_step_{1};
-  double flipping_probability_{0.3};
-
-  //////////////////////////////////////
-  // Constructors and related methods //
-  //////////////////////////////////////
-  /**
-   * @brief Copy constructor
-   */
-  TriMesh(const TriMesh &other) : mbrn::MatrixMesh(other) {};
-  void LoadPly();
-  /**
-   * @brief Refresh vertex, edge, and face lists from the matrix mesh data
-   */
-  void RefreshVEF_from_mats();
-
-  void RefreshEdgeParams();
-
-  /////////////////
-  // Generators //
-  ////////////////
+  //////////////////////
+  // To be deprecated //
+  //////////////////////
+private:
+  void InitializeMesh();
 };
 
 #endif
