@@ -10,21 +10,22 @@
 #include "minimum_distance.hpp"
 #include "rng.hpp"
 #include "site.hpp"
-#include <memory> // std::shared_ptr
+#include <memory>   // std::shared_ptr
+#include <optional> // std::optional
 
 namespace mbrn = meshbrane;
-namespace hedge = meshbrane::half_edge;
 // TODO add param storage and sync site seeds
 
-struct Triangle;
 struct Edge;
-struct Vertex;
 struct HalfEdge;
+struct Triangle;
+struct Vertex;
+using EdgePtr = std::shared_ptr<Edge>;
 using HalfEdgePtr = std::shared_ptr<HalfEdge>;
 using TrianglePtr = std::shared_ptr<Triangle>;
-using EdgePtr = std::shared_ptr<Edge>;
 using VertexPtr = std::shared_ptr<Vertex>;
 using HalfEdgeGenerator = meshbrane::utils::SimpleGenerator<HalfEdgePtr>;
+using TriangleGenerator = meshbrane::utils::SimpleGenerator<TrianglePtr>;
 
 // namespace mth {
 // template <typename T>
@@ -35,7 +36,10 @@ using HalfEdgeGenerator = meshbrane::utils::SimpleGenerator<HalfEdgePtr>;
 // } // namespace mth
 
 // Vertex //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+/**
+ * @brief A vertex in a meshed surface. See `
+ * 
+ */
 struct Vertex : public meshbrane::MeshBraneObject, public Site {
   ////////////////////////////
   // Fundamental attributes //
@@ -86,9 +90,17 @@ struct Vertex : public meshbrane::MeshBraneObject, public Site {
    */
   std::vector<Edge *> edges_;
 
+  /** 
+   * @brief Update the list of neighboring vertices, edges, and triangles
+   */
+  void UpdateNeighbors();
   ////////////////////
   // Initialization //
   ////////////////////
+  Vertex(size_t index) : mbrn::MeshBraneObject(index), Site(seed) {
+    pos_[0] = pos_[1] = pos_[2] = 0;
+    Site::SetPositionXYZ(0, 0, 0);
+  }
   /**
    * @brief Construct a new Vertex object
    */
@@ -109,6 +121,13 @@ struct Vertex : public meshbrane::MeshBraneObject, public Site {
    * @brief Construct a new Vertex object from a `meshbrane::Coords3d` object
    */
   Vertex(mbrn::Coords3d xyz_coord) : Site(seed) {
+    pos_[0] = xyz_coord(0);
+    pos_[1] = xyz_coord(1);
+    pos_[2] = xyz_coord(2);
+    Site::SetPositionXYZ(xyz_coord(0), xyz_coord(1), xyz_coord(2));
+  }
+  Vertex(size_t index, mbrn::Coords3d xyz_coord)
+      : mbrn::MeshBraneObject(index), Site(seed) {
     pos_[0] = xyz_coord(0);
     pos_[1] = xyz_coord(1);
     pos_[2] = xyz_coord(2);
@@ -144,6 +163,23 @@ struct Vertex : public meshbrane::MeshBraneObject, public Site {
   void set_outgoing_half_edge(HalfEdge &h) {
     h_ = std::make_shared<HalfEdge>(h);
   }
+
+  ////////////////
+  // Generators //
+  ////////////////
+  /**
+   * @brief Generate half-edges which originate at this vertex in clockwise order
+   */
+  HalfEdgeGenerator generate_H_out_clockwise();
+  /**
+   * @brief Generate half-edges which originate at this vertex in clockwise order
+   * @param h_start Starting half-edge
+   */
+  HalfEdgeGenerator generate_H_out_clockwise(HalfEdgePtr &h_start);
+  /**
+   * @brief Generate faces incident to this vertex
+   */
+  TriangleGenerator generate_F_incident_clockwise();
 };
 
 // Edge //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -155,7 +191,7 @@ struct Edge : public meshbrane::MeshBraneObject {
   /**
    * @brief Vertices at each end of the edge
    */
-  Vertex *vrts_[2]; // each endpoint
+  Vertex *vrts_[2]{{}}; // each endpoint
   /**
    * @brief Pointer to a (anti)parallel half-edge
    */
@@ -171,7 +207,7 @@ struct Edge : public meshbrane::MeshBraneObject {
   /**
    * @brief Adjacent triangles
    */
-  Triangle *tris_[2]; // each adjacent triangle
+  Triangle *tris_[2]{{}}; // each adjacent triangle
   /**
    * @brief Length of the edge
    */
@@ -196,7 +232,7 @@ struct Edge : public meshbrane::MeshBraneObject {
   ////////////////////
   // Initialization //
   ////////////////////
-  Edge() {}
+  Edge() = default;
   /**
    * @brief Construct a new Edge object from two vertices
    */
@@ -205,10 +241,15 @@ struct Edge : public meshbrane::MeshBraneObject {
     vrts_[1] = v1;
   }
 
+  Edge(size_t index) : mbrn::MeshBraneObject(index) {}
+  Edge(size_t index, Vertex *v0, Vertex *v1) : mbrn::MeshBraneObject(index) {
+    vrts_[0] = v0;
+    vrts_[1] = v1;
+  }
   ////////////////
   // Predicates //
   ////////////////
-  bool is_in_some_boundary();
+  bool is_in_some_boundary() const;
   bool is_flippable() const;        // TODO
   bool is_locally_delaunay() const; // TODO
 
@@ -243,7 +284,7 @@ struct Edge : public meshbrane::MeshBraneObject {
   /**
    * @brief Get pointer to a parallel half-edge
    */
-  HalfEdgePtr h_parallel() { return h_; }
+  HalfEdgePtr h_parallel() const { return h_; }
 
   /**
    * @brief Set the parallel half-edge
@@ -371,6 +412,7 @@ struct Triangle : public meshbrane::MeshBraneObject {
   // Initialization //
   ////////////////////
   Triangle() = default;
+  Triangle(size_t index) : mbrn::MeshBraneObject(index) {}
   /**
    * @brief Construct a new Triangle object from three vertices
    */
@@ -382,6 +424,10 @@ struct Triangle : public meshbrane::MeshBraneObject {
     color_[1] = rand() % 255;
     color_[2] = rand() % 255;
   }
+  /**
+   * @brief Copy constructor
+   */
+  Triangle(const Triangle &other) : mbrn::MeshBraneObject(other) {};
   ////////////////
   // Predicates //
   ////////////////
@@ -390,6 +436,15 @@ struct Triangle : public meshbrane::MeshBraneObject {
    */
   bool Contains(Vertex *vrt) {
     return vrts_[0] == vrt or vrts_[1] == vrt or vrts_[2] == vrt;
+  }
+
+  friend bool operator==(const Triangle &lhs, const Triangle &rhs) {
+    return std::is_permutation(std::begin(lhs.vrts_), std::end(lhs.vrts_),
+                               std::begin(rhs.vrts_));
+  }
+
+  friend bool operator!=(const Triangle &lhs, const Triangle &rhs) {
+    return !(lhs == rhs);
   }
 
   /////////////////////
@@ -434,6 +489,11 @@ struct Triangle : public meshbrane::MeshBraneObject {
   void set_half_edge(HalfEdgePtr h) { h_ = h; }
   void set_half_edge(HalfEdge &h) { h_ = std::make_shared<HalfEdge>(h); }
   HalfEdgePtr h_right() const { return h_; }
+  void set_vertices(Vertex *v0, Vertex *v1, Vertex *v2) {
+    vrts_[0] = v0;
+    vrts_[1] = v1;
+    vrts_[2] = v2;
+  }
 };
 
 // HalfEdge //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -492,6 +552,10 @@ struct HalfEdge : public meshbrane::MeshBraneObject,
    * @brief Get pointer to half-edge rotated clockwise about the origin vertex
    */
   HalfEdgePtr h_rotcw() { return this->h_twin_->h_next_; }
+  /**
+   * @brief Get pointer to the vertex at the head of the half-edge
+   */
+  VertexPtr v_head() { return this->h_twin_->v_; }
 
   //////////////////////
   // Precomputed data //
@@ -502,12 +566,20 @@ struct HalfEdge : public meshbrane::MeshBraneObject,
   ////////////////////
   HalfEdge() = default;
   ~HalfEdge() = default;
+  HalfEdge(size_t index) : mbrn::MeshBraneObject(index) {}
 
   ////////////////
   // Predicates //
   ////////////////
-  bool is_in_some_negative_boundary() { return f_->is_ghost(); }
-  bool is_in_some_positive_boundary() { return h_twin_->f_->is_ghost(); }
+  bool is_in_some_negative_boundary() const { return f_->is_ghost(); }
+  bool is_in_some_positive_boundary() const { return h_twin_->f_->is_ghost(); }
+
+  friend bool operator==(const HalfEdge &lhs, const HalfEdge &rhs) {
+    return (*lhs.v_ == *rhs.v_ and *lhs.e_ == *rhs.e_ and *lhs.f_ == *rhs.f_);
+  }
+  friend bool operator!=(const HalfEdge &lhs, const HalfEdge &rhs) {
+    return !(lhs == rhs);
+  }
 
   /////////////////////
   // Getters/Setters //
@@ -530,16 +602,13 @@ struct HalfEdge : public meshbrane::MeshBraneObject,
   ////////////////
   // Generators //
   ////////////////
-  HalfEdgeGenerator generate_H_rotcw() {
-    HalfEdgePtr h = shared_from_this();
-    HalfEdgePtr h_start = h;
-    do {
-      co_yield h;
-      h = h->h_rotcw();
-    } while (h != h_start);
-  };
+  HalfEdgeGenerator generate_H_rotcw();
 };
 
+/**
+ * @brief A dynamically triangulated surface
+ * 
+ */
 class TriMesh : public mbrn::MatrixMesh {
   ////////////////////////////
   // Fundamental attributes //
@@ -616,7 +685,7 @@ public:
    */
   void RefreshFromMats();
   void RefreshMats();
-
+  void TestFun();
   //////////////////////
   // Precomputed data //
   //////////////////////

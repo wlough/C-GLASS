@@ -14,16 +14,53 @@
 #include <unordered_set> // std::unordered_set
 
 ///////////////////////////////////////////////////
+// Vertex /////////////////////////////////////////
+///////////////////////////////////////////////////
+HalfEdgeGenerator Vertex::generate_H_out_clockwise() {
+  return h_->generate_H_rotcw();
+}
+HalfEdgeGenerator Vertex::generate_H_out_clockwise(HalfEdgePtr &h_start) {
+  if (*h_start->v_origin() != *this) {
+    printf("Error in Vertex::generate_H_out_clockwise\n");
+    printf("h_start does not originate at this vertex\n");
+    exit(1);
+  }
+  return h_start->generate_H_rotcw();
+};
+TriangleGenerator Vertex::generate_F_incident_clockwise() {
+  HalfEdgeGenerator h = generate_H_out_clockwise();
+  for (HalfEdgePtr h : h) {
+    if (h->is_in_some_negative_boundary()) {
+      continue;
+    }
+    co_yield h->f_left();
+  }
+}
+
+///////////////////////////////////////////////////
 // HalfEdge ///////////////////////////////////////
 ///////////////////////////////////////////////////
-
+HalfEdgeGenerator HalfEdge::generate_H_rotcw() {
+  HalfEdgePtr h = shared_from_this();
+  HalfEdgePtr h_start = h;
+  do {
+    co_yield h;
+    h = h->h_rotcw();
+  } while (h != h_start);
+};
 ///////////////////////////////////////////////////
 // Edge ///////////////////////////////////////////
 ///////////////////////////////////////////////////
-bool Edge::is_in_some_boundary() {
+bool Edge::is_in_some_boundary() const {
   return h_parallel()->is_in_some_negative_boundary() ||
          h_parallel()->is_in_some_positive_boundary();
 }
+/**
+ * @brief 
+ * 
+ * @return true 
+ * @return false 
+ */
 bool Edge::is_flippable() const {
   // if self.boundary_contains_h(h):
   //     return False
@@ -37,6 +74,20 @@ bool Edge::is_flippable() const {
   // for him in self.generate_H_out_v_clockwise(vi):
   //     if self.v_head_h(him) == vk:
   //         return False
+  if (is_in_some_boundary()) {
+    return false;
+  }
+  HalfEdgePtr hlj = h_;
+  HalfEdgePtr hjk = hlj->h_next();
+  HalfEdgePtr hli = hlj->h_twin()->h_next();
+  VertexPtr vi = hli->v_head();
+  VertexPtr vk = hjk->v_head();
+
+  // for (HalfEdgePtr him : hlj->generate_H_out_v_clockwise(vi)) {
+  //   if (him->v_head() == vk) {
+  //     return false;
+  //   }
+  // }
 
   return true;
 }
@@ -76,6 +127,8 @@ void TriMesh::Init(system_parameters *params) {
     InitializeMesh();
     // RefreshMats();
   }
+
+  TestFun();
 }
 
 void TriMesh::SetParameters() {
@@ -110,7 +163,7 @@ void TriMesh::SetParameters() {
 
 void TriMesh::LoadPly() {
   // printf("Loading ply file\n");
-  printf("Loading ply file %s\n", ply_path.c_str());
+  printf("  Loading ply file %s\n", ply_path.c_str());
   std::filesystem::path path(ply_path);
   std::string directory = path.parent_path().string();
   std::string filename = path.filename().string();
@@ -124,10 +177,8 @@ void TriMesh::LoadPly() {
   h_right_F_ = m.h_right_F_;
   h_negative_B_ = m.h_negative_B_;
   // update_vef_from_he();
-  printf("******************************************* made it m2");
+  printf("  Saving mesh data to output/%s\n", filename.c_str());
   write_he_ply("output/" + filename);
-  printf("******************************************* made it m1");
-  // RefreshFromMats();
 }
 
 void TriMesh::MakeIcosphere() {
@@ -423,6 +474,7 @@ void TriMesh::InitializeMesh() {
     vrts_[i_vrt].neighbs_.resize(n_edges_max_);
     vrts_[i_vrt].SetDiameter(params_->node_diameter);
     vrts_[i_vrt].SetColor(1.5, draw_type::fixed);
+    // vrts_[i_vrt].SetColor(2.5, draw_type::fixed);
   }
   // Initialize edge indices and update lengths
   double l_sum{0.0};
@@ -475,6 +527,7 @@ void TriMesh::InitializeMesh() {
     }
   }
   printf("Final mesh statistics:\n");
+  printf("  %zu num_vertices = \n", get_num_vertices());
   printf("  %zu vrts (%zu flawed; %zu ideal)\n", vrts_.size(), n_flawed,
          n_gucci);
   average_edge_length_ = l_sum / edges_.size();
@@ -493,17 +546,26 @@ void TriMesh::InitializeMesh() {
  * 
  */
 void TriMesh::RefreshFromMats() {
-
-  int num_vertices = get_num_vertices();
-  int num_faces = get_num_faces();
-  int num_edges = get_num_edges();
-  int num_half_edges = get_num_half_edges();
-  int num_boundaries = get_num_boundaries();
+  printf(
+      "Refreshing vertex, edge, and face lists from half-edge matrix mesh\n");
+  size_t num_vertices = get_num_vertices();
+  size_t num_faces = get_num_faces();
+  size_t num_edges = get_num_edges();
+  size_t num_half_edges = get_num_half_edges();
+  size_t num_boundaries = get_num_boundaries();
+  printf("  num_vertices = %zu\n", num_vertices);
+  printf("  num_edges = %zu\n", num_edges);
+  printf("  num_faces = %zu\n", num_faces);
+  printf("  num_half_edges = %zu\n", num_half_edges);
 
   tris_.clear();
   edges_.clear();
   vrts_.clear();
   half_edges_.clear();
+  // num_vertices = 656
+  // num_edges = 1962
+  // num_faces = 1308
+  // num_half_edges = 3924
 
   tris_.reserve(num_faces);
   edges_.reserve(num_edges);
@@ -511,67 +573,88 @@ void TriMesh::RefreshFromMats() {
   half_edges_.reserve(num_half_edges);
 
   // Initialize half-edges.
-  printf("******************************************* made it 00");
-  for (int _h = 0; _h < num_half_edges; _h++) {
-
-    half_edges_.emplace_back();
-    half_edges_[_h].unset_index();
+  printf("  Initializing half-edges\n");
+  for (size_t _h = 0; _h < num_half_edges; _h++) {
+    half_edges_.emplace_back(_h);
   }
-  // initialize boundary ghost faces, assign a half-edge to right of boundary
-  printf("******************************************* made it 01");
-  for (int _b = 0; _b < num_boundaries; _b++) {
-    boundaries_.emplace_back();
+  // Initialize boundary ghost faces, assign a half-edge to right of boundary
+  printf("  Initializing boundaries\n");
+  for (size_t _b = 0; _b < num_boundaries; _b++) {
+    boundaries_.emplace_back(_b);
     boundaries_[_b].set_ghost();
-    boundaries_[_b].set_half_edge(half_edges_[h_negative_B_(_b)]);
-    boundaries_[_b].unset_index();
-    boundaries_[_b].set_index(_b);
+    boundaries_[_b].set_half_edge(half_edges_[h_negative_b(_b)]);
+    // boundaries_[_b].set_index(_b);
+  }
+  printf("  Initializing faces\n");
+  for (size_t _f = 0; _f < num_faces; _f++) {
+    tris_.emplace_back(_f);
   }
   // Initialize vertices set outgoing half-edge and index
-  for (int _v = 0; _v < num_vertices; _v++) {
-    vrts_.emplace_back(xyz_coord_v(_v));
-    vrts_[_v].set_outgoing_half_edge(half_edges_[h_out_V_(_v)]);
-    vrts_[_v].unset_index();
-    vrts_[_v].set_index(_v);
+  printf("  Initializing vertices, setting outgoing half-edges\n");
+  for (size_t _v = 0; _v < num_vertices; _v++) {
+    vrts_.emplace_back(_v, xyz_coord_v(_v));
+    vrts_[_v].set_outgoing_half_edge(half_edges_[h_out_v(_v)]);
   }
   // Initialize edges and assign vertex/edge/half-edge pointers for half-edges
-  printf("******************************************* made it 02");
-  int _v0, _v1, _v2;
-  int _e0, _e1, _e2;
-  int _h0, _h1, _h2;
-  int _h0t, _h1t, _h2t;
-  int _f, _b;
-  std::unordered_set<int> setE;
-  for (int _h0 = 0; _h0 < num_half_edges; _h0++) {
-    _h0t = h_twin_H_(_h0);
-    _h1 = h_next_H_(_h0);
-    _v0 = v_origin_H_(_h0);
-    _v1 = v_origin_H_(_h0t);
-    _e0 = std::min(_h0, _h0t);
-    _f = f_left_H_(_h0);
-    if (_f >= 0) {
-      half_edges_[_h0].set_left_face(tris_[_f]);
-    } else {
-      _b = -(_f + 1);
-      half_edges_[_h0].set_left_face(boundaries_[_b]);
-    }
-    if (setE.find(_e0) == setE.end()) {
-      setE.insert(_e0);
-      edges_.emplace_back(&vrts_[std::min(_v0, _v1)],
+  printf("  Initializing edges, setting setting pointers to "
+         "vertices/half-edges\n");
+
+  std::unordered_set<size_t> setHpar;
+  for (size_t _h0{0}; _h0 < num_half_edges; _h0++) {
+    size_t _h0t = h_twin_h(_h0);
+    size_t _h1 = h_next_h(_h0);
+    size_t _v0 = v_origin_h(_h0);
+    size_t _v1 = v_origin_h(_h0t);
+    size_t _h_parallel = std::min(_h0, _h0t); //
+    size_t _e0 = setHpar.size();
+
+    if (setHpar.find(_h_parallel) == setHpar.end()) {
+      setHpar.insert(_h_parallel);
+      edges_.emplace_back(_e0, &vrts_[std::min(_v0, _v1)],
                           &vrts_[std::max(_v0, _v1)]);
       edges_[_e0].set_parallel_half_edge(
-          half_edges_[_e0]); // set parallel half-edge to h=_e0=min(h0,h0t)
+          half_edges_
+              [_h_parallel]); // set parallel half-edge to h=_e0=min(h0,h0t)
     }
-    edges_[_e0].unset_index();
-    edges_[_e0].set_index(_e0); // set edge index
+
+    if (f_left_h(_h0) >= 0) {
+      size_t _f = f_left_h(_h0);
+      half_edges_[_h0].set_left_face(tris_[_f]);
+      printf("indices (h, h_twin, h_next, v_origin, e_parallel, f_left) = (%d, "
+             "%d, %d, "
+             "%d, %d, %d)\n",
+             _h0, _h0t, _h1, _v0, _e0, _f);
+    } else {
+      // size_t abs(_f+1)
+      size_t _b = static_cast<size_t>(-(f_left_h(_h0) + 1));
+      half_edges_[_h0].set_left_face(boundaries_[_b]);
+      printf("indices (h, h_twin, h_next, v_origin, e_parallel, b_negative) = "
+             "(%d, %d, "
+             "%d, "
+             "%d, %d, %d)\n",
+             _h0, _h0t, _h1, _v0, _e0, _b);
+    }
 
     half_edges_[_h0].set_origin_vertex(vrts_[_v0]);
     half_edges_[_h0].set_twin_half_edge(half_edges_[_h0t]);
     half_edges_[_h0].set_next_half_edge(half_edges_[_h1]);
     half_edges_[_h0].set_parallel_edge(edges_[_e0]);
-    half_edges_[_h0].unset_index();
-    half_edges_[_h0].set_index(_h0); // set half-edge index
+    // printf("  %d %d %d %d %d %d %d %d %d %d %d %d\n", _h0, _h0t, _h1, _v0, _v1,
+    //        _e0, _f, _b, half_edges_[_h0].v_origin()->index(),
+    //        half_edges_[_h0].h_twin()->index(),
+    //        half_edges_[_h0].h_next()->index(),
+    //        half_edges_[_h0].e_parallel()->index());
+    printf("objects (h, h_twin, h_next, v_origin, e_parallel, f_left) = (%d, "
+           "%d, %d, "
+           "%d, %d, %d)\n",
+           half_edges_[_h0].index(), half_edges_[_h0].h_twin()->index(),
+           half_edges_[_h0].h_next()->index(),
+           half_edges_[_h0].v_origin()->index(),
+           half_edges_[_h0].e_parallel()->index(),
+           half_edges_[_h0].f_left()->index());
   }
 
+  // half_edges_[_h0].v_origin()->index() half_edges_[_h0].h_twin()->index(), half_edges_[_h0].h_next()->index(), half_edges_[_h0].e_parallel()->index());
   // for (int e = 0; e < num_edges; e++) {
   //   edges_.emplace_back(&vrts_[V_cycle_E_(e, 0)], &vrts_[V_cycle_E_(e, 1)]);
   // }
@@ -579,40 +662,20 @@ void TriMesh::RefreshFromMats() {
   // looping through faces hits:
   // * interior half-edges exactly once
   // * interior edges exactly twice
-  printf("******************************************* made it 03");
+  printf("  Setting face vertices and pointers to half-edges\n");
+  for (size_t _f = 0; _f < num_faces; _f++) {
+    size_t _h0 = h_right_f(_f);
+    size_t _h1 = h_next_h(_h0);
+    size_t _h2 = h_next_h(_h1);
+    size_t _v0 = v_origin_h(_h0);
+    size_t _v1 = v_origin_h(_h1);
+    size_t _v2 = v_origin_h(_h2);
 
-  for (int _f = 0; _f < num_faces; _f++) {
-    _h0 = h_right_F_(_f);
-    _h0t = h_twin_H_(_h0);
-
-    _h1 = h_next_H_(_h0);
-    _h1t = h_twin_H_(_h1);
-
-    _h2 = h_next_H_(_h1);
-    _h2t = h_twin_H_(_h2);
-
-    _e1 = std::min(_h1, _h1t);
-    _e2 = std::min(_h2, _h2t);
-
-    _v0 = v_origin_H_(_h0);
-    _v1 = v_origin_H_(_h1);
-    _v2 = v_origin_H_(_h2);
-
-    tris_.emplace_back(&vrts_[_v0], &vrts_[_v1], &vrts_[_v2]);
+    tris_[_f].set_vertices(&vrts_[_v0], &vrts_[_v1], &vrts_[_v2]);
     tris_[_f].set_half_edge(half_edges_[_h0]);
-    tris_[_f].unset_index();
-    tris_[_f].set_index(_f); // set face index
   }
 
-  // Looping though next cycle of each negatively oriented boundary hits:
-  // * boundary half-edges exactly once
-  // * boundary edges exactly once
-  // * boundary vertices exactly once
-  // for (int _b = 0; _b < num_boundaries; _b++) {
-  //   // int _h = h_negative_B_(_b);
-  //   // int _v = v_origin_H_(_h);
-  //   // vrts_[_v].set_boundary(true) ;
-  // }
+  std::cout << "Exiting RefreshFromMats" << std::endl;
 }
 
 void TriMesh::RefreshMats() {
@@ -1767,4 +1830,61 @@ void TriMesh::RefreshEdgeParams() {
       dimensionless_tether_attractive_singularity_ * average_edge_length_;
   tether_repulsive_singularity_ =
       dimensionless_tether_repulsive_singularity_ * average_edge_length_;
+}
+
+void TriMesh::TestFun() {
+  printf("*** TestFun ***\n");
+  // size_t _v0 = 13;
+  // size_t _v1 = 23;
+  // for (size_t _v = 0; _v < _v1; _v++) {
+  //   vrts_[_v].SetColor(2.5, draw_type::fixed);
+  // }
+
+  size_t num_verts = vrts_.size();
+  double dC = 2 * M_PI / num_verts;
+  size_t _v0 = 13;
+  Vertex *v0 = &vrts_[_v0];
+  printf("_v0: %zu\n", _v0);
+  printf("v0: %zu\n", v0->index_);
+
+  // for (int i_vrt{0}; i_vrt < vrts_.size(); i_vrt++) {
+  //   vrts_[i_vrt].SetDiameter(1.5 * params_->node_diameter);
+  //   vrts_[i_vrt].SetColor(i_vrt * dC, draw_type::fixed);
+  // }
+  for (size_t i_vrt{0}; i_vrt < vrts_.size(); i_vrt++) {
+    vrts_[i_vrt].SetDiameter(1.5 * params_->node_diameter);
+    vrts_[i_vrt].SetColor(i_vrt * dC, draw_type::fixed);
+    printf("vrt: %zu\n", vrts_[i_vrt].index_);
+    printf("h_out: %zu\n", vrts_[i_vrt].h_out()->index_);
+  }
+
+  // for (int i_edge{0}; i_edge < edges_.size(); i_edge++) {
+  //   printf("edge: %zu\n", edges_[i_edge].index_);
+  //   printf("h_parallel: %zu\n", edges_[i_edge].h_parallel()->index_);
+  // }
+
+  // for (int i_tri{0}; i_tri < tris_.size(); i_tri++) {
+  //   printf("tri: %zu\n", tris_[i_tri].index_);
+  //   printf("h_right: %zu\n", tris_[i_tri].h_right()->index_);
+  // }
+
+  // for (int i_h{0}; i_h < half_edges_.size(); i_h++) {
+  //   printf("h: %zu\n", half_edges_[i_h].index_);
+  //   printf("v_origin: %zu\n", half_edges_[i_h].v_origin()->index_);
+  //   printf("f_left: %zu\n", half_edges_[i_h].f_left()->index_);
+  //   printf("h_next: %zu\n", half_edges_[i_h].h_next()->index_);
+  //   printf("h_twin: %zu\n", half_edges_[i_h].h_twin()->index_);
+
+  //   printf("v_head: %zu\n", half_edges_[i_h].v_head()->index_);
+  // }
+
+  // do {
+  //   printf("h_start: %zu\n", h->index_);
+  //   h->v_origin()->SetColor(0.0, draw_type::fixed);
+  //   HalfEdgePtr h = h->h_rotcw();
+  // } while (*h != *h_start);
+
+  // for (HalfEdgePtr h : vrts_[0].generate_H_out_clockwise()) {
+  // h->v_origin()->SetColor(0.0, draw_type::fixed);
+  // }
 }
