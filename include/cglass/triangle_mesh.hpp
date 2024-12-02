@@ -1,6 +1,6 @@
-#ifndef _CGLASS_TRIANGLE_MESH_
-#define _CGLASS_TRIANGLE_MESH_
-
+// #ifndef _CGLASS_TRIANGLE_MESH_
+// #define _CGLASS_TRIANGLE_MESH_
+#pragma once
 // #include "common_libs.hpp"
 // #include "definitions.hpp"
 #include "meshbrane/half_edge_primitives.hpp"
@@ -25,6 +25,14 @@ using TrianglePtr = std::shared_ptr<Triangle>;
 using EdgePtr = std::shared_ptr<Edge>;
 using VertexPtr = std::shared_ptr<Vertex>;
 using HalfEdgeGenerator = meshbrane::utils::SimpleGenerator<HalfEdgePtr>;
+
+// namespace mth {
+// template <typename T>
+// inline T cross(T u, T v) {
+//   return T({u[1] * v[2] - u[2] * v[1], u[2] * v[0] - u[0] * v[2],
+//             u[0] * v[1] - u[1] * v[0]});
+// }
+// } // namespace mth
 
 // Vertex //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -200,6 +208,10 @@ struct Edge : public meshbrane::MeshBraneObject {
   ////////////////
   // Predicates //
   ////////////////
+  bool is_in_some_boundary();
+  bool is_flippable() const;        // TODO
+  bool is_locally_delaunay() const; // TODO
+
   friend bool operator==(const Edge &lhs, const Edge &rhs) {
     return ((lhs.vrts_[0] == rhs.vrts_[0] and lhs.vrts_[1] == rhs.vrts_[1]) or
             (lhs.vrts_[0] == rhs.vrts_[1] and lhs.vrts_[1] == rhs.vrts_[0]));
@@ -215,6 +227,7 @@ struct Edge : public meshbrane::MeshBraneObject {
   /////////////////////
   // Getters/Setters //
   /////////////////////
+  // HalfEdgePtr h_parallel() { return h_; }
   /**
    * @brief Get the vertex at other end of the edge from a given vertex
    */
@@ -418,8 +431,9 @@ struct Triangle : public meshbrane::MeshBraneObject {
     exit(1);
   }
 
-  void set_right_half_edge(HalfEdgePtr h) { h_ = h; }
-  void set_right_half_edge(HalfEdge &h) { h_ = std::make_shared<HalfEdge>(h); }
+  void set_half_edge(HalfEdgePtr h) { h_ = h; }
+  void set_half_edge(HalfEdge &h) { h_ = std::make_shared<HalfEdge>(h); }
+  HalfEdgePtr h_right() const { return h_; }
 };
 
 // HalfEdge //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -461,6 +475,18 @@ struct HalfEdge : public meshbrane::MeshBraneObject,
    * @brief Get pointer to next half-edge in the face cycle
    */
   HalfEdgePtr h_next() { return h_next_; }
+  /**
+   * @brief Get pointer to origin vertex
+   */
+  VertexPtr v_origin() { return v_; }
+  /**
+   * @brief Get pointer to parallel edge
+   */
+  EdgePtr e_parallel() { return e_; }
+  /**
+   * @brief Get pointer to left face
+   */
+  TrianglePtr f_left() { return f_; }
   // Derived maps
   /**
    * @brief Get pointer to half-edge rotated clockwise about the origin vertex
@@ -480,6 +506,8 @@ struct HalfEdge : public meshbrane::MeshBraneObject,
   ////////////////
   // Predicates //
   ////////////////
+  bool is_in_some_negative_boundary() { return f_->is_ghost(); }
+  bool is_in_some_positive_boundary() { return h_twin_->f_->is_ghost(); }
 
   /////////////////////
   // Getters/Setters //
@@ -563,7 +591,7 @@ public:
   ////////////////////
   TriMesh() {}
   /**
-   * @brief calls SetParameters, LoadPly, MakeIcosphere, InitializeMeshBrane
+   * @brief calls SetParameters, LoadPly/MakeIcosphere, InitializeMesh
    */
   void Init(system_parameters *params);
   /**
@@ -573,7 +601,7 @@ public:
   /**
    * @brief Initialize MatrixMesh from a ply file.
    */
-  void InitializeMeshBrane();
+  void InitializeMesh();
   /**
    * @brief Copy constructor
    */
@@ -587,6 +615,7 @@ public:
    * @brief Refresh vertex, edge, and face lists from the matrix mesh data
    */
   void RefreshFromMats();
+  void RefreshMats();
 
   //////////////////////
   // Precomputed data //
@@ -639,7 +668,7 @@ public:
   // To be deprecated //
   //////////////////////
 private:
-  void InitializeMesh();
+  void InitializeMeshOG();
 };
 
-#endif
+// #endif

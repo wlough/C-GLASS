@@ -18,6 +18,30 @@
 ///////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////
+// Edge ///////////////////////////////////////////
+///////////////////////////////////////////////////
+bool Edge::is_in_some_boundary() {
+  return h_parallel()->is_in_some_negative_boundary() ||
+         h_parallel()->is_in_some_positive_boundary();
+}
+bool Edge::is_flippable() const {
+  // if self.boundary_contains_h(h):
+  //     return False
+  // hlj = h
+  // hjk = self.h_next_h(hlj)
+  // # hjl = self.h_twin_h(hlj)
+  // hli = self.h_next_h(self.h_twin_h(hlj))
+  // vi = self.v_head_h(hli)
+  // vk = self.v_head_h(hjk)
+
+  // for him in self.generate_H_out_v_clockwise(vi):
+  //     if self.v_head_h(him) == vk:
+  //         return False
+
+  return true;
+}
+
+///////////////////////////////////////////////////
 // TriMesh ////////////////////////////////////////
 ///////////////////////////////////////////////////
 
@@ -44,12 +68,14 @@ void TriMesh::Init(system_parameters *params) {
   SetParameters();
   if (ply_path != "none") {
     LoadPly();
+    RefreshFromMats();
+    // UpdateMesh();
+    InitializeMesh();
   } else {
     MakeIcosphere();
-    // RefreshMatrixMesh_from_VEF();
+    InitializeMesh();
+    // RefreshMats();
   }
-  InitializeMeshBrane();
-  // InitializeMesh();
 }
 
 void TriMesh::SetParameters() {
@@ -97,9 +123,11 @@ void TriMesh::LoadPly() {
   f_left_H_ = m.f_left_H_;
   h_right_F_ = m.h_right_F_;
   h_negative_B_ = m.h_negative_B_;
-  update_vef_from_he();
+  // update_vef_from_he();
+  printf("******************************************* made it m2");
   write_he_ply("output/" + filename);
-  RefreshFromMats();
+  printf("******************************************* made it m1");
+  // RefreshFromMats();
 }
 
 void TriMesh::MakeIcosphere() {
@@ -298,7 +326,7 @@ void TriMesh::DivideFaces() {
   edges_ = new_edges;
 }
 
-void TriMesh::InitializeMesh() {
+void TriMesh::InitializeMeshOG() {
   // Initialize vertex storage + auxiliary parameters
   for (int i_vrt{0}; i_vrt < vrts_.size(); i_vrt++) {
     vrts_[i_vrt].index_ = i_vrt;
@@ -384,11 +412,11 @@ void TriMesh::InitializeMesh() {
   // tether_repulsive_singularity_ = 0.15 * average_edge_length_;
 }
 
-void TriMesh::InitializeMeshBrane() {
+void TriMesh::InitializeMesh() {
 
   // Initialize vertex storage + auxiliary parameters
   for (int i_vrt{0}; i_vrt < vrts_.size(); i_vrt++) {
-    vrts_[i_vrt].index_ = i_vrt;
+    // vrts_[i_vrt].index_ = i_vrt;
     vrts_[i_vrt].tris_.resize(n_edges_max_);
     vrts_[i_vrt].edges_.resize(n_edges_max_);
 
@@ -399,14 +427,14 @@ void TriMesh::InitializeMeshBrane() {
   // Initialize edge indices and update lengths
   double l_sum{0.0};
   for (int i_edge{0}; i_edge < edges_.size(); i_edge++) {
-    edges_[i_edge].index_ = i_edge;
+    // edges_[i_edge].index_ = i_edge;
     edges_[i_edge].Update();
     l_sum += edges_[i_edge].length_;
   }
   // Initialize triangle indices and manually calculate areas (edges not assigned yet)
   double area_sum{0.0};
   for (int i_tri{0}; i_tri < tris_.size(); i_tri++) {
-    tris_[i_tri].index_ = i_tri;
+    // tris_[i_tri].index_ = i_tri;
     Triangle *tri{&tris_[i_tri]};
     double l1{0.0};
     double l2{0.0};
@@ -460,65 +488,53 @@ void TriMesh::InitializeMeshBrane() {
   printf("  V_calc_alt = %g\n", (1.0 / 3.0) * average_face_area_ * r_sys_);
 }
 
-// void TriMesh::RefreshVEF_from_mats() {
-//   int num_vertices = get_num_vertices();
-//   int num_faces = get_num_faces();
-//   int num_edges = get_num_edges();
-//   tris_.clear();
-//   edges_.clear();
-//   vrts_.clear();
-//   tris_.reserve(num_faces);
-//   edges_.reserve(num_edges);
-//   vrts_.reserve(num_vertices);
-//   printf("%zu faces, %zu edges, %zu verts\n", num_faces, num_edges,
-//          num_vertices);
-//   for (int v = 0; v < num_vertices; v++) {
-//     vrts_.emplace_back(xyz_coord_v(v));
-//   }
-//   for (int e = 0; e < num_edges; e++) {
-//     edges_.emplace_back(&vrts_[V_cycle_E_(e, 0)], &vrts_[V_cycle_E_(e, 1)]);
-//   }
-//   for (int f = 0; f < num_faces; f++) {
-//     int v0 = V_cycle_F_(f, 0);
-//     int v1 = V_cycle_F_(f, 1);
-//     int v2 = V_cycle_F_(f, 2);
-//     tris_.emplace_back(&vrts_[v0], &vrts_[v1], &vrts_[v2]);
-//   }
-// }
-
+/**
+ * @brief Refresh vertex, edge, and face lists from the half-edge matrix mesh data structure
+ * 
+ */
 void TriMesh::RefreshFromMats() {
+
   int num_vertices = get_num_vertices();
   int num_faces = get_num_faces();
   int num_edges = get_num_edges();
   int num_half_edges = get_num_half_edges();
   int num_boundaries = get_num_boundaries();
+
   tris_.clear();
   edges_.clear();
   vrts_.clear();
   half_edges_.clear();
+
   tris_.reserve(num_faces);
   edges_.reserve(num_edges);
   vrts_.reserve(num_vertices);
   half_edges_.reserve(num_half_edges);
 
-  // Initialize half-edges
+  // Initialize half-edges.
+  printf("******************************************* made it 00");
   for (int _h = 0; _h < num_half_edges; _h++) {
+
     half_edges_.emplace_back();
+    half_edges_[_h].unset_index();
   }
   // initialize boundary ghost faces, assign a half-edge to right of boundary
+  printf("******************************************* made it 01");
   for (int _b = 0; _b < num_boundaries; _b++) {
     boundaries_.emplace_back();
     boundaries_[_b].set_ghost();
-    boundaries_[_b].set_right_half_edge(half_edges_[h_negative_B_(_b)]);
+    boundaries_[_b].set_half_edge(half_edges_[h_negative_B_(_b)]);
+    boundaries_[_b].unset_index();
     boundaries_[_b].set_index(_b);
   }
   // Initialize vertices set outgoing half-edge and index
   for (int _v = 0; _v < num_vertices; _v++) {
     vrts_.emplace_back(xyz_coord_v(_v));
     vrts_[_v].set_outgoing_half_edge(half_edges_[h_out_V_(_v)]);
+    vrts_[_v].unset_index();
     vrts_[_v].set_index(_v);
   }
   // Initialize edges and assign vertex/edge/half-edge pointers for half-edges
+  printf("******************************************* made it 02");
   int _v0, _v1, _v2;
   int _e0, _e1, _e2;
   int _h0, _h1, _h2;
@@ -545,11 +561,15 @@ void TriMesh::RefreshFromMats() {
       edges_[_e0].set_parallel_half_edge(
           half_edges_[_e0]); // set parallel half-edge to h=_e0=min(h0,h0t)
     }
+    edges_[_e0].unset_index();
+    edges_[_e0].set_index(_e0); // set edge index
 
     half_edges_[_h0].set_origin_vertex(vrts_[_v0]);
     half_edges_[_h0].set_twin_half_edge(half_edges_[_h0t]);
     half_edges_[_h0].set_next_half_edge(half_edges_[_h1]);
     half_edges_[_h0].set_parallel_edge(edges_[_e0]);
+    half_edges_[_h0].unset_index();
+    half_edges_[_h0].set_index(_h0); // set half-edge index
   }
 
   // for (int e = 0; e < num_edges; e++) {
@@ -559,6 +579,7 @@ void TriMesh::RefreshFromMats() {
   // looping through faces hits:
   // * interior half-edges exactly once
   // * interior edges exactly twice
+  printf("******************************************* made it 03");
 
   for (int _f = 0; _f < num_faces; _f++) {
     _h0 = h_right_F_(_f);
@@ -578,7 +599,9 @@ void TriMesh::RefreshFromMats() {
     _v2 = v_origin_H_(_h2);
 
     tris_.emplace_back(&vrts_[_v0], &vrts_[_v1], &vrts_[_v2]);
-    tris_[_f].set_right_half_edge(half_edges_[_h0]);
+    tris_[_f].set_half_edge(half_edges_[_h0]);
+    tris_[_f].unset_index();
+    tris_[_f].set_index(_f); // set face index
   }
 
   // Looping though next cycle of each negatively oriented boundary hits:
@@ -590,6 +613,48 @@ void TriMesh::RefreshFromMats() {
   //   // int _v = v_origin_H_(_h);
   //   // vrts_[_v].set_boundary(true) ;
   // }
+}
+
+void TriMesh::RefreshMats() {
+
+  int num_vertices = vrts_.size();
+  int num_faces = tris_.size();
+  // int num_edges = edges_.size();
+  int num_half_edges = half_edges_.size();
+  int num_boundaries = boundaries_.size();
+  xyz_coord_V_.resize(num_vertices, 3);
+  h_out_V_.resize(num_vertices);
+  v_origin_H_.resize(num_half_edges);
+  h_next_H_.resize(num_half_edges);
+  h_twin_H_.resize(num_half_edges);
+  f_left_H_.resize(num_half_edges);
+  h_right_F_.resize(num_faces);
+  h_negative_B_.resize(num_boundaries);
+
+  // set vertex data
+  for (int _v = 0; _v < num_vertices; _v++) {
+    xyz_coord_V_.row(_v) << vrts_[_v].pos_[0], vrts_[_v].pos_[1],
+        vrts_[_v].pos_[2];
+    h_out_V_(_v) = vrts_[_v].h_out()->index_;
+  }
+
+  for (int _h = 0; _h < num_half_edges; _h++) {
+    v_origin_H_(_h) = half_edges_[_h].v_origin()->index_;
+    h_next_H_(_h) = half_edges_[_h].h_next()->index_;
+    h_twin_H_(_h) = half_edges_[_h].h_twin()->index_;
+    v_origin_H_(_h) = half_edges_[_h].v_origin()->index_;
+    int _f = half_edges_[_h].f_left()->index_;
+    if (half_edges_[_h].is_in_some_negative_boundary()) {
+      int _b = -(_f + 1);
+      f_left_H_(_h) = _b;
+    } else {
+      f_left_H_(_h) = _f;
+    }
+  }
+
+  for (int _f = 0; _f < num_faces; _f++) {
+    h_right_F_[_f] = tris_[_f].h_right()->index_;
+  }
 }
 
 void TriMesh::UpdateCentroid() {
@@ -1587,6 +1652,7 @@ void TriMesh::UpdatePositions() {
   if (do_not_pass_go_) {
     return;
   }
+
   // shrink this jonny
   if (params_->mesh_shrink_rate > 0.0) {
     average_edge_length_ *= (1.0 - params_->mesh_shrink_rate);
