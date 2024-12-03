@@ -4,7 +4,7 @@ do_build() {
     mkdir build
     cd build || exit 1
     cmake ${CMAKE_FLAGS} ..
-    make -j8
+    make -j16
     if $build_docs; then
         # make docs
         doxygen ../Doxyfile

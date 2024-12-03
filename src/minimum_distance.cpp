@@ -1,5 +1,5 @@
 #include "cglass/minimum_distance.hpp"
-#include "cglass/membrane.hpp"
+// #include "cglass/membrane.hpp"
 #include "cglass/space_base.hpp"
 #include "cglass/triangle_mesh.hpp"
 

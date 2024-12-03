@@ -5,6 +5,6 @@ doxygen_add_docs(docs
     cglass/lib.hpp
     "${CMAKE_CURRENT_SOURCE_DIR}/mainpage.md"
     WORKING_DIRECTORY
-    "${PROJECT_SOURCE_DIR}/include"
+    "${PROJECT_SOURCE_DIR}/include/cglass"
 )
 

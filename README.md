@@ -71,7 +71,7 @@ Included is a script for building C-GLASS with CMake. To build C-GLASS (without 
 ./install.sh
 ```
 
-There are additional flags for building with OpenMP, building with graphics, installing C-GLASS in `/usr/local`, etc. To see a menu of options, run 
+There are additional flags for building with OpenMP, building with graphics, installing C-GLASS in `/usr/local`, etc. To see a menu of options, run
 
 ```bash
 ./install.sh -h
@@ -95,7 +95,7 @@ Several other libraries are required for running C-GLASS with graphics on Linux 
 The C-GLASS executable is run as
 
 ```
-cglass.exe [optional-flags] [parameter-file] 
+cglass.exe [optional-flags] [parameter-file]
 ```
 
 The following flags are available:
@@ -104,10 +104,10 @@ The following flags are available:
 --help, -h
     Show the help menu which gives short descriptions about each of the flags
     as well as binary usage
- 
- --run-name rname, -r rname 
+
+ --run-name rname, -r rname
     Overwrites the parameter "run_name" with rname which serves as a prefix for
-    all outputs 
+    all outputs
 
 --n-runs num, -n num
     Overwrites the parameter "n_runs" with num, which tells the simulation how
@@ -177,14 +177,14 @@ See the `examples` folder for examples of parameter files.
 Notice that there are three parameter types: global parameters, global species parameters, and species parameters. Global parameters are parameters that are common to the entire system, such system size, integration time step, etc. Species parameters are unique to the specified species, such as `filament`. There is also an optional global species parameter type that affects every species, such as the frequency to write to output files.
 
 What do I mean by species? C-GLASS assumes that any given simulation will likely have many copies of one kind of thing, which I call a species, perhaps interacting with other species of other kinds. In a system of interacting spheres, the species is 'sphere.' In a system of interacting semiflexible filaments, the species is 'filament.' Simulations can have many types of species all interacting with each other with different species-species interaction potentials.
- 
+
 If any parameter is not specified in the parameter file, any instance of that parameter in the simulation will assume its default value specified in the `config/default_config.yaml` file.
 
 Some important global parameters are:
 
 ```
 seed
-    simulation seed to use with random number generator 
+    simulation seed to use with random number generator
 run_name
     prefix for all output files
 n_runs
@@ -280,12 +280,12 @@ make test
 
 ### Adding new parameters
 
-C-GLASS comes with it's own parameter initialization tool, `configure_C-GLASS.exe`, which is installed automatically along with the C-GLASS binary using CMake. The configurator makes it easy to add new parameters to the simulation without mucking around in the source code. Just add your new parameter to `config/default_config.yaml` file using the following format: 
+C-GLASS comes with it's own parameter initialization tool, `configure_C-GLASS.exe`, which is installed automatically along with the C-GLASS binary using CMake. The configurator makes it easy to add new parameters to the simulation without mucking around in the source code. Just add your new parameter to `config/default_config.yaml` file using the following format:
 
 ```
-new_parameter_name: [default_parameter_value, parameter_type] 
+new_parameter_name: [default_parameter_value, parameter_type]
 ```
- 
+
 Then run the configurator using
 
 ```
@@ -299,7 +299,7 @@ Running configure_cglass.exe will look at all the parameters in the default conf
 Using parameter sets, it becomes easier to run many simulations over a given parameter space. There are two types of parameter sets possible with C-GLASS: defined and random. Each parameter set type works the same with both global parameters and species parameters.
 
 #### Defined parameter sets
-  
+
 Defined parameter sets are specified by the `V` prefix in the parameter file:
 
 ```
@@ -362,21 +362,21 @@ Given this parameter file, C-GLASS will run N simulations each of M random param
 In this example, the sampled parameter space has dimensionality of n=3, since there are only three parameters we are sampling over. Each parameter set will have a random real number for parameter_name2 in the the range (A,B), a random integer in the range [C,D] for parameter_name3, and will set parameter_name4 to 10^K for random real number K in the range (F,G).  C-GLASS will then run each parameter set N times each with a unique seed, and repeat this random process M times. It will therefore take N samples of M random points in the n-dimensional parameter space.  
 
 ### Interactions
-  
+
 The Interaction Manager in C-GLASS was written with short-range interactions in mind. For this reason, interactions are treated by considering pair-wise interactions between neighboring interactor-elements that make up a composite object (e.g. small, rigid segments that compose a flexible filament). For this reason, interactions use cell lists to improve performance. Furthermore, simulating large objects in C-GLASS requires representing the object as a composite of smaller, simple objects. An example of how a large object should be decomposed into simple objects is done in the Filament class.
 
 ### Potentials
-  
+
 C-GLASS is designed to be able to use interchangable potentials for various objects. However, potentials need to be added manually as a subclass of PotentialBase, included in PotentialManager, and a corresponding potential_type added to definitions.h for lookup purposes (see the InitPotentials method in PotentialManager.h for examples).
 
 ### Outputs
-  
+
 C-GLASS has four output types. Three are species specific (posit, spec, checkpoint), and the fourth is the statistical information file (thermo). All files are written in binary.
 
 The posit file has the following header format:
 
 ```
-int n_steps, int n_posit, double delta 
+int n_steps, int n_posit, double delta
 ```
 
 Followed by n_steps/n_posit lines of data with the format:
@@ -413,20 +413,20 @@ double volume
 Where the pressure is the isometric pressure, and the pressure tensor is calculated from the time-averaged stress tensor.
 
 ### Data analysis
-  
+
 If analysis operations of output files are already defined for your species, as is the case for the Filament species, analyzing outputs is a simple matter. First, make sure the desired analysis flag is set in the species parameters for that species.
 
 For example, in the Filament species there is a persistence length analysis that produces .mse2e files that tracks the mean-square end-to-end distance of semiflexible filaments. This is triggered by a parameter lp_analysis=1, which can be set in the parameter file.
 
 Anaylses are run by running C-GLASS in the following way:
-  
+
 ```
 cglass.exe -a parameter_file.yaml.
 ```
-  
+
 NOTE: It is important to keep in mind that the parameter_file should be identical to the parameter file used to generate the outputs. There are a few exceptions that only affect post-processing, such as analysis flags, but this is true in general.
 
-The way inputs and outputs are meant to work in C-GLASS is such that during a simulation, output data are generated in the posit, spec, and checkpoint formats, and during analysis, the same output data are read back into the data structures in C-GLASS for processing. The .posit files just contain bare-bones information that allow many types of simple analyses, but .spec files should in general contain all the necessary information to recreate the trajectory for a member of a species. 
+The way inputs and outputs are meant to work in C-GLASS is such that during a simulation, output data are generated in the posit, spec, and checkpoint formats, and during analysis, the same output data are read back into the data structures in C-GLASS for processing. The .posit files just contain bare-bones information that allow many types of simple analyses, but .spec files should in general contain all the necessary information to recreate the trajectory for a member of a species.
 
 For a new species analysis method, the analysis routines should be defined in the species container class, rather than the species member class, and called by the inherited RunAnalysis method of the SpeciesBase class (and likewise for analysis initialization and finalization, see examples for details).
 
@@ -487,3 +487,25 @@ C-GLASS is written in C++ and designed for general coarse-grained physics simula
 ## License
 
 This software is licensed under the terms of the BSD-3 Clause license. See the `LICENSE` for more details.
+
+
+
+
+
+
+
+## To do
+* Define primitive interactor-elements `meshbrane::primitives`
+  * `Point`, `Vertex`, `OrientedSegment`, `OrientedTri`,...?
+* Define composite objects
+  * OrientedSurface
+    * RigidBody.OrientedSurface
+    * Membrane(OrientedSurface)
+* Define species parameters
+  * Add to `config/default_config.yaml` and run `./configure_cglass.exe config/default_config.yaml`
+* Define interaction potentials: tethering potential
+  * Define subclass of PotentialBase
+  * `#include NewPotential` in PotentialManager
+  * Add new potential_type to definitions.hpp for lookup purposes
+  * See InitPotentials method in PotentialManager.h for examples
+<!-- * Define output types for new species (posit, spec, checkpoint) -->

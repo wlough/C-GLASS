@@ -1,96 +1,15 @@
-#include <cglass/filament.hpp>
-// #include <cglass/ply_tools.hpp>
 #include "cglass/triangle_mesh.hpp"
 #include "meshbrane/simple_generator.hpp"
-#include <cglass/membrane.hpp>
+#include <cglass/filament.hpp>
 #include <coroutine>
-#include <filesystem>
-#include <iostream>
-#include <meshbrane/matrix_mesh.hpp>
-#include <meshbrane/meshbrane_data_types.hpp>
-#include <unistd.h>
-#include <vector>
+#include <filesystem>                         // std::filesystem::path
+#include <iostream>                           // std::cout
+#include <meshbrane/matrix_mesh.hpp>          // MatrixMesh
+#include <meshbrane/meshbrane_data_types.hpp> // Samplesi, Coords3d
+#include <unistd.h>                           // ?
+#include <vector>                             // std::vector
 
 #include <unordered_set> // std::unordered_set
-
-///////////////////////////////////////////////////
-// Vertex /////////////////////////////////////////
-///////////////////////////////////////////////////
-HalfEdgeGenerator Vertex::generate_H_out_clockwise() {
-  return h_->generate_H_rotcw();
-}
-HalfEdgeGenerator Vertex::generate_H_out_clockwise(HalfEdgePtr &h_start) {
-  if (*h_start->v_origin() != *this) {
-    printf("Error in Vertex::generate_H_out_clockwise\n");
-    printf("h_start does not originate at this vertex\n");
-    exit(1);
-  }
-  return h_start->generate_H_rotcw();
-};
-TriangleGenerator Vertex::generate_F_incident_clockwise() {
-  HalfEdgeGenerator h = generate_H_out_clockwise();
-  for (HalfEdgePtr h : h) {
-    if (h->is_in_some_negative_boundary()) {
-      continue;
-    }
-    co_yield h->f_left();
-  }
-}
-
-///////////////////////////////////////////////////
-// HalfEdge ///////////////////////////////////////
-///////////////////////////////////////////////////
-HalfEdgeGenerator HalfEdge::generate_H_rotcw() {
-  HalfEdgePtr h = shared_from_this();
-  HalfEdgePtr h_start = h;
-  do {
-    co_yield h;
-    h = h->h_rotcw();
-  } while (h != h_start);
-};
-///////////////////////////////////////////////////
-// Edge ///////////////////////////////////////////
-///////////////////////////////////////////////////
-bool Edge::is_in_some_boundary() const {
-  return h_parallel()->is_in_some_negative_boundary() ||
-         h_parallel()->is_in_some_positive_boundary();
-}
-/**
- * @brief 
- * 
- * @return true 
- * @return false 
- */
-bool Edge::is_flippable() const {
-  // if self.boundary_contains_h(h):
-  //     return False
-  // hlj = h
-  // hjk = self.h_next_h(hlj)
-  // # hjl = self.h_twin_h(hlj)
-  // hli = self.h_next_h(self.h_twin_h(hlj))
-  // vi = self.v_head_h(hli)
-  // vk = self.v_head_h(hjk)
-
-  // for him in self.generate_H_out_v_clockwise(vi):
-  //     if self.v_head_h(him) == vk:
-  //         return False
-  if (is_in_some_boundary()) {
-    return false;
-  }
-  HalfEdgePtr hlj = h_;
-  HalfEdgePtr hjk = hlj->h_next();
-  HalfEdgePtr hli = hlj->h_twin()->h_next();
-  VertexPtr vi = hli->v_head();
-  VertexPtr vk = hjk->v_head();
-
-  // for (HalfEdgePtr him : hlj->generate_H_out_v_clockwise(vi)) {
-  //   if (him->v_head() == vk) {
-  //     return false;
-  //   }
-  // }
-
-  return true;
-}
 
 ///////////////////////////////////////////////////
 // TriMesh ////////////////////////////////////////
@@ -1759,41 +1678,6 @@ void TriMesh::UpdatePositions() {
   }
   WriteOutputs();
 }
-
-// void TriMesh::LoadPly() {
-//   // printf("Loading ply file\n");
-//   printf("Loading ply file %s\n", ply_path.c_str());
-//   MeshConverter mc = MeshConverter::from_he_ply(ply_path, false);
-//   auto [xyz_coord_V, V_cycle_E, V_cycle_F] = mc.get_vef_samples();
-
-//   // assuming genus=0 without boundary
-//   int euler_characteristic = 2;
-//   int num_vertices = xyz_coord_V.rows();
-//   int num_faces = V_cycle_F.rows();
-//   int num_edges = (-euler_characteristic + num_vertices + num_faces);
-
-//   tris_.reserve(num_faces);
-//   edges_.reserve(num_edges);
-//   vrts_.reserve(num_vertices);
-//   printf("%zu faces, %zu edges, %zu verts\n", num_faces, num_edges,
-//          num_vertices);
-//   // MakeIcosahedron();
-//   for (int v = 0; v < num_vertices; v++) {
-//     // double xyz_coord[3] = {xyz_coord_V(v, 0), xyz_coord_V(v, 1), xyz_coord_V(v, 2)};
-//     vrts_.emplace_back(xyz_coord_V(v, 0), xyz_coord_V(v, 1), xyz_coord_V(v, 2));
-//   }
-//   for (int e = 0; e < num_edges; e++) {
-//     int v0 = V_cycle_E(e, 0);
-//     int v1 = V_cycle_E(e, 1);
-//     edges_.emplace_back(&vrts_[v0], &vrts_[v1]);
-//   }
-//   for (int f = 0; f < num_faces; f++) {
-//     int v0 = V_cycle_F(f, 0);
-//     int v1 = V_cycle_F(f, 1);
-//     int v2 = V_cycle_F(f, 2);
-//     tris_.emplace_back(&vrts_[v0], &vrts_[v1], &vrts_[v2]);
-//   }
-// }
 
 ////////////////////////////////////////
 // WBL /////////////////////////////////
