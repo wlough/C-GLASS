@@ -7,7 +7,6 @@
 #include "meshbrane/matrix_mesh.hpp"
 #include "meshbrane/meshbrane_data_types.hpp"
 #include "meshbrane/meshbrane_object.hpp"
-#include "meshbrane/simple_generator.hpp"
 #include "minimum_distance.hpp"
 #include "rng.hpp"
 #include "site.hpp"
