@@ -175,6 +175,8 @@ system_parameters parse_system_params(YAML::Node &node) {
       params.mesh_steps_per_datapoint = it->second.as<size_t>();
     } else if (param_name.compare("mesh_shrink_rate") == 0) {
       params.mesh_shrink_rate = it->second.as<double>();
+    } else if (param_name.compare("membrane_scale_to_system_radius") == 0) {
+      params.membrane_scale_to_system_radius = it->second.as<bool>();
     } else if (param_name.compare("membrane_tether_stiffness") == 0) {
       params.membrane_tether_stiffness = it->second.as<double>();
     } else if (param_name.compare("membrane_tether_repulsive_singularity") ==

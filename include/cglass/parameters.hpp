@@ -338,6 +338,7 @@ struct system_parameters {
   bool draw_mindist = false;
   bool enable_flipping = false;
   std::string membrane_ply_path = "none";
+  bool membrane_scale_to_system_radius = false;
   double membrane_tether_repulsive_singularity = 0.1;
   double membrane_tether_repulsive_onset = 0.8;
   double membrane_tether_attractive_onset = 1.2;

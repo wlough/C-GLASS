@@ -453,6 +453,7 @@ receptor:
 # #########################################################
 #  Membrane parameters
 membrane_ply_path: [data/cglass_ply/unit_sphere_005120.ply, string] # Path to ply file for membrane mesh
+membrane_scale_to_system_radius: [false, bool] # Path to ply file for membrane mesh
 # membrane_preferred_area: [1.0, double] # (Length^2) preferred surface area
 # membrane_preferred_volume: [0.09403159725796, double] # (Length^3) preferred interior volume
 # membrane_spontaneous_curvature: [0.0, double] # (1/Length) spontaneous mean curvature

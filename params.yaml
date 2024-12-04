@@ -219,7 +219,11 @@ mesh_enable_flipping: false
 mesh_node_diameter: 1
 mesh_draw_centroid: false
 mesh_draw_mindist: false
-membrane_ply_path: data/cglass_ply/dumbbell_yaxis_coarse_he.ply
+membrane_scale_to_system_radius: false
+# membrane_ply_path: data/cglass_ply/dumbbell_yaxis_coarse_he.ply
+membrane_ply_path: data/cglass_ply/oblate_005120_he.ply
+# membrane_ply_path: data/example_ply/oblate_020480_he.ply
+# membrane_ply_path: data/example_ply/oblate_005120_he.ply
 membrane_tether_repulsive_singularity: .15 # (Dimensionless) tethering potential minimum length
 membrane_tether_repulsive_onset: 0.8 # (Dimensionless) onset of repulsive penalty
 membrane_tether_attractive_onset: 1.2 # (Dimensionless) onset of attractive penalty

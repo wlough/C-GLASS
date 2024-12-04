@@ -64,6 +64,7 @@ public:
   static const size_t n_edges_max_{10}; // arbitrary choice
   bool do_not_pass_go_{false};
   int i_datapoint_{0};
+  bool scale_to_system_radius{false};
 
   ////////////////////
   // Initialization //
@@ -81,6 +82,7 @@ public:
    * @brief Initialize MatrixMesh from a ply file.
    */
   void InitializeMesh();
+  void InitializeHalfEdgeMats();
   /**
    * @brief Copy constructor
    */
@@ -94,9 +96,11 @@ public:
    * @brief Refresh vertex, edge, and face lists from the matrix mesh data
    */
   void RefreshFromMats();
+
+  void ScaleToSystemRadius();
+
   void RefreshFromMatsBack();
   void RefreshMats();
-  void TestFun();
 
   //////////////////////
   // Precomputed data //
@@ -110,6 +114,7 @@ public:
   //////////////////////////////
   // Getters/Setters/updaters //
   //////////////////////////////
+  void RefreshPrecomputed();
   void RefreshEdgeParams();
   void UpdatePositions();
 
@@ -145,10 +150,17 @@ public:
   RNG *rng_; // SF TODO link with system RNG
   MinimumDistance mindist_;
 
+  ///////////////
+  // Debugging //
+  ///////////////
+  void TestFun();
+  int CheckPtrs();
+  int CheckMats();
+
+private:
   //////////////////////
   // To be deprecated //
   //////////////////////
-private:
   void InitializeMeshOG();
   void UpdateNeighborsOG();
 };

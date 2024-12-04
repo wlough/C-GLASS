@@ -223,6 +223,8 @@ struct Edge : public meshbrane::MeshBraneObject {
     length_ = sqrt(length_);
   }
 
+  void UpdateNeighborTris();
+
   ////////////////////
   // Initialization //
   ////////////////////

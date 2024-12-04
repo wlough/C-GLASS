@@ -38,6 +38,20 @@ TriangleGenerator Vertex::generate_F_incident_clockwise() {
   }
 }
 
+void Vertex::UpdateNeighbors() {
+  neighbs_.clear();
+  edges_.clear();
+  tris_.clear();
+  for (HalfEdge *h : generate_H_out_clockwise()) {
+    neighbs_.push_back(h->v_head());
+    edges_.push_back(h->e_parallel());
+    if (h->is_in_some_negative_boundary()) {
+      continue;
+    }
+    tris_.push_back(h->f_left());
+  }
+}
+
 ///////////////////////////////////////////////////
 // HalfEdge ///////////////////////////////////////
 ///////////////////////////////////////////////////
@@ -52,6 +66,10 @@ HalfEdgeGenerator HalfEdge::generate_H_rotcw() {
 ///////////////////////////////////////////////////
 // Edge ///////////////////////////////////////////
 ///////////////////////////////////////////////////
+void Edge::UpdateNeighborTris() {
+  tris_[0] = h_parallel()->f_left();
+  tris_[1] = h_parallel()->h_twin()->f_left();
+}
 bool Edge::is_in_some_boundary() const {
   return h_parallel()->is_in_some_negative_boundary() ||
          h_parallel()->is_in_some_positive_boundary();
