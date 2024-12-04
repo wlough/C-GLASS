@@ -94,8 +94,10 @@ public:
    * @brief Refresh vertex, edge, and face lists from the matrix mesh data
    */
   void RefreshFromMats();
+  void RefreshFromMatsBack();
   void RefreshMats();
   void TestFun();
+
   //////////////////////
   // Precomputed data //
   //////////////////////
@@ -122,7 +124,7 @@ public:
   ///////////////////
   // Other methods //
   ///////////////////
-private:
+  // private:
   void FlipEdges();
   void UpdateCentroid();
   void UpdateTriangles();
@@ -131,13 +133,13 @@ private:
   void ApplyMembraneForces();
   void ApplyBoundaryForces();
 
-public:
+  // public:
   void Draw(std::vector<graph_struct *> &graph_array);
 
   //////////////////////
   // ???????????????? //
   //////////////////////
-public:
+  // public:
   std::vector<graph_struct> f_mem_;
   graph_struct o_;
   RNG *rng_; // SF TODO link with system RNG
@@ -148,6 +150,7 @@ public:
   //////////////////////
 private:
   void InitializeMeshOG();
+  void UpdateNeighborsOG();
 };
 
 // #endif

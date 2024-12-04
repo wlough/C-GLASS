@@ -10,8 +10,8 @@
 #include "minimum_distance.hpp"
 #include "rng.hpp"  //
 #include "site.hpp" // Site
-#include <memory>   // std::shared_ptr
-#include <optional> // std::optional
+// #include <memory>   // std::shared_ptr
+// #include <optional> // std::optional
 // namespace half_edge {
 namespace mbrn = meshbrane;
 // TODO add param storage and sync site seeds
@@ -24,8 +24,8 @@ using EdgePtr = std::shared_ptr<Edge>;
 using HalfEdgePtr = std::shared_ptr<HalfEdge>;
 using TrianglePtr = std::shared_ptr<Triangle>;
 using VertexPtr = std::shared_ptr<Vertex>;
-using HalfEdgeGenerator = meshbrane::utils::SimpleGenerator<HalfEdgePtr>;
-using TriangleGenerator = meshbrane::utils::SimpleGenerator<TrianglePtr>;
+using HalfEdgeGenerator = meshbrane::utils::SimpleGenerator<HalfEdge *>;
+using TriangleGenerator = meshbrane::utils::SimpleGenerator<Triangle *>;
 
 // namespace mth {
 // template <typename T>
@@ -52,7 +52,7 @@ struct Vertex : public meshbrane::MeshBraneObject, public Site {
    * @brief Pointer to an outgoing half-edge
    * 
    */
-  HalfEdgePtr h_{nullptr};
+  HalfEdge *h_{nullptr};
   /**
    * @brief Seed for random number generation
    */
@@ -118,22 +118,12 @@ struct Vertex : public meshbrane::MeshBraneObject, public Site {
     Site::SetPositionXYZ(x, y, z);
   }
   /**
-   * @brief Construct a new Vertex object from a `meshbrane::Coords3d` object
+   * @brief Construct a new Vertex object
+   * @param index Index in master vrts_ list
+   * @param xyz_coord Coordinates of the vertex
+   * @param h Pointer to an outgoing half-edge
    */
-  Vertex(mbrn::Coords3d xyz_coord) : Site(seed) {
-    pos_[0] = xyz_coord(0);
-    pos_[1] = xyz_coord(1);
-    pos_[2] = xyz_coord(2);
-    Site::SetPositionXYZ(xyz_coord(0), xyz_coord(1), xyz_coord(2));
-  }
-  Vertex(size_t index, mbrn::Coords3d xyz_coord)
-      : mbrn::MeshBraneObject(index), Site(seed) {
-    pos_[0] = xyz_coord(0);
-    pos_[1] = xyz_coord(1);
-    pos_[2] = xyz_coord(2);
-    Site::SetPositionXYZ(xyz_coord(0), xyz_coord(1), xyz_coord(2));
-  }
-  Vertex(size_t index, mbrn::Coords3d xyz_coord, HalfEdgePtr h)
+  Vertex(size_t index, mbrn::Coords3d xyz_coord, HalfEdge *h)
       : mbrn::MeshBraneObject(index), Site(seed), h_(h) {
     pos_[0] = xyz_coord(0);
     pos_[1] = xyz_coord(1);
@@ -165,11 +155,8 @@ struct Vertex : public meshbrane::MeshBraneObject, public Site {
   /**
    * @brief Get pointer to and outgoing half-edge
    */
-  HalfEdgePtr h_out() { return h_; }
-  void set_outgoing_half_edge(HalfEdgePtr h) { h_ = h; }
-  void set_outgoing_half_edge(HalfEdge &h) {
-    h_ = std::make_shared<HalfEdge>(h);
-  }
+  HalfEdge *h_out() { return h_; }
+  void set_outgoing_half_edge(HalfEdge *h) { h_ = h; }
 
   ////////////////
   // Generators //
@@ -182,7 +169,7 @@ struct Vertex : public meshbrane::MeshBraneObject, public Site {
    * @brief Generate half-edges which originate at this vertex in clockwise order
    * @param h_start Starting half-edge
    */
-  HalfEdgeGenerator generate_H_out_clockwise(HalfEdgePtr &h_start);
+  HalfEdgeGenerator generate_H_out_clockwise(HalfEdge *h_start);
   /**
    * @brief Generate faces incident to this vertex
    */
@@ -202,7 +189,7 @@ struct Edge : public meshbrane::MeshBraneObject {
   /**
    * @brief Pointer to a (anti)parallel half-edge
    */
-  HalfEdgePtr h_{nullptr};
+  HalfEdge *h_{nullptr};
   /**
    * @brief Flag to indicate if the edge was already flipped
    */
@@ -248,8 +235,8 @@ struct Edge : public meshbrane::MeshBraneObject {
     vrts_[1] = v1;
   }
 
-  Edge(size_t index) : mbrn::MeshBraneObject(index) {}
-  Edge(size_t index, Vertex *v0, Vertex *v1) : mbrn::MeshBraneObject(index) {
+  Edge(size_t index, Vertex *v0, Vertex *v1, HalfEdge *h)
+      : mbrn::MeshBraneObject(index), h_(h) {
     vrts_[0] = v0;
     vrts_[1] = v1;
   }
@@ -275,7 +262,6 @@ struct Edge : public meshbrane::MeshBraneObject {
   /////////////////////
   // Getters/Setters //
   /////////////////////
-  // HalfEdgePtr h_parallel() { return h_; }
   /**
    * @brief Get the vertex at other end of the edge from a given vertex
    */
@@ -291,15 +277,12 @@ struct Edge : public meshbrane::MeshBraneObject {
   /**
    * @brief Get pointer to a parallel half-edge
    */
-  HalfEdgePtr h_parallel() const { return h_; }
+  HalfEdge *h_parallel() const { return h_; }
 
   /**
    * @brief Set the parallel half-edge
    */
-  void set_parallel_half_edge(HalfEdgePtr h) { h_ = h; }
-  void set_parallel_half_edge(HalfEdge &h) {
-    h_ = std::make_shared<HalfEdge>(h);
-  }
+  void set_parallel_half_edge(HalfEdge *h) { h_ = h; }
 };
 
 // Triangle //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -327,7 +310,7 @@ struct Triangle : public meshbrane::MeshBraneObject {
    * @brief Pointer to a half-edge on the positively oriented boundary of this face
    * 
    */
-  HalfEdgePtr h_{nullptr};
+  HalfEdge *h_{nullptr};
   //////////////////////
   // Precomputed data //
   //////////////////////
@@ -432,27 +415,26 @@ struct Triangle : public meshbrane::MeshBraneObject {
     color_[2] = rand() % 255;
   }
 
-  Triangle(size_t index, HalfEdgePtr h) : mbrn::MeshBraneObject(index), h_(h) {
+  Triangle(size_t index, HalfEdge *h) : mbrn::MeshBraneObject(index), h_(h) {
     // color_[0] = rand() % 255;
     // color_[1] = rand() % 255;
     // color_[2] = rand() % 255;
     // h_ = std::make_shared<HalfEdge>(h);
   }
-  Triangle(size_t index, Vertex *v1, Vertex *v2, Vertex *v3, HalfEdge &h)
-      : mbrn::MeshBraneObject(index) {
+  Triangle(size_t index, Vertex *v1, Vertex *v2, Vertex *v3, HalfEdge *h)
+      : mbrn::MeshBraneObject(index), h_(h) {
     vrts_[0] = v1;
     vrts_[1] = v2;
     vrts_[2] = v3;
-    color_[0] = rand() % 255;
-    color_[1] = rand() % 255;
-    color_[2] = rand() % 255;
-    h_ = std::make_shared<HalfEdge>(h);
+    // color_[0] = rand() % 255;
+    // color_[1] = rand() % 255;
+    // color_[2] = rand() % 255;
   }
 
-  /**
-   * @brief Copy constructor
-   */
-  Triangle(const Triangle &other) : mbrn::MeshBraneObject(other) {};
+  // /**
+  //  * @brief Copy constructor
+  //  */
+  // Triangle(const Triangle &other) : mbrn::MeshBraneObject(other) {};
   ////////////////
   // Predicates //
   ////////////////
@@ -511,9 +493,8 @@ struct Triangle : public meshbrane::MeshBraneObject {
     exit(1);
   }
 
-  void set_half_edge(HalfEdgePtr h) { h_ = h; }
-  void set_half_edge(HalfEdge &h) { h_ = std::make_shared<HalfEdge>(h); }
-  HalfEdgePtr h_right() const { return h_; }
+  void set_half_edge(HalfEdge *h) { h_ = h; }
+  HalfEdge *h_right() const { return h_; }
   void set_vertices(Vertex *v0, Vertex *v1, Vertex *v2) {
     vrts_[0] = v0;
     vrts_[1] = v1;
@@ -522,8 +503,7 @@ struct Triangle : public meshbrane::MeshBraneObject {
 };
 
 // HalfEdge //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-struct HalfEdge : public meshbrane::MeshBraneObject,
-                  public std::enable_shared_from_this<HalfEdge> {
+struct HalfEdge : public meshbrane::MeshBraneObject {
 
   ////////////////////////////
   // Fundamental attributes //
@@ -531,23 +511,23 @@ struct HalfEdge : public meshbrane::MeshBraneObject,
   /**
    * @brief Pointer to origin vertex
    */
-  VertexPtr v_{nullptr};
+  Vertex *v_{nullptr};
   /**
    * @brief Pointer to parallel edge
    */
-  EdgePtr e_{nullptr};
+  Edge *e_{nullptr};
   /**
    * @brief Pointer to face containing this half-edge
    */
-  TrianglePtr f_{nullptr};
+  Triangle *f_{nullptr};
   /**
    * @brief Pointer to the twin half-edge
    */
-  HalfEdgePtr h_twin_{nullptr};
+  HalfEdge *h_twin_{nullptr};
   /**
    * @brief Pointer to the next half-edge in the face cycle
    */
-  HalfEdgePtr h_next_{nullptr};
+  HalfEdge *h_next_{nullptr};
 
   ////////////////////////
   // Combinatorial maps //
@@ -555,32 +535,32 @@ struct HalfEdge : public meshbrane::MeshBraneObject,
   /**
    * @brief Get pointer to twin half-edge
    */
-  HalfEdgePtr h_twin() { return h_twin_; }
+  HalfEdge *h_twin() { return h_twin_; }
   /**
    * @brief Get pointer to next half-edge in the face cycle
    */
-  HalfEdgePtr h_next() { return h_next_; }
+  HalfEdge *h_next() { return h_next_; }
   /**
    * @brief Get pointer to origin vertex
    */
-  VertexPtr v_origin() { return v_; }
+  Vertex *v_origin() { return v_; }
   /**
    * @brief Get pointer to parallel edge
    */
-  EdgePtr e_parallel() { return e_; }
+  Edge *e_parallel() { return e_; }
   /**
    * @brief Get pointer to left face
    */
-  TrianglePtr f_left() { return f_; }
+  Triangle *f_left() { return f_; }
   // Derived maps
   /**
    * @brief Get pointer to half-edge rotated clockwise about the origin vertex
    */
-  HalfEdgePtr h_rotcw() { return this->h_twin_->h_next_; }
+  HalfEdge *h_rotcw() { return this->h_twin_->h_next_; }
   /**
    * @brief Get pointer to the vertex at the head of the half-edge
    */
-  VertexPtr v_head() { return this->h_twin_->v_; }
+  Vertex *v_head() { return this->h_twin_->v_; }
 
   //////////////////////
   // Precomputed data //
@@ -589,8 +569,6 @@ struct HalfEdge : public meshbrane::MeshBraneObject,
   ////////////////////
   // Initialization //
   ////////////////////
-  HalfEdge() = default;
-  ~HalfEdge() = default;
   HalfEdge(size_t index) : mbrn::MeshBraneObject(index) {}
 
   ////////////////
@@ -609,20 +587,12 @@ struct HalfEdge : public meshbrane::MeshBraneObject,
   /////////////////////
   // Getters/Setters //
   /////////////////////
-  void set_origin_vertex(VertexPtr v) { v_ = v; }
-  void set_origin_vertex(Vertex &v) { v_ = std::make_shared<Vertex>(v); }
-  void set_parallel_edge(EdgePtr e) { e_ = e; }
-  void set_parallel_edge(Edge &e) { e_ = std::make_shared<Edge>(e); }
-  void set_left_face(TrianglePtr f) { f_ = f; }
-  void set_left_face(Triangle &f) { f_ = std::make_shared<Triangle>(f); }
-  void set_twin_half_edge(HalfEdgePtr h) { h_twin_ = h; }
-  void set_twin_half_edge(HalfEdge &h) {
-    h_twin_ = std::make_shared<HalfEdge>(h);
-  }
-  void set_next_half_edge(HalfEdgePtr h) { h_next_ = h; }
-  void set_next_half_edge(HalfEdge &h) {
-    h_next_ = std::make_shared<HalfEdge>(h);
-  }
+  void set_origin_vertex(Vertex *v) { v_ = v; }
+
+  void set_parallel_edge(Edge *e) { e_ = e; }
+  void set_left_face(Triangle *f) { f_ = f; }
+  void set_twin_half_edge(HalfEdge *h) { h_twin_ = h; }
+  void set_next_half_edge(HalfEdge *h) { h_next_ = h; }
 
   ////////////////
   // Generators //

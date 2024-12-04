@@ -20,7 +20,7 @@
 HalfEdgeGenerator Vertex::generate_H_out_clockwise() {
   return h_->generate_H_rotcw();
 }
-HalfEdgeGenerator Vertex::generate_H_out_clockwise(HalfEdgePtr &h_start) {
+HalfEdgeGenerator Vertex::generate_H_out_clockwise(HalfEdge *h_start) {
   if (*h_start->v_origin() != *this) {
     printf("Error in Vertex::generate_H_out_clockwise\n");
     printf("h_start does not originate at this vertex\n");
@@ -30,7 +30,7 @@ HalfEdgeGenerator Vertex::generate_H_out_clockwise(HalfEdgePtr &h_start) {
 };
 TriangleGenerator Vertex::generate_F_incident_clockwise() {
   HalfEdgeGenerator h = generate_H_out_clockwise();
-  for (HalfEdgePtr h : h) {
+  for (HalfEdge *h : h) {
     if (h->is_in_some_negative_boundary()) {
       continue;
     }
@@ -42,8 +42,8 @@ TriangleGenerator Vertex::generate_F_incident_clockwise() {
 // HalfEdge ///////////////////////////////////////
 ///////////////////////////////////////////////////
 HalfEdgeGenerator HalfEdge::generate_H_rotcw() {
-  HalfEdgePtr h = shared_from_this();
-  HalfEdgePtr h_start = h;
+  HalfEdge *h = this;
+  HalfEdge *h_start = h;
   do {
     co_yield h;
     h = h->h_rotcw();
@@ -78,11 +78,11 @@ bool Edge::is_flippable() const {
   if (is_in_some_boundary()) {
     return false;
   }
-  HalfEdgePtr hlj = h_;
-  HalfEdgePtr hjk = hlj->h_next();
-  HalfEdgePtr hli = hlj->h_twin()->h_next();
-  VertexPtr vi = hli->v_head();
-  VertexPtr vk = hjk->v_head();
+  HalfEdge *hlj = h_;
+  HalfEdge *hjk = hlj->h_next();
+  HalfEdge *hli = hlj->h_twin()->h_next();
+  Vertex *vi = hli->v_head();
+  Vertex *vk = hjk->v_head();
 
   // for (HalfEdgePtr him : hlj->generate_H_out_v_clockwise(vi)) {
   //   if (him->v_head() == vk) {
