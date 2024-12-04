@@ -50,6 +50,9 @@ void Vertex::UpdateNeighbors() {
     }
     tris_.push_back(h->f_left());
   }
+  n_neighbs_ = neighbs_.size();
+  n_edges_ = edges_.size();
+  n_tris_ = tris_.size();
 }
 
 ///////////////////////////////////////////////////
@@ -109,6 +112,15 @@ bool Edge::is_flippable() const {
   // }
 
   return true;
+}
+
+///////////////////////////////////////////////////
+// Triangles //////////////////////////////////////
+///////////////////////////////////////////////////
+void Triangle::UpdateNeighborEdges() {
+  edges_[0] = h_right()->e_parallel();
+  edges_[1] = h_right()->h_next()->e_parallel();
+  edges_[2] = h_right()->h_next()->h_next()->e_parallel();
 }
 
 ///////////////////////////////////////////////////

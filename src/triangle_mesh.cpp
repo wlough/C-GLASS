@@ -19,6 +19,12 @@
 ////////////////////
 // Initialization //
 ////////////////////
+void TriMesh::DrawVerts() {
+  for (auto &&v : vrts_) {
+    v.SetDiameter(params_->node_diameter);
+    v.SetColor(1.5, draw_type::fixed);
+  }
+}
 
 void TriMesh::Init(system_parameters *params) {
   // SF temp before integrating with output_manager
@@ -40,13 +46,13 @@ void TriMesh::Init(system_parameters *params) {
   if (ply_path != "none") {
     LoadPly();
     RefreshFromMats();
-    for (auto &&v : vrts_) {
-      v.SetDiameter(params_->node_diameter);
-      v.SetColor(1.5, draw_type::fixed);
-    }
-    // InitializeMesh();
+    DrawVerts();
+    RefreshNeighbors();
     RefreshPrecomputed();
-    CheckPtrs();
+
+    // CheckPtrs();
+    // Update neighbor lists and pointers for vertices, edges, and triangles
+    UpdateNeighborsOG();
   } else {
     MakeIcosphere();
     // InitializeHalfEdgeMats();
@@ -59,6 +65,7 @@ void TriMesh::Init(system_parameters *params) {
   if (scale_to_system_radius) {
     ScaleToSystemRadius();
     UpdateCentroid();
+    // DrawVerts();
   }
   // TestFun();
 }
@@ -92,6 +99,7 @@ void TriMesh::SetParameters() {
       params_->membrane_tether_attractive_singularity;
   dimensionless_tether_attractive_onset_ =
       params_->membrane_tether_attractive_onset;
+  make_a_movie = params_->make_a_movie;
   /////////////////////////////////////////////////////
 }
 
@@ -358,7 +366,7 @@ void TriMesh::InitializeMeshOG() {
     vol_sum += tri.volume_;
   }
   // Update neighbor lists and pointers for vertices, edges, and triangles
-  UpdateNeighbors();
+  UpdateNeighborsOG();
   // Report statistics
   size_t n_flawed{0};
   size_t n_gucci{0};
@@ -450,7 +458,7 @@ void TriMesh::InitializeMesh() {
     vol_sum += tri.volume_;
   }
   // Update neighbor lists and pointers for vertices, edges, and triangles
-  UpdateNeighbors();
+  UpdateNeighborsOG();
   // Report statistics
   size_t n_flawed{0};
   size_t n_gucci{0};
@@ -479,7 +487,7 @@ void TriMesh::InitializeMesh() {
   printf("  V_calc_alt = %g\n", (1.0 / 3.0) * average_face_area_ * r_sys_);
 }
 
-void TriMesh::RefreshPrecomputed() {
+void TriMesh::RefreshNeighbors() {
   for (auto &&v : vrts_) {
     v.tris_.clear();
     v.edges_.clear();
@@ -488,44 +496,40 @@ void TriMesh::RefreshPrecomputed() {
   }
   for (auto &&e : edges_) {
     e.UpdateNeighborTris();
+  }
+  for (auto &&f : tris_) {
+    f.UpdateNeighborEdges();
+  }
+}
+
+void TriMesh::RefreshPrecomputed() {
+  for (auto &&e : edges_) {
     e.Update();
+  }
+  for (auto &&f : tris_) {
+    f.UpdateArea();
+    f.UpdateNormal();
+  }
+  UpdateCentroid();
+  for (auto &&f : tris_) {
+    f.UpdateVolume(centroid_);
   }
 
   // Initialize edge indices and update lengths
   double l_sum{0.0};
-  for (int i_edge{0}; i_edge < edges_.size(); i_edge++) {
-    l_sum += edges_[i_edge].length_;
+  // for (int i_edge{0}; i_edge < edges_.size(); i_edge++) {
+  for (auto &&e : edges_) {
+    l_sum += e.length_;
   }
   // Initialize triangle indices and manually calculate areas (edges not assigned yet)
   double area_sum{0.0};
-  for (int i_tri{0}; i_tri < tris_.size(); i_tri++) {
-    // tris_[i_tri].index_ = i_tri;
-    Triangle *tri{&tris_[i_tri]};
-    double l1{0.0};
-    double l2{0.0};
-    double l3{0.0};
-    for (int i_dim{0}; i_dim < 3; i_dim++) {
-      l1 += SQR(tri->vrts_[0]->pos_[i_dim] - tri->vrts_[1]->pos_[i_dim]);
-      l2 += SQR(tri->vrts_[0]->pos_[i_dim] - tri->vrts_[2]->pos_[i_dim]);
-      l3 += SQR(tri->vrts_[1]->pos_[i_dim] - tri->vrts_[2]->pos_[i_dim]);
-    }
-    l1 = sqrt(l1);
-    l2 = sqrt(l2);
-    l3 = sqrt(l3);
-    double s{0.5 * (l1 + l2 + l3)};
-    tri->area_ = sqrt(s * (s - l1) * (s - l2) * (s - l3));
-    area_sum += tri->area_;
-  }
-  // Now that triangle areas have been updated, calculate centroid position
-  UpdateCentroid();
-  // Using updated centroid position, calculate each triangle volume
   double vol_sum{0.0};
-  for (auto &&tri : tris_) {
-    tri.UpdateVolume(centroid_);
-    vol_sum += tri.volume_;
+  // for (int i_tri{0}; i_tri < tris_.size(); i_tri++) {
+  for (auto &&f : tris_) {
+    area_sum += f.area_;
+    vol_sum += f.volume_;
   }
-  // Update neighbor lists and pointers for vertices, edges, and triangles
-  UpdateNeighbors();
+
   // Report statistics
   size_t n_flawed{0};
   size_t n_gucci{0};
@@ -776,7 +780,8 @@ void TriMesh::RefreshFromMats() {
     printf("Error in TriMesh::RefreshFromMats\n");
     exit(1);
   }
-  printf("RefreshFromMats()\n");
+
+  printf("Done RefreshFromMats()\n");
 }
 
 void TriMesh::InitializeHalfEdgeMats() {
@@ -909,176 +914,6 @@ void TriMesh::UpdateCentroid() {
   o_.r[0] = centroid_[0];
   o_.r[1] = centroid_[1];
   o_.r[2] = centroid_[2];
-}
-
-void TriMesh::UpdateNeighbors() {
-  UpdateTriangles();
-  // NOTE: currently only works with convex objects
-  // NOTE: an update to ensure neighboring normals are aligned would fix this
-  // NOTE: alternatively, a ray-tracing algorithm to determine in/out would be best
-  // This function is purposefully coded to be explicit yet inefficient
-  // (it does not get called often if at all beyond initialization)
-
-  // Reset storage of neighb and triangle ptrs in each vertex
-  for (auto &&vrt : vrts_) {
-    vrt.n_tris_ = 0;
-    vrt.n_neighbs_ = 0;
-    vrt.n_edges_ = 0;
-  }
-  // Update triangle ptrs stored by each vertex and reset triangle ptrs
-  for (auto &&tri : tris_) {
-    tri.vrts_[0]->tris_[tri.vrts_[0]->n_tris_++] = &tri;
-    tri.vrts_[1]->tris_[tri.vrts_[1]->n_tris_++] = &tri;
-    tri.vrts_[2]->tris_[tri.vrts_[2]->n_tris_++] = &tri;
-    for (auto &&edge : tri.edges_) {
-      edge = nullptr;
-    }
-  }
-  // Update edge + neighb ptrs stored by each vertex
-  for (auto &&edge : edges_) {
-    edge.vrts_[0]->edges_[edge.vrts_[0]->n_edges_++] = &edge;
-    edge.vrts_[1]->edges_[edge.vrts_[1]->n_edges_++] = &edge;
-    edge.vrts_[0]->neighbs_[edge.vrts_[0]->n_neighbs_++] = edge.vrts_[1];
-    edge.vrts_[1]->neighbs_[edge.vrts_[1]->n_neighbs_++] = edge.vrts_[0];
-  }
-  // Update triangles and edges so that they track each other
-  for (auto &&edge : edges_) {
-    int n_found{0};
-    // the two triangles we are a part of will be contained by each vertex
-    for (int i_tri{0}; i_tri < edge.vrts_[0]->n_tris_; i_tri++) {
-      Triangle *tri{edge.vrts_[0]->tris_[i_tri]};
-      if (tri->Contains(edge.vrts_[1])) {
-        // store triangle pointer in edge
-        edge.tris_[n_found++] = tri;
-        // add edge pointer to said triangle
-        for (int i_edge{0}; i_edge < 3; i_edge++) {
-          // printf("query %i\n", i_edge);
-          if (tri->edges_[i_edge] == nullptr) {
-            // printf("edge %i added\n", i_edge);
-            tri->edges_[i_edge] = &edge;
-            break;
-          } else if (i_edge == 2) {
-            printf("error @ edge %zu\n", edge.index_);
-            exit(1);
-          }
-        }
-      }
-    }
-    if (n_found != 2) {
-      edge.vrts_[0]->SetColor(2 * M_PI, draw_type::fixed);
-      edge.vrts_[0]->SetDiameter(2);
-      printf("Error: found %i triangles that contain edge #%zu\n", n_found,
-             edge.index_);
-      do_not_pass_go_ = true;
-      return;
-      // exit(1);
-    }
-  }
-  // Order triangle ptrs so that they are in consecutive order (share edges)
-
-  for (auto &&vrt : vrts_) {
-    // Triangle *tris_ordered[vrt.n_tris_]{{}};
-    Triangle *tris_ordered[vrt.n_tris_];
-    for (int i = 0; i < vrt.n_tris_; ++i) {
-      tris_ordered[i] = nullptr;
-    }
-    // Edge *edges_ordered[vrt.n_edges_]{{}};
-    Edge *edges_ordered[vrt.n_edges_];
-    for (int i = 0; i < vrt.n_edges_; ++i) {
-      edges_ordered[i] = nullptr;
-    }
-    // Vertex *neighbs_ordered[vrt.n_neighbs_]{{}};
-    Vertex *neighbs_ordered[vrt.n_neighbs_];
-    for (int i = 0; i < vrt.n_neighbs_; ++i) {
-      neighbs_ordered[i] = nullptr;
-    }
-    // if (vrt.n_tris_ != vrt.n_edges_ or vrt.n_tris_ != vrt.n_neighbs_) {
-    //   printf("Error in neighbor lists\n");
-    //   exit(1);
-    // }
-    // starting point doesn't matter, so just use whichever entry is first
-    neighbs_ordered[0] = vrt.neighbs_[0];
-    for (int i_edge{0}; i_edge < vrt.n_edges_; i_edge++) {
-      Edge *edge{vrt.edges_[i_edge]};
-      if (edge->Contains(&vrt) and edge->Contains(vrt.neighbs_[0])) {
-        edges_ordered[0] = edge;
-        break;
-      }
-    }
-    if (edges_ordered[0] == nullptr) {
-      printf("Error: first edge not found in UpdateNeighbors\n");
-      exit(1);
-    }
-    // once starting point is established, loop over other edges to sort
-    for (int i_entry{1}; i_entry < vrt.n_edges_; i_entry++) {
-      Edge *prev_edge{edges_ordered[i_entry - 1]};
-      Vertex *prev_neighb{neighbs_ordered[i_entry - 1]};
-      for (int i_edge{0}; i_edge < vrt.n_edges_; i_edge++) {
-        Edge *next_edge{vrt.edges_[i_edge]};
-        // disregard self-comparisons (free life advice 4 ya)
-        if (prev_edge == next_edge) {
-          continue;
-        }
-        Triangle *next_tri{nullptr};
-        // SF TODO remove chicanery
-        if (prev_edge == nullptr) {
-          printf("no thx @ %i\n", i_entry);
-          for (auto &&edge : vrt.edges_) {
-            printf("  edge %zu\n", edge->index_);
-          }
-          printf("(%i entries total)\n", vrt.n_edges_);
-          vrt.SetColor(2 * M_PI, draw_type::fixed);
-          vrt.SetDiameter(2);
-          do_not_pass_go_ = true;
-          return;
-          // exit(1);
-        }
-        for (auto &&tri_i : prev_edge->tris_) {
-          for (auto &&tri_j : next_edge->tris_) {
-            if (tri_i == tri_j) {
-              if (next_tri != nullptr) {
-                printf("can't have more than 1 match my guy\n");
-                exit(1);
-              }
-              next_tri = tri_i;
-            }
-          }
-        }
-        // if triangle match wasn't found, these edges are not adjacent
-        if (next_tri == nullptr) {
-          continue;
-        }
-        // if triangle was found, need to check its ring-wise direction
-        Vertex *next_neighb{next_edge->GetOtherEnd(&vrt)};
-        // points from prev_neighb (j_prev) to vrt (i)
-        double r_ij_prev[3];
-        // ponts from next_neighb (j_next) to vrt (i);
-        double r_ij_next[3];
-        for (int i_dim{0}; i_dim < params_->n_dim; i_dim++) {
-          r_ij_prev[i_dim] = vrt.pos_[i_dim] - prev_neighb->pos_[i_dim];
-          r_ij_next[i_dim] = vrt.pos_[i_dim] - next_neighb->pos_[i_dim];
-        }
-        // for proper ccw order, r_ij_prev x r_ij_next should align with nhat
-        // NOTE: this is what needs to be changed for concave objects
-        double n_tri[3];
-        cross_product(r_ij_prev, r_ij_next, n_tri, 3);
-        if (dot_product(3, n_tri, next_tri->nhat_) > 0.0) {
-          tris_ordered[i_entry - 1] = next_tri;
-          edges_ordered[i_entry] = next_edge;
-          neighbs_ordered[i_entry] = next_neighb;
-          // since we are adding tris "behind" edges/neighbs, last tri must be added manually
-          if (i_entry == vrt.n_edges_ - 1) {
-            tris_ordered[i_entry] = next_edge->GetOtherTriangle(next_tri);
-          }
-        }
-      }
-    }
-    for (int i_entry{0}; i_entry < vrt.n_neighbs_; i_entry++) {
-      vrt.neighbs_[i_entry] = neighbs_ordered[i_entry];
-      vrt.edges_[i_entry] = edges_ordered[i_entry];
-      vrt.tris_[i_entry] = tris_ordered[i_entry];
-    }
-  }
 }
 
 void TriMesh::UpdateNeighborsOG() {
@@ -1444,7 +1279,7 @@ void TriMesh::FlipEdges() {
     }
   }
   if (flipparino) {
-    UpdateNeighbors();
+    UpdateNeighborsOG();
     // uncomment below if you want to remove dynamic updating above
     // UpdateMesh();
   }

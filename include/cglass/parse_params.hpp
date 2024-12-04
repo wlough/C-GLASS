@@ -199,6 +199,8 @@ system_parameters parse_system_params(YAML::Node &node) {
       params.membrane_volume_reg_stiffness = it->second.as<double>();
     } else if (param_name.compare("mesh_enable_flipping") == 0) {
       params.enable_flipping = it->second.as<bool>();
+    } else if (param_name.compare("make_a_movie") == 0) {
+      params.make_a_movie = it->second.as<bool>();
     } else if (param_name.compare("mesh_n_subdivisions") == 0) {
       params.n_subdivisions = it->second.as<size_t>();
     } else if (param_name.compare("membrane_node_drag_coefficient") == 0) {

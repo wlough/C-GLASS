@@ -337,6 +337,7 @@ struct system_parameters {
   bool draw_centroid = false;
   bool draw_mindist = false;
   bool enable_flipping = false;
+  bool make_a_movie = false;
   std::string membrane_ply_path = "none";
   bool membrane_scale_to_system_radius = false;
   double membrane_tether_repulsive_singularity = 0.1;

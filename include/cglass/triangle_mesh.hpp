@@ -65,6 +65,7 @@ public:
   bool do_not_pass_go_{false};
   int i_datapoint_{0};
   bool scale_to_system_radius{false};
+  bool make_a_movie{false};
 
   ////////////////////
   // Initialization //
@@ -114,6 +115,7 @@ public:
   //////////////////////////////
   // Getters/Setters/updaters //
   //////////////////////////////
+  void RefreshNeighbors();
   void RefreshPrecomputed();
   void RefreshEdgeParams();
   void UpdatePositions();
@@ -130,6 +132,7 @@ public:
   // Other methods //
   ///////////////////
   // private:
+  void DrawVerts();
   void FlipEdges();
   void UpdateCentroid();
   void UpdateTriangles();

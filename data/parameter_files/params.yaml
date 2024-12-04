@@ -1,43 +1,18 @@
 seed: 114222003020845
 run_name: test
-delta: 1e-5
-n_graph: 10 # want n_graph*delta = 1e-5-1e-4?
-system_radius: 30
-
-membrane_tether_stiffness: 80.5 # bond stiffness
-membrane_bending_modulus: 100.1 #10.1 # bending stiffness
-membrane_area_reg_stiffness: 3.0 #3. # area constraint stiffness
-membrane_volume_reg_stiffness: 15.2 #15.2 # volume constraint stiffness
-membrane_node_drag_coefficient: .02
-mesh_enable_flipping: false
-mesh_node_diameter: 1.0
-mesh_draw_centroid: false
-mesh_draw_mindist: false
-mesh_membrane: false # overridden when boundary_Type=5
-mesh_n_subdivisions: 3
-mesh_datapoints: 100000
-mesh_steps_per_datapoint: 1
-mesh_shrink_rate: 0.0 # 1e-4
-# membrane_ply_path: data/cglass_ply/dumbbell_coarse_he.ply
-# membrane_ply_path: data/cglass_ply/dumbbell_yaxis_coarse_he.ply
-membrane_ply_path: data/cglass_ply/oblate_005120_he.ply
-# membrane_ply_path: data/example_ply/oblate_005120_he.ply
-membrane_tether_repulsive_singularity: .15 # (Dimensionless) tethering potential minimum length
-membrane_tether_repulsive_onset: 0.8 # (Dimensionless) onset of repulsive penalty
-membrane_tether_attractive_onset: 1.2 # (Dimensionless) onset of attractive penalty
-membrane_tether_attractive_singularity: 5.5 # (Dimensionless) tethering potential max length
-
 n_dim: 3
 n_periodic: 0
 boundary: 5
 draw_boundary: true
-
-dynamic_timestep: false
+system_radius: 30
+delta: 1e-5
+dynamic_timestep: true
 dynamic_timestep_ramp: 0.0001
 n_steps: 50000000 #000
 n_steps_equil: 0
 graph_flag: true
 auto_graph: true
+n_graph: 10 # want n_graph*delta = 1e-5-1e-4?
 movie_flag: true
 movie_directory: output/temp_images
 invert_background: true
@@ -229,3 +204,38 @@ crosslink:
     force_dep_length: 0
     spec_flag: false
     n_spec: 100
+
+mesh_membrane: false # overridden when boundary_Type=5
+mesh_n_subdivisions: 3
+mesh_datapoints: 10000
+mesh_steps_per_datapoint: 1
+mesh_shrink_rate: 0.0 # 1e-4
+
+# membrane_tether_stiffness: 180.5 # bond stiffness
+# membrane_bending_modulus: 200.0 #10.1 # bending stiffness
+# membrane_area_reg_stiffness: .01 #3. # area constraint stiffness
+# membrane_volume_reg_stiffness: 100.1 #15.2 # volume constraint stiffness
+# membrane_node_drag_coefficient: .2
+# mesh_enable_flipping: false
+# mesh_node_diameter: 1
+# mesh_draw_centroid: false
+# mesh_draw_mindist: false
+membrane_tether_stiffness: 16.1 # bond stiffness
+membrane_bending_modulus: 100.4 #10.1 # bending stiffness
+membrane_area_reg_stiffness: .03 #3. # area constraint stiffness
+membrane_volume_reg_stiffness: 0.3 #15.2 # volume constraint stiffness
+membrane_node_drag_coefficient: .52
+mesh_enable_flipping: false
+mesh_node_diameter: 1.1
+mesh_draw_centroid: false
+mesh_draw_mindist: true
+membrane_scale_to_system_radius: false
+# membrane_ply_path: data/cglass_ply/dumbbell_yaxis_coarse_he.ply
+membrane_ply_path: data/cglass_ply/oblate_005120_he.ply
+# membrane_ply_path: data/example_ply/oblate_020480_he.ply
+# membrane_ply_path: data/example_ply/oblate_005120_he.ply
+membrane_tether_repulsive_singularity: .15 # (Dimensionless) tethering potential minimum length
+membrane_tether_repulsive_onset: 0.8 # (Dimensionless) onset of repulsive penalty
+membrane_tether_attractive_onset: 1.2 # (Dimensionless) onset of attractive penalty
+membrane_tether_attractive_singularity: 5.5 # (Dimensionless) tethering potential max length
+

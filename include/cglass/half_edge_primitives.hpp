@@ -387,18 +387,44 @@ struct Triangle : public meshbrane::MeshBraneObject {
   void UpdateVolume(double origin[]) {
     // update nhat
     // update volume
-    double A[3];
-    double B[3];
-    double C[3];
+    double x0[3];
+    double x1[3];
+    double x2[3];
     for (int i_dim{0}; i_dim < 3; i_dim++) {
-      A[i_dim] = vrts_[0]->pos_[i_dim] - origin[i_dim];
-      B[i_dim] = vrts_[1]->pos_[i_dim] - origin[i_dim];
-      C[i_dim] = vrts_[2]->pos_[i_dim] - origin[i_dim];
+      x0[i_dim] = vrts_[0]->pos_[i_dim] - origin[i_dim];
+      x1[i_dim] = vrts_[1]->pos_[i_dim] - origin[i_dim];
+      x2[i_dim] = vrts_[2]->pos_[i_dim] - origin[i_dim];
     }
-    double BxC[3];
-    cross_product(B, C, BxC, 3);
-    volume_ = std::fabs(dot_product(3, A, BxC) / 6.0);
+    double x1_cross_x2[3];
+    cross_product(x1, x2, x1_cross_x2, 3);
+    // volume_ = std::fabs(dot_product(3, x0, x1_cross_x2) / 6.0);
+    volume_ = dot_product(3, x0, x1_cross_x2) / 6.0;
   }
+
+  void UpdateNormal() {
+    // update nhat
+    // update volume
+    double x0[3];
+    double x1[3];
+    double x2[3];
+    double x0_cross_x1[3];
+    double x1_cross_x2[3];
+    double x2_cross_x0[3];
+    cross_product(x0, x1, x0_cross_x1, 3);
+    cross_product(x1, x2, x1_cross_x2, 3);
+    cross_product(x2, x0, x2_cross_x0, 3);
+    double norm_nhat{0.0};
+    for (int _{0}; _ < 3; _++) {
+      nhat_[_] = (x0_cross_x1[_] + x1_cross_x2[_] + x2_cross_x0[_]) / 3.0;
+      norm_nhat += SQR(nhat_[_]);
+    }
+    norm_nhat = sqrt(norm_nhat);
+    for (int _{0}; _ < 3; _++) {
+      nhat_[_] /= norm_nhat;
+    }
+  }
+
+  void UpdateNeighborEdges();
 
   ////////////////////
   // Initialization //
