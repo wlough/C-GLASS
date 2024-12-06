@@ -56,20 +56,9 @@ void Vertex::UpdateNeighbors() {
 }
 
 ///////////////////////////////////////////////////
-// HalfEdge ///////////////////////////////////////
-///////////////////////////////////////////////////
-HalfEdgeGenerator HalfEdge::generate_H_rotcw() {
-  HalfEdge *h = this;
-  HalfEdge *h_start = h;
-  do {
-    co_yield h;
-    h = h->h_rotcw();
-  } while (h != h_start);
-};
-///////////////////////////////////////////////////
 // Edge ///////////////////////////////////////////
 ///////////////////////////////////////////////////
-void Edge::UpdateNeighborTris() {
+void Edge::UpdateIncidentTris() {
   tris_[0] = h_parallel()->f_left();
   tris_[1] = h_parallel()->h_twin()->f_left();
 }
@@ -117,14 +106,22 @@ bool Edge::is_flippable() const {
 ///////////////////////////////////////////////////
 // Triangles //////////////////////////////////////
 ///////////////////////////////////////////////////
-void Triangle::UpdateNeighborEdges() {
+void Triangle::UpdateIncidentEdges() {
   edges_[0] = h_right()->e_parallel();
   edges_[1] = h_right()->h_next()->e_parallel();
   edges_[2] = h_right()->h_next()->h_next()->e_parallel();
 }
 
 ///////////////////////////////////////////////////
-// TriMesh ////////////////////////////////////////
+// HalfEdge ///////////////////////////////////////
 ///////////////////////////////////////////////////
+HalfEdgeGenerator HalfEdge::generate_H_rotcw() {
+  HalfEdge *h = this;
+  HalfEdge *h_start = h;
+  do {
+    co_yield h;
+    h = h->h_rotcw();
+  } while (h != h_start);
+};
 
 // } // namespace half_edge

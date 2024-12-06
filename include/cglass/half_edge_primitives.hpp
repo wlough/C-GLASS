@@ -62,9 +62,9 @@ struct Vertex : public meshbrane::MeshBraneObject, public Site {
    */
   double pos_[3];
 
-  //////////////////////
-  // Precomputed data //
-  //////////////////////
+  //////////////////////////////
+  // Adjacency/incidence data //
+  //////////////////////////////
   /**
    * @brief Number of triangles incident to this vertex
    */
@@ -214,7 +214,7 @@ struct Edge : public meshbrane::MeshBraneObject {
    * @brief Update the edge length `length_` and edge vector `vector_`
    * 
    */
-  void Update() {
+  void UpdateEdgeGeometry() {
     length_ = 0.0;
     for (int i_dim{0}; i_dim < 3; i_dim++) {
       vector_[i_dim] = vrts_[1]->pos_[i_dim] - vrts_[0]->pos_[i_dim];
@@ -223,7 +223,7 @@ struct Edge : public meshbrane::MeshBraneObject {
     length_ = sqrt(length_);
   }
 
-  void UpdateNeighborTris();
+  void UpdateIncidentTris();
 
   ////////////////////
   // Initialization //
@@ -385,7 +385,6 @@ struct Triangle : public meshbrane::MeshBraneObject {
    * @param origin 
    */
   void UpdateVolume(double origin[]) {
-    // update nhat
     // update volume
     double x0[3];
     double x1[3];
@@ -403,7 +402,6 @@ struct Triangle : public meshbrane::MeshBraneObject {
 
   void UpdateNormal() {
     // update nhat
-    // update volume
     double x0[3];
     double x1[3];
     double x2[3];
@@ -424,7 +422,7 @@ struct Triangle : public meshbrane::MeshBraneObject {
     }
   }
 
-  void UpdateNeighborEdges();
+  void UpdateIncidentEdges();
 
   ////////////////////
   // Initialization //

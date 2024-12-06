@@ -88,16 +88,19 @@ public:
    * @brief Copy constructor
    */
   TriMesh(const TriMesh &other) : meshbrane::MatrixMesh(other) {};
+  /**
+   * @brief Load half-edge data from a ply file. Does not update vrts_, edges_, tris_, half_edges_, boundaries_ lists.
+   */
   void LoadPly();
   void MakeIcosphere();
   void MakeIcosahedron();
   void DivideFaces();
   void ProjectToUnitSphere();
   /**
-   * @brief Refresh vertex, edge, and face lists from the matrix mesh data
-   */
-  void RefreshFromMats();
-
+ * @brief Sync vrts_, edges_, tris_, half_edges_, boundaries_ lists with data in half-edge matrices. Does NOT update cached incidence/adjacency/geometric data.
+ */
+  void SyncWithMats();
+  void VEFdataToMats();
   void ScaleToSystemRadius();
 
   void RefreshFromMatsBack();
@@ -115,9 +118,15 @@ public:
   //////////////////////////////
   // Getters/Setters/updaters //
   //////////////////////////////
-  void RefreshNeighbors();
-  void RefreshPrecomputed();
-  void RefreshEdgeParams();
+  /**
+   * @brief Update incidence/adjacency data for vrts_, edges_, tris_
+   */
+  void UpdateIncidenceData();
+  /**
+   * @brief Update centroid and geometric data (lengths, areas, volumes, tangent/normal vectors) for edges_ and tris_.
+   */
+  void UpdateGeometricData();
+  void RefreshTetherParams();
   void UpdatePositions();
 
   ///////////////////////////
@@ -136,7 +145,6 @@ public:
   void FlipEdges();
   void UpdateCentroid();
   void UpdateTriangles();
-  void UpdateNeighbors();
   void UpdateMesh();
   void ApplyMembraneForces();
   void ApplyBoundaryForces();
@@ -152,6 +160,11 @@ public:
   graph_struct o_;
   RNG *rng_; // SF TODO link with system RNG
   MinimumDistance mindist_;
+  /**
+   * @brief Updates Euler angles???
+   * 
+   */
+  void UpdateEulerAngles();
 
   ///////////////
   // Debugging //

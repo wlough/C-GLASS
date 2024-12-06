@@ -45,10 +45,10 @@ void TriMesh::Init(system_parameters *params) {
   SetParameters();
   if (ply_path != "none") {
     LoadPly();
-    RefreshFromMats();
+    SyncWithMats();
     DrawVerts();
-    RefreshNeighbors();
-    RefreshPrecomputed();
+    UpdateIncidenceData();
+    UpdateGeometricData();
 
     // CheckPtrs();
     // Update neighbor lists and pointers for vertices, edges, and triangles
@@ -56,7 +56,7 @@ void TriMesh::Init(system_parameters *params) {
   } else {
     MakeIcosphere();
     // InitializeHalfEdgeMats();
-    // RefreshFromMats();
+    // SyncWithMats();
     InitializeMeshOG();
     // CheckPtrs();
     // CheckMats();
@@ -333,10 +333,10 @@ void TriMesh::InitializeMeshOG() {
   double l_sum{0.0};
   for (int i_edge{0}; i_edge < edges_.size(); i_edge++) {
     edges_[i_edge].index_ = i_edge;
-    edges_[i_edge].Update();
+    edges_[i_edge].UpdateEdgeGeometry();
     l_sum += edges_[i_edge].length_;
   }
-  // RefreshEdgeParams();
+  RefreshTetherParams();
   // Initialize triangle indices and manually calculate areas (edges not assigned yet)
   double area_sum{0.0};
   for (int i_tri{0}; i_tri < tris_.size(); i_tri++) {
@@ -426,7 +426,7 @@ void TriMesh::InitializeMesh() {
   double l_sum{0.0};
   for (int i_edge{0}; i_edge < edges_.size(); i_edge++) {
     // edges_[i_edge].index_ = i_edge;
-    edges_[i_edge].Update();
+    edges_[i_edge].UpdateEdgeGeometry();
     l_sum += edges_[i_edge].length_;
   }
   // Initialize triangle indices and manually calculate areas (edges not assigned yet)
@@ -487,7 +487,7 @@ void TriMesh::InitializeMesh() {
   printf("  V_calc_alt = %g\n", (1.0 / 3.0) * average_face_area_ * r_sys_);
 }
 
-void TriMesh::RefreshNeighbors() {
+void TriMesh::UpdateIncidenceData() {
   for (auto &&v : vrts_) {
     v.tris_.clear();
     v.edges_.clear();
@@ -495,16 +495,16 @@ void TriMesh::RefreshNeighbors() {
     v.UpdateNeighbors();
   }
   for (auto &&e : edges_) {
-    e.UpdateNeighborTris();
+    e.UpdateIncidentTris();
   }
   for (auto &&f : tris_) {
-    f.UpdateNeighborEdges();
+    f.UpdateIncidentEdges();
   }
 }
 
-void TriMesh::RefreshPrecomputed() {
+void TriMesh::UpdateGeometricData() {
   for (auto &&e : edges_) {
-    e.Update();
+    e.UpdateEdgeGeometry();
   }
   for (auto &&f : tris_) {
     f.UpdateArea();
@@ -582,12 +582,33 @@ void TriMesh::ScaleToSystemRadius() {
   }
 }
 
-/**
- * @brief Refresh vertex, edge, and face lists from the half-edge matrix mesh data structure
- * 
- */
-void TriMesh::RefreshFromMats() {
-  printf("RefreshFromMats()\n");
+void TriMesh::VEFdataToMats() {
+  size_t num_vertices = vrts_.size();
+  size_t num_edges = edges_.size();
+  size_t num_faces = tris_.size();
+
+  xyz_coord_V_.resize(num_vertices, 3);
+  V_cycle_E_.resize(num_edges, 2);
+  V_cycle_F_.resize(num_faces, 3);
+
+  for (size_t _v{0}; _v < num_vertices; _v++) {
+    for (size_t i_dim = 0; i_dim < 3; i_dim++) {
+      xyz_coord_V_(_v, i_dim) = vrts_[_v].pos_[i_dim];
+    }
+  }
+  for (size_t _e{0}; _e < num_edges; _e++) {
+    V_cycle_E_(_e, 0) = edges_[_e].vrts_[0]->index_;
+    V_cycle_E_(_e, 1) = edges_[_e].vrts_[1]->index_;
+  }
+  for (size_t _f{0}; _f < num_faces; _f++) {
+    for (size_t i_v = 0; i_v < 3; i_v++) {
+      V_cycle_F_(_f, i_v) = tris_[_f].vrts_[i_v]->index_;
+    }
+  }
+}
+
+void TriMesh::SyncWithMats() {
+  printf("SyncWithMats()\n");
   size_t num_vertices = get_num_vertices();
   size_t num_faces = get_num_faces();
   size_t num_edges = get_num_edges();
@@ -663,7 +684,6 @@ void TriMesh::RefreshFromMats() {
   // * Assign: e_
   // printf("  Initializing faces\n");
   std::unordered_set<size_t> Hmin;
-  std::set<std::vector<int>> setV_of_E;
   for (size_t _f = 0; _f < num_faces; _f++) {
     size_t _h0 = h_right_f(_f);
     size_t _h1 = h_next_h(_h0);
@@ -687,8 +707,8 @@ void TriMesh::RefreshFromMats() {
 
       size_t _hmin = std::min(_h, _ht);
       if (Hmin.find(_hmin) == Hmin.end()) {
-        Hmin.insert(_hmin);
-        size_t _e = Hmin.size() - 1;
+
+        size_t _e = Hmin.size();
         size_t _vt = v_origin_h(_ht);
         edges_.emplace_back(_e, &vrts_[_v], &vrts_[_vt], &half_edges_[_h]);
         // if (_v < _vt) {
@@ -696,9 +716,10 @@ void TriMesh::RefreshFromMats() {
         // } else {
         //   edges_.emplace_back(_e, &vrts_[_vt], &vrts_[_v], &half_edges_[_h]);
         // }
-
         half_edges_[_h].set_parallel_edge(&edges_[_e]);
         half_edges_[_ht].set_parallel_edge(&edges_[_e]);
+
+        Hmin.insert(_hmin);
       }
 
       _h = h_next_h(_h);
@@ -769,7 +790,7 @@ void TriMesh::RefreshFromMats() {
   //   //        half_edges_[_h].f_left()->index());
   // }
 
-  // printf("  Done RefreshFromMats()\n");
+  // printf("  Done SyncWithMats()\n");
   // printf(" dV %d \n", num_vertices - vrts_.size());
   // printf(" dE %d \n", num_edges - edges_.size());
   // printf(" dF %d \n", num_faces - tris_.size());
@@ -777,11 +798,11 @@ void TriMesh::RefreshFromMats() {
   // printf(" dB %d \n", num_boundaries - boundaries_.size());
   if (num_vertices != vrts_.size() or num_edges != edges_.size() or
       num_faces != tris_.size() or num_half_edges != half_edges_.size()) {
-    printf("Error in TriMesh::RefreshFromMats\n");
+    printf("Error in TriMesh::SyncWithMats\n");
     exit(1);
   }
 
-  printf("Done RefreshFromMats()\n");
+  printf("Done SyncWithMats()\n");
 }
 
 void TriMesh::InitializeHalfEdgeMats() {
@@ -836,7 +857,7 @@ void TriMesh::InitializeHalfEdgeMats() {
   }
 
   printf("Computing he mats\n");
-  update_he_from_vef();
+  update_he_from_vf();
   int num_boundaries = get_num_boundaries();
 
   printf("Done InitializeHalfEdgeMats\n");
@@ -1267,7 +1288,7 @@ void TriMesh::FlipEdges() {
       }
       // dynamically updating causes minor error in vol (~0.1%), but improves performance
       // (error is from the fact that edge flips change the centroid slightly)
-      edge->Update();
+      edge->UpdateEdgeGeometry();
       left->UpdateArea();
       right->UpdateArea();
       left->UpdateVolume(centroid_);
@@ -1355,7 +1376,7 @@ void TriMesh::UpdateMesh() {
   }
   // Update edge lengths (used to calculate triangle areas)
   for (auto &&edge : edges_) {
-    edge.Update();
+    edge.UpdateEdgeGeometry();
   }
   // Update triangle areas (used to calculate origin position)
   for (auto &&tri : tris_) {
@@ -1369,9 +1390,11 @@ void TriMesh::UpdateMesh() {
   }
   // Update triangle nhats SF TODO make per-triangle nhat update
   UpdateTriangles();
-  RefreshEdgeParams();
+  RefreshTetherParams();
 
-  // mathematical jonnies from NAB used in calculating boundary forces
+  UpdateEulerAngles();
+}
+void TriMesh::UpdateEulerAngles() {
   for (int itri{0}; itri < tris_.size(); itri++) {
     Triangle *tri{&tris_[itri]};
     double aVector[3] = {0.0};
@@ -1729,6 +1752,9 @@ void TriMesh::ApplyBoundaryForces() {
   if (boundary_neighbs_.empty()) {
     return;
   }
+  // printf("********************************************************* "
+  //  "TriMesh::ApplyBoundaryForces()\n");
+
   // values taken directly from NAB
   double r_cutoff2 = SQR(pow(2, 1.0 / 6.0) * 0.5);
   double sigma2 = 0.25;
@@ -1941,13 +1967,16 @@ void TriMesh::UpdatePositions() {
 // WBL /////////////////////////////////
 ////////////////////////////////////////
 
-void TriMesh::RefreshEdgeParams() {
+/**
+ * @brief Update tether potential parameters based on current average edge length
+ */
+void TriMesh::RefreshTetherParams() {
 
   double l_avg = 0.0;
   double l_sum{0.0};
   for (int i_edge{0}; i_edge < edges_.size(); i_edge++) {
     edges_[i_edge].index_ = i_edge;
-    edges_[i_edge].Update();
+    edges_[i_edge].UpdateEdgeGeometry();
     l_sum += edges_[i_edge].length_;
   }
 
@@ -2080,7 +2109,7 @@ int TriMesh::CheckPtrs() {
   printf(" dB %d \n", num_boundaries - boundaries_.size());
   if (num_vertices != vrts_.size() or num_edges != edges_.size() or
       num_faces != tris_.size() or num_half_edges != half_edges_.size()) {
-    printf("Error in TriMesh::RefreshFromMats\n");
+    printf("Error in TriMesh::SyncWithMats\n");
     // exit(1);
   }
 
@@ -2177,7 +2206,7 @@ int TriMesh::CheckMats() {
   printf(" dB %d \n", num_boundaries - boundaries_.size());
   if (num_vertices != vrts_.size() or num_edges != edges_.size() or
       num_faces != tris_.size() or num_half_edges != half_edges_.size()) {
-    printf("Error in TriMesh::RefreshFromMats\n");
+    printf("Error in TriMesh::SyncWithMats\n");
     // exit(1);
   }
 
