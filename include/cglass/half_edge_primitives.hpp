@@ -366,6 +366,7 @@ struct Triangle : public meshbrane::MeshBraneObject {
   void Update(double origin[]) {
     UpdateArea();
     UpdateVolume(origin);
+    UpdateNormal();
   }
   /**
    * @brief Update stored triangle area
@@ -401,24 +402,41 @@ struct Triangle : public meshbrane::MeshBraneObject {
   }
 
   void UpdateNormal() {
-    // update nhat
-    double x0[3];
-    double x1[3];
-    double x2[3];
-    double x0_cross_x1[3];
-    double x1_cross_x2[3];
-    double x2_cross_x0[3];
-    cross_product(x0, x1, x0_cross_x1, 3);
-    cross_product(x1, x2, x1_cross_x2, 3);
-    cross_product(x2, x0, x2_cross_x0, 3);
-    double norm_nhat{0.0};
-    for (int _{0}; _ < 3; _++) {
-      nhat_[_] = (x0_cross_x1[_] + x1_cross_x2[_] + x2_cross_x0[_]) / 3.0;
-      norm_nhat += SQR(nhat_[_]);
+    // update unit normal vector nhat_
+    // double x0[3];
+    // double x1[3];
+    // double x2[3];
+    // double x0_cross_x1[3];
+    // double x1_cross_x2[3];
+    // double x2_cross_x0[3];
+    // cross_product(x0, x1, x0_cross_x1, 3);
+    // cross_product(x1, x2, x1_cross_x2, 3);
+    // cross_product(x2, x0, x2_cross_x0, 3);
+    // double norm_nhat{0.0};
+    // for (int _{0}; _ < 3; _++) {
+    //   nhat_[_] = x0_cross_x1[_] + x1_cross_x2[_] + x2_cross_x0[_];
+    //   norm_nhat += SQR(nhat_[_]);
+    // }
+    // norm_nhat = sqrt(norm_nhat);
+    // for (int _{0}; _ < 3; _++) {
+    //   nhat_[_] /= norm_nhat;
+    // }
+    double r1[3], r2[3]; // two edges from this triangle
+    // double r_origin[3];  // points from origin to center of triangle
+    for (int i_dim{0}; i_dim < 3; i_dim++) {
+      r1[i_dim] = vrts_[0]->pos_[i_dim] - vrts_[1]->pos_[i_dim];
+      r2[i_dim] = vrts_[1]->pos_[i_dim] - vrts_[2]->pos_[i_dim];
+      // r_origin[i_dim] = GetCenterPos(i_dim) - centroid_[i_dim];
     }
-    norm_nhat = sqrt(norm_nhat);
-    for (int _{0}; _ < 3; _++) {
-      nhat_[_] /= norm_nhat;
+    double n[3];
+    cross_product(r1, r2, n, 3);
+    double n_mag{0.0};
+    for (int i_dim{0}; i_dim < 3; i_dim++) {
+      n_mag += SQR(n[i_dim]);
+    }
+    n_mag = sqrt(n_mag);
+    for (int i_dim{0}; i_dim < 3; i_dim++) {
+      nhat_[i_dim] = n[i_dim] / n_mag;
     }
   }
 

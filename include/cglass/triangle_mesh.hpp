@@ -66,7 +66,25 @@ public:
   int i_datapoint_{0};
   bool scale_to_system_radius{false};
   bool make_a_movie{false};
+  // std::string output_ply_path{"none"};
 
+  std::string get_new_output_ply_path() {
+    // printf("  getting new output ply path\n");
+    std::string directory = "output/ply_files/";
+    std::string filename = params_->run_name;
+    // output path is directory + filename + zero_pad_to_6_digits + i_datapoint_ + ".ply"
+    // number of digits in i_datapoint_
+    size_t n_digits = 1;
+    if (i_datapoint_ > 0)
+      n_digits = (size_t)std::log10(i_datapoint_) + 1;
+    size_t num_zeros = 6 - n_digits;
+    std::string output_ply_path = directory + filename + "_";
+    for (size_t i = 0; i < num_zeros; ++i) {
+      output_ply_path += "0";
+    }
+    output_ply_path += std::to_string(i_datapoint_) + ".ply";
+    return output_ply_path;
+  }
   ////////////////////
   // Initialization //
   ////////////////////
@@ -100,6 +118,7 @@ public:
  * @brief Sync vrts_, edges_, tris_, half_edges_, boundaries_ lists with data in half-edge matrices. Does NOT update cached incidence/adjacency/geometric data.
  */
   void SyncWithMats();
+  void SyncIndices();
   void VEFdataToMats();
   void ScaleToSystemRadius();
 

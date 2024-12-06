@@ -45,7 +45,11 @@ void TriMesh::Init(system_parameters *params) {
   SetParameters();
   if (ply_path != "none") {
     LoadPly();
+    // flip_non_delaunay();
     SyncWithMats();
+    RefreshMats();
+    CheckMats();
+    CheckPtrs();
     DrawVerts();
     UpdateIncidenceData();
     UpdateGeometricData();
@@ -53,6 +57,7 @@ void TriMesh::Init(system_parameters *params) {
     // CheckPtrs();
     // Update neighbor lists and pointers for vertices, edges, and triangles
     UpdateNeighborsOG();
+
   } else {
     MakeIcosphere();
     // InitializeHalfEdgeMats();
@@ -118,7 +123,7 @@ void TriMesh::LoadPly() {
   f_left_H_ = m.f_left_H_;
   h_right_F_ = m.h_right_F_;
   h_negative_B_ = m.h_negative_B_;
-  // update_vef_from_he();
+  update_vef_from_he();
   printf("  Saving mesh data to output/%s\n", filename.c_str());
   write_he_ply("output/" + filename);
 }
@@ -543,7 +548,7 @@ void TriMesh::UpdateGeometricData() {
       exit(1);
     }
   }
-  printf("Final mesh statistics:\n");
+  printf("Mesh statistics:\n");
   printf("  %zu num_vertices = \n", get_num_vertices());
   printf("  %zu vrts (%zu flawed; %zu ideal)\n", vrts_.size(), n_flawed,
          n_gucci);
@@ -604,6 +609,24 @@ void TriMesh::VEFdataToMats() {
     for (size_t i_v = 0; i_v < 3; i_v++) {
       V_cycle_F_(_f, i_v) = tris_[_f].vrts_[i_v]->index_;
     }
+  }
+}
+
+void TriMesh::SyncIndices() {
+  for (size_t _v{0}; _v < vrts_.size(); _v++) {
+    vrts_[_v].index_ = _v;
+  }
+  for (size_t _e{0}; _e < edges_.size(); _e++) {
+    edges_[_e].index_ = _e;
+  }
+  for (size_t _f{0}; _f < tris_.size(); _f++) {
+    tris_[_f].index_ = _f;
+  }
+  for (size_t _h{0}; _h < half_edges_.size(); _h++) {
+    half_edges_[_h].index_ = _h;
+  }
+  for (size_t _b{0}; _b < boundaries_.size(); _b++) {
+    boundaries_[_b].index_ = _b;
   }
 }
 
@@ -709,13 +732,14 @@ void TriMesh::SyncWithMats() {
       if (Hmin.find(_hmin) == Hmin.end()) {
 
         size_t _e = Hmin.size();
+        // printf("******************************adding edge %d\n", _e);
         size_t _vt = v_origin_h(_ht);
-        edges_.emplace_back(_e, &vrts_[_v], &vrts_[_vt], &half_edges_[_h]);
-        // if (_v < _vt) {
-        //   edges_.emplace_back(_e, &vrts_[_v], &vrts_[_vt], &half_edges_[_h]);
-        // } else {
-        //   edges_.emplace_back(_e, &vrts_[_vt], &vrts_[_v], &half_edges_[_h]);
-        // }
+        // edges_.emplace_back(_e, &vrts_[_v], &vrts_[_vt], &half_edges_[_h]);
+        if (_v < _vt) {
+          edges_.emplace_back(_e, &vrts_[_v], &vrts_[_vt], &half_edges_[_h]);
+        } else {
+          edges_.emplace_back(_e, &vrts_[_vt], &vrts_[_v], &half_edges_[_h]);
+        }
         half_edges_[_h].set_parallel_edge(&edges_[_e]);
         half_edges_[_ht].set_parallel_edge(&edges_[_e]);
 
@@ -864,13 +888,15 @@ void TriMesh::InitializeHalfEdgeMats() {
 }
 
 void TriMesh::RefreshMats() {
-  printf("RefreshMats\n");
+  // printf("RefreshMats\n");
   int num_vertices = vrts_.size();
   int num_faces = tris_.size();
   int num_edges = edges_.size();
   int num_half_edges = half_edges_.size();
   int num_boundaries = boundaries_.size();
   xyz_coord_V_.resize(num_vertices, 3);
+  V_cycle_E_.resize(num_edges, 2);
+  V_cycle_F_.resize(num_faces, 3);
   h_out_V_.resize(num_vertices);
   v_origin_H_.resize(num_half_edges);
   h_next_H_.resize(num_half_edges);
@@ -895,9 +921,7 @@ void TriMesh::RefreshMats() {
     update_mat_v(v.index_, meshbrane::Coords3d(v.pos_[0], v.pos_[1], v.pos_[2]),
                  v.h_out()->index_);
   }
-  for (Edge &e : edges_) {
-    V_cycle_E_.row(e.index_) << e.vrts_[0]->index_, e.vrts_[1]->index_;
-  }
+
   for (Edge &e : edges_) {
     V_cycle_E_.row(e.index_) << e.vrts_[0]->index_, e.vrts_[1]->index_;
   }
@@ -915,7 +939,7 @@ void TriMesh::RefreshMats() {
     h_twin_H_(h.index_) = h.h_twin()->index_;
     f_left_H_(h.index_) = h.f_left()->index_;
   }
-  printf("Done RefreshMats\n");
+  // printf("Done RefreshMats\n");
 }
 
 void TriMesh::UpdateCentroid() {
@@ -1108,6 +1132,7 @@ void TriMesh::UpdateNeighborsOG() {
 }
 
 void TriMesh::FlipEdges() {
+
   // Shuffle edge indices them so that order of flipping is random
   size_t i_entries[edges_.size()];
   for (auto &&edge : edges_) {
@@ -1117,6 +1142,7 @@ void TriMesh::FlipEdges() {
   bool flipparino{false};
   rng_->Shuffle(i_entries, edges_.size());
   for (int i_edge{0}; i_edge < edges_.size(); i_edge++) {
+
     Edge *edge = &edges_[i_entries[i_edge]];
     if (edge->just_flipped) {
       continue;
@@ -1301,6 +1327,7 @@ void TriMesh::FlipEdges() {
   }
   if (flipparino) {
     UpdateNeighborsOG();
+    // UpdateIncidenceData();
     // uncomment below if you want to remove dynamic updating above
     // UpdateMesh();
   }
@@ -1319,14 +1346,14 @@ void TriMesh::UpdateTriangles() {
     }
     double n[3];
     cross_product(r1, r2, n, 3);
-    if (dot_product(3, n, r_origin) < 0.0) {
-      for (int i_dim{0}; i_dim < 3; i_dim++) {
-        n[i_dim] *= -1;
-      }
-      if (dot_product(3, n, r_origin) < 0.0) {
-        printf("what the fuc\n");
-      }
-    }
+    // if (dot_product(3, n, r_origin) < 0.0) {
+    //   for (int i_dim{0}; i_dim < 3; i_dim++) {
+    //     n[i_dim] *= -1;
+    //   }
+    //   if (dot_product(3, n, r_origin) < 0.0) {
+    //     printf("what the fuc\n");
+    //   }
+    // }
     double n_mag{0.0};
     for (int i_dim{0}; i_dim < 3; i_dim++) {
       n_mag += SQR(n[i_dim]);
@@ -1374,26 +1401,19 @@ void TriMesh::UpdateMesh() {
   for (auto &&vrt : vrts_) {
     vrt.ZeroForce();
   }
-  // Update edge lengths (used to calculate triangle areas)
-  for (auto &&edge : edges_) {
-    edge.UpdateEdgeGeometry();
+  if (params_->enable_flipping) {
+    FlipEdges();
   }
-  // Update triangle areas (used to calculate origin position)
-  for (auto &&tri : tris_) {
-    tri.UpdateArea();
-  }
-  // Update mesh origin (used to calculate triangle volumes)
-  UpdateCentroid();
-  // Update triangle volumes
-  for (auto &&tri : tris_) {
-    tri.UpdateVolume(centroid_);
-  }
-  // Update triangle nhats SF TODO make per-triangle nhat update
-  UpdateTriangles();
+  // flip_non_delaunay();
+  // update_vef_from_he();
+  // SyncWithMats();
+  // CheckMats();
+  // CheckPtrs();
+  UpdateGeometricData();
   RefreshTetherParams();
-
   UpdateEulerAngles();
 }
+
 void TriMesh::UpdateEulerAngles() {
   for (int itri{0}; itri < tris_.size(); itri++) {
     Triangle *tri{&tris_[itri]};
@@ -1884,6 +1904,9 @@ void TriMesh::WriteOutputs() {
     return;
   }
   if (i_datapoint_ < params_->mesh_datapoints) {
+    std::string output_ply_path = get_new_output_ply_path();
+    // printf("writing output %i to %s\n", i_datapoint_, output_ply_path.c_str());
+    write_he_ply(output_ply_path);
     // write different membrane forces
     int n_written = fwrite(f_avgs_, sizeof(double), 4, forces_);
     i_datapoint_++;
@@ -1924,10 +1947,11 @@ void TriMesh::UpdatePositions() {
     average_edge_length_ *= (1.0 - params_->mesh_shrink_rate);
     average_face_area_ *= SQR(1.0 - params_->mesh_shrink_rate);
     average_face_volume_ *= CUBE(1.0 - params_->mesh_shrink_rate);
-    tether_attractive_onset_ = 1.2 * average_edge_length_;
-    tether_repulsive_onset_ = 0.8 * average_edge_length_;
-    tether_attractive_singularity_ = 1.667 * average_edge_length_;
-    tether_repulsive_singularity_ = 0.333 * average_edge_length_;
+    // tether_attractive_onset_ = 1.2 * average_edge_length_;
+    // tether_repulsive_onset_ = 0.8 * average_edge_length_;
+    // tether_attractive_singularity_ = 1.667 * average_edge_length_;
+    // tether_repulsive_singularity_ = 0.333 * average_edge_length_;
+    RefreshTetherParams();
   }
   UpdateMesh(); // update edge lengths, triangle area/vol, etc.
   if (do_not_pass_go_) {
@@ -1960,6 +1984,10 @@ void TriMesh::UpdatePositions() {
     }
     vrts_[i_vrt].SetPos(r_final);
   }
+
+  RefreshMats();
+
+  // SyncWithMats();
   WriteOutputs();
 }
 
@@ -2114,7 +2142,7 @@ int TriMesh::CheckPtrs() {
   }
 
   printf(
-      "*********************** Checking vertex ptrs ***********************");
+      "*********************** Checking vertex ptrs ***********************\n");
   for (size_t _v{0}; _v < num_vertices; _v++) {
     if (vrts_[_v].h_out() == nullptr) {
       printf("***** vertex %d has null h_out\n", _v);
@@ -2125,7 +2153,8 @@ int TriMesh::CheckPtrs() {
 
     // printf("  origin(out(v)) = %d\n", vrts_[_v].h_out()->v_origin()->index());
   }
-  printf("*********************** Checking edge ptrs ***********************");
+  printf(
+      "*********************** Checking edge ptrs ***********************\n");
   for (size_t _e{0}; _e < num_edges; _e++) {
     if (edges_[_e].vrts_[0] == nullptr) {
       printf("***** edge %d has null v0\n", _e);
@@ -2141,7 +2170,8 @@ int TriMesh::CheckPtrs() {
              edges_[_e].vrts_[1]->index(), edges_[_e].h_parallel()->index());
     }
   }
-  printf("*********************** Checking face ptrs ***********************");
+  printf(
+      "*********************** Checking face ptrs ***********************\n");
 
   for (size_t _f{0}; _f < num_faces; _f++) {
     if (tris_[_f].vrts_[0] == nullptr) {
@@ -2211,15 +2241,17 @@ int TriMesh::CheckMats() {
   }
 
   printf("*********************** Checking vertex indices "
-         "***********************");
+         "***********************\n");
   for (size_t _v{0}; _v < num_vertices; _v++) {
 
     printf("  (v, h_out) = (%d, %d)\n", _v, h_out_v(_v));
 
     // printf("  origin(out(v)) = %d\n", vrts_[_v].h_out()->v_origin()->index());
   }
-  printf(
-      "*********************** Checking edge indices ***********************");
+  printf("*********************** Checking edge indices "
+         "***********************\n");
+  printf("V_cycle_E_.rows()=%d\n", V_cycle_E_.rows());
+  printf("V_cycle_E_.row(0).size()=%d\n", V_cycle_E_.row(0).size());
   for (size_t _e{0}; _e < num_edges; _e++) {
 
     printf("  (e, v0, v1) = (%d, "
@@ -2227,8 +2259,8 @@ int TriMesh::CheckMats() {
            "%d)\n",
            _e, V_cycle_E_(_e, 0), V_cycle_E_(_e, 1));
   }
-  printf(
-      "*********************** Checking face indices ***********************");
+  printf("*********************** Checking face indices "
+         "***********************\n");
 
   for (size_t _f{0}; _f < num_faces; _f++) {
 
@@ -2238,7 +2270,7 @@ int TriMesh::CheckMats() {
   }
 
   printf("*********************** Checking half-edge indices "
-         "***********************");
+         "***********************\n");
   for (size_t _h{0}; _h < num_half_edges; _h++) {
     printf("  (h, v_origin, h_twin, h_next, f_left) = (%d, %d, %d, %d, %d)\n",
            _h, v_origin_H_(_h), h_twin_H_(_h), h_next_H_(_h), f_left_H_(_h));
