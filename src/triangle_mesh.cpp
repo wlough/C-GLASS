@@ -391,12 +391,12 @@ void TriMesh::InitializeMeshOG() {
   average_edge_length_ = l_sum / edges_.size();
   average_face_area_ = area_sum / tris_.size();
   average_face_volume_ = vol_sum / tris_.size();
-  printf("  l_avg = %g\n", average_edge_length_);
-  printf("  A_prime = %g\n", average_face_area_);
-  printf("  A_calc = %g\n", 4.0 * M_PI * SQR(r_sys_) / tris_.size());
+  printf("  average edge lenth l_avg = %g\n", average_edge_length_);
+  printf("  average face area A_avg = %g\n", average_face_area_);
+  // printf("  A_calc = %g\n", 4.0 * M_PI * SQR(r_sys_) / tris_.size());
   printf("  V_prime = %g\n", average_face_volume_);
-  printf("  V_calc = %g\n", (4.0 / 3.0) * M_PI * CUBE(r_sys_) / tris_.size());
-  printf("  V_calc_alt = %g\n", (1.0 / 3.0) * average_face_area_ * r_sys_);
+  // printf("  V_calc = %g\n", (4.0 / 3.0) * M_PI * CUBE(r_sys_) / tris_.size());
+  // printf("  V_calc_alt = %g\n", (1.0 / 3.0) * average_face_area_ * r_sys_);
   // tether_attractive_onset_ = 1.2 * average_edge_length_;
   // tether_repulsive_onset_ = 0.8 * average_edge_length_;
   // used in vutukuri et al
@@ -485,11 +485,11 @@ void TriMesh::InitializeMesh() {
   average_face_area_ = area_sum / tris_.size();
   average_face_volume_ = vol_sum / tris_.size();
   printf("  l_avg = %g\n", average_edge_length_);
-  printf("  A_prime = %g\n", average_face_area_);
-  printf("  A_calc = %g\n", 4.0 * M_PI * SQR(r_sys_) / tris_.size());
-  printf("  V_prime = %g\n", average_face_volume_);
-  printf("  V_calc = %g\n", (4.0 / 3.0) * M_PI * CUBE(r_sys_) / tris_.size());
-  printf("  V_calc_alt = %g\n", (1.0 / 3.0) * average_face_area_ * r_sys_);
+  printf("  A_prime = A_avg = %g\n", average_face_area_);
+  // printf("  A_calc = %g\n", 4.0 * M_PI * SQR(r_sys_) / tris_.size());
+  printf("  V_prime = V_avg = %g\n", average_face_volume_);
+  // printf("  V_calc = %g\n", (4.0 / 3.0) * M_PI * CUBE(r_sys_) / tris_.size());
+  // printf("  V_calc_alt = %g\n", (1.0 / 3.0) * average_face_area_ * r_sys_);
 }
 
 void TriMesh::UpdateIncidenceData() {
@@ -554,13 +554,13 @@ void TriMesh::UpdateGeometricData() {
          n_gucci);
   average_edge_length_ = l_sum / edges_.size();
   average_face_area_ = area_sum / tris_.size();
-  average_face_volume_ = vol_sum / tris_.size();
+  average_face_volume_ = std::fabs(vol_sum) / tris_.size();
   printf("  l_avg = %g\n", average_edge_length_);
-  printf("  A_prime = %g\n", average_face_area_);
-  printf("  A_calc = %g\n", 4.0 * M_PI * SQR(r_sys_) / tris_.size());
+  printf("  A_prime = A_avg = %g\n", average_face_area_);
+  // printf("  A_calc = %g\n", 4.0 * M_PI * SQR(r_sys_) / tris_.size());
   printf("  V_prime = %g\n", average_face_volume_);
-  printf("  V_calc = %g\n", (4.0 / 3.0) * M_PI * CUBE(r_sys_) / tris_.size());
-  printf("  V_calc_alt = %g\n", (1.0 / 3.0) * average_face_area_ * r_sys_);
+  // printf("  V_calc = %g\n", (4.0 / 3.0) * M_PI * CUBE(r_sys_) / tris_.size());
+  // printf("  V_calc_alt = %g\n", (1.0 / 3.0) * average_face_area_ * r_sys_);
 }
 
 /**

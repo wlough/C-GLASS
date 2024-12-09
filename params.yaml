@@ -1,14 +1,14 @@
 seed: 114222003020845
 run_name: test
-delta: 1e-4
+delta: 5e-5
 n_graph: 500 # want n_graph*delta /gamma = 1e-2-1e-3?
 system_radius: 30
 
 membrane_tether_stiffness: 80.5 # bond stiffness
-membrane_bending_modulus: 180.1 #10.1 # bending stiffness
+membrane_bending_modulus: 20.1 #10.1 # bending stiffness
 membrane_area_reg_stiffness: 10.3 #3. # area constraint stiffness
-membrane_volume_reg_stiffness: 55.2 #15.2 # volume constraint stiffness
-membrane_node_drag_coefficient: 100.2
+membrane_volume_reg_stiffness: 85.2 #15.2 # volume constraint stiffness
+membrane_node_drag_coefficient: 120.2
 mesh_enable_flipping: false
 mesh_node_diameter: .6
 mesh_draw_centroid: false
@@ -16,11 +16,12 @@ mesh_draw_mindist: false
 
 mesh_n_subdivisions: 3
 mesh_datapoints: 50000000
-mesh_steps_per_datapoint: 1
+mesh_steps_per_datapoint: 500
 mesh_shrink_rate: 0.0 # 1e-4
 # membrane_ply_path: data/cglass_ply/dumbbell_coarse_he.ply
 # membrane_ply_path: data/cglass_ply/dumbbell_he.ply
-membrane_ply_path: data/cglass_ply/dumbbell_yaxis_coarse_he.ply
+# membrane_ply_path: data/cglass_ply/dumbbell_yaxis_coarse_he.ply
+membrane_ply_path: output/ply_files/test_000170.ply
 # membrane_ply_path: data/cglass_ply/oblate_005120_he.ply
 # membrane_ply_path: data/cglass_ply/oblate_001280_he.ply
 # membrane_ply_path: data/example_ply/oblate_005120_he.ply
@@ -70,7 +71,7 @@ centrosome:
     insertion_type: bioriented # normal change 'normal' to 'adjacent'
     draw_type: orientation
     color: 1.5
-    num: 2
+    num: 0
     num_anchors_ea: 6 # 5
     length: 0.5
     diameter: 9.5
@@ -92,8 +93,8 @@ filament:
     insertion_type: random # spb_anchored
     draw_type: orientation
     color: 2
-    num: 12 #5 # 10
-    length: 40 # 5
+    num: 0
+    length: 5 # 5
     min_length: 2
     max_length: 120 # 110  # SF TODO no upper cap in NAB -- possible in C-GLASS?
     min_bond_length: 1

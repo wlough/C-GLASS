@@ -367,7 +367,7 @@ The Interaction Manager in C-GLASS was written with short-range interactions in 
 
 ### Potentials
 
-C-GLASS is designed to be able to use interchangable potentials for various objects. However, potentials need to be added manually as a subclass of PotentialBase, included in PotentialManager, and a corresponding potential_type added to definitions.h for lookup purposes (see the InitPotentials method in PotentialManager.h for examples).
+C-GLASS is designed to be able to use interchangable potentials for various objects. However, potentials need to be added manually as a subclass of PotentialBase, included in PotentialManager, and a corresponding potential_type added to definitions.hpp for lookup purposes (see the InitPotentials method in PotentialManager.hpp for examples).
 
 ### Outputs
 
@@ -507,5 +507,28 @@ This software is licensed under the terms of the BSD-3 Clause license. See the `
   * Define subclass of PotentialBase
   * `#include NewPotential` in PotentialManager
   * Add new potential_type to definitions.hpp for lookup purposes
-  * See InitPotentials method in PotentialManager.h for examples
+  * See InitPotentials method in PotentialManager.hpp for examples
 <!-- * Define output types for new species (posit, spec, checkpoint) -->
+
+
+
+## Timestep flow chart
+
+```
+UpdatePositions()
+├── include
+│   └── cglass
+│       └── (header files)
+├── src
+│   ├── CMakeLists.txt
+│   ├── executable
+│   │   ├── CMakeLists.txt
+│   │   └── cglass_main.cpp
+│   ├── configurator
+│   │   ├── CMakeLists.txt
+│   │   └── configurator.cpp
+│   └── (source files)
+├── launch_docker.sh
+├── .travis.yml
+└── .gitignore
+```

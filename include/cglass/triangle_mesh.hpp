@@ -66,7 +66,8 @@ public:
   int i_datapoint_{0};
   bool scale_to_system_radius{false};
   bool make_a_movie{false};
-  // std::string output_ply_path{"none"};
+  double target_face_area_{0.0};
+  double target_volume_{0.0};
 
   std::string get_new_output_ply_path() {
     // printf("  getting new output ply path\n");
@@ -167,7 +168,7 @@ public:
   void UpdateMesh();
   void ApplyMembraneForces();
   void ApplyBoundaryForces();
-
+  void ApplyBendingForces();
   // public:
   void Draw(std::vector<graph_struct *> &graph_array);
 
