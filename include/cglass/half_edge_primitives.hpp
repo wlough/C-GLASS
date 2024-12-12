@@ -123,7 +123,7 @@ struct Vertex : public meshbrane::MeshBraneObject, public Site {
    * @param xyz_coord Coordinates of the vertex
    * @param h Pointer to an outgoing half-edge
    */
-  Vertex(size_t index, mbrn::Coords3d xyz_coord, HalfEdge *h)
+  Vertex(size_t index, mbrn::Vec3d xyz_coord, HalfEdge *h)
       : mbrn::MeshBraneObject(index), Site(seed), h_(h) {
     pos_[0] = xyz_coord(0);
     pos_[1] = xyz_coord(1);

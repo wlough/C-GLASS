@@ -6,7 +6,7 @@
 #include <iostream>                  // std::cout
 #include <meshbrane/matrix_mesh.hpp> // MatrixMesh
 #include <meshbrane/mesh_builder.hpp>
-#include <meshbrane/meshbrane_data_types.hpp> // Samplesi, Coords3d
+#include <meshbrane/meshbrane_data_types.hpp> // Samplesi, Vec3d
 #include <unistd.h>                           // ?
 #include <vector>                             // std::vector
 
@@ -859,7 +859,7 @@ void TriMesh::InitializeHalfEdgeMats() {
   // for (Vertex &v : vrts_) {
   for (int _v = 0; _v < num_vertices; _v++) {
     Vertex &v = vrts_[_v];
-    // update_mat_v(v.index_, meshbrane::Coords3d(v.pos_[0], v.pos_[1], v.pos_[2]),
+    // update_mat_v(v.index_, meshbrane::Vec3d(v.pos_[0], v.pos_[1], v.pos_[2]),
     //              0);
     xyz_coord_V_.row(_v) << vrts_[_v].pos_[0], vrts_[_v].pos_[1],
         vrts_[_v].pos_[2];
@@ -906,7 +906,7 @@ void TriMesh::RefreshMats() {
   h_negative_B_.resize(num_boundaries);
 
   // for (Vertex &v : vrts_) {
-  //   update_mat_v(v.index_, meshbrane::Coords3d(v.pos_[0], v.pos_[1], v.pos_[2]),
+  //   update_mat_v(v.index_, meshbrane::Vec3d(v.pos_[0], v.pos_[1], v.pos_[2]),
   //                0);
   // }
   // for (Edge &e : edges_) {
@@ -918,7 +918,7 @@ void TriMesh::RefreshMats() {
   // }
 
   for (Vertex &v : vrts_) {
-    update_mat_v(v.index_, meshbrane::Coords3d(v.pos_[0], v.pos_[1], v.pos_[2]),
+    update_mat_v(v.index_, meshbrane::Vec3d(v.pos_[0], v.pos_[1], v.pos_[2]),
                  v.h_out()->index_);
   }
 
