@@ -5,7 +5,7 @@
 #include <coroutine>
 #include <filesystem>                // std::filesystem::path
 #include <iostream>                  // std::cout
-#include <meshbrane/matrix_mesh.hpp> // MatrixMesh
+#include <meshbrane/matrix_mesh.hpp> // Membrane
 #include <meshbrane/mesh_builder.hpp>
 #include <meshbrane/meshbrane_data_types.hpp> // Samplesi, Vec3d
 #include <unistd.h>                           // ?
@@ -115,7 +115,7 @@ void TriMesh::LoadPly() {
   std::filesystem::path path(ply_path);
   std::string directory = path.parent_path().string();
   std::string filename = path.filename().string();
-  meshbrane::MatrixMesh m = meshbrane::MatrixMesh::from_he_ply(ply_path);
+  meshbrane::Membrane m = meshbrane::Membrane(ply_path);
   xyz_coord_V_ = m.xyz_coord_V_;
   h_out_V_ = m.h_out_V_;
   v_origin_H_ = m.v_origin_H_;

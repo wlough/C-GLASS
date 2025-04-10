@@ -20,7 +20,7 @@
  * @brief A dynamically triangulated surface
  * 
  */
-class TriMesh : public meshbrane::MatrixMesh {
+class TriMesh : public meshbrane::Membrane {
   ////////////////////////////
   // Fundamental attributes //
   ////////////////////////////
@@ -35,15 +35,15 @@ public:
   std::string ply_path{"none"};
   double r_sys_{0.0};
   // Bending force
-  double bending_modulus_{0.0};
-  double spontaneous_curvature_{0.0};
-  double splay_modulus_{0.0};
+  // double bending_modulus_{0.0};
+  // double spontaneous_curvature_{0.0};
+  // double splay_modulus_{0.0};
   // Tether force
-  double dimensionless_tether_repulsive_onset_{0.8};
-  double dimensionless_tether_repulsive_singularity_{0.25};
-  double dimensionless_tether_attractive_onset_{1.2};
-  double dimensionless_tether_attractive_singularity_{2.5};
-  double tether_stiffness_{0.0};
+  // double dimensionless_tether_repulsive_onset_{0.8};
+  // double dimensionless_tether_repulsive_singularity_{0.25};
+  // double dimensionless_tether_attractive_onset_{1.2};
+  // double dimensionless_tether_attractive_singularity_{2.5};
+  // double tether_stiffness_{0.0};
   double tether_attractive_singularity_{0.0};
   double tether_repulsive_singularity_{0.0};
   double tether_attractive_onset_{0.0};
@@ -55,10 +55,10 @@ public:
   double preferred_volume_{0.09403159725796};
   double volume_reg_stiffness_{0.0};
   // Drag force
-  double node_drag_coefficient_{0.0};
+  // double node_drag_coefficient_{0.0};
   //  Edge flipping
   int flip_sweeps_per_step_{1};
-  double flipping_probability_{0.3};
+  // double flipping_probability_{0.3};
   //  Misc
   double timestep_{1e-5};
   static const size_t n_edges_min_{3};  // true for any connected graph
@@ -67,8 +67,8 @@ public:
   int i_datapoint_{0};
   bool scale_to_system_radius{false};
   bool make_a_movie{false};
-  double target_face_area_{0.0};
-  double target_volume_{0.0};
+  // double target_face_area_{0.0};
+  // double target_volume_{0.0};
 
   std::string get_new_output_ply_path() {
     // printf("  getting new output ply path\n");
@@ -100,14 +100,14 @@ public:
    */
   void SetParameters();
   /**
-   * @brief Initialize MatrixMesh from a ply file.
+   * @brief Initialize Membrane from a ply file.
    */
   void InitializeMesh();
   void InitializeHalfEdgeMats();
   /**
    * @brief Copy constructor
    */
-  TriMesh(const TriMesh &other) : meshbrane::MatrixMesh(other) {};
+  TriMesh(const TriMesh &other) : meshbrane::Membrane(other) {};
   /**
    * @brief Load half-edge data from a ply file. Does not update vrts_, edges_, tris_, half_edges_, boundaries_ lists.
    */
@@ -130,11 +130,11 @@ public:
   //////////////////////
   // Precomputed data //
   //////////////////////
-  double average_face_area_{0.0};
+  // double average_face_area_{0.0};
   double average_face_volume_{0.0};
   double centroid_[3];
-  double f_avgs_[4];                // indices 0-4: tether, bend, area, vol
-  double average_edge_length_{0.0}; // average edge length
+  double f_avgs_[4]; // indices 0-4: tether, bend, area, vol
+  // double average_edge_length_{0.0}; // average edge length
 
   //////////////////////////////
   // Getters/Setters/updaters //
