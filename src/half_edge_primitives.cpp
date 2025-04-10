@@ -5,7 +5,6 @@
 #include <coroutine>
 #include <filesystem>
 #include <iostream>
-#include <meshbrane/matrix_mesh.hpp>
 #include <meshbrane/meshbrane_data_types.hpp>
 #include <unistd.h>
 #include <vector>

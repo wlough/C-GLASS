@@ -1,4 +1,5 @@
 #include "cglass/triangle_mesh.hpp"
+#include "meshbrane/membrane.hpp" // Membrane
 #include "meshbrane/simple_generator.hpp"
 #include <cglass/filament.hpp>
 #include <coroutine>

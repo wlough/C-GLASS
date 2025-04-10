@@ -66,6 +66,7 @@ public:
   Simulation() {}
   void Run(YAML::Node sim_params);
   void ProcessOutputs(YAML::Node sim_params, run_options run_opts);
+  YAML::Node sim_params_;
 };
 
 #endif // _CGLASS_SIMULATION_H_

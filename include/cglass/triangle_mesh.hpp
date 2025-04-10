@@ -5,6 +5,7 @@
 // #include "definitions.hpp"
 #include "half_edge_primitives.hpp"
 #include "meshbrane/matrix_mesh.hpp"
+#include "meshbrane/membrane.hpp" // Membrane
 #include "meshbrane/meshbrane_data_types.hpp"
 #include "meshbrane/meshbrane_object.hpp"
 #include "minimum_distance.hpp"

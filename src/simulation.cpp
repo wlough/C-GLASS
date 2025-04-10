@@ -2,6 +2,7 @@
 
 /* Initialize simulation parameters and run simulation */
 void Simulation::Run(YAML::Node sim_params) {
+  sim_params_ = sim_params;
   YAML::Emitter out;
   Logger::Info("Initializing simulation with parameters:\n%s",
                (out << sim_params).c_str());
