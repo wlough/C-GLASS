@@ -66,7 +66,7 @@ filament:
     # insert_file: test_fil_insert.yaml
     draw_type: orientation
     color: 2
-    num: 3 #12 #5 # 10
+    num: 0 #12 #5 # 10
     length: 25 # 5
     min_length: 2
     max_length: 120 # 110  # SF TODO no upper cap in NAB -- possible in C-GLASS?
@@ -212,7 +212,7 @@ membrane_bending_modulus: 100.4 #10.1 # bending stiffness
 membrane_area_reg_stiffness: 1.03 #3. # area constraint stiffness
 membrane_volume_reg_stiffness: .3 #15.2 # volume constraint stiffness
 membrane_node_drag_coefficient: 6.2
-mesh_enable_flipping: false
+mesh_enable_flipping: true
 mesh_node_diameter: 1
 mesh_draw_centroid: false
 mesh_draw_mindist: true

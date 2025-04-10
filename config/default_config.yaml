@@ -160,6 +160,21 @@ species: # Shared parameters used for all species.
     [-1, int] # Species wont move until specified time step, overwritten by
     # stationary flag, currently only implemented for rigid/flexable filaments
 
+centrosome:
+  filament_species_name: ["NULL", string]
+  num_anchors_ea: [0, int]
+  attach_diameter: [0.0, double]
+  diffusion: [0.0, double]
+  wall_f0: [0.0, double]
+  wall_ne: [0.0, double]
+  wall_kr: [0.0, double]
+
+chromosome:
+  n_attached: [0.0, double]
+  translational_noise: [0.0, double]
+  rotational_noise: [0.0, double]
+  zero_temperature: [false, bool]
+
 rigid_filament:
   max_length: [500, double] # maximum filament length. also used for dynamic instability.
   min_length: [5, double] # minimum filament length. also used for dynamic instability.
@@ -452,9 +467,24 @@ receptor:
 
 # #########################################################
 #  Membrane parameters
+mesh_membrane: [false, bool]
+mesh_datapoints: [10000, size_t]
+mesh_steps_per_datapoint: [10, size_t]
+mesh_shrink_rate: [0.0, double]
+membrane_tether_stiffness: [0.0, double]
+membrane_bending_modulus: [0.0, double]
+membrane_area_reg_stiffness: [0.0, double]
+membrane_volume_reg_stiffness: [0.0, double]
+n_subdivisions: [0, size_t]
+node_diameter: [0.0, double]
+membrane_node_drag_coefficient: [0.0, double]
+draw_centroid: [false, bool]
+draw_mindist: [false, bool]
+enable_flipping: [false, bool]
+make_a_movie: [false, bool]
 membrane_ply_path: [data/cglass_ply/unit_sphere_005120.ply, string] # Path to ply file for membrane mesh
 membrane_scale_to_system_radius: [false, bool] # Path to ply file for membrane mesh
+membrane_tether_repulsive_singularity: [0.1, double] # (Dimensionless) tethering potential minimum length
 membrane_tether_repulsive_onset: [0.8, double] # (Dimensionless) onset of repulsive penalty
-membrane_tether_repulsive_singularity: [.15, double] # (Dimensionless) tethering potential minimum length
 membrane_tether_attractive_onset: [1.2, double] # (Dimensionless) onset of attractive penalty
-membrane_tether_attractive_singularity: [3.5, double] # (Dimensionless) tethering potential max length
+membrane_tether_attractive_singularity: [3.3, double] # (Dimensionless) tethering potential max length

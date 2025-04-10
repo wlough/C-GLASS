@@ -62,7 +62,8 @@ int main(int argc, char *argv[]) {
 
   char pathname[] = "include/cglass";
   if (stat(pathname, &info) != 0) {
-    printf("Cannot find %s: Are you in the project's root directory?\n", pathname);
+    printf("Cannot find %s: Are you in the project's root directory?\n",
+           pathname);
     exit(1);
   } else if (info.st_mode & S_IFDIR) {
     printf("Configuring cglass parameters\n");
@@ -151,14 +152,16 @@ void Configurator::WriteParam() {
     YAML::const_iterator subnode_temp = subnode_;
 
     // Recursively write out anchor parameters
-    for (subnode_ = subnode_temp->second.begin(); subnode_ != subnode_temp->second.end(); ++subnode_) {
+    for (subnode_ = subnode_temp->second.begin();
+         subnode_ != subnode_temp->second.end(); ++subnode_) {
       parameters_ << "  ";
       WriteParam();
     }
     subnode_ = subnode_temp;
     parameters_ << "  };\n"
                    "  anchor_parameters anchor_temp;\n"
-                   "  std::vector<anchor_parameters> anchors = {anchor_temp, anchor_temp};\n";
+                   "  std::vector<anchor_parameters> anchors = {anchor_temp, "
+                   "anchor_temp};\n";
     return;
   } else if (!subnode_->second.IsSequence() && subnode_->second.size() != 2) {
     fprintf(stderr, "ERROR! Parameter config received an invalid parameter "
@@ -170,9 +173,9 @@ void Configurator::WriteParam() {
   ptype_ = subnode_->second[1].as<std::string>();
   if (ptype_.compare("string") == 0) {
     parameters_ << "  std::string " << pname_ << " = \"" << pvalue_ << "\";\n";
-  }
-  else if (ptype_.compare("int") == 0 || ptype_.compare("double") == 0 ||
-             ptype_.compare("long") == 0 || ptype_.compare("bool") == 0) {
+  } else if (ptype_.compare("int") == 0 || ptype_.compare("double") == 0 ||
+             ptype_.compare("long") == 0 || ptype_.compare("bool") == 0 ||
+             ptype_.compare("size_t") == 0) {
     parameters_ << "  " << ptype_ << " " << pname_ << " = " << pvalue_ << ";\n";
   } else {
     fprintf(stderr, "ERROR! Parameter type %s not recognized!", ptype_.c_str());
@@ -180,7 +183,8 @@ void Configurator::WriteParam() {
   }
 }
 
-void Configurator::WriteDefParam(std::string parent = "", std::string subparent = "") {
+void Configurator::WriteDefParam(std::string parent = "",
+                                 std::string subparent = "") {
   pname_ = subnode_->first.as<std::string>();
   pvalue_ = subnode_->second[0].as<std::string>();
   if (parent.empty()) {
@@ -193,12 +197,15 @@ void Configurator::WriteDefParam(std::string parent = "", std::string subparent 
     } else {
       if (subparent.compare("anchors") == 0) {
         // Add default config to both anchors
-        default_config_ << "  default_config[\"" << parent << "\"][\"" << subparent
-                        << "\"][0][\"" << pname_ << "\"] = \"" << pvalue_ << "\";\n";
-        default_config_ << "  default_config[\"" << parent << "\"][\"" << subparent
-                        << "\"][1][\"" << pname_ << "\"] = \"" << pvalue_ << "\";\n";
+        default_config_ << "  default_config[\"" << parent << "\"][\""
+                        << subparent << "\"][0][\"" << pname_ << "\"] = \""
+                        << pvalue_ << "\";\n";
+        default_config_ << "  default_config[\"" << parent << "\"][\""
+                        << subparent << "\"][1][\"" << pname_ << "\"] = \""
+                        << pvalue_ << "\";\n";
       } else {
-        std::cerr << "Error: configurator only set up for anchor subspecies parameters.\n";
+        std::cerr << "Error: configurator only set up for anchor subspecies "
+                     "parameters.\n";
         return;
       }
     }
@@ -207,21 +214,24 @@ void Configurator::WriteDefParam(std::string parent = "", std::string subparent 
 
 void Configurator::WriteDefaultParams() {
   default_config_ << "  YAML::Node default_config;\n";
-  for (YAML::const_iterator it_outer = node_.begin(); it_outer != node_.end(); ++it_outer) {
+  for (YAML::const_iterator it_outer = node_.begin(); it_outer != node_.end();
+       ++it_outer) {
     if (it_outer->second.IsMap()) {
       std::string parent = it_outer->first.as<std::string>();
-      for (YAML::const_iterator it_inner = it_outer->second.begin(); it_inner != it_outer->second.end();
-           ++it_inner) {
+      for (YAML::const_iterator it_inner = it_outer->second.begin();
+           it_inner != it_outer->second.end(); ++it_inner) {
         if (it_inner->second.IsMap()) {
           std::string subparent = it_inner->first.as<std::string>();
           // Parse subspecies parameters
-          for (subnode_ = it_inner->second.begin(); subnode_ != it_inner->second.end(); ++subnode_) {
+          for (subnode_ = it_inner->second.begin();
+               subnode_ != it_inner->second.end(); ++subnode_) {
             WriteDefParam(parent, subparent);
           }
         }
       }
       // Parse species parameters
-      for (subnode_ = it_outer->second.begin(); subnode_ != it_outer->second.end(); ++subnode_) {
+      for (subnode_ = it_outer->second.begin();
+           subnode_ != it_outer->second.end(); ++subnode_) {
         if (subnode_->second.IsSequence() && subnode_->second.size() == 2) {
           WriteDefParam(parent, "");
         }
@@ -363,36 +373,51 @@ void Configurator::WriteParseSystemParams() {
 void Configurator::ParseParam(std::string iterator, bool store) {
   pname_ = subnode_->first.as<std::string>();
   if (pname_.compare("anchors") == 0) {
-    parse_params_ << "      } else if (param_name.compare(\"" << pname_ << "\")==0) {\n"
-                     "        for (size_t i = 0; i < jt->second.size(); ++i) {\n"
-                     "          if (i > 1) {\n"
-                     "            Logger::Error(\"Only two anchors allowed per crosslink.\");\n"
-                     "          }\n"
-                     "          for (auto kt = jt->second[i].begin(); kt != jt->second[i].end(); ++kt) {\n"
-                     "            if (!kt->second.IsScalar())  {\n"
-                     "              continue;\n"
-                     "            }\n"
-                     "            std::string sub_param_name = kt->first.as<std::string>();\n"
-                     "            if (false) {\n";
-    for (YAML::const_iterator subit = subnode_->second.begin(); subit != subnode_->second.end();
-           ++subit) {
+    parse_params_
+        << "      } else if (param_name.compare(\"" << pname_
+        << "\")==0) {\n"
+           "        for (size_t i = 0; i < jt->second.size(); ++i) {\n"
+           "          if (i > 1) {\n"
+           "            Logger::Error(\"Only two anchors allowed per "
+           "crosslink.\");\n"
+           "          }\n"
+           "          for (auto kt = jt->second[i].begin(); kt != "
+           "jt->second[i].end(); ++kt) {\n"
+           "            if (!kt->second.IsScalar())  {\n"
+           "              continue;\n"
+           "            }\n"
+           "            std::string sub_param_name = "
+           "kt->first.as<std::string>();\n"
+           "            if (false) {\n";
+    for (YAML::const_iterator subit = subnode_->second.begin();
+         subit != subnode_->second.end(); ++subit) {
       if (subit->second.IsSequence() && subit->second.size() == 2) {
         std::string sub_name = subit->first.as<std::string>();
         ptype_ = subit->second[1].as<std::string>();
         if (ptype_.compare("string") == 0) {
           ptype_ = "std::string";
         }
-        parse_params_ << "            } else if (sub_param_name.compare(\"" << sub_name << "\")==0) {\n"
-                         "              params." << pname_ << "[i]." << sub_name << 
-                         " = kt->second.as<" << ptype_ << ">();\n"
-                         "              if (jt->second.size() < 2 || !jt->second[(int)!i][\"" << sub_name << "\"]) {\n"
-                         "                 params." << pname_ << "[(int)!i]." << sub_name << " = params." << pname_ 
-                         << "[i]." << sub_name << ";\n"
+        parse_params_ << "            } else if (sub_param_name.compare(\""
+                      << sub_name
+                      << "\")==0) {\n"
+                         "              params."
+                      << pname_ << "[i]." << sub_name << " = kt->second.as<"
+                      << ptype_
+                      << ">();\n"
+                         "              if (jt->second.size() < 2 || "
+                         "!jt->second[(int)!i][\""
+                      << sub_name
+                      << "\"]) {\n"
+                         "                 params."
+                      << pname_ << "[(int)!i]." << sub_name << " = params."
+                      << pname_ << "[i]." << sub_name
+                      << ";\n"
                          "              }\n";
       }
     }
     parse_params_ << "            } else {\n"
-                     "              Logger::Warning(\"Unrecognized parameter '%s'\", sub_param_name.c_str());\n"
+                     "              Logger::Warning(\"Unrecognized parameter "
+                     "'%s'\", sub_param_name.c_str());\n"
                      "            }\n"
                      "          }\n"
                      "        }\n";
