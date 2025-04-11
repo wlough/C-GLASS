@@ -200,7 +200,11 @@
   default_config["membrane"]["enable_fluctuations"] = "true";
   default_config["membrane"]["dt_flip"] = "1e-2";
   default_config["membrane"]["flipping_probability"] = "0.3";
+  default_config["membrane"]["use_surface_tension_constant"] = "false";
+  default_config["membrane"]["use_surface_tension_penalty_local"] = "true";
+  default_config["membrane"]["surface_tension_constant"] = "0.0";
   default_config["membrane"]["ply_path"] = "none";
+  default_config["membrane"]["radius_vertex"] = "0.0";
   default_config["seed"] = "7859459105545";
   default_config["n_runs"] = "1";
   default_config["n_random"] = "1";

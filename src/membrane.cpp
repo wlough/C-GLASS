@@ -32,13 +32,25 @@ void Membrane::SetParameters() {
   dt_flip_ = sparams_->dt_flip;
   flipping_probability_ = sparams_->flipping_probability;
   ply_path_ = sparams_->ply_path;
+  use_surface_tension_constant_ = sparams_->use_surface_tension_constant;
+  use_surface_tension_penalty_local_ =
+      sparams_->use_surface_tension_penalty_local;
+  surface_tension_constant_ = sparams_->surface_tension_constant;
+  dt0_ = delta_;
+  radius_vertex_ = sparams_->radius_vertex;
+  //   diameter_ = 2 * radius_vertex_;
 }
 
 void Membrane::Init(membrane_parameters *sparams) {
   sparams_ = sparams;
   SetParameters();
   LoadPly();
+  init();
   SyncWithMats();
+  for (auto &&v : vrts_) {
+    v.SetDiameter(2 * radius_vertex_);
+    v.SetColor(1.5, draw_type::fixed);
+  }
 }
 
 void Membrane::Draw(std::vector<graph_struct *> &graph_array) {
@@ -63,18 +75,18 @@ void Membrane::LoadPly() {
   f_left_H_ = m.f_left_H_;
   h_right_F_ = m.h_right_F_;
   h_negative_B_ = m.h_negative_B_;
-  update_vef_from_he();
+  //   update_vef_from_he();
   //   printf("  Saving mesh data to output/%s\n", filename.c_str());
   //   write_he_ply("output/" + filename);
 }
 
 void Membrane::SyncWithMats() {
-  printf("SyncWithMats()\n");
+  //   printf("SyncWithMats()\n");
   size_t num_vertices = get_num_vertices();
-  size_t num_faces = get_num_faces();
-  size_t num_edges = get_num_edges();
-  size_t num_half_edges = get_num_half_edges();
-  size_t num_boundaries = get_num_boundaries();
+  //   size_t num_faces = get_num_faces();
+  //   size_t num_edges = get_num_edges();
+  //   size_t num_half_edges = get_num_half_edges();
+  //   size_t num_boundaries = get_num_boundaries();
 
   // delete existing data
   vrts_.clear();
@@ -86,13 +98,19 @@ void Membrane::SyncWithMats() {
   // printf("  Initializing vertices\n");
   for (size_t _v = 0; _v < num_vertices; _v++) {
     vrts_.emplace_back(_v, xyz_coord_v(_v));
+    vrts_.back().SetDiameter(2 * radius_vertex_);
   }
 
-  printf("Done SyncWithMats()\n");
+  //   printf("Done SyncWithMats()\n");
 }
 
 void Membrane::UpdatePosition() {
   // printf("UpdatePositions()\n");
-  xyz_coord_V_ *= 1.001;
+  //   xyz_coord_V_ *= 1.001;
+  //   printf("  UpdatePositions()\n");
+  //   printf("  t_= %f\n", t_);
+  //   printf("  dt0_ %f\n", dt0_);
+  //   printf("  dt_ %f\n", dt_);
+  evolve_until(t_ + dt0_);
   SyncWithMats();
 }

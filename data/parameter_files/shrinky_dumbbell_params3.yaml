@@ -2,7 +2,7 @@ seed: 114222003020845
 run_name: test
 n_dim: 3
 n_periodic: 0
-boundary: 4
+boundary: 1
 draw_boundary: true
 system_radius: 30
 delta: 1e-5
@@ -64,7 +64,7 @@ filament:
     insertion_type: centered_oriented # random # spb_anchored
     draw_type: orientation
     color: 2
-    num: 3 #12 #5 # 10
+    num: 0 #12 #5 # 10
     length: 25 # 5
     min_length: 2
     max_length: 120 # 110  # SF TODO no upper cap in NAB -- possible in C-GLASS?
@@ -228,7 +228,42 @@ membrane_tether_attractive_singularity: 5.5 # (Dimensionless) tethering potentia
 # membrane_scale_to_system_radius: true
 membrane:
   num: 1
-  # insertion_type: ply
+  kBT: 1.2
+  # ply_path: data/cglass_ply/dumbbell_he.ply
+  ply_path: data/cglass_ply/unit_torus_3_1_raw_001536_he.ply
+  bending_modulus: 40.0
+  spontaneous_curvature: 0.0
+  splay_modulus: 0.0
+  dimensionless_tether_repulsive_singularity: 0.4
+  dimensionless_tether_repulsive_onset: 0.8
+  dimensionless_tether_attractive_onset: 1.2
+  dimensionless_tether_attractive_singularity: 1.6
+  tether_stiffness: 16.0
+  area_stiffness: 100.0
+  fix_target_face_area: false
+  volume_stiffness: 100.0
+  fix_target_volume: true
+  node_drag_coefficient: .01
+  enable_flipping: true
+  enable_fluctuations: true
+  dt_flip: 2e-2
+  flipping_probability: 0.3
+  radius_vertex: 0.25
   # ply_path: data/cglass_ply/dumbbell_coarse_he.ply
-  ply_path: data/cglass_ply/dumbbell_yaxis_coarse_he.ply
-  bending_modulus: 100.4 #10.1 # bending stiffness
+  # bending_modulus: 4e-3
+  # spontaneous_curvature: 0.0
+  # splay_modulus: 0.0
+  # dimensionless_tether_repulsive_singularity: 0.4
+  # dimensionless_tether_repulsive_onset: 0.8
+  # dimensionless_tether_attractive_onset: 1.2
+  # dimensionless_tether_attractive_singularity: 1.6
+  # tether_stiffness: 0.015625
+  # area_stiffness: 100.0
+  # fix_target_face_area: false
+  # volume_stiffness: 3200.0
+  # fix_target_volume: true
+  # node_drag_coefficient: 1.0
+  # enable_flipping: true
+  # enable_fluctuations: true
+  # dt_flip: 2e-2
+  # flipping_probability: 0.3

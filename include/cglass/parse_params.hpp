@@ -1072,8 +1072,16 @@ species_base_parameters *parse_species_params(std::string sid,
       params.dt_flip = jt->second.as<double>();
       } else if (param_name.compare("flipping_probability")==0) {
       params.flipping_probability = jt->second.as<double>();
+      } else if (param_name.compare("use_surface_tension_constant")==0) {
+      params.use_surface_tension_constant = jt->second.as<bool>();
+      } else if (param_name.compare("use_surface_tension_penalty_local")==0) {
+      params.use_surface_tension_penalty_local = jt->second.as<bool>();
+      } else if (param_name.compare("surface_tension_constant")==0) {
+      params.surface_tension_constant = jt->second.as<double>();
       } else if (param_name.compare("ply_path")==0) {
       params.ply_path = jt->second.as<std::string>();
+      } else if (param_name.compare("radius_vertex")==0) {
+      params.radius_vertex = jt->second.as<double>();
       } else {
         Logger::Warning("Unrecognized %s parameter: '%s'", sid.c_str(), param_name.c_str());
       }

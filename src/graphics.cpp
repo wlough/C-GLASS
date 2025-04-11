@@ -856,6 +856,7 @@ void Graphics::Draw3d() {
   UpdateWindow();
   DrawBoundary();
   DrawSPBs();
+  DrawMembranes();
   DrawSpheros();
   // DrawText();
   glfwSwapBuffers(window_);
@@ -950,6 +951,31 @@ void Graphics::DrawMesh() {
   glEnd();
   */
   glEnable(GL_LIGHTING);
+}
+
+void Graphics::DrawMembranes() {
+  for (auto &&m : membranes_) {
+    glDisable(GL_LIGHTING);
+
+    glDisable(GL_CULL_FACE);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // for wire mesh
+
+    glBegin(GL_LINES);
+    int num_edges = m->get_num_edges();
+    for (int e{0}; e < num_edges; e++) {
+      int v0 = m->V_cycle_E_(e, 0);
+      int v1 = m->V_cycle_E_(e, 1);
+
+      glVertex3f(m->xyz_coord_V_(v0, 0), m->xyz_coord_V_(v0, 1),
+                 m->xyz_coord_V_(v0, 2));
+      glVertex3f(m->xyz_coord_V_(v1, 0), m->xyz_coord_V_(v1, 1),
+                 m->xyz_coord_V_(v1, 2));
+    }
+    glEnd();
+    glEnable(GL_CULL_FACE);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    glEnable(GL_LIGHTING);
+  }
 }
 
 void Graphics::DrawWireSphere(double r, int lats, int longs) {

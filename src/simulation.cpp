@@ -242,6 +242,12 @@ void Simulation::InitSimulation() {
               dynamic_cast<Centrosome *>((*spec)->GetMember(i_centro)));
           printf("Adding centrosome #%i to graphics\n", i_centro);
         }
+      } else if ((*spec)->GetSID() == +species_id::membrane) {
+        for (int i_brane{0}; i_brane < (*spec)->GetNMembers(); i_brane++) {
+          graphics_.membranes_.push_back(
+              dynamic_cast<Membrane *>((*spec)->GetMember(i_brane)));
+          printf("Adding membrane #%i to graphics\n", i_brane);
+        }
       }
     }
 #endif

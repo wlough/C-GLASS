@@ -507,4 +507,8 @@ membrane:
   enable_fluctuations: [true, bool]
   dt_flip: [1e-2, double]
   flipping_probability: [0.3, double]
+  use_surface_tension_constant: [false, bool]
+  use_surface_tension_penalty_local: [true, bool]
+  surface_tension_constant: [0.0, double]
   ply_path: [none, string]
+  radius_vertex: [0.0, double]

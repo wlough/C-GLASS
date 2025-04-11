@@ -138,6 +138,8 @@ private:
   void Draw3dBudding();       // Draws budding boundary
   void DrawSpheros();         // draw spherocylinders (3d)
   void DrawSPBs();            // Draw spindle pole bodies (3d only)
+  void DrawMembrane();        // draw membrane (3d only)
+  void DrawMembranes();       // draw membranes (3d only)
   void DrawDiscorectangles(); // draw solid discorectangles (2d spherocylinders)
   void UpdateWindow();        // update window parameters in case of resize
   void Draw2d();
