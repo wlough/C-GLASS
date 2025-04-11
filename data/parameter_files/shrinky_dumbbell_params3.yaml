@@ -210,7 +210,7 @@ membrane_bending_modulus: 100.4 #10.1 # bending stiffness
 membrane_area_reg_stiffness: 1.03 #3. # area constraint stiffness
 membrane_volume_reg_stiffness: .3 #15.2 # volume constraint stiffness
 membrane_node_drag_coefficient: 6.2
-mesh_enable_flipping: true
+mesh_enable_flipping: false
 mesh_node_diameter: 1
 mesh_draw_centroid: false
 mesh_draw_mindist: true
