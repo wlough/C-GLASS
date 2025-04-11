@@ -28,7 +28,7 @@ remove_duplicate_interactions: false # SF TODO explore this
 coarse_grained_mesh_interactions: false # SF TODO explore this
 chromosome:
   - name: CHROMO
-    num: 0 # 2
+    num: 3 # 2
     length: 5
     diameter: 2
     draw_type: orientation
@@ -64,7 +64,7 @@ filament:
     insertion_type: centered_oriented # random # spb_anchored
     draw_type: orientation
     color: 2
-    num: 0 #12 #5 # 10
+    num: 3 #12 #5 # 10
     length: 25 # 5
     min_length: 2
     max_length: 120 # 110  # SF TODO no upper cap in NAB -- possible in C-GLASS?
@@ -210,12 +210,12 @@ membrane_bending_modulus: 100.4 #10.1 # bending stiffness
 membrane_area_reg_stiffness: 1.03 #3. # area constraint stiffness
 membrane_volume_reg_stiffness: .3 #15.2 # volume constraint stiffness
 membrane_node_drag_coefficient: 6.2
-mesh_enable_flipping: false
-mesh_node_diameter: 1
-mesh_draw_centroid: false
-mesh_draw_mindist: true
+enable_flipping: false
+node_diameter: 1
+draw_centroid: false
+draw_mindist: true
 mesh_membrane: true # overridden when boundary_Type=5
-mesh_n_subdivisions: 3
+n_subdivisions: 3
 mesh_datapoints: 100000
 mesh_steps_per_datapoint: 5
 mesh_shrink_rate: 0.0 # 1e-4
@@ -226,3 +226,6 @@ membrane_tether_repulsive_onset: 0.8 # (Dimensionless) onset of repulsive penalt
 membrane_tether_attractive_onset: 1.2 # (Dimensionless) onset of attractive penalty
 membrane_tether_attractive_singularity: 5.5 # (Dimensionless) tethering potential max length
 # membrane_scale_to_system_radius: true
+membrane:
+  num: 0
+  bending_modulus: 100.4 #10.1 # bending stiffness

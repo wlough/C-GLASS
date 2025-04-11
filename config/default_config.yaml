@@ -488,3 +488,22 @@ membrane_tether_repulsive_singularity: [0.1, double] # (Dimensionless) tethering
 membrane_tether_repulsive_onset: [0.8, double] # (Dimensionless) onset of repulsive penalty
 membrane_tether_attractive_onset: [1.2, double] # (Dimensionless) onset of attractive penalty
 membrane_tether_attractive_singularity: [3.3, double] # (Dimensionless) tethering potential max length
+membrane:
+  bending_modulus: [4e-3, double]
+  spontaneous_curvature: [0.0, double]
+  splay_modulus: [0.0, double]
+  dimensionless_tether_repulsive_singularity: [0.4, double]
+  dimensionless_tether_repulsive_onset: [0.8, double]
+  dimensionless_tether_attractive_onset: [1.2, double]
+  dimensionless_tether_attractive_singularity: [1.6, double]
+  tether_stiffness: [0.015625, double]
+  fix_target_face_area: [true, bool]
+  area_stiffness: [100.0, double]
+  fix_target_volume: [true, bool]
+  volume_stiffness: [3200.0, double]
+  node_drag_coefficient: [1.0, double]
+  kBT: [2e-4, double]
+  enable_flipping: [true, bool]
+  enable_fluctuations: [true, bool]
+  dt_flip: [1e-2, double]
+  flipping_probability: [0.3, double]

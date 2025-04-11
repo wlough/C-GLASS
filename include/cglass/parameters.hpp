@@ -5,8 +5,7 @@
 
 #include <string>
 
-template <unsigned char S>
-struct species_parameters {
+template <unsigned char S> struct species_parameters {
   std::string name = "species";
   int num = 0;
   double diameter = 1;
@@ -43,10 +42,9 @@ typedef species_parameters<species_id::centrosome> centrosome_parameters;
 template <>
 struct species_parameters<species_id::chromosome>
     : public species_base_parameters {
-
-  double n_attached = 0;
-  double translational_noise = 0;
-  double rotational_noise = 0;
+  double n_attached = 0.0;
+  double translational_noise = 0.0;
+  double rotational_noise = 0.0;
   bool zero_temperature = false;
 };
 typedef species_parameters<species_id::chromosome> chromosome_parameters;
@@ -61,8 +59,7 @@ struct species_parameters<species_id::rigid_filament>
   double packing_fraction = -1;
   int n_equil = 0;
 };
-typedef species_parameters<species_id::rigid_filament>
-    rigid_filament_parameters;
+typedef species_parameters<species_id::rigid_filament> rigid_filament_parameters;
 
 template <>
 struct species_parameters<species_id::filament>
@@ -169,8 +166,7 @@ struct species_parameters<species_id::spherocylinder>
   bool diffusion_analysis = false;
   int n_diffusion_samples = 1;
 };
-typedef species_parameters<species_id::spherocylinder>
-    spherocylinder_parameters;
+typedef species_parameters<species_id::spherocylinder> spherocylinder_parameters;
 
 template <>
 struct species_parameters<species_id::spindle>
@@ -245,6 +241,30 @@ struct species_parameters<species_id::receptor>
 };
 typedef species_parameters<species_id::receptor> receptor_parameters;
 
+template <>
+struct species_parameters<species_id::membrane>
+    : public species_base_parameters {
+  double bending_modulus = 4e-3;
+  double spontaneous_curvature = 0.0;
+  double splay_modulus = 0.0;
+  double dimensionless_tether_repulsive_singularity = 0.4;
+  double dimensionless_tether_repulsive_onset = 0.8;
+  double dimensionless_tether_attractive_onset = 1.2;
+  double dimensionless_tether_attractive_singularity = 1.6;
+  double tether_stiffness = 0.015625;
+  bool fix_target_face_area = true;
+  double area_stiffness = 100.0;
+  bool fix_target_volume = true;
+  double volume_stiffness = 3200.0;
+  double node_drag_coefficient = 1.0;
+  double kBT = 2e-4;
+  bool enable_flipping = true;
+  bool enable_fluctuations = true;
+  double dt_flip = 1e-2;
+  double flipping_probability = 0.3;
+};
+typedef species_parameters<species_id::membrane> membrane_parameters;
+
 struct system_parameters {
   long seed = 7859459105545;
   int n_runs = 1;
@@ -270,7 +290,7 @@ struct system_parameters {
   std::string checkpoint_run_name = "sc";
   int n_load = 0;
   bool movie_flag = false;
-  std::string movie_directory = "frames";
+  std::string movie_directory = "output/temp_images";
   bool time_analysis = false;
   double bud_height = 680;
   double bud_radius = 300;
@@ -338,7 +358,7 @@ struct system_parameters {
   bool draw_mindist = false;
   bool enable_flipping = false;
   bool make_a_movie = false;
-  std::string membrane_ply_path = "none";
+  std::string membrane_ply_path = "data/cglass_ply/unit_sphere_005120.ply";
   bool membrane_scale_to_system_radius = false;
   double membrane_tether_repulsive_singularity = 0.1;
   double membrane_tether_repulsive_onset = 0.8;

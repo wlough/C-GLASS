@@ -6,6 +6,7 @@
 #include "chromosome_species.hpp"
 #include "crosslink_species.hpp"
 #include "filament_species.hpp"
+#include "membrane_species.hpp"
 #include "receptor_species.hpp"
 #include "rigid_filament_species.hpp"
 #include "spherocylinder_species.hpp"
@@ -32,6 +33,8 @@ public:
       return new CentrosomeSpecies(seed);
     } else if (sid == +species_id::chromosome) {
       return new ChromosomeSpecies(seed);
+    } else if (sid == +species_id::membrane) {
+      return new MembraneSpecies(seed);
     }
 
     Logger::Error("Species ID not recognized in SpeciesFactory!");
