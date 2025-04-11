@@ -200,6 +200,7 @@
   default_config["membrane"]["enable_fluctuations"] = "true";
   default_config["membrane"]["dt_flip"] = "1e-2";
   default_config["membrane"]["flipping_probability"] = "0.3";
+  default_config["membrane"]["ply_path"] = "none";
   default_config["seed"] = "7859459105545";
   default_config["n_runs"] = "1";
   default_config["n_random"] = "1";

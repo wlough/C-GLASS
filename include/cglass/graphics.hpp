@@ -84,6 +84,7 @@ public:
   // GraphicsText text_;
 
   TriMesh *membrane_;
+  std::vector<Membrane *> membranes_;
   std::vector<Centrosome *> spbs_;
   GLUquadricObj *qobj_;
 

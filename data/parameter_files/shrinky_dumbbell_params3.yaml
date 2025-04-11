@@ -2,7 +2,7 @@ seed: 114222003020845
 run_name: test
 n_dim: 3
 n_periodic: 0
-boundary: 5
+boundary: 4
 draw_boundary: true
 system_radius: 30
 delta: 1e-5
@@ -28,7 +28,7 @@ remove_duplicate_interactions: false # SF TODO explore this
 coarse_grained_mesh_interactions: false # SF TODO explore this
 chromosome:
   - name: CHROMO
-    num: 3 # 2
+    num: 0 # 2
     length: 5
     diameter: 2
     draw_type: orientation
@@ -213,8 +213,8 @@ membrane_node_drag_coefficient: 6.2
 enable_flipping: false
 node_diameter: 1
 draw_centroid: false
-draw_mindist: true
-mesh_membrane: true # overridden when boundary_Type=5
+draw_mindist: false
+mesh_membrane: false # overridden when boundary_Type=5
 n_subdivisions: 3
 mesh_datapoints: 100000
 mesh_steps_per_datapoint: 5
@@ -227,5 +227,8 @@ membrane_tether_attractive_onset: 1.2 # (Dimensionless) onset of attractive pena
 membrane_tether_attractive_singularity: 5.5 # (Dimensionless) tethering potential max length
 # membrane_scale_to_system_radius: true
 membrane:
-  num: 0
+  num: 1
+  # insertion_type: ply
+  # ply_path: data/cglass_ply/dumbbell_coarse_he.ply
+  ply_path: data/cglass_ply/dumbbell_yaxis_coarse_he.ply
   bending_modulus: 100.4 #10.1 # bending stiffness

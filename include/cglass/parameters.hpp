@@ -262,6 +262,7 @@ struct species_parameters<species_id::membrane>
   bool enable_fluctuations = true;
   double dt_flip = 1e-2;
   double flipping_probability = 0.3;
+  std::string ply_path = "none";
 };
 typedef species_parameters<species_id::membrane> membrane_parameters;
 

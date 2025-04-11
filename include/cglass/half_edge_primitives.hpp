@@ -131,6 +131,14 @@ struct Vertex : public meshbrane::MeshBraneObject, public Site {
     Site::SetPositionXYZ(xyz_coord(0), xyz_coord(1), xyz_coord(2));
   }
 
+  Vertex(size_t index, mbrn::Vec3d xyz_coord)
+      : mbrn::MeshBraneObject(index), Site(seed) {
+    pos_[0] = xyz_coord(0);
+    pos_[1] = xyz_coord(1);
+    pos_[2] = xyz_coord(2);
+    Site::SetPositionXYZ(xyz_coord(0), xyz_coord(1), xyz_coord(2));
+  }
+
   ///////////////
   // Operators //
   //////////////

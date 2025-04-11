@@ -47,48 +47,32 @@ void MembraneSpecies::Init(std::string spec_name, ParamsParser &parser) {
 //   }
 // }
 
-// void MembraneSpecies::UpdatePositions() {
-// #ifdef ENABLE_OPENMP
-//   int max_threads = omp_get_max_threads();
-//   membrane_chunk_vector chunks;
-//   chunks.reserve(max_threads);
-//   size_t chunk_size = members_.size() / max_threads;
-//   membrane_iterator cur_iter = members_.begin();
-//   for (int i = 0; i < max_threads - 1; ++i) {
-//     membrane_iterator last_iter = cur_iter;
-//     std::advance(cur_iter, chunk_size);
-//     chunks.push_back(std::make_pair(last_iter, cur_iter));
-//   }
-//   chunks.push_back(std::make_pair(cur_iter, members_.end()));
+void MembraneSpecies::UpdatePositions() {
+#ifdef ENABLE_OPENMP
+  int max_threads = omp_get_max_threads();
+  membrane_chunk_vector chunks;
+  chunks.reserve(max_threads);
+  size_t chunk_size = members_.size() / max_threads;
+  membrane_iterator cur_iter = members_.begin();
+  for (int i = 0; i < max_threads - 1; ++i) {
+    membrane_iterator last_iter = cur_iter;
+    std::advance(cur_iter, chunk_size);
+    chunks.push_back(std::make_pair(last_iter, cur_iter));
+  }
+  chunks.push_back(std::make_pair(cur_iter, members_.end()));
 
-// #pragma omp parallel shared(chunks)
-//   {
-// #pragma omp for
-//     for (int i = 0; i < max_threads; ++i)
-//       for (auto it = chunks[i].first; it != chunks[i].second; ++it)
-//         it->UpdatePosition();
-//   }
-// #else
-//   for (membrane_iterator it = members_.begin(); it != members_.end(); ++it)
-//     it->UpdatePosition();
-// #endif
-//   if (sparams_.error_analysis) {
-//     RunErrorAnalysis();
-//   }
-//   if (sparams_.spiral_init_flag && sparams_.spiral_number_fail_condition >= 0) {
-//     int n_failed_spirals = 0;
-//     for (auto it = members_.begin(); it != members_.end(); ++it) {
-//       if (ABS(it->GetSpiralNumber()) < sparams_.spiral_number_fail_condition) {
-//         // Failed spiral
-//         n_failed_spirals++;
-//       }
-//     }
-//     // If all spirals have failed, end simulation early
-//     if (n_failed_spirals == n_members_) {
-//       early_exit = true;
-//     }
-//   }
-// }
+#pragma omp parallel shared(chunks)
+  {
+#pragma omp for
+    for (int i = 0; i < max_threads; ++i)
+      for (auto it = chunks[i].first; it != chunks[i].second; ++it)
+        it->UpdatePosition();
+  }
+#else
+  for (membrane_iterator it = members_.begin(); it != members_.end(); ++it)
+    it->UpdatePosition();
+#endif
+}
 
 // void MembraneSpecies::InitErrorAnalysis() {
 //   std::string fname =
