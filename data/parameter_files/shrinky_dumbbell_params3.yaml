@@ -61,9 +61,7 @@ rigid_filament:
     length: 1
 filament:
   - name: SPINDLE
-    # insertion_type: random # spb_anchored
-    insertion_type: centered_oriented
-    # insert_file: test_fil_insert.yaml
+    insertion_type: centered_oriented # random # spb_anchored
     draw_type: orientation
     color: 2
     num: 0 #12 #5 # 10
